@@ -66,13 +66,233 @@ extension NameRevMap[T](Collection[(str, (?str, T))]):
         return len(self.items)
 
 
+actor _Job[T](work: proc() -> T):
+    def run() -> (val: ?T, e: ?Exception):
+        # Return the exception instead of raising it: an actor that raises
+        # before its caller awaits the result prints "Unhandled exception in
+        # actor" on stderr
+        try:
+            return (val=work(), e=None)
+        except Exception as e:
+            return (val=None, e=e)
+
+
+def _run_concurrently[T](jobs: list[proc() -> T]) -> list[T]:
+    """Run each job in its own actor and return the results in job order
+
+    All jobs start at once and the runtime spreads them over its worker
+    threads. The first failed job in job order raises its exception here.
+    """
+    msgs = []
+    for job in jobs:
+        j = _Job(job)
+        msgs.append(async j.run())
+    res: list[T] = []
+    for msg in msgs:
+        r = await msg
+        e = r.e
+        if e is not None:
+            raise e
+        val = r.val
+        if val is not None:
+            res.append(val)
+    return res
+
+
+def _to_snode(stmt: yschema.Statement) -> yschema.SchemaNode:
+    """Convert a Statement tree to a Module or Submodule node and apply the
+    pre-compile transforms
+    """
+    yang_module = yschema.stmt_to_snode(stmt)
+    # Normalize schema: wrap standalone data nodes in "choice" with explicit "case"
+    transform_explicit_cases.create_explicit_cases(yang_module)
+    # Remove empty (no statements in block) refinements from the schema tree.
+    # TODO: this pre-compile transform is not required for the generic use
+    # case because applying an empty refinement is a no-op method call. It
+    # does however filter out invalid refinements (non-existant path) in
+    # Cisco IOS XE models ...  Ideally we would let the users apply any
+    # SchemaNode pre-compile transforms by splitting this function into
+    # smaller steps, like we already do with DNode
+    transform_remove_empty_refines.remove_empty_refines(yang_module)
+    # Repair known broken yang model string patterns
+    transform_repair_patterns.repair_patterns(yang_module)
+    return yang_module
+
+
+def _merge_submodules(m: yschema.Module, submodules: NameRevMap[yschema.Submodule]) -> None:
+    """Merge the submodules that m includes into m
+
+    Prefixes are remapped where needed to avoid ambiguities.
+    """
+    combined_import_prefixes: NameRevMap[str] = NameRevMap()
+    for import in m.import:
+        combined_import_prefixes.add(import.module, import.revision_date, import.prefix)
+
+    for include in m.include:
+        try:
+            submod = submodules.get(include.module, include.revision_date)
+        except KeyError:
+            raise ValueError("{m.name} - submodule {include.module} not found.")
+        else:
+            # Track all prefix remappings needed when merging submodule into parent:
+            # 1. Submodule uses different prefix for parent module (belongs-to)
+            # 2. Same module imported with different prefix in parent vs submodule
+            # 3. Different modules imported with same prefix in parent vs submodule
+            prefix_remaps: dict[str, str] = {}
+
+            # Case 1: Submodule uses different prefix for parent module
+            if submod.belongs_to.prefix != m.prefix:
+                prefix_remaps[submod.belongs_to.prefix] = m.prefix
+
+            for sub_import in submod.import:
+                try:
+                    import_prefix = combined_import_prefixes.get(sub_import.module, sub_import.revision_date)
+                except KeyError:
+                    # New import - not yet in parent
+                    prefix_to_use = sub_import.prefix
+
+                    # Case 3: Check if this prefix is already used for a different module
+                    for mod_name, (rev, pfx) in combined_import_prefixes:
+                        if pfx == sub_import.prefix and mod_name != sub_import.module:
+                            prefix_to_use = "{sub_import.prefix}-{submod.name}"
+                            prefix_remaps[sub_import.prefix] = prefix_to_use
+                            break
+
+                    combined_import_prefixes.add(sub_import.module, sub_import.revision_date, prefix_to_use)
+
+                    new_import = yschema.Import(sub_import.module,
+                                                    description=sub_import.description,
+                                                    prefix=prefix_to_use,
+                                                    reference=sub_import.reference,
+                                                    revision_date=sub_import.revision_date,
+                                                    exts=sub_import.exts,
+                                                    ns=sub_import.ns,
+                                                    parent=m)
+
+                    m.import.append(new_import)
+                else:
+                    # Case 2: Same module already imported by parent (or another submodule)
+                    if sub_import.prefix != import_prefix:
+                        # Remap to use parent's prefix for this module
+                        prefix_remaps[sub_import.prefix] = import_prefix
+                    # else: # Same module, same prefix. We're fine!
+
+            for c in submod.children:
+                # Set parent attribute for direct children only
+                c.parent = m
+
+                # Always update namespace qualifiers to parent module's values
+                c.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
+
+                # Apply all prefix remappings (parent module and imports)
+                for old_pfx, new_pfx in prefix_remaps.items():
+                    c.remap_prefix_references(old_pfx, new_pfx)
+
+                m.children.append(c)
+
+            # Update augment nodes
+            for aug in submod.augment:
+                # Set parent attribute
+                aug.parent = m
+
+                # Update the augment node's namespace qualifiers
+                aug.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
+
+                # Apply all prefix remappings to augment paths and content
+                for old_pfx, new_pfx in prefix_remaps.items():
+                    aug.target_node = yschema.remap_path_prefix(aug.target_node, old_pfx, new_pfx)
+                    aug.remap_prefix_references(old_pfx, new_pfx)
+
+            m.augment.extend(submod.augment)
+            # discard contact
+            # discard description
+
+            # Remap deviation paths if needed
+            for dev in submod.deviation:
+                remapped_dev = dev
+                for old_pfx, new_pfx in prefix_remaps.items():
+                    remapped_dev = yschema.remap_path_prefix(remapped_dev, old_pfx, new_pfx)
+                m.deviation.append(remapped_dev)
+
+            # Update extension nodes
+            for ext in submod.extension:
+                # Set parent attribute
+                ext.parent = m
+
+                # Update namespace qualifiers
+                ext.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
+
+                # Apply all prefix remappings
+                for old_pfx, new_pfx in prefix_remaps.items():
+                    ext.remap_prefix_references(old_pfx, new_pfx)
+
+            m.extension.extend(submod.extension)
+
+            # discard organization
+            # discard reference
+            # discard revision
+
+            # Update feature nodes
+            for feat in submod.feature:
+                # Set parent attribute
+                feat.parent = m
+
+                # Update namespace qualifiers
+                feat.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
+
+                # Apply all prefix remappings
+                for old_pfx, new_pfx in prefix_remaps.items():
+                    feat.remap_prefix_references(old_pfx, new_pfx)
+
+            m.feature.extend(submod.feature)
+
+            # Update extension statements
+            for ext in submod.exts:
+                # Set parent attribute
+                ext.parent = m
+
+                # Apply all prefix remappings
+                for old_pfx, new_pfx in prefix_remaps.items():
+                    ext.remap_prefix_references(old_pfx, new_pfx)
+
+            m.exts.extend(submod.exts)
+
+    m.include = []
+
+
+def _build_modules(snodes: list[yschema.SchemaNode]) -> NameRevMap[yschema.Module]:
+    """Merge each Submodule node into the Module node that includes it
+
+    Returns a name-and-revision map of Module nodes.
+    """
+    modules: NameRevMap[yschema.Module] = NameRevMap()
+    submodules: NameRevMap[yschema.Submodule] = NameRevMap()
+    for snode in snodes:
+        if isinstance(snode, yschema.Module):
+            modrev = snode.get_modrev()
+            modules.add(modrev.modname, modrev.rev, snode)
+        elif isinstance(snode, yschema.Submodule):
+            modrev = snode.get_modrev()
+            submodules.add(modrev.modname, modrev.rev, snode)
+
+    jobs: list[proc() -> None] = []
+    for _n, (_r, m) in modules:
+        jobs.append(lambda: _merge_submodules(m, submodules))
+    _run_concurrently(jobs)
+    return modules
+
+
 def parse_statements(yang_sources: list[str], strict_quoting: bool=False) -> list[yschema.Statement]:
     """Parse a list of YANG source strings into Statement trees
 
     This function takes YANG module source code as strings and parses them into
-    Statement tree representations. Each YANG source is parsed independently.
+    Statement tree representations. Each YANG source is parsed independently,
+    all of them concurrently.
     """
-    return [yparser.parse(src, strict_quoting) for src in yang_sources]
+    jobs: list[proc() -> yschema.Statement] = []
+    for src in yang_sources:
+        jobs.append(lambda: yparser.parse(src, strict_quoting))
+    return _run_concurrently(jobs)
 
 
 def parse_modules(yang_sources: Iterable[yschema.Statement]) -> NameRevMap[yschema.Module]:
@@ -84,167 +304,25 @@ def parse_modules(yang_sources: Iterable[yschema.Statement]) -> NameRevMap[ysche
 
     Returns a name-and-revision map of Module nodes.
     """
-    modules: NameRevMap[yschema.Module] = NameRevMap()
-    submodules: NameRevMap[yschema.Submodule] = NameRevMap()
+    jobs: list[proc() -> yschema.SchemaNode] = []
+    for stmt in yang_sources:
+        jobs.append(lambda: _to_snode(stmt))
+    return _build_modules(_run_concurrently(jobs))
 
-    for yang_source in yang_sources:
-        yang_module = yschema.stmt_to_snode(yang_source)
-        # Normalize schema: wrap standalone data nodes in "choice" with explicit "case"
-        transform_explicit_cases.create_explicit_cases(yang_module)
-        # Remove empty (no statements in block) refinements from the schema tree.
-        # TODO: this pre-compile transform is not required for the generic use
-        # case because applying an empty refinement is a no-op method call. It
-        # does however filter out invalid refinements (non-existant path) in
-        # Cisco IOS XE models ...  Ideally we would let the users apply any
-        # SchemaNode pre-compile transforms by splitting this function into
-        # smaller steps, like we already do with DNode
-        transform_remove_empty_refines.remove_empty_refines(yang_module)
-        # Repair known broken yang model string patterns
-        transform_repair_patterns.repair_patterns(yang_module)
-        if isinstance(yang_module, yschema.Module):
-            modrev = yang_module.get_modrev()
-            modules.add(modrev.modname, modrev.rev, yang_module)
-        elif isinstance(yang_module, yschema.Submodule):
-            modrev = yang_module.get_modrev()
-            submodules.add(modrev.modname, modrev.rev, yang_module)
 
-    # merge submodules into their main module
-    for _n, (_r, m) in modules:
-        combined_import_prefixes: NameRevMap[str] = NameRevMap()
-        for import in m.import:
-            combined_import_prefixes.add(import.module, import.revision_date, import.prefix)
+def parse_sources(yang_sources: list[str], strict_quoting: bool=False) -> NameRevMap[yschema.Module]:
+    """Parse YANG source strings into Module nodes
 
-        for include in m.include:
-            try:
-                submod = submodules.get(include.module, include.revision_date)
-            except KeyError:
-                raise ValueError("{m.name} - submodule {include.module} not found.")
-            else:
-                # Track all prefix remappings needed when merging submodule into parent:
-                # 1. Submodule uses different prefix for parent module (belongs-to)
-                # 2. Same module imported with different prefix in parent vs submodule
-                # 3. Different modules imported with same prefix in parent vs submodule
-                prefix_remaps: dict[str, str] = {}
+    Equivalent to parse_modules(parse_statements(yang_sources)), except that
+    one job takes each source all the way to its Module or Submodule node, so
+    converting a source does not wait for the other sources to be parsed.
 
-                # Case 1: Submodule uses different prefix for parent module
-                if submod.belongs_to.prefix != m.prefix:
-                    prefix_remaps[submod.belongs_to.prefix] = m.prefix
-
-                for sub_import in submod.import:
-                    try:
-                        import_prefix = combined_import_prefixes.get(sub_import.module, sub_import.revision_date)
-                    except KeyError:
-                        # New import - not yet in parent
-                        prefix_to_use = sub_import.prefix
-
-                        # Case 3: Check if this prefix is already used for a different module
-                        for mod_name, (rev, pfx) in combined_import_prefixes:
-                            if pfx == sub_import.prefix and mod_name != sub_import.module:
-                                prefix_to_use = "{sub_import.prefix}-{submod.name}"
-                                prefix_remaps[sub_import.prefix] = prefix_to_use
-                                break
-
-                        combined_import_prefixes.add(sub_import.module, sub_import.revision_date, prefix_to_use)
-
-                        new_import = yschema.Import(sub_import.module,
-                                                        description=sub_import.description,
-                                                        prefix=prefix_to_use,
-                                                        reference=sub_import.reference,
-                                                        revision_date=sub_import.revision_date,
-                                                        exts=sub_import.exts,
-                                                        ns=sub_import.ns,
-                                                        parent=m)
-
-                        m.import.append(new_import)
-                    else:
-                        # Case 2: Same module already imported by parent (or another submodule)
-                        if sub_import.prefix != import_prefix:
-                            # Remap to use parent's prefix for this module
-                            prefix_remaps[sub_import.prefix] = import_prefix
-                        # else: # Same module, same prefix. We're fine!
-
-                for c in submod.children:
-                    # Set parent attribute for direct children only
-                    c.parent = m
-
-                    # Always update namespace qualifiers to parent module's values
-                    c.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
-
-                    # Apply all prefix remappings (parent module and imports)
-                    for old_pfx, new_pfx in prefix_remaps.items():
-                        c.remap_prefix_references(old_pfx, new_pfx)
-
-                    m.children.append(c)
-
-                # Update augment nodes
-                for aug in submod.augment:
-                    # Set parent attribute
-                    aug.parent = m
-
-                    # Update the augment node's namespace qualifiers
-                    aug.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
-
-                    # Apply all prefix remappings to augment paths and content
-                    for old_pfx, new_pfx in prefix_remaps.items():
-                        aug.target_node = yschema.remap_path_prefix(aug.target_node, old_pfx, new_pfx)
-                        aug.remap_prefix_references(old_pfx, new_pfx)
-
-                m.augment.extend(submod.augment)
-                # discard contact
-                # discard description
-
-                # Remap deviation paths if needed
-                for dev in submod.deviation:
-                    remapped_dev = dev
-                    for old_pfx, new_pfx in prefix_remaps.items():
-                        remapped_dev = yschema.remap_path_prefix(remapped_dev, old_pfx, new_pfx)
-                    m.deviation.append(remapped_dev)
-
-                # Update extension nodes
-                for ext in submod.extension:
-                    # Set parent attribute
-                    ext.parent = m
-
-                    # Update namespace qualifiers
-                    ext.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
-
-                    # Apply all prefix remappings
-                    for old_pfx, new_pfx in prefix_remaps.items():
-                        ext.remap_prefix_references(old_pfx, new_pfx)
-
-                m.extension.extend(submod.extension)
-
-                # discard organization
-                # discard reference
-                # discard revision
-
-                # Update feature nodes
-                for feat in submod.feature:
-                    # Set parent attribute
-                    feat.parent = m
-
-                    # Update namespace qualifiers
-                    feat.update_namespace_qualifiers(m.namespace, m.prefix, m.name)
-
-                    # Apply all prefix remappings
-                    for old_pfx, new_pfx in prefix_remaps.items():
-                        feat.remap_prefix_references(old_pfx, new_pfx)
-
-                m.feature.extend(submod.feature)
-
-                # Update extension statements
-                for ext in submod.exts:
-                    # Set parent attribute
-                    ext.parent = m
-
-                    # Apply all prefix remappings
-                    for old_pfx, new_pfx in prefix_remaps.items():
-                        ext.remap_prefix_references(old_pfx, new_pfx)
-
-                m.exts.extend(submod.exts)
-
-        m.include = []
-    return modules
+    Returns a name-and-revision map of Module nodes.
+    """
+    jobs: list[proc() -> yschema.SchemaNode] = []
+    for src in yang_sources:
+        jobs.append(lambda: _to_snode(yparser.parse(src, strict_quoting)))
+    return _build_modules(_run_concurrently(jobs))
 
 
 def compile_modules(modules: NameRevMap[yschema.Module]) -> list[yschema.Module]:
@@ -358,6 +436,20 @@ def _save_statement_to_cache(fc: file.FileCap, cache_file: str, stmt: yschema.St
     wf.close()
 
 
+def _parse_cached(fc: file.FileCap, cache_dir: list[str], src: str, strict_quoting: bool) -> yschema.Statement:
+    """Load the Statement tree of src from the cache, or parse src and cache it"""
+    content_hash = str(wyhash.hash(0, src.encode()))
+    cache_filename = "{content_hash}.json"
+    cache_path = file.join_path(cache_dir + [cache_filename])
+
+    stmt = _load_cached_statement(fc, cache_path)
+    if stmt is not None:
+        return stmt
+    new_stmt = yparser.parse(src, strict_quoting)
+    _save_statement_to_cache(fc, cache_path, new_stmt)
+    return new_stmt
+
+
 def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.FileCap, allow_failure: ?list[str]=None) -> yschema.DRoot:
     """Parse and compile a set of YANG modules and submodules into a derived schema tree, but with Statement caching.
 
@@ -369,23 +461,11 @@ def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.Fi
     cache_dir = [fs.homedir(), ".cache", "ayang"]
     fs.mkdir(file.join_path(cache_dir))
 
-    statements: list[yschema.Statement] = []
-
+    jobs: list[proc() -> yschema.SchemaNode] = []
     for src in yang_sources:
-        content_hash = str(wyhash.hash(0, src.encode()))
-        cache_filename = "{content_hash}.json"
-        cache_path = file.join_path(cache_dir + [cache_filename])
+        jobs.append(lambda: _to_snode(_parse_cached(fc, cache_dir, src, strict_quoting)))
 
-        stmt = _load_cached_statement(fc, cache_path)
-
-        if stmt is not None:
-            statements.append(stmt)
-        else:
-            new_stmt = yparser.parse(src, strict_quoting)
-            _save_statement_to_cache(fc, cache_path, new_stmt)
-            statements.append(new_stmt)
-
-    return compile_to_droot(compile_to_dmodules(compile_modules(parse_modules(statements))), allow_failure)
+    return compile_to_droot(compile_to_dmodules(compile_modules(_build_modules(_run_concurrently(jobs)))), allow_failure)
 
 
 def compile_from_stmt(yang_statements: list[yschema.Statement]):
@@ -403,9 +483,7 @@ def compile(yang_sources: list[str], strict_quoting=True, allow_failure: ?list[s
     return compile_to_droot(
         compile_to_dmodules(
             compile_modules(
-                parse_modules(
-                    parse_statements(yang_sources, strict_quoting)
-                )
+                parse_sources(yang_sources, strict_quoting)
             )
         ), allow_failure
     )

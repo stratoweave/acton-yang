@@ -184,7 +184,7 @@ proc def cmd_compile(env, file_cap, args):
                 stage_output = "\n".join([stmt.prsrc() for stmt in stmts])
         elif stage == "schema-tree":
             # For schema tree, use partial compilation (skip type resolution)
-            modules = yang.compile_modules(yang.parse_modules(yang.parse_statements(yang_sources, strict_quoting=strict_quoting)))
+            modules = yang.compile_modules(yang.parse_sources(yang_sources, strict_quoting=strict_quoting))
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
             if want_output:
