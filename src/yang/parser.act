@@ -1,8 +1,6 @@
-import re
 import testing
 
 import yang.schema
-import yang.syntax
 
 class EOF(Exception):
     def __init__(self):
@@ -18,7 +16,7 @@ class TokenizerState(object):
     is_1_1: bool
     strict_quoting: bool
     errors: list[str]
-    
+
     def __init__(self, text: str, line_num: int=0, strict_quoting: bool=True):
         self.lines = text.splitlines(True)
         self.buf = ''
@@ -46,7 +44,7 @@ def set_buf(state: TokenizerState, i: int) -> None:
 def skip_whitespace_and_comments(state: TokenizerState) -> None:
     """Skip whitespace and comments, mutating state"""
     buflen = len(state.buf)
-    
+
     # Skip whitespace
     while True:
         state.buf = state.buf.lstrip(" \n\t")
@@ -56,7 +54,7 @@ def skip_whitespace_and_comments(state: TokenizerState) -> None:
         else:
             state.offset += (buflen - len(state.buf))
             break
-    
+
     # Skip comments
     if len(state.buf) >= 2 and state.buf[0] == '/':
         if state.buf[1] == '/':
@@ -72,31 +70,47 @@ def skip_whitespace_and_comments(state: TokenizerState) -> None:
             set_buf(state, i + 2)
             skip_whitespace_and_comments(state)
 
+def _is_identifier_start(c: str) -> bool:
+    """Return True if character can start a YANG identifier"""
+    return (c == '_') or (c.isascii() and c.isalpha())
+
+def _is_identifier_char(c: str) -> bool:
+    """Return True if character can appear after the first position in an identifier"""
+    return _is_identifier_start(c) or (c.isascii() and c.isdecimal()) or c == '.' or c == '-'
+
+def _consume_identifier(buf: str, start: int=0) -> (str, int):
+    """Consume an identifier from buf starting at start, returning (identifier, next_index)."""
+    if start >= len(buf) or not _is_identifier_start(buf[start]):
+        raise ValueError(f"illegal keyword: {buf}")
+
+    i = start + 1
+    while i < len(buf) and _is_identifier_char(buf[i]):
+        i = i + 1
+
+    return (buf[start:i], i)
+
 def parse_keyword(state: TokenizerState) -> (str, ?str):
     """Parse a keyword, returning (identifier, prefix)"""
     skip_whitespace_and_comments(state)
-    
-    m = re.match(yang.syntax.keyword, state.buf)
-    if m is not None:
-        set_buf(state, m.end_pos)
-        # Check separator
-        if (state.buf[0].isspace() or
-            (len(state.buf) >= 2 and state.buf[0] == '/' and state.buf[1] in ['/', '*']) or
-            (state.buf[0] in [';', r'{'])):
-            pass
-        else:
-            raise ValueError(f"expected separator, got: {state.buf[:6]}...")
-        
-        gident = m.group[3]
-        gprefix = m.group[2]
-        prefix = None
-        if gprefix is not None:
-            prefix = gprefix
-        if gident is not None:
-            return (gident, prefix)
-        raise ValueError("identifier or prefix is None")
-    else:
-        raise ValueError(f"illegal keyword: {state.buf}")
+    buf = state.buf
+
+    ident, idx = _consume_identifier(buf, 0)
+    prefix = None
+    if idx < len(buf) and buf[idx] == ':':
+        prefix = ident
+        ident, idx = _consume_identifier(buf, idx + 1)
+
+    set_buf(state, idx)
+
+    # Check separator
+    if len(state.buf) == 0:
+        raise ValueError("expected separator, got: EOF")
+    if (state.buf[0].isspace() or
+        (len(state.buf) >= 2 and state.buf[0] == '/' and state.buf[1] in ['/', '*']) or
+        (state.buf[0] in [';', r'{'])):
+        return (ident, prefix)
+
+    raise ValueError(f"expected separator, got: {state.buf[:6]}...")
 
 def peek_char(state: TokenizerState) -> str:
     """Peek at next character without consuming"""
@@ -113,10 +127,10 @@ def skip_char(state: TokenizerState) -> None:
 def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, str)]:
     """Parse string arguments, returning strings"""
     skip_whitespace_and_comments(state)
-    
+
     if state.buf[0] == ';' or state.buf[0] == r'{' or state.buf[0] == r'}':
         raise ValueError(f"expected argument, got: {state.buf[0]}")
-    
+
     if state.buf[0] == '"' or state.buf[0] == "'":
         # Quoted string
         quote_char = state.buf[0]
@@ -124,7 +138,7 @@ def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, s
         res = []
         indentpos = state.offset
         i = 1
-        
+
         while True:
             buflen = len(state.buf)
             start = i
@@ -134,7 +148,7 @@ def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, s
                     res.append(state.buf[start:i])
                     strs.append((''.join(res), quote_char))
                     set_buf(state, i + 1)
-                    
+
                     # Check for concatenation
                     skip_whitespace_and_comments(state)
                     if state.buf[0] == '+':
@@ -143,7 +157,7 @@ def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, s
                         nstrs = parse_strings(state, need_quote=True)
                         strs.extend(nstrs)
                     return strs
-                
+
                 elif (quote_char == '"' and
                       state.buf[i] == '\\' and i < (buflen - 1)):
                     # Handle escape sequences
@@ -160,14 +174,14 @@ def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, s
                         raise ValueError(f"illegal escape: {state.buf[i+1]}")
                     elif state.strict_quoting:
                         raise ValueError(f"illegal escape: {state.buf[i+1]}")
-                    
+
                     if special is not None:
                         res.append(state.buf[start:i])
                         res.append(special)
                         i = i + 1
                         start = i + 1
                 i = i + 1
-            
+
             # End of line in string
             if i > 2 and state.buf[i-2] == '\r':
                 j = i - 3
@@ -200,7 +214,7 @@ def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, s
                     i = 0
         # Loop continues to next line
         return []  # Should never reach here
-    
+
     elif need_quote == True:
         raise ValueError(f"expected quoted string, got: {state.buf}")
     else:
@@ -227,10 +241,10 @@ def parse_statement(state: TokenizerState, parent: ?yang.schema.Statement) -> ya
     """Parse a single statement using mutable state"""
     # Get keyword
     identifier, prefix = parse_keyword(state)
-    
+
     # Check for argument
     tok = peek_char(state)
-    
+
     if tok == r'{' or tok == ';':
         arg = None
     else:
@@ -239,33 +253,33 @@ def parse_statement(state: TokenizerState, parent: ?yang.schema.Statement) -> ya
         for a in argstrs:
             ass.append(a.0)
         arg = ''.join(ass)
-    
+
     # Check for YANG 1.1
     if identifier == 'yang-version' and arg is not None and arg == '1.1':
         state.is_1_1 = True
         state.strict_quoting = True
-    
+
     stmt = yang.schema.Statement(identifier, arg, prefix)
-    
+
     # Check for substatements
     tok = peek_char(state)
-    
+
     if tok == r'{':
         skip_char(state)  # skip '{'
-        
+
         while True:
             p = peek_char(state)
             if p == r'}':
                 break
             substmt = parse_statement(state, stmt)
             stmt.substatements.append(substmt)
-        
+
         skip_char(state)  # skip '}'
     elif tok == ';':
         skip_char(state)  # skip ';'
     else:
         raise ValueError(f"incomplete statement, expected '{{' or ';', got: {tok}")
-    
+
     return stmt
 
 def parse(text: str, strict_quoting: bool=True) -> yang.schema.Statement:
@@ -280,7 +294,7 @@ def parse(text: str, strict_quoting: bool=True) -> yang.schema.Statement:
 class Position(object):
     ref: ?str
     line: int
-    
+
     def __init__(self, ref):
         self.ref = ref
         self.line = 0
@@ -295,7 +309,7 @@ class YangTokenizer(object):
     offset: int
     is_1_1: bool
     strict_quoting: bool
-    
+
     def __init__(self, text: str, pos, errors=[], strict_quoting: bool=True):
         self.state = TokenizerState(text, strict_quoting=strict_quoting)
         self.state.errors = errors
@@ -305,7 +319,7 @@ class YangTokenizer(object):
         self.is_1_1 = False
         self.strict_quoting = False
         self._sync_properties()
-    
+
     def _sync_properties(self):
         """Sync properties from state"""
         self.buf = self.state.buf
@@ -313,26 +327,26 @@ class YangTokenizer(object):
         self.is_1_1 = self.state.is_1_1
         self.strict_quoting = self.state.strict_quoting
         self.pos.line = self.state.line_num
-    
+
     def skip(self) -> None:
         skip_whitespace_and_comments(self.state)
         self._sync_properties()
-    
+
     def get_keyword(self) -> (identifier: str, prefix: ?str):
         ident, pref = parse_keyword(self.state)
         self._sync_properties()
         return (identifier=ident, prefix=pref)
-    
+
     def get_strings(self, need_quote: bool=False) -> list[(str, str)]:
         strs = parse_strings(self.state, need_quote)
         self._sync_properties()
         return strs
-    
+
     def peek(self) -> str:
         c = peek_char(self.state)
         self._sync_properties()
         return c
-    
+
     def skip_tok(self) -> None:
         skip_char(self.state)
         self._sync_properties()
@@ -343,7 +357,7 @@ class YangParser(object):
     pos: Position
     top: yang.schema.Statement
     last_line: int
-    
+
     def __init__(self, text: str, ref=None, strict_quoting: bool=True):
         self.pos = Position(ref)
         self.last_line = 0
@@ -354,7 +368,7 @@ class YangParser(object):
             self.top = self._parse_statement(None)
         except EOF:
             raise ValueError("Unexpected end of file")
-    
+
     def _parse_statement(self, parent):
         # Use the tokenizer's internal state directly
         stmt = parse_statement(self.tokenizer.state, parent)
