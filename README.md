@@ -1,5 +1,5 @@
 # Acton YANG
-[![REUSE Compliance Check](https://github.com/orchestron-orchestrator/acton-yang/actions/workflows/reuse-compliance.yml/badge.svg)](https://github.com/orchestron-orchestrator/acton-yang/actions/workflows/reuse-compliance.yml)
+[![REUSE Compliance Check](https://github.com/stratoweave/acton-yang/actions/workflows/reuse-compliance.yml/badge.svg)](https://github.com/stratoweave/acton-yang/actions/workflows/reuse-compliance.yml)
 
 The schema.act module, which implements the core of the YANG schema in, is
 generated from the YANG RFC 7950 by rfcgen.act. The output is concatenated with
