@@ -1,3 +1,3 @@
 [submodule "test/test_yang_compile/test-yang"]
 	path = test/test_yang_compile/test-yang
-	url = git@github.com:orchestron-orchestrator/test-yang.git
+	url = git@github.com:stratoweave/test-yang.git
