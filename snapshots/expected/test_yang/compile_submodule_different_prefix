@@ -50,7 +50,7 @@ SRC_DNODE = DRoot(
 NS_main_module = 'http://example.com/main'
 
 
-_breaker = 1
+_breaker1 = None
 class main_module__main_container__sub_group_container(yang.adata.MNode):
     sub_group_leaf: str
 
@@ -77,7 +77,7 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
         return main_module__main_container__sub_group_container.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker2 = None
 class main_module__main_container__sub_list_entry(yang.adata.MNode):
     name: str
     sub_value: ?str
@@ -109,7 +109,7 @@ class main_module__main_container__sub_list_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return main_module__main_container__sub_list_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker3 = None
 class main_module__main_container__sub_list(yang.adata.MNode):
     elements: list[main_module__main_container__sub_list_entry]
     mut def __init__(self, elements=[]):
@@ -154,7 +154,7 @@ extension main_module__main_container__sub_list(Iterable[main_module__main_conta
     def __iter__(self) -> Iterator[main_module__main_container__sub_list_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker4 = None
 class main_module__main_container__group_container(yang.adata.MNode):
     group_leaf: str
     augmented_in_group: ?str
@@ -185,7 +185,7 @@ class main_module__main_container__group_container(yang.adata.MNode):
         return main_module__main_container__group_container.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker5 = None
 class main_module__main_container(yang.adata.MNode):
     main_leaf: ?str
     sub_group_container: main_module__main_container__sub_group_container
@@ -228,7 +228,7 @@ class main_module__main_container(yang.adata.MNode):
         return main_module__main_container.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker6 = None
 class root(yang.adata.MNode):
     main_container: main_module__main_container
 

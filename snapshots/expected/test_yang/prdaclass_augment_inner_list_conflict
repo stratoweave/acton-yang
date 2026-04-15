@@ -40,7 +40,7 @@ NS_base = 'http://example.com/base'
 NS_foo = 'http://example.com/foo'
 
 
-_breaker = 1
+_breaker1 = None
 class base__c1__base_l1_entry(yang.adata.MNode):
     base_k1: str
     foo_k1: str
@@ -68,7 +68,7 @@ class base__c1__base_l1_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return base__c1__base_l1_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker2 = None
 class base__c1__base_l1(yang.adata.MNode):
     elements: list[base__c1__base_l1_entry]
     mut def __init__(self, elements=[]):
@@ -110,7 +110,7 @@ extension base__c1__base_l1(Iterable[base__c1__base_l1_entry]):
     def __iter__(self) -> Iterator[base__c1__base_l1_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker3 = None
 class base__c1__foo_l1_entry(yang.adata.MNode):
     k2: str
 
@@ -134,7 +134,7 @@ class base__c1__foo_l1_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return base__c1__foo_l1_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker4 = None
 class base__c1__foo_l1(yang.adata.MNode):
     elements: list[base__c1__foo_l1_entry]
     mut def __init__(self, elements=[]):
@@ -175,7 +175,7 @@ extension base__c1__foo_l1(Iterable[base__c1__foo_l1_entry]):
     def __iter__(self) -> Iterator[base__c1__foo_l1_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker5 = None
 class base__c1(yang.adata.MNode):
     base_l1: base__c1__base_l1
     foo_l1: base__c1__foo_l1
@@ -206,7 +206,7 @@ class base__c1(yang.adata.MNode):
         return base__c1.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker6 = None
 class root(yang.adata.MNode):
     c1: base__c1
 

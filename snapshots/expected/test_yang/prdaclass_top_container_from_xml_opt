@@ -39,7 +39,7 @@ SRC_DNODE = DRoot(
 NS_foo = 'http://example.com/foo'
 
 
-_breaker = 1
+_breaker1 = None
 class foo__c1(yang.adata.MNode):
     l1: ?str
 
@@ -66,7 +66,7 @@ class foo__c1(yang.adata.MNode):
         return foo__c1.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker2 = None
 class foo__pc1__foo(yang.adata.MNode):
     l1: ?str
 
@@ -93,7 +93,7 @@ class foo__pc1__foo(yang.adata.MNode):
         return foo__pc1__foo.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker3 = None
 class foo__pc1(yang.adata.MNode):
     foo: foo__pc1__foo
 
@@ -123,7 +123,7 @@ class foo__pc1(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc1.copy()')
 
 
-_breaker = 1
+_breaker4 = None
 class root(yang.adata.MNode):
     c1: foo__c1
     pc1: ?foo__pc1

@@ -43,7 +43,7 @@ NS_base_module = 'http://example.com/base'
 NS_consumer_module = 'http://example.com/consumer'
 
 
-_breaker = 1
+_breaker1 = None
 class base_module__network_instances__network_instance__config(yang.adata.MNode):
     name: ?str
 
@@ -70,7 +70,7 @@ class base_module__network_instances__network_instance__config(yang.adata.MNode)
         return base_module__network_instances__network_instance__config.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker2 = None
 class base_module__network_instances__network_instance_entry(yang.adata.MNode):
     name: str
     config: base_module__network_instances__network_instance__config
@@ -98,7 +98,7 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return base_module__network_instances__network_instance_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker3 = None
 class base_module__network_instances__network_instance(yang.adata.MNode):
     elements: list[base_module__network_instances__network_instance_entry]
     mut def __init__(self, elements=[]):
@@ -139,7 +139,7 @@ extension base_module__network_instances__network_instance(Iterable[base_module_
     def __iter__(self) -> Iterator[base_module__network_instances__network_instance_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker4 = None
 class base_module__network_instances(yang.adata.MNode):
     network_instance: base_module__network_instances__network_instance
 
@@ -166,7 +166,7 @@ class base_module__network_instances(yang.adata.MNode):
         return base_module__network_instances.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker5 = None
 class consumer_module__uses_typedef(yang.adata.MNode):
     ni: ?str
 
@@ -193,7 +193,7 @@ class consumer_module__uses_typedef(yang.adata.MNode):
         return consumer_module__uses_typedef.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker6 = None
 class root(yang.adata.MNode):
     network_instances: base_module__network_instances
     uses_typedef: consumer_module__uses_typedef

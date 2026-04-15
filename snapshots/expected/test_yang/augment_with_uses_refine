@@ -40,7 +40,7 @@ NS_augmenter = 'http://example.com/augmenter'
 NS_base = 'http://example.com/base'
 
 
-_breaker = 1
+_breaker1 = None
 class base__system_capabilities__per_node_capabilities_entry(yang.adata.MNode):
 
     mut def __init__(self):
@@ -58,7 +58,7 @@ class base__system_capabilities__per_node_capabilities_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return base__system_capabilities__per_node_capabilities_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker2 = None
 class base__system_capabilities__per_node_capabilities(yang.adata.MNode):
     elements: list[base__system_capabilities__per_node_capabilities_entry]
     mut def __init__(self, elements=[]):
@@ -96,7 +96,7 @@ extension base__system_capabilities__per_node_capabilities(Iterable[base__system
     def __iter__(self) -> Iterator[base__system_capabilities__per_node_capabilities_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker3 = None
 class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
     max_nodes: u64
     supported_excluded_change_type: list[str]
@@ -127,7 +127,7 @@ class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
         return base__system_capabilities__subscription_capabilities.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker4 = None
 class base__system_capabilities(yang.adata.MNode):
     per_node_capabilities: base__system_capabilities__per_node_capabilities
     subscription_capabilities: base__system_capabilities__subscription_capabilities
@@ -158,7 +158,7 @@ class base__system_capabilities(yang.adata.MNode):
         return base__system_capabilities.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker5 = None
 class root(yang.adata.MNode):
     system_capabilities: base__system_capabilities
 
