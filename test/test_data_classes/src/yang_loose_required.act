@@ -50,7 +50,7 @@ def src_yang():
 NS_loose_required = 'http://example.com/loose-required'
 
 
-_breaker = 1
+_breaker1 = None
 class loose_required__c2(yang.adata.MNode):
     l1: ?str
 
@@ -77,7 +77,7 @@ class loose_required__c2(yang.adata.MNode):
         return loose_required__c2.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker2 = None
 class root(yang.adata.MNode):
     c2: loose_required__c2
 

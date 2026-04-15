@@ -31,7 +31,7 @@ SRC_DNODE = DRoot(
 NS_foo = 'http://example.com/foo'
 
 
-_breaker = 1
+_breaker1 = None
 class root(yang.adata.MNode):
     l1: value
 

@@ -53,7 +53,7 @@ NS_bar = 'http://example.com/bar'
 NS_foo = 'http://example.com/foo'
 
 
-_breaker = 1
+_breaker1 = None
 class bar__c1__li1_entry(yang.adata.MNode):
     l1: str
     l2: ?Identityref
@@ -81,7 +81,7 @@ class bar__c1__li1_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return bar__c1__li1_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker2 = None
 class bar__c1__li1(yang.adata.MNode):
     elements: list[bar__c1__li1_entry]
     mut def __init__(self, elements=[]):
@@ -124,7 +124,7 @@ extension bar__c1__li1(Iterable[bar__c1__li1_entry]):
     def __iter__(self) -> Iterator[bar__c1__li1_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker3 = None
 class bar__c1(yang.adata.MNode):
     li1: bar__c1__li1
 
@@ -151,7 +151,7 @@ class bar__c1(yang.adata.MNode):
         return bar__c1.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker4 = None
 class root(yang.adata.MNode):
     c1: bar__c1
 

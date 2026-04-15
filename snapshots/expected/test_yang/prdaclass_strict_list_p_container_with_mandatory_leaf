@@ -36,7 +36,7 @@ SRC_DNODE = DRoot(
 NS_foo = 'http://example.com/foo'
 
 
-_breaker = 1
+_breaker1 = None
 class foo__l1__bar(yang.adata.MNode):
     hi: str
 
@@ -66,7 +66,7 @@ class foo__l1__bar(yang.adata.MNode):
         raise Exception('Unreachable in foo__l1__bar.copy()')
 
 
-_breaker = 1
+_breaker2 = None
 class foo__l1_entry(yang.adata.MNode):
     name: str
     bar: ?foo__l1__bar
@@ -103,7 +103,7 @@ class foo__l1_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__l1_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker3 = None
 class foo__l1(yang.adata.MNode):
     elements: list[foo__l1_entry]
     mut def __init__(self, elements=[]):

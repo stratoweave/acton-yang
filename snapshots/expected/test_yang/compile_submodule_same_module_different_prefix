@@ -40,7 +40,7 @@ NS_parent = 'http://example.com/parent'
 NS_shared = 'http://example.com/shared'
 
 
-_breaker = 1
+_breaker1 = None
 class parent__parent_container(yang.adata.MNode):
     parent_leaf: ?str
     augmented_leaf: ?str
@@ -71,7 +71,7 @@ class parent__parent_container(yang.adata.MNode):
         return parent__parent_container.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker2 = None
 class parent__sub_container(yang.adata.MNode):
     sub_leaf: ?str
     shared_leaf: str
@@ -102,7 +102,7 @@ class parent__sub_container(yang.adata.MNode):
         return parent__sub_container.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker3 = None
 class root(yang.adata.MNode):
     parent_container: parent__parent_container
     sub_container: parent__sub_container

@@ -388,7 +388,7 @@ class DNode(object):
 
         raise ValueError("Unable to get child from non-inner node")
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False) -> list[str]:
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, breaker_idx: int=0) -> (list[str], int):
         """Print the data class for this schema node
         """
         raise NotImplementedError('DNode pdc: {type(self)} - {get_path(spath)}')
@@ -511,13 +511,16 @@ class DNode(object):
 class DNodeInner(DNode):
     children: list[DNode]
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False) -> list[str]:
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, breaker_idx: int=0) -> (list[str], int):
         """Print the data class for this schema node
         """
         def path_with_child(c):
             return spath + [c]
 
         res = []
+
+        def next_breaker_name(i: int) -> (str, int):
+            return ("_breaker{i + 1}", i + 1)
 
         # Reorder children so that positional arguments, like list keys, come first
         new_children = []
@@ -567,17 +570,20 @@ class DNodeInner(DNode):
         for child in self.children:
             if isinstance(child, DNodeLeaf):
                 continue
-            res.extend(child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state))
+            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, breaker_idx=breaker_idx)
+            res.extend(child_res)
 
         if isinstance(self, DList):
             # List has special handling as it actually results in two classes:
             # - the list itself
             # - the list entry class
             # Here we create the list entry class, the list itself comes later
-            res.append("_breaker = 1")
+            breaker_name, breaker_idx = next_breaker_name(breaker_idx)
+            res.append("{breaker_name} = None")
             res.append("class {pname()}_entry(yang.adata.MNode):")
         else:
-            res.append("_breaker = 1")
+            breaker_name, breaker_idx = next_breaker_name(breaker_idx)
+            res.append("{breaker_name} = None")
             res.append("class {pname()}(yang.adata.MNode):")
 
         for child in self.children:
@@ -770,7 +776,8 @@ class DNodeInner(DNode):
             # - the list itself
             # - the list entry class
             # Here we create the list class, list entry class was created above
-            res.append("_breaker = 1")
+            breaker_name, breaker_idx = next_breaker_name(breaker_idx)
+            res.append("{breaker_name} = None")
             res.append("class {pname()}(yang.adata.MNode):")
             res.append("    elements: list[{pname()}_entry]")
 
@@ -889,7 +896,7 @@ class DNodeInner(DNode):
                 # - set_ns: from DRpc (=True)
                 # - include_state=True
                 for child in rpc.children:
-                    child_class_src = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True)
+                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, breaker_idx=breaker_idx)
                     res.extend(child_class_src)
 
             # TODO: unique safe name for RPC function!
@@ -945,7 +952,7 @@ class DNodeInner(DNode):
             res.append("")
             res.append("")
 
-        return res
+        return (res, breaker_idx)
 
     def resolve_references(self, root: DRoot, spath: list[DNode], allow_failure: ?list[str]):
         for child in self.children:
@@ -1695,7 +1702,7 @@ class DRoot(DNodeInner):
         # the SRC_DNODE constant to have the same view of the schema as the
         # adata code generator ...
         spath = build_spath([self])
-        inner = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state)
+        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state)
 
         res = []
         res.append("import base64")

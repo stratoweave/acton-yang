@@ -50,7 +50,7 @@ SRC_DNODE = DRoot(
 NS_yangrpc = 'http://example.com/yangrpc'
 
 
-_breaker = 1
+_breaker1 = None
 class root(yang.adata.MNode):
 
     mut def __init__(self):
@@ -71,7 +71,7 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker2 = None
 class yangrpc__foo__input__woo(yang.adata.MNode):
     woo_b: ?int
 
@@ -98,7 +98,7 @@ class yangrpc__foo__input__woo(yang.adata.MNode):
         return yangrpc__foo__input__woo.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker3 = None
 class yangrpc__foo__input(yang.adata.MNode):
     a: ?str
     woo: yangrpc__foo__input__woo
@@ -129,7 +129,7 @@ class yangrpc__foo__input(yang.adata.MNode):
         return yangrpc__foo__input.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker4 = None
 class yangrpc__foo__output(yang.adata.MNode):
     outoo: ?str
 

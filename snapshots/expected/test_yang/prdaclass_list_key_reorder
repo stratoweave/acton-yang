@@ -34,7 +34,7 @@ SRC_DNODE = DRoot(
 NS_foo = 'http://example.com/foo'
 
 
-_breaker = 1
+_breaker1 = None
 class foo__l1_entry(yang.adata.MNode):
     name: str
     id: ?str
@@ -62,7 +62,7 @@ class foo__l1_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__l1_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker2 = None
 class foo__l1(yang.adata.MNode):
     elements: list[foo__l1_entry]
     mut def __init__(self, elements=[]):

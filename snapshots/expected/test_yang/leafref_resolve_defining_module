@@ -49,7 +49,7 @@ NS_base_module = 'http://example.com/base'
 NS_other_module = 'http://example.com/other'
 
 
-_breaker = 1
+_breaker1 = None
 class other_module__other_network_instances__network_instance_entry(yang.adata.MNode):
     name: str
 
@@ -73,7 +73,7 @@ class other_module__other_network_instances__network_instance_entry(yang.adata.M
         """Create a deep copy of this adata object"""
         return other_module__other_network_instances__network_instance_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker2 = None
 class other_module__other_network_instances__network_instance(yang.adata.MNode):
     elements: list[other_module__other_network_instances__network_instance_entry]
     mut def __init__(self, elements=[]):
@@ -114,7 +114,7 @@ extension other_module__other_network_instances__network_instance(Iterable[other
     def __iter__(self) -> Iterator[other_module__other_network_instances__network_instance_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker3 = None
 class other_module__other_network_instances(yang.adata.MNode):
     network_instance: other_module__other_network_instances__network_instance
 
@@ -141,7 +141,7 @@ class other_module__other_network_instances(yang.adata.MNode):
         return other_module__other_network_instances.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker4 = None
 class base_module__base_network_instances__network_instance__config(yang.adata.MNode):
     name: ?str
 
@@ -168,7 +168,7 @@ class base_module__base_network_instances__network_instance__config(yang.adata.M
         return base_module__base_network_instances__network_instance__config.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker5 = None
 class base_module__base_network_instances__network_instance_entry(yang.adata.MNode):
     name: str
     config: base_module__base_network_instances__network_instance__config
@@ -196,7 +196,7 @@ class base_module__base_network_instances__network_instance_entry(yang.adata.MNo
         """Create a deep copy of this adata object"""
         return base_module__base_network_instances__network_instance_entry.from_gdata(self.to_gdata())
 
-_breaker = 1
+_breaker6 = None
 class base_module__base_network_instances__network_instance(yang.adata.MNode):
     elements: list[base_module__base_network_instances__network_instance_entry]
     mut def __init__(self, elements=[]):
@@ -237,7 +237,7 @@ extension base_module__base_network_instances__network_instance(Iterable[base_mo
     def __iter__(self) -> Iterator[base_module__base_network_instances__network_instance_entry]:
         return self.elements.__iter__()
 
-_breaker = 1
+_breaker7 = None
 class base_module__base_network_instances(yang.adata.MNode):
     network_instance: base_module__base_network_instances__network_instance
 
@@ -264,7 +264,7 @@ class base_module__base_network_instances(yang.adata.MNode):
         return base_module__base_network_instances.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker8 = None
 class base_module__uses_leafref(yang.adata.MNode):
     ni: ?str
 
@@ -291,7 +291,7 @@ class base_module__uses_leafref(yang.adata.MNode):
         return base_module__uses_leafref.from_gdata(self.to_gdata())
 
 
-_breaker = 1
+_breaker9 = None
 class root(yang.adata.MNode):
     other_network_instances: other_module__other_network_instances
     base_network_instances: base_module__base_network_instances

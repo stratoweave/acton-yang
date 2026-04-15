@@ -36,7 +36,7 @@ NS_base = 'http://example.com/base'
 NS_foo = 'http://example.com/foo'
 
 
-_breaker = 1
+_breaker1 = None
 class base__c1(yang.adata.MNode):
     bar_foo: ?str
     foo_foo: ?str

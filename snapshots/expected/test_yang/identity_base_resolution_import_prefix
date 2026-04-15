@@ -66,7 +66,7 @@ NS_base_module = 'http://example.com/base'
 NS_derived_module = 'http://example.com/derived'
 
 
-_breaker = 1
+_breaker1 = None
 class root(yang.adata.MNode):
 
     mut def __init__(self):
