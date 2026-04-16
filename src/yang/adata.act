@@ -1,13 +1,11 @@
+"""Base classes for YANG-modeled data classes (MData)
+"""
 
 import yang.schema
 import yang.gdata
 from yang.data import from_data, YangData, PathElement, YangValidationError
 from yang.data import coerce_integer_value, unwrap_key
 from yang.data import OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE
-
-
-"""Base classes for YANG-modeled data classes (MData)
-"""
 
 class MNode(object):
     _ns: str

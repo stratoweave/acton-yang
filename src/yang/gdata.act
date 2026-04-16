@@ -1,3 +1,9 @@
+"""YANG data
+
+This module defines classes for YANG data nodes. It can represent a YANG data
+tree, and can be used to serialize and deserialize YANG data.
+"""
+
 import base64
 import testing
 import json
@@ -5,12 +11,6 @@ import xml
 
 from yang.identityref import Identityref, PartialIdentityref
 from yang.type import Decimal
-
-"""YANG data
-
-This module defines classes for YANG data nodes. It can represent a YANG data
-tree, and can be used to serialize and deserialize YANG data.
-"""
 
 # kinds of things?
 # - container
