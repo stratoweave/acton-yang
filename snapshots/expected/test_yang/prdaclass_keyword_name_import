@@ -64,7 +64,6 @@ class foo__c1(yang.adata.MNode):
             return self.in_
         if name == 'with_':
             return self.with_
-        raise ValueError('Attribute {name} not found in foo__c1')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])

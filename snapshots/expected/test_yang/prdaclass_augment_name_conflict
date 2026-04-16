@@ -51,7 +51,6 @@ class base__c1(yang.adata.MNode):
             return self.bar_foo
         if name == 'foo_foo':
             return self.foo_foo
-        raise ValueError('Attribute {name} not found in base__c1')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:c1'])

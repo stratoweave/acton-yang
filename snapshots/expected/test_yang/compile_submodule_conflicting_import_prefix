@@ -56,7 +56,6 @@ class parent__parent_container(yang.adata.MNode):
             return self.parent_leaf
         if name == 'augmented_leaf':
             return self.augmented_leaf
-        raise ValueError('Attribute {name} not found in parent__parent_container')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:parent-container'])
@@ -87,7 +86,6 @@ class parent__sub_container(yang.adata.MNode):
             return self.sub_leaf
         if name == 'another_leaf':
             return self.another_leaf
-        raise ValueError('Attribute {name} not found in parent__sub_container')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:sub-container'])
@@ -118,7 +116,6 @@ class root(yang.adata.MNode):
             return self.parent_container
         if name == 'sub_container':
             return self.sub_container
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

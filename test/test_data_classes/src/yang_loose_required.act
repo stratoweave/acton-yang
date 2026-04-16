@@ -61,7 +61,6 @@ class loose_required__c2(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
-        raise ValueError('Attribute {name} not found in loose_required__c2')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['loose-required:c2'])
@@ -88,7 +87,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'c2':
             return self.c2
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=True)

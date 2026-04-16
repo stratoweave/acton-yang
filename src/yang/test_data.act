@@ -252,7 +252,7 @@ class _test_leafref_c(yang.adata.MNode):
             return self.ref
         if name == "refs":
             return self.refs
-        raise ValueError("Attribute {name} not found in _test_leafref_c")
+        return None
 
     mut def to_gdata(self) -> yang.gdata.Node:
         raise NotImplementedError("to_gdata")
@@ -271,7 +271,7 @@ class _test_leafref_root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == "c":
             return self.c
-        raise ValueError("Attribute {name} not found in _test_leafref_root")
+        return None
 
     mut def to_gdata(self) -> yang.gdata.Node:
         raise NotImplementedError("to_gdata")

@@ -57,7 +57,6 @@ class foo__foo__bar(yang.adata.MNode):
             return self.bar_l1
         if name == 'l2':
             return self.l2
-        raise ValueError('Attribute {name} not found in foo__foo__bar')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:foo', 'bar'])
@@ -98,7 +97,6 @@ class foo__foo(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'bar':
             return self.bar
-        raise ValueError('Attribute {name} not found in foo__foo')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:foo'])
@@ -136,7 +134,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

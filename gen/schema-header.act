@@ -723,7 +723,6 @@ class DNodeInner(DNode):
                     res.append("            return iter(self.{usname(child)})")
                 else:
                     res.append("            return self.{usname(child)}")
-            res.append("        raise ValueError('Attribute {{name}} not found in {pname()}')")
             res.append("")
 
         # .to_gdata()
