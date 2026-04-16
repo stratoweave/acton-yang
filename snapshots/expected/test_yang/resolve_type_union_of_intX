@@ -60,7 +60,6 @@ class root(yang.adata.MNode):
             return self.l3
         if name == 'l4':
             return self.l4
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

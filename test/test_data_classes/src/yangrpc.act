@@ -104,7 +104,6 @@ class yangrpc__foo__input__woo(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'woo_b':
             return self.woo_b
-        raise ValueError('Attribute {name} not found in yangrpc__foo__input__woo')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input', 'woo'])
@@ -135,7 +134,6 @@ class yangrpc__foo__input(yang.adata.MNode):
             return self.a
         if name == 'woo':
             return self.woo
-        raise ValueError('Attribute {name} not found in yangrpc__foo__input')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input'])
@@ -162,7 +160,6 @@ class yangrpc__foo__output(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'outoo':
             return self.outoo
-        raise ValueError('Attribute {name} not found in yangrpc__foo__output')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'output'])

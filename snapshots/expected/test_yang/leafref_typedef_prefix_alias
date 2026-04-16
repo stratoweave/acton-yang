@@ -54,7 +54,6 @@ class base_module__network_instances__network_instance__config(yang.adata.MNode)
     def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
-        raise ValueError('Attribute {name} not found in base_module__network_instances__network_instance__config')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance', 'config'])
@@ -85,7 +84,6 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
             return self.name
         if name == 'config':
             return self.config
-        raise ValueError('Attribute {name} not found in base_module__network_instances__network_instance')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance'])
@@ -150,7 +148,6 @@ class base_module__network_instances(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'network_instance':
             return iter(self.network_instance)
-        raise ValueError('Attribute {name} not found in base_module__network_instances')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances'])
@@ -177,7 +174,6 @@ class consumer_module__uses_typedef(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'ni':
             return self.ni
-        raise ValueError('Attribute {name} not found in consumer_module__uses_typedef')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['consumer-module:uses-typedef'])
@@ -208,7 +204,6 @@ class root(yang.adata.MNode):
             return self.network_instances
         if name == 'uses_typedef':
             return self.uses_typedef
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

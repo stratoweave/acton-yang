@@ -59,7 +59,6 @@ class base__native__voice__service__voip__sip(yang.adata.MNode):
             return self.bind
         if name == 'port':
             return self.port
-        raise ValueError('Attribute {name} not found in base__native__voice__service__voip__sip')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip', 'sip'])
@@ -90,7 +89,6 @@ class base__native__voice__service__voip(yang.adata.MNode):
             return self.enabled
         if name == 'sip':
             return self.sip
-        raise ValueError('Attribute {name} not found in base__native__voice__service__voip')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip'])
@@ -117,7 +115,6 @@ class base__native__voice__service(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'voip':
             return self.voip
-        raise ValueError('Attribute {name} not found in base__native__voice__service')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service'])
@@ -144,7 +141,6 @@ class base__native__voice(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'service':
             return self.service
-        raise ValueError('Attribute {name} not found in base__native__voice')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice'])
@@ -171,7 +167,6 @@ class base__native(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'voice':
             return self.voice
-        raise ValueError('Attribute {name} not found in base__native')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native'])
@@ -198,7 +193,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'native':
             return self.native
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

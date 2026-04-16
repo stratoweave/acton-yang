@@ -49,7 +49,6 @@ class foo__l1_entry(yang.adata.MNode):
             return self.name
         if name == 'id':
             return self.id
-        raise ValueError('Attribute {name} not found in foo__l1')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])

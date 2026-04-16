@@ -111,7 +111,6 @@ class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
             return self.max_nodes
         if name == 'supported_excluded_change_type':
             return self.supported_excluded_change_type
-        raise ValueError('Attribute {name} not found in base__system_capabilities__subscription_capabilities')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities', 'augmenter:subscription-capabilities'])
@@ -142,7 +141,6 @@ class base__system_capabilities(yang.adata.MNode):
             return iter(self.per_node_capabilities)
         if name == 'subscription_capabilities':
             return self.subscription_capabilities
-        raise ValueError('Attribute {name} not found in base__system_capabilities')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities'])
@@ -169,7 +167,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'system_capabilities':
             return self.system_capabilities
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

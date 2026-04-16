@@ -60,7 +60,6 @@ class other_module__other_network_instances__network_instance_entry(yang.adata.M
     def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
-        raise ValueError('Attribute {name} not found in other_module__other_network_instances__network_instance')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['other-module:network-instances', 'network-instance'])
@@ -125,7 +124,6 @@ class other_module__other_network_instances(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'network_instance':
             return iter(self.network_instance)
-        raise ValueError('Attribute {name} not found in other_module__other_network_instances')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['other-module:network-instances'])
@@ -152,7 +150,6 @@ class base_module__base_network_instances__network_instance__config(yang.adata.M
     def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
-        raise ValueError('Attribute {name} not found in base_module__base_network_instances__network_instance__config')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance', 'config'])
@@ -183,7 +180,6 @@ class base_module__base_network_instances__network_instance_entry(yang.adata.MNo
             return self.name
         if name == 'config':
             return self.config
-        raise ValueError('Attribute {name} not found in base_module__base_network_instances__network_instance')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance'])
@@ -248,7 +244,6 @@ class base_module__base_network_instances(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'network_instance':
             return iter(self.network_instance)
-        raise ValueError('Attribute {name} not found in base_module__base_network_instances')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances'])
@@ -275,7 +270,6 @@ class base_module__uses_leafref(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'ni':
             return self.ni
-        raise ValueError('Attribute {name} not found in base_module__uses_leafref')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:uses-leafref'])
@@ -310,7 +304,6 @@ class root(yang.adata.MNode):
             return self.base_network_instances
         if name == 'uses_leafref':
             return self.uses_leafref
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

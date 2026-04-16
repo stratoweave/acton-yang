@@ -61,7 +61,6 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'sub_group_leaf':
             return self.sub_group_leaf
-        raise ValueError('Attribute {name} not found in main_module__main_container__sub_group_container')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-group-container'])
@@ -96,7 +95,6 @@ class main_module__main_container__sub_list_entry(yang.adata.MNode):
             return self.sub_value
         if name == 'ref_to_main':
             return self.ref_to_main
-        raise ValueError('Attribute {name} not found in main_module__main_container__sub_list')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-list'])
@@ -169,7 +167,6 @@ class main_module__main_container__group_container(yang.adata.MNode):
             return self.group_leaf
         if name == 'augmented_in_group':
             return self.augmented_in_group
-        raise ValueError('Attribute {name} not found in main_module__main_container__group_container')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'group-container'])
@@ -212,7 +209,6 @@ class main_module__main_container(yang.adata.MNode):
             return iter(self.sub_list)
         if name == 'group_container':
             return self.group_container
-        raise ValueError('Attribute {name} not found in main_module__main_container')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container'])
@@ -239,7 +235,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'main_container':
             return self.main_container
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

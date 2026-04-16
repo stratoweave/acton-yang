@@ -197,7 +197,6 @@ class basics__c(yang.adata.MNode):
             return self.l_binary_def
         if name == 'l_identityref_def':
             return self.l_identityref_def
-        raise ValueError('Attribute {name} not found in basics__c')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['basics:c'])
@@ -224,7 +223,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'c':
             return self.c
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

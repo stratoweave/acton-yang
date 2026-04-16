@@ -140,7 +140,6 @@ class foo__tc1(yang.adata.MNode):
             return self.l1
         if name == 'l2':
             return self.l2
-        raise ValueError('Attribute {name} not found in foo__tc1')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:tc1'])
@@ -171,7 +170,6 @@ class foo__li__c1(yang.adata.MNode):
             return self.l1
         if name == 'l2':
             return self.l2
-        raise ValueError('Attribute {name} not found in foo__li__c1')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:li', 'c1'])
@@ -202,7 +200,6 @@ class foo__li_entry(yang.adata.MNode):
             return self.name
         if name == 'c1':
             return self.c1
-        raise ValueError('Attribute {name} not found in foo__li')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:li'])
@@ -272,7 +269,6 @@ class root(yang.adata.MNode):
             return self.tc1
         if name == 'li':
             return iter(self.li)
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

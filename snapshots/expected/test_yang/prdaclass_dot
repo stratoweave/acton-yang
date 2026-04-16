@@ -44,7 +44,6 @@ class foo__ieee_802_3(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'ieee_802_3':
             return self.ieee_802_3
-        raise ValueError('Attribute {name} not found in foo__ieee_802_3')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:ieee-802.3'])
@@ -71,7 +70,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'ieee_802_3':
             return self.ieee_802_3
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)

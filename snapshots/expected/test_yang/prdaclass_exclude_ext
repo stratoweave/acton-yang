@@ -49,7 +49,6 @@ class foo__c1__dynstate(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'ds1':
             return self.ds1
-        raise ValueError('Attribute {name} not found in foo__c1__dynstate')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1', 'dynstate'])
@@ -76,7 +75,6 @@ class foo__c1(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
-        raise ValueError('Attribute {name} not found in foo__c1')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
@@ -103,7 +101,6 @@ class root(yang.adata.MNode):
     def _get_attr(self, name: str) -> ?value:
         if name == 'c1':
             return self.c1
-        raise ValueError('Attribute {name} not found in root')
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)
