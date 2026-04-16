@@ -2691,6 +2691,30 @@ def _test_prdaclass_rpc():
     src = root.prdaclass()
     return src
 
+def _test_prdaclass_exclude_ext():
+    ys = r"""module foo {
+    yang-version "1.1";
+    namespace "http://example.com/foo";
+    prefix "foo";
+    extension dynstate {
+        description "marks a dynamic state container";
+    }
+    container c1 {
+        leaf l1 {
+            type string;
+        }
+        container dynstate {
+            foo:dynstate;
+            leaf ds1 {
+                type string;
+            }
+        }
+    }
+}"""
+    root = yang.compile([ys])
+    src = root.prdaclass(exclude_ext=[(name="dynstate", namespace="http://example.com/foo")])
+    return src
+
 def _test_identityref():
     # Base module with base identity and a leaf that references it
     ys_base = r"""module base {

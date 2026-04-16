@@ -388,7 +388,7 @@ class DNode(object):
 
         raise ValueError("Unable to get child from non-inner node")
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, breaker_idx: int=0) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0) -> (list[str], int):
         """Print the data class for this schema node
         """
         raise NotImplementedError('DNode pdc: {type(self)} - {get_path(spath)}')
@@ -511,7 +511,7 @@ class DNode(object):
 class DNodeInner(DNode):
     children: list[DNode]
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, breaker_idx: int=0) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0) -> (list[str], int):
         """Print the data class for this schema node
         """
         def path_with_child(c):
@@ -570,8 +570,16 @@ class DNodeInner(DNode):
         for child in self.children:
             if isinstance(child, DNodeLeaf):
                 continue
-            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, breaker_idx=breaker_idx)
+            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, exclude_ext=exclude_ext, breaker_idx=breaker_idx)
             res.extend(child_res)
+
+        def excluded(n):
+            for eext in exclude_ext:
+                for next in n.exts:
+                    if next.name == eext.name and next.namespace == eext.namespace:
+                        return True
+            return False
+        attr_children = [c for c in self.children if not excluded(c)]
 
         if isinstance(self, DList):
             # List has special handling as it actually results in two classes:
@@ -586,7 +594,7 @@ class DNodeInner(DNode):
             res.append("{breaker_name} = None")
             res.append("class {pname()}(yang.adata.MNode):")
 
-        for child in self.children:
+        for child in attr_children:
             if isinstance(child, DLeaf):
                 res.append("    {usname(child)}: {yang_leaf_to_acton_type(child, list_keys(self), loose)}")
             elif isinstance(child, DLeafList):
@@ -615,7 +623,7 @@ class DNodeInner(DNode):
         res.append("")
         req_args = []
         opt_args = []
-        for child in self.children:
+        for child in attr_children:
             if isinstance(child, DContainer):
                 if loose or child.presence or optional_subtree(child):
                     opt_args.append("{usname(child)}: ?{pname(child)}=None")
@@ -641,7 +649,7 @@ class DNodeInner(DNode):
         # Set namespace from us
         res.append("        self._ns = '{self.namespace}'")
 
-        for child in self.children:
+        for child in attr_children:
             if isinstance(child, DContainer):
                 if (loose or optional_subtree(child)) and not child.presence:
                     res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {pname(child)}()")
@@ -668,14 +676,14 @@ class DNodeInner(DNode):
                 res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else []")
             elif isinstance(child, DList):
                 res.append("        self.{usname(child)} = {pname(child)}(elements={usname(child)})")
-        if len(self.children) == 0:
+        if len(attr_children) == 0:
             res.append("        pass")
         res.append("")
 
         # Handle all P-container children, we want a .create_XXX() method
         # for each that takes as arguments the mandatory children of the
         # container
-        for child in self.children:
+        for child in attr_children:
             if isinstance(child, DContainer) and child.presence:
                 # We must generate unique safe names for this node children too
                 child_unique_namer = UniqueNamer(child)
@@ -707,9 +715,9 @@ class DNodeInner(DNode):
                 res.append("        return res")
                 res.append("")
 
-        if len(self.children) > 0:
+        if len(attr_children) > 0:
             res.append("    def _get_attr(self, name: str) -> ?value:")
-            for child in self.children:
+            for child in attr_children:
                 res.append("        if name == '{usname(child)}':")
                 if isinstance(child, DList):
                     res.append("            return iter(self.{usname(child)})")
@@ -730,7 +738,7 @@ class DNodeInner(DNode):
         # .from_gdata()
         # TODO: should .from_gdata() not take a specific data node instead, like Container instead of yang.gdata.Node?
         from_gdata_args_list = []
-        for child in self.children:
+        for child in attr_children:
             if isinstance(child, DNodeLeaf):
                 from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, list_keys(self), loose=loose)}(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
             else:
@@ -798,7 +806,7 @@ class DNodeInner(DNode):
             list_args_req = []
             list_args_opt = []
             list_key_types = {}
-            for child in self.children:
+            for child in attr_children:
                 if isinstance(child, DLeaf):
                     if usname(child) in list_key_args:
                         list_key_types[usname(child)] = child.type_
@@ -896,7 +904,7 @@ class DNodeInner(DNode):
                 # - set_ns: from DRpc (=True)
                 # - include_state=True
                 for child in rpc.children:
-                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, breaker_idx=breaker_idx)
+                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, exclude_ext=exclude_ext, breaker_idx=breaker_idx)
                     res.extend(child_class_src)
 
             # TODO: unique safe name for RPC function!
@@ -1685,7 +1693,7 @@ class DRoot(DNodeInner):
             ("module_metadata", self.module_metadata),
         ]
 
-    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[]) -> str:
+    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[]) -> str:
         def build_spath(spath: list[DNode]):
             if len(root_path) == len(spath) - 1:
                 return spath
@@ -1702,7 +1710,7 @@ class DRoot(DNodeInner):
         # the SRC_DNODE constant to have the same view of the schema as the
         # adata code generator ...
         spath = build_spath([self])
-        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state)
+        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, exclude_ext=exclude_ext)
 
         res = []
         res.append("import base64")

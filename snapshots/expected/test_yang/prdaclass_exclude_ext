@@ -1,0 +1,124 @@
+import base64
+import json
+import xml
+import yang
+import yang.adata
+import yang.gdata
+import yang.xml
+import yang.xpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0 = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='dynstate', config=True, presence=False, exts=[
+            DExt(module='foo', namespace='http://example.com/foo', prefix='foo', name='dynstate', arg=None, exts=[])
+        ], children=[
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='ds1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    ])
+])
+
+SRC_DNODE = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[],
+    rpcs=[],
+    module_metadata={'http://example.com/foo':('foo', None)},
+)
+
+NS_foo = 'http://example.com/foo'
+
+
+_breaker1 = None
+class foo__c1__dynstate(yang.adata.MNode):
+    ds1: ?str
+
+    mut def __init__(self, ds1: ?str):
+        self._ns = 'http://example.com/foo'
+        self.ds1 = ds1
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'ds1':
+            return self.ds1
+        raise ValueError('Attribute {name} not found in foo__c1__dynstate')
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1', 'dynstate'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> foo__c1__dynstate:
+        if n is not None:
+            return foo__c1__dynstate(ds1=n.get_opt_str(yang.gdata.Id(NS_foo, 'ds1')))
+        return foo__c1__dynstate()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return foo__c1__dynstate.from_gdata(self.to_gdata())
+
+
+_breaker2 = None
+class foo__c1(yang.adata.MNode):
+    l1: ?str
+
+    mut def __init__(self, l1: ?str):
+        self._ns = 'http://example.com/foo'
+        self.l1 = l1
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'l1':
+            return self.l1
+        raise ValueError('Attribute {name} not found in foo__c1')
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> foo__c1:
+        if n is not None:
+            return foo__c1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
+        return foo__c1()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return foo__c1.from_gdata(self.to_gdata())
+
+
+_breaker3 = None
+class root(yang.adata.MNode):
+    c1: foo__c1
+
+    mut def __init__(self, c1: ?foo__c1=None):
+        self._ns = ''
+        self.c1 = c1 if c1 is not None else foo__c1()
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'c1':
+            return self.c1
+        raise ValueError('Attribute {name} not found in root')
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+        if n is not None:
+            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
+        return root()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: yang.gdata.TreeProvider):
+    pass
+
