@@ -1,8 +1,3 @@
-import file
-import re
-
-import rfc
-
 """This module generates the source code for the Acton YANG module that in turn
 can be used to parse YANG modules and represent YANG schemas as Acton classes
 and objects.
@@ -12,6 +7,12 @@ source code of itself and the code that prints source code is in turn generated
 by the code in this module. Have a decent amount of coffee before attempting to
 work on this.
 """
+
+import file
+import re
+
+import rfc
+
 
 child_stmts = {
     "action",

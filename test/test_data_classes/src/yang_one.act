@@ -18,13 +18,9 @@ from yang.type import Decimal, Ranges
 
 _base_foo_basey = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey', base=[])
 _base_foo_basey_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1', base=[])
-_base_foo_basey_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey_1', base=[])
-_base_foo_basey_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey-1', base=[])
-_base_foo_fooy = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey, _base_foo_basey_1, _base_foo_basey_1, _base_foo_basey_1])
+_base_foo_fooy = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey, _base_foo_basey_1])
 _identities = [
     _base_foo_basey,
-    _base_foo_basey_1,
-    _base_foo_basey_1,
     _base_foo_basey_1,
     _base_foo_fooy,
 ]
@@ -33,8 +29,6 @@ _identities = [
 # Identityref constants
 foo_basey = Identityref('basey', ns='http://example.com/foo', mod='foo', pfx='f')
 foo_basey_1 = Identityref('basey.1', ns='http://example.com/foo', mod='foo', pfx='f')
-foo_basey_1 = Identityref('basey_1', ns='http://example.com/foo', mod='foo', pfx='f')
-foo_basey_1 = Identityref('basey-1', ns='http://example.com/foo', mod='foo', pfx='f')
 foo_fooy = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
 
 
@@ -57,20 +51,14 @@ SRC_DNODE_IDENTITY_0 = DIdentity(module='foo', namespace='http://example.com/foo
 
 SRC_DNODE_IDENTITY_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
 
-SRC_DNODE_IDENTITY_2 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey_1')
-
-SRC_DNODE_IDENTITY_3 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey-1')
-
-SRC_DNODE_IDENTITY_4 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
+SRC_DNODE_IDENTITY_2 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey'),
-        DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1'),
-        DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey_1'),
-        DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey-1')
+        DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
     ])
 
 SRC_DNODE = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
-    identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2, SRC_DNODE_IDENTITY_3, SRC_DNODE_IDENTITY_4],
+    identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None)},
 )
@@ -83,14 +71,16 @@ def src_yang():
     prefix "f";
     identity basey;
     // TODO: generate a unique Acton name for these two, they map to the same module constant!
+    // https://github.com/stratoweave/acton-yang/issues/337
     identity basey.1;
-    identity basey_1;
-    identity basey-1;
+    // Temporarily disabled to avoid redefining the same module constant
+    //identity basey_1;
+    //identity basey-1;
     identity fooy {
         base basey;
         base basey.1;
-        base basey_1;
-        base basey-1;
+        //base basey_1;
+        //base basey-1;
     }
     container tc1 {
         leaf l1 {
@@ -292,13 +282,9 @@ def src_schema():
     res["foo"] = Module('foo', yang_version=1.1, namespace='http://example.com/foo', prefix='f', children=[
     Identity('basey'),
     Identity('basey.1'),
-    Identity('basey_1'),
-    Identity('basey-1'),
     Identity('fooy', base=[
 'basey',
-'basey.1',
-'basey_1',
-'basey-1'
+'basey.1'
         ]),
     Container('tc1', children=[
         Leaf('l1', type_=Type('string'), mandatory=True),

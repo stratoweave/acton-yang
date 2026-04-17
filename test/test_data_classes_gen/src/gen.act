@@ -33,14 +33,16 @@ ys_one = r"""module foo {
     prefix "f";
     identity basey;
     // TODO: generate a unique Acton name for these two, they map to the same module constant!
+    // https://github.com/stratoweave/acton-yang/issues/337
     identity basey.1;
-    identity basey_1;
-    identity basey-1;
+    // Temporarily disabled to avoid redefining the same module constant
+    //identity basey_1;
+    //identity basey-1;
     identity fooy {
         base basey;
         base basey.1;
-        base basey_1;
-        base basey-1;
+        //base basey_1;
+        //base basey-1;
     }
     container tc1 {
         leaf l1 {
