@@ -39,28 +39,28 @@ jobs:
       - run: git diff --exit-code
       - run: make test-yang-compile
 
-  test-orchestron:
+  test-stratoweave:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - uses: actonlang/setup-acton@v1
         with:
           channel: 'tip'
-      - name: "Check out orchestron repository code"
+      - name: "Check out StratoWeave repository code"
         uses: actions/checkout@v4
         with:
-          repository: orchestron-orchestrator/orchestron
+          repository: stratoweave/stratoweave
       - name: "Update yang library dependency"
-      # We use the commit SHA for both the main orchestron app and gen_dmc, to ensure we're getting the same Zig package hash in both
+      # We use the commit SHA for both the main stratoweave app and gen_dmc, to ensure we're getting the same Zig package hash in both
         run: |
-          acton pkg add yang --url https://github.com/orchestron-orchestrator/acton-yang/archive/${{ github.sha }}.zip
+          acton pkg add yang --url https://github.com/stratoweave/acton-yang/archive/${{ github.sha }}.zip
           cd gen_dmc
-          acton pkg add yang --url https://github.com/orchestron-orchestrator/acton-yang/archive/${{ github.sha }}.zip
-      - name: "Regenerate orchestron adata"
+          acton pkg add yang --url https://github.com/stratoweave/acton-yang/archive/${{ github.sha }}.zip
+      - name: "Regenerate StratoWeave adata"
         run: |
           make
           git diff
-      - name: "Run orchestron tests"
+      - name: "Run StratoWeave tests"
         run: |
           acton test
           acton test perf
