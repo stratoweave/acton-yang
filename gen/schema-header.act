@@ -1691,7 +1691,7 @@ class DRoot(DNodeInner):
             ("module_metadata", self.module_metadata),
         ]
 
-    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[]) -> str:
+    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False, subs_name: str="subs") -> str:
         def build_spath(spath: list[DNode]):
             if len(root_path) == len(spath) - 1:
                 return spath
@@ -1723,6 +1723,8 @@ class DRoot(DNodeInner):
         res.append("from yang.pattern import YangPattern")
         res.append("from yang.schema import *")
         res.append("from yang.type import Decimal, Ranges")
+        if include_subs:
+            res.append("from yang.sdata import SubscriptionPath, SubscriptionNode")
         res.append("")
         res.append("# == This file is generated ==")
         res.append("")
@@ -1862,7 +1864,172 @@ class DRoot(DNodeInner):
         res.append("")
         res.append("")
         res.extend(inner)
+        if include_subs:
+            res.append("")
+            res.extend(self._prsubsclasses(root_const_name=subs_name))
 
+        return "\n".join(res)
+
+    def _prsubsclasses(self, root_const_name: str="subs") -> list[str]:
+        def dnode_path(spath: list[DNodeInner]) -> list[DNode]:
+            res: list[DNode] = []
+            for node in spath:
+                res.append(node)
+            return res
+
+        def subs_path_name(spath: list[DNodeInner]) -> str:
+            return "{get_path_name(dnode_path(spath))}_subs"
+
+        def subs_entry_path_name(spath: list[DNodeInner]) -> str:
+            return "{get_path_name(dnode_path(spath))}_entry_subs"
+
+        def inner_children(node: DNodeInner) -> list[DNodeInner]:
+            res: list[DNodeInner] = []
+            for child in node.children:
+                if isinstance(child, DContainer):
+                    res.append(child)
+                elif isinstance(child, DList):
+                    res.append(child)
+            return res
+
+        def selectable_children(node: DNodeInner) -> list[DNode]:
+            res: list[DNode] = []
+            for child in node.children:
+                if isinstance(child, DContainer):
+                    res.append(child)
+                elif isinstance(child, DList):
+                    res.append(child)
+                elif isinstance(child, DLeaf):
+                    res.append(child)
+                elif isinstance(child, DLeafList):
+                    res.append(child)
+            return res
+
+        def list_key_child(node: DList, key_name: str) -> DLeaf:
+            for child in node.children:
+                if isinstance(child, DLeaf) and child.is_key(node) and child.name == key_name:
+                    return child
+            raise ValueError("Unable to find key leaf {key_name} in list {node.name}")
+
+        def emit_node(spath: list[DNodeInner]) -> list[str]:
+            node = spath[-1]
+
+            res = []
+            inner = inner_children(node)
+            selectables = selectable_children(node)
+            for child in inner:
+                res.extend(emit_node(spath + [child]))
+
+            unique_namer = UniqueNamer(node)
+            reserved_names = {"subscribe", "filt", "entry", "_segments", "_direct_children"}
+
+            def usname(n: DNode) -> str:
+                name = unique_namer.unique_safe_name(n.name, n.prefix)
+                if name in reserved_names:
+                    return name + "_"
+                return name
+
+            def us_list_key(key_name: str) -> str:
+                name = unique_namer.unique_safe_name(key_name, node.prefix)
+                if name in reserved_names:
+                    return name + "_"
+                return name
+
+            if isinstance(node, DRoot) or isinstance(node, DContainer):
+                res.append("class {subs_path_name(spath)}(SubscriptionNode):")
+                for child in selectables:
+                    child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
+                    res.append("    {usname(child)}: {child_type}")
+                res.append("")
+                res.append("    def __init__(self, path: ?SubscriptionPath=None):")
+                res.append("        SubscriptionNode.__init__(self, path)")
+                for child in selectables:
+                    child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
+                    res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
+                res.append("")
+                res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                if len(selectables) > 0:
+                    res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
+                else:
+                    res.append("        direct: list[SubscriptionNode] = []")
+                res.append("        return direct")
+                res.append("")
+                return res
+
+            if isinstance(node, DList):
+                res.append("class {subs_path_name(spath)}(SubscriptionNode):")
+                for child in selectables:
+                    child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
+                    res.append("    {usname(child)}: {child_type}")
+                res.append("    def __init__(self, path: ?SubscriptionPath=None):")
+                res.append("        SubscriptionNode.__init__(self, path)")
+                for child in selectables:
+                    child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
+                    res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
+                res.append("")
+                if len(node.key) > 0:
+                    entry_args = []
+                    for key_name in node.key:
+                        key_leaf = list_key_child(node, key_name)
+                        entry_args.append("{us_list_key(key_name)}: {yang_leaf_to_acton_arg_type(key_leaf, list_keys(node), loose=False)}")
+                    res.append("    def entry(self, {', '.join(entry_args)}) -> {subs_entry_path_name(spath)}:")
+                    res.append("        predicates = [")
+                    for key_name in node.key:
+                        key_leaf = list_key_child(node, key_name)
+                        res.append("            yang.gdata.FNode(yang.gdata.Id(NS_{safe_name(key_leaf.module)}, '{key_leaf.name}'), value_match={us_list_key(key_name)}),")
+                    res.append("        ]")
+                    res.append("        base_path = self._path!.parent")
+                    res.append("        return {subs_entry_path_name(spath)}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(node.module)}, '{node.name}'), predicates=predicates, parent=base_path))")
+                    res.append("")
+                res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                if len(selectables) > 0:
+                    res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
+                else:
+                    res.append("        direct: list[SubscriptionNode] = []")
+                res.append("        return direct")
+                res.append("")
+
+                if len(node.key) > 0:
+                    res.append("class {subs_entry_path_name(spath)}(SubscriptionNode):")
+                    for child in selectables:
+                        child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
+                        res.append("    {usname(child)}: {child_type}")
+                    res.append("")
+                    res.append("    def __init__(self, path: ?SubscriptionPath=None):")
+                    res.append("        SubscriptionNode.__init__(self, path)")
+                    for child in selectables:
+                        child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
+                        res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
+                    res.append("")
+                    res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                    if len(selectables) > 0:
+                        res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
+                    else:
+                        res.append("        direct: list[SubscriptionNode] = []")
+                    res.append("        return direct")
+                    res.append("")
+                return res
+
+            raise ValueError("Unsupported subscription path node type: {type(node)}")
+
+        res = []
+        res.extend(emit_node([self]))
+        res.append("{root_const_name} = root_subs()")
+        res.append("")
+        return res
+
+    def prsubstree(self, root_const_name: str="subs") -> str:
+        res = []
+        res.append("import yang.gdata")
+        res.append("from yang.sdata import SubscriptionPath, SubscriptionNode")
+        res.append("from yang.identityref import Identityref")
+        res.append("from yang.type import Decimal")
+        res.append("")
+        res.append("# == This file is generated ==")
+        res.append("")
+        res.extend(["NS_{safe_name(self.module_metadata[ns].module)} = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
+        res.append("")
+        res.extend(self._prsubsclasses(root_const_name=root_const_name))
         return "\n".join(res)
 
 class DRpc(DNodeInner):

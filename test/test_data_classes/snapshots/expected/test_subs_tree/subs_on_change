@@ -1,0 +1,28 @@
+SubscriptionSpec:
+SubscriptionSpec(period=None, filt=FNode(Id('http://example.com/filter-test', 'system-state'), [FNode(Id('http://example.com/filter-test', 'clock'), [FNode(Id('http://example.com/filter-test', 'current-datetime')), FNode(Id('http://example.com/filter-test', 'boot-datetime'))])]))
+
+NETCONF XML subtree filter:
+<system-state xmlns="http://example.com/filter-test">
+  <clock>
+    <current-datetime/>
+    <boot-datetime/>
+  </clock>
+</system-state>
+
+Filtered gdata tree:
+Container({
+  Id('http://example.com/filter-test', 'system-state'): Container({
+    Id('http://example.com/filter-test', 'clock'): Container({
+      Id('http://example.com/filter-test', 'boot-datetime'): Leaf('2026-04-01T00:00:00Z'),
+      Id('http://example.com/filter-test', 'current-datetime'): Leaf('2026-04-21T10:15:00Z')
+    })
+  }, ns='http://example.com/filter-test', module='filter-test')
+})
+
+Filtered data XML:
+<system-state xmlns="http://example.com/filter-test">
+  <clock>
+    <boot-datetime>2026-04-01T00:00:00Z</boot-datetime>
+    <current-datetime>2026-04-21T10:15:00Z</current-datetime>
+  </clock>
+</system-state>

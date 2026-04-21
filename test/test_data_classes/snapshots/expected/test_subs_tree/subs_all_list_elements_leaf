@@ -1,0 +1,37 @@
+SubscriptionSpec:
+SubscriptionSpec(period=1000000000, filt=FNode(Id('http://example.com/filter-test', 'interfaces'), [FNode(Id('http://example.com/filter-test', 'interface'), [FNode(Id('http://example.com/filter-test', 'oper-status'))])]))
+
+NETCONF XML subtree filter:
+<interfaces xmlns="http://example.com/filter-test">
+  <interface>
+    <oper-status/>
+  </interface>
+</interfaces>
+
+Filtered gdata tree:
+Container({
+  Id('http://example.com/filter-test', 'interfaces'): Container({
+    Id('http://example.com/filter-test', 'interface'): List([Id('http://example.com/filter-test', 'name')], elements=[
+      Container({
+        Id('http://example.com/filter-test', 'name'): Leaf('eth0'),
+        Id('http://example.com/filter-test', 'oper-status'): Leaf('up')
+      }),
+      Container({
+        Id('http://example.com/filter-test', 'name'): Leaf('eth1'),
+        Id('http://example.com/filter-test', 'oper-status'): Leaf('lower-layer-down')
+      })
+    ])
+  }, ns='http://example.com/filter-test', module='filter-test')
+})
+
+Filtered data XML:
+<interfaces xmlns="http://example.com/filter-test">
+  <interface>
+    <name>eth0</name>
+    <oper-status>up</oper-status>
+  </interface>
+  <interface>
+    <name>eth1</name>
+    <oper-status>lower-layer-down</oper-status>
+  </interface>
+</interfaces>

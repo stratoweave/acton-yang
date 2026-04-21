@@ -1754,17 +1754,66 @@ def expect[T](a: ?T, ctx: str) -> T:
         return a
     raise ValueError("expected value (not None) for: {ctx}")
 
-def _value_match_equal(a: value, b: value) -> bool:
-    """Compare filter value matches (plain values vs match operators)."""
-    if isinstance(a, ValueMatch):
-        if isinstance(a, VWildcard):
-            if isinstance(b, VWildcard):
-                return a.pattern == b.pattern
+def value_match_eq(a: ?value, b: ?value) -> bool:
+    """Eq of value match
+
+    value_match is actually of type value since we do simple equality check for
+    plain values and more advanced stuff if it happens to be a ValueMatch
+    instance. This compares equality between two value_match values.
+    """
+    if a is not None and b is not None:
+        if isinstance(a, ValueMatch):
+            if isinstance(b, ValueMatch):
+                return a == b
             return False
-        raise ValueError("Unknown value match type: {type(a)}")
-    if isinstance(b, ValueMatch):
-        return False
-    return vals_equal(a, b)
+        if isinstance(b, ValueMatch):
+            return False
+        return vals_equal(a, b)
+    return a is None and b is None
+
+def filter_head_eq(a: FNode, b: FNode) -> bool:
+    """Compare only the merge-relevant head of two filter nodes.
+
+    This checks equality on the node name and value_match and intentionally
+    ignores children so descendant selections can be merged under the same
+    filter head.
+    """
+    return a.name == b.name and value_match_eq(a.value_match, b.value_match)
+
+def filter_merge(a: FNode, b: FNode) -> FNode:
+    """Merge two filter nodes with the same head.
+
+    Children with equal heads are merged recursively while distinct
+    children are preserved. The inputs must describe the same filter
+    node head.
+    """
+    if not filter_head_eq(a, b):
+        raise ValueError("Cannot merge different filter nodes")
+    children: list[FNode] = [c for c in a.children]
+    for child in b.children:
+        merged = False
+        for i in range(len(children)):
+            if filter_head_eq(children[i], child):
+                children[i] = filter_merge(children[i], child)
+                merged = True
+                break
+        if not merged:
+            children.append(child)
+    return FNode(a.name, value_match=a.value_match, children=children)
+
+def filter_merge_list(nodes: list[FNode]) -> list[FNode]:
+    """Merge a list of sibling filter nodes by head equality."""
+    merged: list[FNode] = []
+    for node in nodes:
+        did_merge = False
+        for i in range(len(merged)):
+            if filter_head_eq(merged[i], node):
+                merged[i] = filter_merge(merged[i], node)
+                did_merge = True
+                break
+        if not did_merge:
+            merged.append(node)
+    return merged
 
 extension ValueMatch(Eq):
     def __eq__(self, other: ValueMatch) -> bool:
@@ -1777,15 +1826,8 @@ extension FNode(Eq):
     def __eq__(self, other: FNode) -> bool:
         if self.name != other.name:
             return False
-        if self.value_match is None and other.value_match is not None:
+        if not value_match_eq(self.value_match, other.value_match):
             return False
-        if self.value_match is not None and other.value_match is None:
-            return False
-        if self.value_match is not None and other.value_match is not None:
-            a = expect(self.value_match, "filter value")
-            b = expect(other.value_match, "filter value")
-            if not _value_match_equal(a, b):
-                return False
         if len(self.children) != len(other.children):
             return False
         for i in range(len(self.children)):
