@@ -1,5 +1,6 @@
 import base64
 import json
+import random
 import xml
 import yang
 import yang.adata
@@ -589,6 +590,20 @@ class root_subs(SubscriptionNode):
         return direct
 
 subs = root_subs()
+
+actor DstAdapter(cb: action(?root, ?Exception) -> None):
+    def on_update(n: ?yang.gdata.Node, err: ?Exception):
+        if err is not None:
+            cb(None, err)
+            return
+        if n is not None:
+            cb(root.from_gdata(n), None)
+            return
+        cb(None, None)
+
+def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:
+    adapter = DstAdapter(cb)
+    return yang.gdata.Dst(random.randstr(24), adapter.on_update)
 def src_schema():
     res = {}
     res["filter-test"] = Module('filter-test', yang_version=1.1, namespace='http://example.com/filter-test', prefix='ft', children=[

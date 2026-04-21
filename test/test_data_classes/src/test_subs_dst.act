@@ -1,0 +1,181 @@
+import testing
+import xml
+import yang.gdata as gdata
+import yang_filter_test_oper as ft_oper
+
+
+def _sample_tree() -> gdata.Node:
+    data = ft_oper.root(
+        system_state=ft_oper.filter_test__system_state(
+            clock=ft_oper.filter_test__system_state__clock(
+                current_datetime="2026-04-21T10:15:00Z",
+                boot_datetime="2026-04-01T00:00:00Z",
+            ),
+        ),
+        interfaces=ft_oper.filter_test__interfaces(),
+    )
+
+    eth0 = data.interfaces.interface.create(
+        "eth0",
+        description="Uplink",
+        type="ethernetCsmacd",
+        enabled=True,
+        admin_status="up",
+        oper_status="up",
+        last_change="2026-04-20T12:00:00Z",
+    )
+    eth0.statistics.in_octets = u64(1234)
+    eth0.statistics.out_octets = u64(5678)
+    eth0.ipv4.mtu = u64(1500)
+    eth0.ipv6.mtu = u64(1500)
+
+    eth1 = data.interfaces.interface.create(
+        "eth1",
+        description="Server",
+        type="ethernetCsmacd",
+        enabled=False,
+        admin_status="down",
+        oper_status="lower-layer-down",
+        last_change="2026-04-19T07:30:00Z",
+    )
+    eth1.statistics.in_octets = u64(42)
+    eth1.statistics.out_octets = u64(84)
+    eth1.ipv4.mtu = u64(9000)
+    eth1.ipv6.mtu = u64(9000)
+
+    return data.to_gdata()
+
+
+def _merged_filter(want: set[gdata.SubscriptionSpec]) -> ?gdata.FNode:
+    top_children: list[gdata.FNode] = []
+    for spec in want:
+        filt = spec.filt
+        if filt is not None:
+            if filt.name is not None:
+                top_children.append(filt)
+            else:
+                top_children.extend(filt.children)
+    if len(top_children) == 0:
+        return None
+    return gdata.FNode(children=gdata.filter_merge_list(top_children))
+
+
+class MockSubscriptionTreeProvider(gdata.TreeProvider):
+    @property
+    on_declared: action() -> None
+    declared: dict[str, set[gdata.SubscriptionSpec]]
+    callbacks: dict[str, action(?gdata.Node, ?Exception) -> None]
+
+    def __init__(self, on_declared: action() -> None):
+        self.on_declared = on_declared
+        self.declared = {}
+        self.callbacks = {}
+
+    proc def rpc_xml(self, cb: action(?xml.Node, ?Exception) -> None, xml_rpc: xml.Node):
+        cb(None, ValueError("rpc_xml is not used in this test"))
+
+    proc def rpc(self, cb: action(?gdata.Node, ?Exception) -> None, rpc: gdata.Node):
+        cb(None, ValueError("rpc is not used in this test"))
+
+    proc def declare_subscriptions(self, owner_id: str, cb: action(?gdata.Node, ?Exception) -> None, want: set[gdata.SubscriptionSpec]):
+        self.declared[owner_id] = want
+        self.callbacks[owner_id] = cb
+        self.on_declared()
+
+    proc def remove_subscriptions(self, owner_id: str):
+        if owner_id in self.declared:
+            del self.declared[owner_id]
+        if owner_id in self.callbacks:
+            del self.callbacks[owner_id]
+
+    def deliver_all(self, data: gdata.Node):
+        for owner_id in [owner_id for owner_id in self.callbacks]:
+            filt = _merged_filter(self.declared[owner_id])
+            if filt is not None:
+                self.callbacks[owner_id](gdata.filter(data, filt), None)
+            else:
+                self.callbacks[owner_id](data, None)
+
+
+actor _test_subs_dst_grouping(t: testing.AsyncT):
+    var declared = 0
+    var state_root: ?ft_oper.root = None
+    var state_err: ?Exception = None
+    var links_root: ?ft_oper.root = None
+    var links_err: ?Exception = None
+    var tp: ?MockSubscriptionTreeProvider = None
+
+    def finish_if_ready():
+        if state_root is None or links_root is None:
+            return
+
+        if state_err is not None:
+            t.failure(state_err)
+            return
+        if links_err is not None:
+            t.failure(links_err)
+            return
+
+        state = state_root!
+        links = links_root!
+
+        testing.assertEqual(state.system_state.clock.current_datetime, "2026-04-21T10:15:00Z")
+        testing.assertEqual(state.system_state.clock.boot_datetime, "2026-04-01T00:00:00Z")
+
+        state_ifaces = [iface for iface in state.interfaces.interface]
+        testing.assertEqual(len(state_ifaces), 1)
+        testing.assertEqual(state_ifaces[0].name, "eth0")
+        testing.assertEqual(state_ifaces[0].statistics.in_octets, u64(1234))
+        testing.assertEqual(state_ifaces[0].statistics.out_octets, u64(5678))
+        testing.assertEqual(state_ifaces[0].oper_status, None)
+        testing.assertEqual(state_ifaces[0].ipv4.mtu, None)
+
+        testing.assertEqual(links.system_state.clock.current_datetime, None)
+        links_ifaces = [iface for iface in links.interfaces.interface]
+        testing.assertEqual(len(links_ifaces), 2)
+        testing.assertEqual(links_ifaces[0].name, "eth0")
+        testing.assertEqual(links_ifaces[0].oper_status, "up")
+        testing.assertEqual(links_ifaces[1].name, "eth1")
+        testing.assertEqual(links_ifaces[1].oper_status, "lower-layer-down")
+        testing.assertEqual(links_ifaces[0].statistics.in_octets, None)
+
+        t.success()
+
+    def on_state(root: ?ft_oper.root, err: ?Exception):
+        state_root = root
+        state_err = err
+        finish_if_ready()
+
+    def on_links(root: ?ft_oper.root, err: ?Exception):
+        links_root = root
+        links_err = err
+        finish_if_ready()
+
+    def on_declared():
+        if tp is None:
+            t.failure(ValueError("MockSubscriptionTreeProvider not initialized"))
+            return
+        actual_tp = tp!
+        declared += 1
+        if declared != 2:
+            return
+
+        testing.assertEqual(len(actual_tp.declared), 2)
+        testing.assertEqual(sorted([len(actual_tp.declared[owner_id]) for owner_id in actual_tp.declared]), [1, 2])
+        actual_tp.deliver_all(_sample_tree())
+
+    tp = MockSubscriptionTreeProvider(on_declared)
+    subs = gdata.SubscriptionManager(tp!, "test-owner")
+
+    state_dst = ft_oper.dst(on_state)
+    links_dst = ft_oper.dst(on_links)
+    sub = ft_oper.subs
+    iface = sub.interfaces.interface.entry("eth0")
+
+    want: set[gdata.Subscription] = set([
+        sub.system_state.clock.subscribe(state_dst, depth=1, period=0.05),
+        iface.subscribe(state_dst, select=[iface.statistics], period=1.0),
+        sub.interfaces.interface.oper_status.subscribe(links_dst, period=1.0),
+    ])
+
+    subs.declare(want)

@@ -7,6 +7,7 @@ tree, and can be used to serialize and deserialize YANG data.
 import base64
 import testing
 import json
+import random
 import xml
 
 from yang.identityref import Identityref, PartialIdentityref
@@ -3122,6 +3123,42 @@ extension SubscriptionSpec(Hashable):
         else:
             "none".hash(hasher)
 
+class Dst(object):
+    """Destination for merged subscription delivery."""
+    key: str
+    @property
+    on_update: action(?Node, ?Exception) -> None
+
+    def __init__(self, on_update: action(?Node, ?Exception) -> None):
+        self.key = random.randstr(24)
+        self.on_update = on_update
+
+
+class Subscription(value):
+    """Subscription delivered to a specific destination."""
+    dst: Dst
+    spec: SubscriptionSpec
+
+    def __init__(self, dst: Dst, spec: SubscriptionSpec):
+        self.dst = dst
+        self.spec = spec
+
+    def __str__(self) -> str:
+        return "Subscription({self.spec})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
+extension Subscription(Hashable):
+    def __eq__(self, other: Subscription) -> bool:
+        return self.dst.key == other.dst.key and self.spec == other.spec
+
+    def hash(self, hasher):
+        self.dst.key.hash(hasher)
+        self.spec.hash(hasher)
+
+
 class TreeProvider(object):
     """Imperative transport interface for RPCs and owner-scoped subscriptions."""
     rpc: proc(action(?Node, ?Exception) -> None, Node) -> None
@@ -3130,13 +3167,50 @@ class TreeProvider(object):
     remove_subscriptions: proc(str) -> None
 
 
-actor SubscriptionManager(tp: TreeProvider, owner_id: str, on_update: action(?Node, ?Exception) -> None):
-    """Declarative subscription owner that reconciles desired subscriptions."""
-    def declare(want: set[SubscriptionSpec]):
-        tp.declare_subscriptions(owner_id, on_update, want)
+class SubscriptionManager(object):
+    """Declarative subscription owner that reconciles destination-bound subscriptions."""
+    tp: TreeProvider
+    owner_id: str
+    child_owner_ids: dict[str, str]
+    next_child_ix: int
 
-    def close():
-        tp.remove_subscriptions(owner_id)
+    def __init__(self, tp: TreeProvider, owner_id: str):
+        self.tp = tp
+        self.owner_id = owner_id
+        self.child_owner_ids = {}
+        self.next_child_ix = 0
+
+    def declare(self, want: set[Subscription]):
+        grouped: dict[str, set[SubscriptionSpec]] = {}
+        dsts: dict[str, Dst] = {}
+
+        for subscription in want:
+            key = subscription.dst.key
+            try:
+                grouped[key].add(subscription.spec)
+            except KeyError:
+                grouped[key] = set([subscription.spec])
+                dsts[key] = subscription.dst
+
+        stale_keys = [key for key in self.child_owner_ids.keys() if key not in grouped]
+        for key in stale_keys:
+            self.tp.remove_subscriptions(self.child_owner_ids[key])
+            del self.child_owner_ids[key]
+
+        for key in grouped.keys():
+            try:
+                actual_owner_id = self.child_owner_ids[key]
+            except KeyError:
+                actual_owner_id = "{self.owner_id}:{self.next_child_ix}"
+                self.next_child_ix += 1
+                self.child_owner_ids[key] = actual_owner_id
+            self.tp.declare_subscriptions(actual_owner_id, dsts[key].on_update, grouped[key])
+
+    def close(self):
+        child_keys = [key for key in self.child_owner_ids.keys()]
+        for key in child_keys:
+            self.tp.remove_subscriptions(self.child_owner_ids[key])
+            del self.child_owner_ids[key]
 
 
 def _node_match(n: xml.Node, name: str, ns: ?str) -> bool:

@@ -130,7 +130,7 @@ class SubscriptionNode(value):
                 raise ValueError("Selected path must be below the subscription anchor")
         return self._subscription_spec(rel_children, period=period)
 
-    def subscribe(self, select: ?list[SubscriptionNode]=None, depth: ?int=None, period: ?value=None) -> yang.gdata.SubscriptionSpec:
+    def _spec(self, select: ?list[SubscriptionNode]=None, depth: ?int=None, period: ?value=None) -> yang.gdata.SubscriptionSpec:
         if depth is not None and depth <= 0:
             raise ValueError("depth must be positive")
         actual_select: list[SubscriptionNode] = []
@@ -143,3 +143,6 @@ class SubscriptionNode(value):
         if len(actual_select) == 0:
             return yang.gdata.SubscriptionSpec(self.filt(), period=period)
         return self._subscribe_select(actual_select, period=period)
+
+    def subscribe(self, dst: yang.gdata.Dst, select: ?list[SubscriptionNode]=None, depth: ?int=None, period: ?value=None) -> yang.gdata.Subscription:
+        return yang.gdata.Subscription(dst, self._spec(select=select, depth=depth, period=period))

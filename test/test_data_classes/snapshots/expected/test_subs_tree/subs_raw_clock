@@ -1,4 +1,3 @@
-Acton filter:
 FNode(Id('http://example.com/filter-test', 'system-state'), [FNode(Id('http://example.com/filter-test', 'clock'))])
 
 NETCONF XML subtree filter:

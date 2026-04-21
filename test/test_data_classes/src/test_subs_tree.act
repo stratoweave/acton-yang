@@ -59,40 +59,40 @@ def _test_subs_raw_clock():
     return _render_subscription(filt.prsrc(deterministic=True), filt)
 
 def _test_subs_clock_subtree():
-    spec = ft_oper.subs.system_state.clock.subscribe(period=0.05)
+    spec = ft_oper.subs.system_state.clock._spec(period=0.05)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_clock_direct_children():
-    spec = ft_oper.subs.system_state.clock.subscribe(depth=1, period=0.05)
+    spec = ft_oper.subs.system_state.clock._spec(depth=1, period=0.05)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_system_state_depth_2():
-    spec = ft_oper.subs.system_state.subscribe(depth=2, period=0.05)
+    spec = ft_oper.subs.system_state._spec(depth=2, period=0.05)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_interface_entry():
     iface = ft_oper.subs.interfaces.interface.entry("eth0")
-    spec = iface.subscribe(period=1.0)
+    spec = iface._spec(period=1.0)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_interface_entry_depth_2():
     iface = ft_oper.subs.interfaces.interface.entry("eth0")
-    spec = iface.subscribe(depth=2, period=1.0)
+    spec = iface._spec(depth=2, period=1.0)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_select_children():
     iface = ft_oper.subs.interfaces.interface.entry("eth0")
-    spec = iface.subscribe(select=[iface.statistics, iface.ipv4], period=1.0)
+    spec = iface._spec(select=[iface.statistics, iface.ipv4], period=1.0)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_select_children_depth_1():
     iface = ft_oper.subs.interfaces.interface.entry("eth0")
-    spec = iface.subscribe(select=[iface.statistics, iface.ipv4], depth=1, period=1.0)
+    spec = iface._spec(select=[iface.statistics, iface.ipv4], depth=1, period=1.0)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_select_mixed_depth_1():
     iface = ft_oper.subs.interfaces.interface.entry("eth0")
-    spec = iface.subscribe(
+    spec = iface._spec(
         select=[iface.statistics.in_octets, iface.ipv4],
         depth=1,
         period=1.0,
@@ -101,26 +101,26 @@ def _test_subs_select_mixed_depth_1():
 
 def _test_subs_merge_descendants():
     iface = ft_oper.subs.interfaces.interface.entry("eth0")
-    spec = iface.subscribe(
+    spec = iface._spec(
         select=[iface.statistics.in_octets, iface.statistics.out_octets],
         period=1.0,
     )
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_all_list_elements_leaf():
-    spec = ft_oper.subs.interfaces.interface.oper_status.subscribe(period=1.0)
+    spec = ft_oper.subs.interfaces.interface.oper_status._spec(period=1.0)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_on_change():
-    spec = ft_oper.subs.system_state.clock.subscribe(depth=1)
+    spec = ft_oper.subs.system_state.clock._spec(depth=1)
     return _render_subscription(str(spec), spec.filt!)
 
 def _test_subs_spec_set():
     sub = ft_oper.subs
     iface = sub.interfaces.interface.entry("eth0")
     want: set[gdata.SubscriptionSpec] = set([
-        sub.system_state.clock.subscribe(depth=1, period=0.05),
-        iface.subscribe(select=[iface.statistics, iface.ipv4], period=1.0),
+        sub.system_state.clock._spec(depth=1, period=0.05),
+        iface._spec(select=[iface.statistics, iface.ipv4], period=1.0),
     ])
     return "\n\n".join(sorted([
         _render_subscription(str(spec), spec.filt!)

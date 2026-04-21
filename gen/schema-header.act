@@ -1713,6 +1713,8 @@ class DRoot(DNodeInner):
         res = []
         res.append("import base64")
         res.append("import json")
+        if include_subs:
+            res.append("import random")
         res.append("import xml")
         res.append("import yang")
         res.append("import yang.adata")
@@ -1867,6 +1869,20 @@ class DRoot(DNodeInner):
         if include_subs:
             res.append("")
             res.extend(self._prsubsclasses(root_const_name=subs_name))
+            res.append("actor DstAdapter(cb: action(?root, ?Exception) -> None):")
+            res.append("    def on_update(n: ?yang.gdata.Node, err: ?Exception):")
+            res.append("        if err is not None:")
+            res.append("            cb(None, err)")
+            res.append("            return")
+            res.append("        if n is not None:")
+            res.append("            cb(root.from_gdata(n), None)")
+            res.append("            return")
+            res.append("        cb(None, None)")
+            res.append("")
+            res.append("def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:")
+            res.append("    adapter = DstAdapter(cb)")
+            res.append("    return yang.gdata.Dst(adapter.on_update)")
+            res.append("")
 
         return "\n".join(res)
 
@@ -2020,6 +2036,7 @@ class DRoot(DNodeInner):
 
     def prsubstree(self, root_const_name: str="subs") -> str:
         res = []
+        res.append("import random")
         res.append("import yang.gdata")
         res.append("from yang.sdata import SubscriptionPath, SubscriptionNode")
         res.append("from yang.identityref import Identityref")
@@ -2030,6 +2047,14 @@ class DRoot(DNodeInner):
         res.extend(["NS_{safe_name(self.module_metadata[ns].module)} = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
         res.append("")
         res.extend(self._prsubsclasses(root_const_name=root_const_name))
+        res.append("actor DstAdapter(cb: action(?yang.gdata.Node, ?Exception) -> None):")
+        res.append("    def on_update(n: ?yang.gdata.Node, err: ?Exception):")
+        res.append("        cb(n, err)")
+        res.append("")
+        res.append("def dst(cb: action(?yang.gdata.Node, ?Exception) -> None) -> yang.gdata.Dst:")
+        res.append("    adapter = DstAdapter(cb)")
+        res.append("    return yang.gdata.Dst(adapter.on_update)")
+        res.append("")
         return "\n".join(res)
 
 class DRpc(DNodeInner):
