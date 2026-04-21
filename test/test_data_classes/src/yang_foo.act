@@ -141,24 +141,28 @@ SRC_DNODE_CHILD_10 = DList(module='foo', namespace='http://example.com/foo', pre
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='checker', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(1514, 1514)])), DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(47, 47)])), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
 ])
 
-SRC_DNODE_CHILD_11 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
+SRC_DNODE_CHILD_11 = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union-one-base', key=['k1'], config=True, min_elements=0, ordered_by='system', children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='k1', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'foo':0}), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
+])
+
+SRC_DNODE_CHILD_12 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=False, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l2', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_12 = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+SRC_DNODE_CHILD_13 = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 
-SRC_DNODE_CHILD_13 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
+SRC_DNODE_CHILD_14 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_14 = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
+SRC_DNODE_CHILD_15 = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
     DLeafList(module='bar', namespace='http://example.com/bar', prefix='bar', name='idref', config=True, min_elements=0, ordered_by='system', type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities))
 ])
 
-SRC_DNODE_CHILD_15 = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
+SRC_DNODE_CHILD_16 = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
@@ -173,7 +177,7 @@ SRC_DNODE_IDENTITY_2 = DIdentity(module='bar', namespace='http://example.com/bar
     ])
 
 SRC_DNODE = DRoot(
-    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2, SRC_DNODE_CHILD_3, SRC_DNODE_CHILD_4, SRC_DNODE_CHILD_5, SRC_DNODE_CHILD_6, SRC_DNODE_CHILD_7, SRC_DNODE_CHILD_8, SRC_DNODE_CHILD_9, SRC_DNODE_CHILD_10, SRC_DNODE_CHILD_11, SRC_DNODE_CHILD_12, SRC_DNODE_CHILD_13, SRC_DNODE_CHILD_14, SRC_DNODE_CHILD_15],
+    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2, SRC_DNODE_CHILD_3, SRC_DNODE_CHILD_4, SRC_DNODE_CHILD_5, SRC_DNODE_CHILD_6, SRC_DNODE_CHILD_7, SRC_DNODE_CHILD_8, SRC_DNODE_CHILD_9, SRC_DNODE_CHILD_10, SRC_DNODE_CHILD_11, SRC_DNODE_CHILD_12, SRC_DNODE_CHILD_13, SRC_DNODE_CHILD_14, SRC_DNODE_CHILD_15, SRC_DNODE_CHILD_16],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
@@ -393,6 +397,18 @@ def src_yang():
                 }
                 type uint8 {
                     range "47..47";
+                }
+                type string;
+            }
+        }
+    }
+    list li-union-one-base {
+        // The union type key resolves to a single base type
+        key k1;
+        leaf k1 {
+            type union {
+                type enumeration {
+                    enum foo;
                 }
                 type string;
             }
@@ -1568,6 +1584,72 @@ extension foo__li_union(Iterable[foo__li_union_entry]):
         return self.elements.__iter__()
 
 _breaker32 = None
+class foo__li_union_one_base_entry(yang.adata.MNode):
+    k1: value
+
+    mut def __init__(self, k1: value):
+        self._ns = 'http://example.com/foo'
+        self.k1 = k1
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'k1':
+            return self.k1
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:li-union-one-base'])
+
+    @staticmethod
+    mut def from_gdata(n: yang.gdata.Node) -> foo__li_union_one_base_entry:
+        return foo__li_union_one_base_entry(k1=n.get_value(yang.gdata.Id(NS_foo, 'k1')))
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return foo__li_union_one_base_entry.from_gdata(self.to_gdata())
+
+_breaker33 = None
+class foo__li_union_one_base(yang.adata.MNode):
+    elements: list[foo__li_union_one_base_entry]
+    mut def __init__(self, elements=[]):
+        self._ns = 'http://example.com/foo'
+        self._name = 'li-union-one-base'
+        self.elements = elements
+
+    mut def create(self, k1):
+        for e in self:
+            match = True
+            e_k1 = e.k1
+            if isinstance(e_k1, str) and isinstance(k1, str):
+                if e_k1 != k1:
+                    match = False
+                    continue
+            if match:
+                return e
+
+        res = foo__li_union_one_base_entry(k1=k1)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__li_union_one_base_entry]:
+        if n is not None:
+            return [foo__li_union_one_base_entry.from_gdata(e) for e in n.elements]
+        return []
+
+    def copy(self):
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return foo__li_union_one_base(elements=copied_elements)
+
+extension foo__li_union_one_base(Iterable[foo__li_union_one_base_entry]):
+    def __iter__(self) -> Iterator[foo__li_union_one_base_entry]:
+        return self.elements.__iter__()
+
+_breaker34 = None
 class foo__state__c1(yang.adata.MNode):
     l1: ?str
     l2: ?str
@@ -1597,7 +1679,7 @@ class foo__state__c1(yang.adata.MNode):
         return foo__state__c1.from_gdata(self.to_gdata())
 
 
-_breaker33 = None
+_breaker35 = None
 class foo__state(yang.adata.MNode):
     c1: foo__state__c1
 
@@ -1623,7 +1705,7 @@ class foo__state(yang.adata.MNode):
         return foo__state.from_gdata(self.to_gdata())
 
 
-_breaker34 = None
+_breaker36 = None
 class foo__c2(yang.adata.MNode):
     l1: ?str
 
@@ -1649,7 +1731,7 @@ class foo__c2(yang.adata.MNode):
         return foo__c2.from_gdata(self.to_gdata())
 
 
-_breaker35 = None
+_breaker37 = None
 class bar__test_idref(yang.adata.MNode):
     idref: list[Identityref]
 
@@ -1675,7 +1757,7 @@ class bar__test_idref(yang.adata.MNode):
         return bar__test_idref.from_gdata(self.to_gdata())
 
 
-_breaker36 = None
+_breaker38 = None
 class bar__bar_conflict(yang.adata.MNode):
     foo: ?str
 
@@ -1701,7 +1783,7 @@ class bar__bar_conflict(yang.adata.MNode):
         return bar__bar_conflict.from_gdata(self.to_gdata())
 
 
-_breaker37 = None
+_breaker39 = None
 class root(yang.adata.MNode):
     c1: foo__c1
     pc1: ?foo__pc1
@@ -1714,13 +1796,14 @@ class root(yang.adata.MNode):
     special: foo__special
     nested: foo__nested
     li_union: foo__li_union
+    li_union_one_base: foo__li_union_one_base
     state: foo__state
     ll_empty: list[str]
     c2: foo__c2
     test_idref: bar__test_idref
     bar_conflict: bar__bar_conflict
 
-    mut def __init__(self, c1: ?foo__c1=None, pc1: ?foo__pc1=None, pc2: ?foo__pc2=None, pc3: ?foo__pc3=None, empty_presence: ?foo__empty_presence=None, c_dot: ?foo__c_dot=None, cc: ?foo__cc=None, f_conflict: ?foo__f_conflict=None, special: list[foo__special_entry]=[], nested: ?foo__nested=None, li_union: list[foo__li_union_entry]=[], state: ?foo__state=None, ll_empty: ?list[str]=None, c2: ?foo__c2=None, test_idref: ?bar__test_idref=None, bar_conflict: ?bar__bar_conflict=None):
+    mut def __init__(self, c1: ?foo__c1=None, pc1: ?foo__pc1=None, pc2: ?foo__pc2=None, pc3: ?foo__pc3=None, empty_presence: ?foo__empty_presence=None, c_dot: ?foo__c_dot=None, cc: ?foo__cc=None, f_conflict: ?foo__f_conflict=None, special: list[foo__special_entry]=[], nested: ?foo__nested=None, li_union: list[foo__li_union_entry]=[], li_union_one_base: list[foo__li_union_one_base_entry]=[], state: ?foo__state=None, ll_empty: ?list[str]=None, c2: ?foo__c2=None, test_idref: ?bar__test_idref=None, bar_conflict: ?bar__bar_conflict=None):
         self._ns = ''
         self.c1 = c1 if c1 is not None else foo__c1()
         self.pc1 = pc1
@@ -1733,6 +1816,7 @@ class root(yang.adata.MNode):
         self.special = foo__special(elements=special)
         self.nested = nested if nested is not None else foo__nested()
         self.li_union = foo__li_union(elements=li_union)
+        self.li_union_one_base = foo__li_union_one_base(elements=li_union_one_base)
         self.state = state if state is not None else foo__state()
         self.ll_empty = ll_empty if ll_empty is not None else []
         self.c2 = c2 if c2 is not None else foo__c2()
@@ -1796,6 +1880,8 @@ class root(yang.adata.MNode):
             return self.nested
         if name == 'li_union':
             return iter(self.li_union)
+        if name == 'li_union_one_base':
+            return iter(self.li_union_one_base)
         if name == 'state':
             return self.state
         if name == 'll_empty':
@@ -1813,7 +1899,7 @@ class root(yang.adata.MNode):
     @staticmethod
     mut def from_gdata(n: ?yang.gdata.Node) -> root:
         if n is not None:
-            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc1'))), pc2=foo__pc2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc2'))), pc3=foo__pc3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc3'))), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'empty-presence'))), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c.dot'))), cc=foo__cc.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'cc'))), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'conflict'))), special=foo__special.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'special'))), nested=foo__nested.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'nested'))), li_union=foo__li_union.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union'))), state=foo__state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'state'))), ll_empty=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c2'))), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'test-idref'))), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'conflict'))))
+            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc1'))), pc2=foo__pc2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc2'))), pc3=foo__pc3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc3'))), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'empty-presence'))), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c.dot'))), cc=foo__cc.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'cc'))), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'conflict'))), special=foo__special.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'special'))), nested=foo__nested.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'nested'))), li_union=foo__li_union.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union'))), li_union_one_base=foo__li_union_one_base.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union-one-base'))), state=foo__state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'state'))), ll_empty=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c2'))), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'test-idref'))), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'conflict'))))
         return root()
 
     def copy(self):
@@ -1927,6 +2013,14 @@ def src_schema():
         Leaf('checker', type_=Type('union', type_=[
         Type('uint32', range_=Range('1514..1514')),
         Type('uint8', range_=Range('47..47')),
+        Type('string')
+    ]))
+    ]),
+    List('li-union-one-base', key='k1', children=[
+        Leaf('k1', type_=Type('union', type_=[
+        Type('enumeration', enum=[
+                Enum('foo')
+            ]),
         Type('string')
     ]))
     ]),

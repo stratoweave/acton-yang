@@ -827,14 +827,6 @@ class DNodeInner(DNode):
                         acton_type = yang_type_to_acton_type(t)
                         if acton_type not in unique_base_types:
                             unique_base_types.append(acton_type)
-                if len(unique_base_types) <= 1:
-                    # Class attribute is a not a "value" Acton type because it
-                    # is either not an union or it an union that was resolved
-                    # to a single builtin type, it has equality check
-                    res.append("            if e.{us_key} != {us_key}:")
-                    res.append("                match = False")
-                    res.append("                continue")
-                else:
                     # Union types for mixed unions are Acton "value" types, so
                     # we need to first attempt to bind them to a more specific type
                     # TODO: use Acton unions
@@ -844,6 +836,13 @@ class DNodeInner(DNode):
                         res.append("                if e_{us_key} != {us_key}:")
                         res.append("                    match = False")
                         res.append("                    continue")
+                else:
+                    # Class attribute is a not a "value" Acton type because it
+                    # is either not an union or it an union that was resolved
+                    # to a single builtin type, it has equality check
+                    res.append("            if e.{us_key} != {us_key}:")
+                    res.append("                match = False")
+                    res.append("                continue")
             res.append("            if match:")
             for req_arg in list_args_req:
                 if req_arg in list_key_args:

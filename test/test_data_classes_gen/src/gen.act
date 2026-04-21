@@ -289,6 +289,18 @@ ys_foo = r"""module foo {
             }
         }
     }
+    list li-union-one-base {
+        // The union type key resolves to a single base type
+        key k1;
+        leaf k1 {
+            type union {
+                type enumeration {
+                    enum foo;
+                }
+                type string;
+            }
+        }
+    }
     container state {
         config false;
         container c1 {
