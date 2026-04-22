@@ -1780,39 +1780,89 @@ def filter_head_eq(a: FNode, b: FNode) -> bool:
     """
     return a.name == b.name and value_match_eq(a.value_match, b.value_match)
 
-def filter_merge(a: FNode, b: FNode) -> FNode:
-    """Merge two filter nodes with the same head.
+def filter_has_selection(f: FNode) -> bool:
+    """Return True when a filter node selects data under its own head.
 
-    A childless node already selects the whole subtree at its head, so
-    it dominates any narrower descendant selection. Otherwise, children
-    with equal heads are merged recursively while distinct children are
-    preserved. The inputs must describe the same filter node head.
+    Nodes with only predicate descendants still select the whole subtree at
+    their head if they match, so they report no child selection here.
+    """
+    if len(f.children) == 0:
+        return f.value_match is None
+    for child in f.children:
+        if filter_has_selection(child):
+            return True
+    return False
+
+def filter_predicate_children(f: FNode) -> list[FNode]:
+    """Return child filters that constrain matching without selecting data."""
+    return [child for child in f.children if not filter_has_selection(child)]
+
+def filter_selection_children(f: FNode) -> list[FNode]:
+    """Return child filters that select descendants under this node."""
+    return [child for child in f.children if filter_has_selection(child)]
+
+def filter_child_list_eq_unordered(a: list[FNode], b: list[FNode]) -> bool:
+    """Compare two child filter lists without preserving sibling order."""
+    if len(a) != len(b):
+        return False
+    used = [False for _ in range(len(b))]
+    for child in a:
+        found = False
+        for i in range(len(b)):
+            if not used[i] and child == b[i]:
+                used[i] = True
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+def filter_merge_eq(a: FNode, b: FNode) -> bool:
+    """Compare filter nodes by merge identity.
+
+    Merge identity includes the node head and any predicate-only children.
+    Descendant selections are intentionally excluded so they can be merged
+    under the same predicate context.
     """
     if not filter_head_eq(a, b):
+        return False
+    return filter_child_list_eq_unordered(filter_predicate_children(a), filter_predicate_children(b))
+
+def filter_merge(a: FNode, b: FNode) -> FNode:
+    """Merge two filter nodes with the same merge identity.
+
+    Predicate-only children stay attached to the head they constrain.
+    If either side already selects the whole subtree at that head, it
+    dominates any narrower descendant selection. Otherwise, selection
+    children with equal merge identity are merged recursively while
+    distinct selections are preserved.
+    """
+    if not filter_merge_eq(a, b):
         raise ValueError("Cannot merge different filter nodes")
-    if len(a.children) == 0:
-        return a
-    if len(b.children) == 0:
-        return b
-    children: list[FNode] = [c for c in a.children]
-    for child in b.children:
+    predicates = filter_predicate_children(a)
+    a_selection = filter_selection_children(a)
+    b_selection = filter_selection_children(b)
+    if len(a_selection) == 0 or len(b_selection) == 0:
+        return FNode(a.name, value_match=a.value_match, children=predicates)
+    children: list[FNode] = [c for c in a_selection]
+    for child in b_selection:
         merged = False
         for i in range(len(children)):
-            if filter_head_eq(children[i], child):
+            if filter_merge_eq(children[i], child):
                 children[i] = filter_merge(children[i], child)
                 merged = True
                 break
         if not merged:
             children.append(child)
-    return FNode(a.name, value_match=a.value_match, children=children)
+    return FNode(a.name, value_match=a.value_match, children=predicates + children)
 
 def filter_merge_list(nodes: list[FNode]) -> list[FNode]:
-    """Merge a list of sibling filter nodes by head equality."""
+    """Merge a list of sibling filter nodes by merge identity."""
     merged: list[FNode] = []
     for node in nodes:
         did_merge = False
         for i in range(len(merged)):
-            if filter_head_eq(merged[i], node):
+            if filter_merge_eq(merged[i], node):
                 merged[i] = filter_merge(merged[i], node)
                 did_merge = True
                 break
