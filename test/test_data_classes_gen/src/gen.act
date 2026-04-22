@@ -504,6 +504,44 @@ ys_yangrpc = r"""module yangrpc {
   rpc silent;
 }"""
 
+ys_refs = r"""module refs {
+  yang-version "1.1";
+  namespace "http://example.com/refs";
+  prefix "refs";
+
+  container inventory {
+    list producer {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      container config {
+        leaf interval {
+          type uint32;
+        }
+      }
+    }
+  }
+
+  container transforms {
+    list consumer {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      leaf input {
+        type leafref {
+          path "/refs:inventory/refs:producer/refs:name";
+        }
+      }
+    }
+  }
+}"""
+
 
 actor main(env: Env):
     wfcap = file.WriteFileCap(file.FileCap(env.cap))
@@ -512,5 +550,6 @@ actor main(env: Env):
     yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo_loose.act", loose=True)
     yang_to_act(wfcap, yangs=[ys_loose_required], filename="../test_data_classes/src/yang_loose_required.act", loose=True)
     yang_to_act(wfcap, yangs=[ys_basics], filename="../test_data_classes/src/yang_basics.act")
+    yang_to_act(wfcap, yangs=[ys_refs], filename="../test_data_classes/src/yang_refs.act")
     yang_to_act(wfcap, yangs=[ys_yangrpc], filename="../test_data_classes/src/yangrpc.act")
     env.exit(0)

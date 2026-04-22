@@ -377,6 +377,14 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
     def pname(pe: list[PathElement]):
         return yang.schema.get_path_name([e.node for e in pe])
 
+    root_node = spath[0].node
+
+    def leaf_value_expr(leaf: yang.schema.DLeaf, leaf_path: list[PathElement], raw_expr: str) -> str:
+        if isinstance(root_node, yang.schema.DRoot):
+            if yang.schema.supported_leafref_target_info(root_node, leaf) is not None:
+                return "{pname(leaf_path)}_ref({raw_expr})"
+        return raw_expr
+
     def _find_non_optional_subtree(container: yang.schema.DNodeInner, spath: list[PathElement], node: yang.gdata.Node, path: list[str], local_prefix="_") -> (list[str], list[str]):
         r"""Discover the non-optional descendants of a container
 
@@ -421,7 +429,7 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
                 # come first in the correct order.
                 if not yang.schema.is_optional_arg_yang_leaf(cchild, yang.schema.list_keys(container), loose):
                     leaf = node.get_leaf(fqname(cchild))
-                    non_optional_args.append("{repr_adata(leaf.val)}")
+                    non_optional_args.append(leaf_value_expr(cchild, path_with_child(), "{repr_adata(leaf.val)}"))
             elif isinstance(cchild, yang.schema.DContainer):
                 if not (cchild.presence or loose or yang.schema.optional_subtree(cchild)):
                     cchild_safe_name = unique_namer.unique_safe_name(cchild.name, cchild.prefix)
@@ -445,7 +453,7 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
 
         return non_optional_args, non_optional_containers
 
-    def _find_direct_optional_leaf_create_args(container: yang.schema.DNodeInner, node: yang.gdata.Node) -> (list[str], set[str]):
+    def _find_direct_optional_leaf_create_args(container: yang.schema.DNodeInner, container_path: list[PathElement], node: yang.gdata.Node) -> (list[str], set[str]):
         """Collect direct optional DLeaf kwargs accepted by create*()
 
         Unlike _find_non_optional_subtree(), this only inspects direct DLeaf
@@ -463,7 +471,7 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
                 cchild_arg = unique_namer.unique_safe_name(cchild.name, cchild.prefix)
                 leaf = node.get_opt_leaf_or_absent(fqname(cchild))
                 if isinstance(leaf, yang.gdata.Leaf):
-                    optional_leaf_args.append("{cchild_arg}={repr_adata(leaf.val)}")
+                    optional_leaf_args.append("{cchild_arg}={leaf_value_expr(cchild, container_path + [PathElement(cchild)], repr_adata(leaf.val))}")
                     create_consumed_leaf_args.add(cchild_arg)
                 elif isinstance(leaf, yang.gdata.Absent):
                     optional_leaf_args.append("{cchild_arg}=False")
@@ -508,7 +516,7 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
             leaf = node.get_opt_leaf_or_absent(fqname(child))
             if isinstance(leaf, yang.gdata.Leaf):
                 # DLeaf values are copied verbatim
-                leaves.append("{self_name}.{usname(child)} = {repr_adata(leaf.val)}")
+                leaves.append("{self_name}.{usname(child)} = {leaf_value_expr(child, path_with_child(), repr_adata(leaf.val))}")
             elif isinstance(leaf, yang.gdata.Absent):
                 # "leaf": Absent() is a remove op on an empty leaf
                 leaves.append("{self_name}.{usname(child)} = False")
@@ -526,7 +534,7 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
                     res.append("# P-container: {format_schema_path(path_with_child())}")
                     # Build .pradata() code for this P-container
                     pc_args, pc_var_declarations = _find_non_optional_subtree(child, path_with_child(), container, [usname(child)])
-                    pc_opt_leaf_args, pc_consumed_leaf_args = _find_direct_optional_leaf_create_args(child, container)
+                    pc_opt_leaf_args, pc_consumed_leaf_args = _find_direct_optional_leaf_create_args(child, path_with_child(), container)
 
                     # Add variable declarations in reverse order to ensure the prerequisites are met
                     res.extend(list(reversed(pc_var_declarations)))
@@ -549,7 +557,7 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
 
                     # Build the list of arguments for create() method
                     non_optional_args, non_optional_containers = _find_non_optional_subtree(child, path_with_child(), element, ["element"])
-                    list_opt_leaf_args, list_consumed_leaf_args = _find_direct_optional_leaf_create_args(child, element)
+                    list_opt_leaf_args, list_consumed_leaf_args = _find_direct_optional_leaf_create_args(child, path_with_child(), element)
 
                     res.extend(list(reversed(non_optional_containers)))
 
