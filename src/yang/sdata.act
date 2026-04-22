@@ -82,9 +82,13 @@ class SubscriptionNode(value):
         selected = self._direct_children()
         if depth == 1:
             return selected
-        res: list[SubscriptionNode] = [child for child in selected]
+        res: list[SubscriptionNode] = []
         for child in selected:
-            res.extend(child._depth_select(depth - 1))
+            descendants = child._depth_select(depth - 1)
+            if len(descendants) == 0:
+                res.append(child)
+            else:
+                res.extend(descendants)
         return res
 
     def _subscription_spec(self, rel_children: list[yang.gdata.FNode], period: ?value=None) -> yang.gdata.SubscriptionSpec:

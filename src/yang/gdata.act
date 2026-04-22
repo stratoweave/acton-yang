@@ -1783,12 +1783,17 @@ def filter_head_eq(a: FNode, b: FNode) -> bool:
 def filter_merge(a: FNode, b: FNode) -> FNode:
     """Merge two filter nodes with the same head.
 
-    Children with equal heads are merged recursively while distinct
-    children are preserved. The inputs must describe the same filter
-    node head.
+    A childless node already selects the whole subtree at its head, so
+    it dominates any narrower descendant selection. Otherwise, children
+    with equal heads are merged recursively while distinct children are
+    preserved. The inputs must describe the same filter node head.
     """
     if not filter_head_eq(a, b):
         raise ValueError("Cannot merge different filter nodes")
+    if len(a.children) == 0:
+        return a
+    if len(b.children) == 0:
+        return b
     children: list[FNode] = [c for c in a.children]
     for child in b.children:
         merged = False
@@ -4922,6 +4927,127 @@ def _test_filter_list_select_leaf():
                 ], ns=NS_acme, module="acme")
             }, ns=NS_acme, module="acme")
         }).prsrc(deterministic=True)
+    )
+
+
+def _test_filter_merge_keeps_multi_key_list_identity():
+    """Merging keyed list predicates should not select cross-product rows."""
+    k1 = Id(NS_acme, "k1")
+    k2 = Id(NS_acme, "k2")
+    payload = Id(NS_acme, "payload")
+    pairs = Id(NS_acme, "pairs")
+    data = Container({
+        pairs: List([k1, k2], [
+            Container({
+                k1: Leaf("1"),
+                k2: Leaf("1"),
+                payload: Leaf("11"),
+            }),
+            Container({
+                k1: Leaf("1"),
+                k2: Leaf("2"),
+                payload: Leaf("12"),
+            }),
+            Container({
+                k1: Leaf("2"),
+                k2: Leaf("1"),
+                payload: Leaf("21"),
+            }),
+            Container({
+                k1: Leaf("2"),
+                k2: Leaf("2"),
+                payload: Leaf("22"),
+            }),
+        ], ns=NS_acme, module="acme"),
+    }, ns=NS_acme, module="acme")
+    pair_11 = FNode(pairs, children=[
+        FNode(k1, value_match="1"),
+        FNode(k2, value_match="1"),
+        FNode(payload),
+    ])
+    pair_22 = FNode(pairs, children=[
+        FNode(k1, value_match="2"),
+        FNode(k2, value_match="2"),
+        FNode(payload),
+    ])
+    filt = FNode(children=filter_merge_list([pair_11, pair_22]))
+    res = expect(filter(data, filt), "filter result")
+    testing.assertEqual(
+        res.prsrc(deterministic=True),
+        Container({
+            pairs: List([k1, k2], [
+                Container({
+                    k1: Leaf("1"),
+                    k2: Leaf("1"),
+                    payload: Leaf("11"),
+                }),
+                Container({
+                    k1: Leaf("2"),
+                    k2: Leaf("2"),
+                    payload: Leaf("22"),
+                }),
+            ], ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme").prsrc(deterministic=True)
+    )
+
+
+def _test_filter_merge_preserves_subtree_selector():
+    """Merging a subtree selector with a descendant should keep the subtree."""
+    foo = Id(NS_acme, "foo")
+    l = Id(NS_acme, "l")
+    name = Id(NS_acme, "name")
+    statistics = Id(NS_acme, "statistics")
+    in_octets = Id(NS_acme, "in-octets")
+    out_octets = Id(NS_acme, "out-octets")
+    data = Container({
+        foo: Container({
+            l: List([name], [
+                Container({
+                    name: Leaf("eth0"),
+                    statistics: Container({
+                        in_octets: Leaf(u64(1234)),
+                        out_octets: Leaf(u64(5678)),
+                    }, ns=NS_acme, module="acme"),
+                }),
+                Container({
+                    name: Leaf("eth1"),
+                    statistics: Container({
+                        in_octets: Leaf(u64(42)),
+                        out_octets: Leaf(u64(84)),
+                    }, ns=NS_acme, module="acme"),
+                }),
+            ], ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme"),
+    }, ns=NS_acme, module="acme")
+    select_statistics = FNode(l, children=[
+        FNode(name, value_match="eth0"),
+        FNode(statistics),
+    ])
+    select_statistics_in = FNode(l, children=[
+        FNode(name, value_match="eth0"),
+        FNode(statistics, children=[
+            FNode(in_octets),
+        ]),
+    ])
+    filt = FNode(children=[
+        FNode(foo, children=filter_merge_list([select_statistics, select_statistics_in])),
+    ])
+    res = expect(filter(data, filt), "filter result")
+    testing.assertEqual(
+        res.prsrc(deterministic=True),
+        Container({
+            foo: Container({
+                l: List([name], [
+                    Container({
+                        name: Leaf("eth0"),
+                        statistics: Container({
+                            in_octets: Leaf(u64(1234)),
+                            out_octets: Leaf(u64(5678)),
+                        }, ns=NS_acme, module="acme"),
+                    }),
+                ], ns=NS_acme, module="acme"),
+            }, ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme").prsrc(deterministic=True)
     )
 
 
