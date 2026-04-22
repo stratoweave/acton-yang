@@ -144,5 +144,5 @@ class SubscriptionNode(value):
             return yang.gdata.SubscriptionSpec(self.filt(), period=period)
         return self._subscribe_select(actual_select, period=period)
 
-    def subscribe(self, dst: yang.gdata.Dst, select: ?list[SubscriptionNode]=None, depth: ?int=None, period: ?value=None) -> yang.gdata.Subscription:
-        return yang.gdata.Subscription(dst, self._spec(select=select, depth=depth, period=period))
+    def subscribe(self, select: ?list[SubscriptionNode]=None, depth: ?int=None, period: ?value=None) -> yang.gdata.SubscriptionSpec:
+        return self._spec(select=select, depth=depth, period=period)

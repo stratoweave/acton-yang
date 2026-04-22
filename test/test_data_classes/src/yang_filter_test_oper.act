@@ -1,6 +1,5 @@
 import base64
 import json
-import random
 import xml
 import yang
 import yang.adata
@@ -603,7 +602,7 @@ actor DstAdapter(cb: action(?root, ?Exception) -> None):
 
 def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:
     adapter = DstAdapter(cb)
-    return yang.gdata.Dst(random.randstr(24), adapter.on_update)
+    return yang.gdata.Dst(adapter.on_update)
 def src_schema():
     res = {}
     res["filter-test"] = Module('filter-test', yang_version=1.1, namespace='http://example.com/filter-test', prefix='ft', children=[

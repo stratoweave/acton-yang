@@ -32,7 +32,7 @@ def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose
 
 def yang_to_oper_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str) -> None:
     root = compile_root(yangs)
-    src = root.prdaclass(schema_yang=yangs, loose=True, include_state=True, include_subs=True, subs_name="subs")
+    src = root.prdaclass(schema_yang=yangs, loose=True, include_state=True, include_subs=True)
     wf = file.WriteFile(wfcap, filename)
 
     src += "def src_schema():\n"

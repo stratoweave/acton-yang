@@ -1691,7 +1691,7 @@ class DRoot(DNodeInner):
             ("module_metadata", self.module_metadata),
         ]
 
-    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False, subs_name: str="subs") -> str:
+    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False) -> str:
         def build_spath(spath: list[DNode]):
             if len(root_path) == len(spath) - 1:
                 return spath
@@ -1713,8 +1713,6 @@ class DRoot(DNodeInner):
         res = []
         res.append("import base64")
         res.append("import json")
-        if include_subs:
-            res.append("import random")
         res.append("import xml")
         res.append("import yang")
         res.append("import yang.adata")
@@ -1868,7 +1866,7 @@ class DRoot(DNodeInner):
         res.extend(inner)
         if include_subs:
             res.append("")
-            res.extend(self._prsubsclasses(root_const_name=subs_name))
+            res.extend(self._prsubsclasses())
             res.append("actor DstAdapter(cb: action(?root, ?Exception) -> None):")
             res.append("    def on_update(n: ?yang.gdata.Node, err: ?Exception):")
             res.append("        if err is not None:")
@@ -2036,7 +2034,6 @@ class DRoot(DNodeInner):
 
     def prsubstree(self, root_const_name: str="subs") -> str:
         res = []
-        res.append("import random")
         res.append("import yang.gdata")
         res.append("from yang.sdata import SubscriptionPath, SubscriptionNode")
         res.append("from yang.identityref import Identityref")

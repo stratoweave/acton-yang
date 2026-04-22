@@ -7,7 +7,6 @@ tree, and can be used to serialize and deserialize YANG data.
 import base64
 import testing
 import json
-import random
 import xml
 
 from yang.identityref import Identityref, PartialIdentityref
@@ -3125,38 +3124,34 @@ extension SubscriptionSpec(Hashable):
 
 class Dst(object):
     """Destination for merged subscription delivery."""
-    key: str
     @property
     on_update: action(?Node, ?Exception) -> None
 
     def __init__(self, on_update: action(?Node, ?Exception) -> None):
-        self.key = random.randstr(24)
         self.on_update = on_update
 
+    def deliver(self, want: set[SubscriptionSpec]) -> Delivery:
+        return Delivery(self, want)
 
-class Subscription(value):
-    """Subscription delivered to a specific destination."""
+
+class Delivery(object):
+    """Set of subscriptions delivered to one destination."""
     dst: Dst
-    spec: SubscriptionSpec
+    want: set[SubscriptionSpec]
 
-    def __init__(self, dst: Dst, spec: SubscriptionSpec):
+    def __init__(self, dst: Dst, want: set[SubscriptionSpec]):
         self.dst = dst
-        self.spec = spec
+        self.want = want
 
     def __str__(self) -> str:
-        return "Subscription({self.spec})"
+        return "Delivery({self.want})"
 
     def __repr__(self) -> str:
         return str(self)
 
 
-extension Subscription(Hashable):
-    def __eq__(self, other: Subscription) -> bool:
-        return self.dst.key == other.dst.key and self.spec == other.spec
-
-    def hash(self, hasher):
-        self.dst.key.hash(hasher)
-        self.spec.hash(hasher)
+def _delivery_sig(want: set[SubscriptionSpec]) -> str:
+    return "\n".join([str(spec) for spec in hack_sorted(iter(want))])
 
 
 class TreeProvider(object):
@@ -3180,17 +3175,17 @@ class SubscriptionManager(object):
         self.child_owner_ids = {}
         self.next_child_ix = 0
 
-    def declare(self, want: set[Subscription]):
-        grouped: dict[str, set[SubscriptionSpec]] = {}
+    def declare(self, want: list[Delivery]):
         dsts: dict[str, Dst] = {}
+        grouped: dict[str, set[SubscriptionSpec]] = {}
 
-        for subscription in want:
-            key = subscription.dst.key
-            try:
-                grouped[key].add(subscription.spec)
-            except KeyError:
-                grouped[key] = set([subscription.spec])
-                dsts[key] = subscription.dst
+        for delivery in want:
+            key = _delivery_sig(delivery.want)
+            # TODO: Delivery identity currently ignores callback identity. If
+            # the same spec set is declared for multiple destinations, the
+            # later destination wins during reconciliation.
+            grouped[key] = delivery.want
+            dsts[key] = delivery.dst
 
         stale_keys = [key for key in self.child_owner_ids.keys() if key not in grouped]
         for key in stale_keys:
