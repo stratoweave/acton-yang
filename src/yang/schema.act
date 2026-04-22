@@ -569,7 +569,7 @@ class DNodeInner(DNode):
             if not ref_support:
                 return None
             if isinstance(root_node, DRoot):
-                return supported_leafref_target_info(root_node, leaf)
+                return supported_leafref_target_info(root_node, spath + [leaf], leaf)
             return None
 
         def leaf_ref_class_name(leaf) -> str:
@@ -583,6 +583,39 @@ class DNodeInner(DNode):
 
         def gdata_path_expr(nodes) -> str:
             return "[{', '.join([gdata_id_expr(node) for node in nodes[1:]])}]"
+
+        def static_instance_key_expr(nodes: list[DNode]) -> ?str:
+            key_expr = "yang.adata.root_instance_key()"
+            for node in nodes[1:]:
+                if isinstance(node, DList):
+                    return None
+                key_expr = "yang.adata.append_container_instance_key({key_expr}, {gdata_id_expr(node)})"
+            return key_expr
+
+        def target_class_name(info: SupportedLeafrefTargetInfo) -> str:
+            if isinstance(info.owner_node, DList):
+                return "{get_path_name(info.owner_nodes)}_entry"
+            return get_path_name(info.owner_nodes)
+
+        def leafref_binding_expr(binding: SupportedLeafrefBinding) -> str:
+            if binding.kind == "ref_value":
+                return "yang.adata.RefValueSource('ref_value')"
+            if binding.kind == "source_path":
+                source_path_expr = "[{', '.join([gdata_id_expr(node) for node in binding.source_nodes])}]"
+                return "yang.adata.RefValueSource('source_path', up_levels={binding.up_levels}, source_path={source_path_expr})"
+            if binding.kind == "literal":
+                return "yang.adata.RefValueSource('literal', literal_value={repr(binding.literal_value)})"
+            raise ValueError("Unknown SupportedLeafrefBinding kind {binding.kind}")
+
+        def leafref_lookup_step_expr(step: SupportedLeafrefStep) -> str:
+            if isinstance(step.node, DList):
+                bindings_expr = "[{', '.join(['({gdata_id_expr(key_leaf)}, {leafref_binding_expr(binding)})' for key_leaf, binding in step.key_bindings])}]"
+                return "yang.adata.RefLookupStep({gdata_id_expr(step.node)}, True, key_bindings={bindings_expr})"
+            return "yang.adata.RefLookupStep({gdata_id_expr(step.node)}, False)"
+
+        def leafref_lookup_plan_expr(info: SupportedLeafrefTargetInfo) -> str:
+            steps_expr = "[{', '.join([leafref_lookup_step_expr(step) for step in info.lookup_steps])}]"
+            return "yang.adata.RefLookupPlan({steps_expr}, {gdata_id_expr(info.target_leaf)})"
 
         for child in self.children:
             if isinstance(child, DNodeLeaf):
@@ -600,12 +633,12 @@ class DNodeInner(DNode):
 
         for child in attr_children:
             if isinstance(child, DLeaf):
-                if supported_leafref_info(child) is None:
+                maybe_ref_info = supported_leafref_info(child)
+                if maybe_ref_info is None:
                     continue
                 ref_class_name = leaf_ref_class_name(child)
-                target_list_path = _expect(supported_leafref_info(child), ctx=get_path(spath + [child])).0
-                key_leaf = _expect(supported_leafref_info(child), ctx=get_path(spath + [child])).2
-                target_entry_name = "{get_path_name(target_list_path)}_entry"
+                ref_info = _expect(maybe_ref_info, ctx=get_path(spath + [child]))
+                target_entry_name = target_class_name(ref_info)
                 child_optional = False if isinstance(self, DList) and child.is_key(self) else not (child.mandatory and not loose)
                 child_arg_optional = True if child.default is not None else child_optional
                 raw_value_type = yang_type_to_acton_type(child.type_)
@@ -620,7 +653,7 @@ class DNodeInner(DNode):
                 res.append("        self.value = value")
                 res.append("        self.target = target")
                 res.append("")
-                res.append("def {leaf_ref_resolver_name(child)}(value: {raw_arg_type}, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> {ref_arg_type}:")
+                res.append("def {leaf_ref_resolver_name(child)}(value: {raw_arg_type}, source_nodes: list[yang.gdata.Node]=[], lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> {ref_arg_type}:")
                 if child_arg_optional:
                     res.append("    if value is None:")
                     res.append("        return None")
@@ -630,16 +663,16 @@ class DNodeInner(DNode):
                 res.append("    ref = {ref_class_name}(ref_value)")
                 res.append("    ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)")
                 res.append("    if ctx is not None:")
-                res.append("        cache_key = yang.adata.ref_cache_key({repr(get_path(target_list_path))}, ref_value)")
-                res.append("        cached_target = ctx.get_target(cache_key)")
-                res.append("        if isinstance(cached_target, {target_entry_name}):")
-                res.append("            ref.target = cached_target")
-                res.append("            return ref")
                 res.append("        lookup_node = ctx.lookup_root")
                 res.append("        if lookup_node is not None:")
-                res.append("            target_node = yang.adata.lookup_list_entry_by_key(lookup_node, {gdata_path_expr(target_list_path)}, {gdata_id_expr(key_leaf)}, ref_value)")
-                res.append("            if target_node is not None:")
-                res.append("                target = {target_entry_name}.from_gdata(target_node, lookup_root=lookup_node, _ref_ctx=ctx)")
+                res.append("            lookup_res = yang.adata.lookup_ref_target(lookup_node, source_nodes, ref_value, {leafref_lookup_plan_expr(ref_info)})")
+                res.append("            if lookup_res is not None:")
+                res.append("                cache_key = lookup_res.owner_instance_key")
+                res.append("                cached_target = ctx.get_target(cache_key)")
+                res.append("                if isinstance(cached_target, {target_entry_name}):")
+                res.append("                    ref.target = cached_target")
+                res.append("                    return ref")
+                res.append("                target = {target_entry_name}.from_gdata(lookup_res.owner_node, lookup_root=lookup_node, _ref_ctx=ctx, _source_nodes=lookup_res.owner_source_nodes[:-1], _instance_key=cache_key)")
                 res.append("                ref.target = target")
                 res.append("                ctx.set_target(cache_key, target)")
                 res.append("    return ref")
@@ -816,36 +849,52 @@ class DNodeInner(DNode):
             child_id = "yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}')"
             if isinstance(child, DLeaf):
                 if supported_leafref_info(child) is not None:
-                    from_gdata_args_list.append("{usname(child)}={leaf_ref_resolver_name(child)}(n.{taker_name(child, list_keys(self), loose=loose)}({child_id}), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx)")
+                    from_gdata_args_list.append("{usname(child)}={leaf_ref_resolver_name(child)}(n.{taker_name(child, list_keys(self), loose=loose)}({child_id}), source_nodes=yang.adata.append_source_node(_self_source_nodes, n.get_opt_leaf({child_id})), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx)")
                 else:
                     from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, list_keys(self), loose=loose)}({child_id})")
             elif isinstance(child, DLeafList):
                 from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, list_keys(self), loose=loose)}({child_id})")
             else:
                 if ref_support:
-                    from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, list_keys(self), loose=loose)}({child_id}), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx)")
+                    if isinstance(child, DList):
+                        from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, list_keys(self), loose=loose)}({child_id}), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _parent_instance_key=_self_instance_key)")
+                    else:
+                        from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, list_keys(self), loose=loose)}({child_id}), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, {child_id}))")
                 else:
                     from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, list_keys(self), loose=loose)}({child_id}))")
         from_gdata_args = ", ".join(from_gdata_args_list)
-        list_key_leaf = get_single_key_leaf(self) if ref_support and isinstance(self, DList) else None
+        list_key_leaves = [_expect(get_key_leaf(self, key_name), ctx=get_path(spath)) for key_name in self.key] if isinstance(self, DList) else []
+        default_self_instance_key = static_instance_key_expr(spath)
+        default_parent_instance_key = static_instance_key_expr(spath[:-1]) if len(spath) > 1 else "yang.adata.root_instance_key()"
         res.append("    @staticmethod")
         if isinstance(self, DList):
             if ref_support:
-                res.append("    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> {pname()}_entry:")
+                res.append("    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None, _instance_key: ?str=None) -> {pname()}_entry:")
                 res.append("        _actual_lookup_root = lookup_root")
                 res.append("        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)")
-                if list_key_leaf is not None:
-                    res.append("        _cache_key = ''")
-                    res.append("        if _ref_ctx is not None:")
-                    res.append("            _key_value = n.{taker_name(list_key_leaf, list_keys(self), loose=loose)}({gdata_id_expr(list_key_leaf)})")
-                    res.append("            _cache_key = yang.adata.ref_cache_key({repr(get_path(spath))}, _key_value)")
-                    res.append("            _cached = _ref_ctx.get_target(_cache_key)")
-                    res.append("            if isinstance(_cached, {pname()}_entry):")
-                    res.append("                return _cached")
+                res.append("        _self_source_nodes = _source_nodes + [n]")
+                res.append("        _self_instance_key = ''")
+                if len(list_key_leaves) > 0:
+                    key_values_expr = "[{', '.join(['({gdata_id_expr(key_leaf)}, n.{taker_name(key_leaf, list_keys(self), loose=loose)}({gdata_id_expr(key_leaf)}))' for key_leaf in list_key_leaves])}]"
+                    res.append("        _key_values = {key_values_expr}")
+                res.append("        if _instance_key is not None:")
+                res.append("            _self_instance_key = _instance_key")
+                if len(list_key_leaves) > 0:
+                    if default_parent_instance_key is not None:
+                        res.append("        elif _parent_instance_key is None:")
+                        res.append("            _self_instance_key = yang.adata.append_list_instance_key({default_parent_instance_key}, {gdata_id_expr(self)}, _key_values)")
+                        res.append("        else:")
+                        res.append("            _self_instance_key = yang.adata.append_list_instance_key(_parent_instance_key, {gdata_id_expr(self)}, _key_values)")
+                    else:
+                        res.append("        elif _parent_instance_key is not None:")
+                        res.append("            _self_instance_key = yang.adata.append_list_instance_key(_parent_instance_key, {gdata_id_expr(self)}, _key_values)")
+                res.append("        if _ref_ctx is not None and _self_instance_key != '':")
+                res.append("            _cached = _ref_ctx.get_target(_self_instance_key)")
+                res.append("            if isinstance(_cached, {pname()}_entry):")
+                res.append("                return _cached")
                 res.append("        res = {pname()}_entry({from_gdata_args})")
-                if list_key_leaf is not None:
-                    res.append("        if _ref_ctx is not None and _cache_key != '':")
-                    res.append("            _ref_ctx.set_target(_cache_key, res)")
+                res.append("        if _ref_ctx is not None and _self_instance_key != '':")
+                res.append("            _ref_ctx.set_target(_self_instance_key, res)")
                 res.append("        return res")
             else:
                 res.append("    mut def from_gdata(n: yang.gdata.Node) -> {pname()}_entry:")
@@ -853,7 +902,7 @@ class DNodeInner(DNode):
         else:
             opt_cnt = True if isinstance(self, DContainer) and self.presence else False
             if ref_support:
-                res.append("    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> {'?' if opt_cnt else ''}{pname()}:")
+                res.append("    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> {'?' if opt_cnt else ''}{pname()}:")
                 res.append("        _actual_lookup_root = lookup_root")
                 if isinstance(self, DRoot):
                     res.append("        if _actual_lookup_root is None:")
@@ -862,7 +911,24 @@ class DNodeInner(DNode):
             else:
                 res.append("    mut def from_gdata(n: ?yang.gdata.Node) -> {'?' if opt_cnt else ''}{pname()}:")
             res.append("        if n is not None:")
-            res.append("            return {pname()}({from_gdata_args})")
+            if ref_support:
+                res.append("            _self_source_nodes = _source_nodes + [n]")
+                res.append("            _self_instance_key = ''")
+                res.append("            if _instance_key is not None:")
+                res.append("                _self_instance_key = _instance_key")
+                if default_self_instance_key is not None:
+                    res.append("            else:")
+                    res.append("                _self_instance_key = {default_self_instance_key}")
+                res.append("            if _ref_ctx is not None and _self_instance_key != '':")
+                res.append("                _cached = _ref_ctx.get_target(_self_instance_key)")
+                res.append("                if isinstance(_cached, {pname()}):")
+                res.append("                    return _cached")
+                res.append("            res = {pname()}({from_gdata_args})")
+                res.append("            if _ref_ctx is not None and _self_instance_key != '':")
+                res.append("                _ref_ctx.set_target(_self_instance_key, res)")
+                res.append("            return res")
+            else:
+                res.append("            return {pname()}({from_gdata_args})")
             if opt_cnt:
                 res.append("        return None")
             elif loose or optional_subtree(self):
@@ -978,10 +1044,14 @@ class DNodeInner(DNode):
 #            # TODO: should .from_gdata() not take a specific data node instead, like Container instead of yang.gdata.Node?
             res.append("    @staticmethod")
             if ref_support:
-                res.append("    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[{pname()}_entry]:")
+                res.append("    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None) -> list[{pname()}_entry]:")
                 res.append("        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)")
+                res.append("        _actual_parent_instance_key = _parent_instance_key")
+                if default_parent_instance_key is not None:
+                    res.append("        if _actual_parent_instance_key is None:")
+                    res.append("            _actual_parent_instance_key = {default_parent_instance_key}")
                 res.append("        if n is not None:")
-                res.append("            return [{pname()}_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]")
+                res.append("            return [{pname()}_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_source_nodes, _parent_instance_key=_actual_parent_instance_key) for e in n.elements]")
             else:
                 res.append("    mut def from_gdata(n: ?yang.gdata.List) -> list[{pname()}_entry]:")
                 res.append("        if n is not None:")
@@ -1825,7 +1895,7 @@ class DRoot(DNodeInner):
         # the SRC_DNODE constant to have the same view of the schema as the
         # adata code generator ...
         spath = build_spath([self])
-        ref_support = top and len(root_path) == 0 and contains_supported_leafref(self, self)
+        ref_support = top and len(root_path) == 0 and contains_supported_leafref(self, self, [self])
         inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, exclude_ext=exclude_ext, ref_support=ref_support)
 
         res = []
@@ -4004,13 +4074,51 @@ def yang_leaflist_to_acton_type(leaf: DLeafList) -> str:
     return "list[{t}]"
 
 
-def get_single_key_leaf(node: DList) -> ?DLeaf:
-    if len(node.key) != 1:
-        return None
-    key_name = node.key[0]
+class SupportedLeafrefBinding(object):
+    kind: str
+    up_levels: int
+    source_nodes: list[DNode]
+    literal_value: ?value
+
+    def __init__(self, kind: str, up_levels: int=0, source_nodes: list[DNode]=[], literal_value: ?value=None):
+        self.kind = kind
+        self.up_levels = up_levels
+        self.source_nodes = source_nodes
+        self.literal_value = literal_value
+
+
+class SupportedLeafrefStep(object):
+    node: DNodeInner
+    key_bindings: list[(DLeaf, SupportedLeafrefBinding)]
+
+    def __init__(self, node: DNodeInner, key_bindings: list[(DLeaf, SupportedLeafrefBinding)]=[]):
+        self.node = node
+        self.key_bindings = key_bindings
+
+
+class SupportedLeafrefTargetInfo(object):
+    owner_nodes: list[DNode]
+    owner_node: DNodeInner
+    target_leaf: DLeaf
+    lookup_steps: list[SupportedLeafrefStep]
+
+    def __init__(self, owner_nodes: list[DNode], owner_node: DNodeInner, target_leaf: DLeaf, lookup_steps: list[SupportedLeafrefStep]):
+        self.owner_nodes = owner_nodes
+        self.owner_node = owner_node
+        self.target_leaf = target_leaf
+        self.lookup_steps = lookup_steps
+
+
+def get_key_leaf(node: DList, key_name: str) -> ?DLeaf:
     for child in node.children:
         if isinstance(child, DLeaf) and child.name == key_name:
             return child
+
+
+def get_single_key_leaf(node: DList) -> ?DLeaf:
+    if len(node.key) != 1:
+        return None
+    return get_key_leaf(node, node.key[0])
 
 
 def resolve_dnode_path(root: DRoot, path: xpath.AbsoluteLocationPath, current_module: str) -> ?list[DNode]:
@@ -4018,8 +4126,6 @@ def resolve_dnode_path(root: DRoot, path: xpath.AbsoluteLocationPath, current_mo
     current = root
     for step in path.steps:
         if isinstance(step, xpath.NodeTestStep):
-            if len(step.predicates) > 0:
-                return None
             try:
                 if step.prefix is not None:
                     current = current.get(step.name, prefix=step.prefix)
@@ -4033,39 +4139,199 @@ def resolve_dnode_path(root: DRoot, path: xpath.AbsoluteLocationPath, current_mo
     return nodes
 
 
-def supported_leafref_target_info(root: DRoot, leaf: DLeaf):
+def parse_prefixed_name_ref(name_ref: str) -> ?(?str, str):
+    raw = name_ref.strip()
+    if raw == "":
+        return None
+    parts = raw.split(":", 1)
+    if len(parts) == 2:
+        if parts[0] == "" or parts[1] == "":
+            return None
+        return (parts[0], parts[1])
+    return (None, raw)
+
+
+def split_supported_predicate(predicate: str) -> ?(str, str):
+    quote = None
+    for i, ch in enumerate(predicate):
+        if quote is not None:
+            if ch == quote:
+                quote = None
+        elif ch == "'" or ch == '"':
+            quote = ch
+        elif ch == "=":
+            lhs = predicate[:i].strip()
+            rhs = predicate[i + 1:].strip()
+            if lhs != "" and rhs != "":
+                return (lhs, rhs)
+            return None
+
+
+def parse_current_source_binding(expr: str, source_spath: list[DNode], current_module: str) -> ?(int, list[DNode]):
+    current_expr = expr.strip()
+    if not current_expr.startswith("current()"):
+        return None
+
+    remainder = current_expr[len("current()"):]
+    up_levels = 0
+    source_idx = len(source_spath) - 1
+    while remainder.startswith("/.."):
+        up_levels += 1
+        source_idx -= 1
+        remainder = remainder[3:]
+        if source_idx < 0:
+            return None
+
+    if remainder.startswith("/"):
+        remainder = remainder[1:]
+    elif remainder != "":
+        return None
+
+    current_node = source_spath[source_idx]
+    if remainder == "":
+        if isinstance(current_node, DLeaf):
+            return (up_levels, [])
+        return None
+
+    resolved_nodes: list[DNode] = []
+    for segment in remainder.split("/"):
+        if segment == "" or segment == "." or segment == "..":
+            return None
+        maybe_ref = parse_prefixed_name_ref(segment)
+        if maybe_ref is None:
+            return None
+        prefix, name = _expect(maybe_ref, ctx=expr)
+        if not isinstance(current_node, DNodeInner):
+            return None
+        try:
+            if prefix is not None:
+                current_node = current_node.get(name, prefix=prefix)
+            else:
+                current_node = current_node.get(name, module=current_module)
+        except ValueError:
+            return None
+        resolved_nodes.append(current_node)
+
+    if len(resolved_nodes) == 0 or not isinstance(resolved_nodes[-1], DLeaf):
+        return None
+    return (up_levels, resolved_nodes)
+
+
+def parse_supported_key_binding(list_node: DList, predicate: xpath.Predicate, source_spath: list[DNode], current_module: str) -> ?(DLeaf, SupportedLeafrefBinding):
+    maybe_eq = split_supported_predicate(predicate.predicate)
+    if maybe_eq is None:
+        return None
+    lhs, rhs = _expect(maybe_eq, ctx=predicate.predicate)
+
+    maybe_key_ref = parse_prefixed_name_ref(lhs)
+    if maybe_key_ref is None:
+        return None
+    key_prefix, key_name = _expect(maybe_key_ref, ctx=lhs)
+    try:
+        if key_prefix is not None:
+            maybe_key_leaf = list_node.get(key_name, prefix=key_prefix)
+        else:
+            maybe_key_leaf = list_node.get(key_name, module=current_module)
+    except ValueError:
+        return None
+
+    if isinstance(maybe_key_leaf, DLeaf):
+        key_leaf = maybe_key_leaf
+    else:
+        return None
+    if key_leaf.name not in list_node.key:
+        return None
+
+    maybe_source_binding = parse_current_source_binding(rhs, source_spath, current_module)
+    if maybe_source_binding is None:
+        return None
+    up_levels, source_nodes = _expect(maybe_source_binding, ctx=rhs)
+    return (key_leaf, SupportedLeafrefBinding("source_path", up_levels=up_levels, source_nodes=source_nodes))
+
+
+def supported_leafref_target_info(root: DRoot, source_spath: list[DNode], leaf: DLeaf) -> ?SupportedLeafrefTargetInfo:
     leaf_type = leaf.type_
     if isinstance(leaf_type, DTypeLeafref):
         maybe_target_nodes = resolve_dnode_path(root, leaf_type.path, leaf.module)
         if maybe_target_nodes is None:
             return None
-        target_nodes: list[DNode] = _expect(maybe_target_nodes, ctx=get_path([root, leaf]))
-        if len(target_nodes) < 3:
+        target_nodes: list[DNode] = _expect(maybe_target_nodes, ctx=get_path(source_spath))
+        if len(target_nodes) < 2:
             return None
 
         maybe_target_leaf = target_nodes[-1]
-        maybe_target_list = target_nodes[-2]
+        maybe_owner_node = target_nodes[-2]
         if isinstance(maybe_target_leaf, DLeaf):
-            if isinstance(maybe_target_list, DList):
-                maybe_key_leaf = get_single_key_leaf(maybe_target_list)
-                if isinstance(maybe_key_leaf, DLeaf):
-                    if maybe_key_leaf.name != maybe_target_leaf.name:
-                        return None
+            if isinstance(maybe_owner_node, DNodeInner):
+                owner_nodes = target_nodes[:-1]
+                leaf_path_steps = leaf_type.path.steps
+                if len(leaf_path_steps) != len(target_nodes) - 1:
+                    return None
+                if len(leaf_path_steps) == 0:
+                    return None
+                final_raw_step = leaf_path_steps[-1]
+                if isinstance(final_raw_step, xpath.NodeTestStep):
+                    final_predicates = final_raw_step.predicates
+                else:
+                    return None
+                if len(final_predicates) > 0:
+                    return None
 
-                    for node in target_nodes[1:-2]:
-                        if isinstance(node, DList):
+                lookup_steps: list[SupportedLeafrefStep] = []
+                owner_lookup_nodes = owner_nodes[1:]
+                owner_lookup_last_idx = len(owner_lookup_nodes) - 1
+                for idx, pair in enumerate(zip(leaf_path_steps[:-1], owner_lookup_nodes)):
+                    raw_step, node = pair
+                    if isinstance(raw_step, xpath.NodeTestStep):
+                        step_predicates = raw_step.predicates
+                    else:
+                        return None
+                    if isinstance(node, DContainer):
+                        if len(step_predicates) > 0:
+                            return None
+                        lookup_steps.append(SupportedLeafrefStep(node))
+                        continue
+                    if isinstance(node, DList):
+                        binding_by_key = {}
+                        for predicate in step_predicates:
+                            maybe_binding = parse_supported_key_binding(node, predicate, source_spath, leaf.module)
+                            if maybe_binding is None:
+                                return None
+                            key_leaf, binding = _expect(maybe_binding, ctx=predicate.predicate)
+                            if key_leaf.name in binding_by_key:
+                                return None
+                            binding_by_key[key_leaf.name] = (key_leaf, binding)
+
+                        ordered_bindings = []
+                        for key_name in node.key:
+                            maybe_key_leaf = get_key_leaf(node, key_name)
+                            if isinstance(maybe_key_leaf, DLeaf):
+                                key_leaf = maybe_key_leaf
+                            else:
+                                return None
+                            bound = binding_by_key.get(key_name)
+                            if bound is not None:
+                                ordered_bindings.append(bound)
+                                continue
+                            if idx == owner_lookup_last_idx and isinstance(maybe_owner_node, DList) and maybe_target_leaf.name == key_name:
+                                ordered_bindings.append((key_leaf, SupportedLeafrefBinding("ref_value")))
+                                continue
                             return None
 
-                    return (target_nodes[:-1], maybe_target_list, maybe_key_leaf)
+                        lookup_steps.append(SupportedLeafrefStep(node, key_bindings=ordered_bindings))
+                        continue
+                    return None
+
+                return SupportedLeafrefTargetInfo(owner_nodes, maybe_owner_node, maybe_target_leaf, lookup_steps)
     return None
 
 
-def contains_supported_leafref(node: DNode, root: DRoot) -> bool:
+def contains_supported_leafref(node: DNode, root: DRoot, spath: list[DNode]) -> bool:
     if isinstance(node, DLeaf):
-        return supported_leafref_target_info(root, node) is not None
+        return supported_leafref_target_info(root, spath, node) is not None
     if isinstance(node, DNodeInner):
         for child in node.children:
-            if contains_supported_leafref(child, root):
+            if contains_supported_leafref(child, root, spath + [child]):
                 return True
     return False
 

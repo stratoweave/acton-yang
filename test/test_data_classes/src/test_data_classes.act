@@ -216,17 +216,48 @@ def _refs_gdata():
                         refs_id("interval"): yang.gdata.Leaf(u64(60))
                     })
                 })
+            ]),
+            refs_id("device"): yang.gdata.List([refs_id("name")], elements=[
+                yang.gdata.Container({
+                    refs_id("name"): yang.gdata.Leaf("r1"),
+                    refs_id("interface"): yang.gdata.List([refs_id("name"), refs_id("subif")], elements=[
+                        yang.gdata.Container({
+                            refs_id("name"): yang.gdata.Leaf("eth0"),
+                            refs_id("subif"): yang.gdata.Leaf(u64(0)),
+                            refs_id("config"): yang.gdata.Container({
+                                refs_id("enabled"): yang.gdata.Leaf(True)
+                            })
+                        }),
+                        yang.gdata.Container({
+                            refs_id("name"): yang.gdata.Leaf("eth0"),
+                            refs_id("subif"): yang.gdata.Leaf(u64(1)),
+                            refs_id("config"): yang.gdata.Container({
+                                refs_id("enabled"): yang.gdata.Leaf(False)
+                            })
+                        })
+                    ])
+                })
             ])
         }),
         refs_id("transforms"): yang.gdata.Container({
             refs_id("consumer"): yang.gdata.List([refs_id("name")], elements=[
                 yang.gdata.Container({
                     refs_id("name"): yang.gdata.Leaf("c1"),
-                    refs_id("input"): yang.gdata.Leaf("prod-a")
+                    refs_id("input"): yang.gdata.Leaf("prod-a"),
+                    refs_id("device"): yang.gdata.Leaf("r1"),
+                    refs_id("if-name"): yang.gdata.Leaf("eth0"),
+                    refs_id("if-subif"): yang.gdata.Leaf(u64(0)),
+                    refs_id("nested-input"): yang.gdata.Leaf("eth0"),
+                    refs_id("nested-enabled"): yang.gdata.Leaf(True)
                 }),
                 yang.gdata.Container({
                     refs_id("name"): yang.gdata.Leaf("c2"),
-                    refs_id("input"): yang.gdata.Leaf("prod-a")
+                    refs_id("input"): yang.gdata.Leaf("prod-a"),
+                    refs_id("device"): yang.gdata.Leaf("r1"),
+                    refs_id("if-name"): yang.gdata.Leaf("eth0"),
+                    refs_id("if-subif"): yang.gdata.Leaf(u64(0)),
+                    refs_id("nested-input"): yang.gdata.Leaf("eth0"),
+                    refs_id("nested-enabled"): yang.gdata.Leaf(True)
                 })
             ])
         })
@@ -259,6 +290,36 @@ def _test_leafref_lookup_root_shared_target():
                     p1.config.interval = u64(99)
                     testing.assertEqual(p2.config.interval, u64(99))
 
+            testing.assertNotNone(c1.nested_input)
+            testing.assertNotNone(c2.nested_input)
+            nested_input1 = c1.nested_input
+            nested_input2 = c2.nested_input
+            if nested_input1 is not None:
+                if nested_input2 is not None:
+                    iface1 = nested_input1.target
+                    iface2 = nested_input2.target
+                    testing.assertNotNone(iface1)
+                    testing.assertNotNone(iface2)
+                    if iface1 is not None:
+                        if iface2 is not None:
+                            iface1.config.enabled = False
+                            testing.assertEqual(iface2.config.enabled, False)
+
+            testing.assertNotNone(c1.nested_enabled)
+            testing.assertNotNone(c2.nested_enabled)
+            nested_enabled1 = c1.nested_enabled
+            nested_enabled2 = c2.nested_enabled
+            if nested_enabled1 is not None:
+                if nested_enabled2 is not None:
+                    cfg1 = nested_enabled1.target
+                    cfg2 = nested_enabled2.target
+                    testing.assertNotNone(cfg1)
+                    testing.assertNotNone(cfg2)
+                    if cfg1 is not None:
+                        if cfg2 is not None:
+                            cfg1.enabled = True
+                            testing.assertEqual(cfg2.enabled, True)
+
 
 def _test_leafref_full_tree_canonical_target():
     gd = _refs_gdata()
@@ -266,6 +327,7 @@ def _test_leafref_full_tree_canonical_target():
 
     producer = ad.inventory.producer.elements[0]
     consumer = ad.transforms.consumer.elements[0]
+    interface = ad.inventory.device.elements[0].interface.elements[0]
 
     testing.assertNotNone(consumer.input)
     input_ref = consumer.input
@@ -275,6 +337,24 @@ def _test_leafref_full_tree_canonical_target():
         if target is not None:
             producer.config.interval = u64(41)
             testing.assertEqual(target.config.interval, u64(41))
+
+    testing.assertNotNone(consumer.nested_input)
+    nested_input_ref = consumer.nested_input
+    if nested_input_ref is not None:
+        iface_target = nested_input_ref.target
+        testing.assertNotNone(iface_target)
+        if iface_target is not None:
+            interface.config.enabled = False
+            testing.assertEqual(iface_target.config.enabled, False)
+
+    testing.assertNotNone(consumer.nested_enabled)
+    nested_enabled_ref = consumer.nested_enabled
+    if nested_enabled_ref is not None:
+        cfg_target = nested_enabled_ref.target
+        testing.assertNotNone(cfg_target)
+        if cfg_target is not None:
+            interface.config.enabled = True
+            testing.assertEqual(cfg_target.enabled, True)
 
 actor _test_gdata_source_roundtrip_xml_full(t: testing.EnvT):
     wfcap = file.WriteFileCap(file.FileCap(t.env.cap))

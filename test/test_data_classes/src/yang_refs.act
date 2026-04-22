@@ -25,13 +25,31 @@ SRC_DNODE_CHILD_0 = DContainer(module='refs', namespace='http://example.com/refs
         DContainer(module='refs', namespace='http://example.com/refs', prefix='refs', name='config', config=True, presence=False, children=[
             DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='interval', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)])))
         ])
+    ]),
+    DList(module='refs', namespace='http://example.com/refs', prefix='refs', name='device', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DList(module='refs', namespace='http://example.com/refs', prefix='refs', name='interface', key=[
+'name',
+'subif'
+            ], config=True, min_elements=0, ordered_by='system', children=[
+            DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+            DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='subif', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)]))),
+            DContainer(module='refs', namespace='http://example.com/refs', prefix='refs', name='config', config=True, presence=False, children=[
+                DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='enabled', config=True, mandatory=False, type_=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None))
+            ])
+        ])
     ])
 ])
 
 SRC_DNODE_CHILD_1 = DContainer(module='refs', namespace='http://example.com/refs', prefix='refs', name='transforms', config=True, presence=False, children=[
     DList(module='refs', namespace='http://example.com/refs', prefix='refs', name='consumer', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='input', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep('refs', 'inventory', []), yang.xpath.NodeTestStep('refs', 'producer', []), yang.xpath.NodeTestStep('refs', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='input', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep('refs', 'inventory', []), yang.xpath.NodeTestStep('refs', 'producer', []), yang.xpath.NodeTestStep('refs', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))),
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='device', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='if-name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='if-subif', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)]))),
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='nested-input', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep('refs', 'inventory', []), yang.xpath.NodeTestStep('refs', 'device', [yang.xpath.Predicate('refs:name=current()/../refs:device')]), yang.xpath.NodeTestStep('refs', 'interface', [yang.xpath.Predicate('refs:name=current()/../refs:if-name'), yang.xpath.Predicate('refs:subif=current()/../refs:if-subif')]), yang.xpath.NodeTestStep('refs', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))),
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='nested-enabled', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep('refs', 'inventory', []), yang.xpath.NodeTestStep('refs', 'device', [yang.xpath.Predicate('refs:name=current()/../refs:device')]), yang.xpath.NodeTestStep('refs', 'interface', [yang.xpath.Predicate('refs:name=current()/../refs:if-name'), yang.xpath.Predicate('refs:subif=current()/../refs:if-subif')]), yang.xpath.NodeTestStep('refs', 'config', []), yang.xpath.NodeTestStep('refs', 'enabled', [])]), require_instance=False, target_type=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)))
     ])
 ])
 
@@ -63,6 +81,32 @@ def src_yang():
         }
       }
     }
+
+    list device {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      list interface {
+        key "name subif";
+
+        leaf name {
+          type string;
+        }
+
+        leaf subif {
+          type uint32;
+        }
+
+        container config {
+          leaf enabled {
+            type boolean;
+          }
+        }
+      }
+    }
   }
 
   container transforms {
@@ -76,6 +120,34 @@ def src_yang():
       leaf input {
         type leafref {
           path "/refs:inventory/refs:producer/refs:name";
+        }
+      }
+
+      leaf device {
+        type string;
+      }
+
+      leaf if-name {
+        type string;
+      }
+
+      leaf if-subif {
+        type uint32;
+      }
+
+      leaf nested-input {
+        type leafref {
+          path "/refs:inventory/refs:device[refs:name=current()/../refs:device]/" +
+               "refs:interface[refs:name=current()/../refs:if-name][refs:subif=current()/../refs:if-subif]/" +
+               "refs:name";
+        }
+      }
+
+      leaf nested-enabled {
+        type leafref {
+          path "/refs:inventory/refs:device[refs:name=current()/../refs:device]/" +
+               "refs:interface[refs:name=current()/../refs:if-name][refs:subif=current()/../refs:if-subif]/" +
+               "refs:config/refs:enabled";
         }
       }
     }
@@ -103,11 +175,22 @@ class refs__inventory__producer__config(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory', 'producer', 'config'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__inventory__producer__config:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> refs__inventory__producer__config:
         _actual_lookup_root = lookup_root
         _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return refs__inventory__producer__config(interval=n.get_opt_u64(yang.gdata.Id(NS_refs, 'interval')))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, refs__inventory__producer__config):
+                    return _cached
+            res = refs__inventory__producer__config(interval=n.get_opt_u64(yang.gdata.Id(NS_refs, 'interval')))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return refs__inventory__producer__config()
 
     def copy(self):
@@ -135,19 +218,25 @@ class refs__inventory__producer_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory', 'producer'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__inventory__producer_entry:
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None, _instance_key: ?str=None) -> refs__inventory__producer_entry:
         _actual_lookup_root = lookup_root
         _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
-        _cache_key = ''
-        if _ref_ctx is not None:
-            _key_value = n.get_str(yang.gdata.Id(NS_refs, 'name'))
-            _cache_key = yang.adata.ref_cache_key('/inventory/producer', _key_value)
-            _cached = _ref_ctx.get_target(_cache_key)
+        _self_source_nodes = _source_nodes + [n]
+        _self_instance_key = ''
+        _key_values = [(yang.gdata.Id(NS_refs, 'name'), n.get_str(yang.gdata.Id(NS_refs, 'name')))]
+        if _instance_key is not None:
+            _self_instance_key = _instance_key
+        elif _parent_instance_key is None:
+            _self_instance_key = yang.adata.append_list_instance_key(yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'inventory')), yang.gdata.Id(NS_refs, 'producer'), _key_values)
+        else:
+            _self_instance_key = yang.adata.append_list_instance_key(_parent_instance_key, yang.gdata.Id(NS_refs, 'producer'), _key_values)
+        if _ref_ctx is not None and _self_instance_key != '':
+            _cached = _ref_ctx.get_target(_self_instance_key)
             if isinstance(_cached, refs__inventory__producer_entry):
                 return _cached
-        res = refs__inventory__producer_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), config=refs__inventory__producer__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'config')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
-        if _ref_ctx is not None and _cache_key != '':
-            _ref_ctx.set_target(_cache_key, res)
+        res = refs__inventory__producer_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), config=refs__inventory__producer__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'config')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, yang.gdata.Id(NS_refs, 'config'))))
+        if _ref_ctx is not None and _self_instance_key != '':
+            _ref_ctx.set_target(_self_instance_key, res)
         return res
 
     def copy(self):
@@ -176,10 +265,13 @@ class refs__inventory__producer(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[refs__inventory__producer_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None) -> list[refs__inventory__producer_entry]:
         _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+        _actual_parent_instance_key = _parent_instance_key
+        if _actual_parent_instance_key is None:
+            _actual_parent_instance_key = yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'inventory'))
         if n is not None:
-            return [refs__inventory__producer_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
+            return [refs__inventory__producer_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_source_nodes, _parent_instance_key=_actual_parent_instance_key) for e in n.elements]
         return []
 
     def copy(self):
@@ -197,26 +289,265 @@ extension refs__inventory__producer(Iterable[refs__inventory__producer_entry]):
         return self.elements.__iter__()
 
 _breaker4 = None
+class refs__inventory__device__interface__config(yang.adata.MNode):
+    enabled: ?bool
+
+    mut def __init__(self, enabled: ?bool):
+        self._ns = 'http://example.com/refs'
+        self.enabled = enabled
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'enabled':
+            return self.enabled
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory', 'device', 'interface', 'config'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> refs__inventory__device__interface__config:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        if n is not None:
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, refs__inventory__device__interface__config):
+                    return _cached
+            res = refs__inventory__device__interface__config(enabled=n.get_opt_bool(yang.gdata.Id(NS_refs, 'enabled')))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
+        return refs__inventory__device__interface__config()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__inventory__device__interface__config.from_gdata(self.to_gdata())
+
+
+_breaker5 = None
+class refs__inventory__device__interface_entry(yang.adata.MNode):
+    name: str
+    subif: u64
+    config: refs__inventory__device__interface__config
+
+    mut def __init__(self, name: str, subif: u64, config: ?refs__inventory__device__interface__config=None):
+        self._ns = 'http://example.com/refs'
+        self.name = name
+        self.subif = subif
+        self.config = config if config is not None else refs__inventory__device__interface__config()
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'name':
+            return self.name
+        if name == 'subif':
+            return self.subif
+        if name == 'config':
+            return self.config
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory', 'device', 'interface'])
+
+    @staticmethod
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None, _instance_key: ?str=None) -> refs__inventory__device__interface_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _self_source_nodes = _source_nodes + [n]
+        _self_instance_key = ''
+        _key_values = [(yang.gdata.Id(NS_refs, 'name'), n.get_str(yang.gdata.Id(NS_refs, 'name'))), (yang.gdata.Id(NS_refs, 'subif'), n.get_u64(yang.gdata.Id(NS_refs, 'subif')))]
+        if _instance_key is not None:
+            _self_instance_key = _instance_key
+        elif _parent_instance_key is not None:
+            _self_instance_key = yang.adata.append_list_instance_key(_parent_instance_key, yang.gdata.Id(NS_refs, 'interface'), _key_values)
+        if _ref_ctx is not None and _self_instance_key != '':
+            _cached = _ref_ctx.get_target(_self_instance_key)
+            if isinstance(_cached, refs__inventory__device__interface_entry):
+                return _cached
+        res = refs__inventory__device__interface_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), subif=n.get_u64(yang.gdata.Id(NS_refs, 'subif')), config=refs__inventory__device__interface__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'config')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, yang.gdata.Id(NS_refs, 'config'))))
+        if _ref_ctx is not None and _self_instance_key != '':
+            _ref_ctx.set_target(_self_instance_key, res)
+        return res
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__inventory__device__interface_entry.from_gdata(self.to_gdata())
+
+_breaker6 = None
+class refs__inventory__device__interface(yang.adata.MNode):
+    elements: list[refs__inventory__device__interface_entry]
+    mut def __init__(self, elements=[]):
+        self._ns = 'http://example.com/refs'
+        self._name = 'interface'
+        self.elements = elements
+
+    mut def create(self, name, subif):
+        for e in self:
+            match = True
+            if e.name != name:
+                match = False
+                continue
+            if e.subif != subif:
+                match = False
+                continue
+            if match:
+                return e
+
+        res = refs__inventory__device__interface_entry(name=name, subif=subif)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None) -> list[refs__inventory__device__interface_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+        _actual_parent_instance_key = _parent_instance_key
+        if n is not None:
+            return [refs__inventory__device__interface_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_source_nodes, _parent_instance_key=_actual_parent_instance_key) for e in n.elements]
+        return []
+
+    def copy(self):
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return refs__inventory__device__interface(elements=copied_elements)
+
+extension refs__inventory__device__interface(Iterable[refs__inventory__device__interface_entry]):
+    def __iter__(self) -> Iterator[refs__inventory__device__interface_entry]:
+        return self.elements.__iter__()
+
+_breaker7 = None
+class refs__inventory__device_entry(yang.adata.MNode):
+    name: str
+    interface: refs__inventory__device__interface
+
+    mut def __init__(self, name: str, interface: list[refs__inventory__device__interface_entry]=[]):
+        self._ns = 'http://example.com/refs'
+        self.name = name
+        self.interface = refs__inventory__device__interface(elements=interface)
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'name':
+            return self.name
+        if name == 'interface':
+            return iter(self.interface)
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory', 'device'])
+
+    @staticmethod
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None, _instance_key: ?str=None) -> refs__inventory__device_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _self_source_nodes = _source_nodes + [n]
+        _self_instance_key = ''
+        _key_values = [(yang.gdata.Id(NS_refs, 'name'), n.get_str(yang.gdata.Id(NS_refs, 'name')))]
+        if _instance_key is not None:
+            _self_instance_key = _instance_key
+        elif _parent_instance_key is None:
+            _self_instance_key = yang.adata.append_list_instance_key(yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'inventory')), yang.gdata.Id(NS_refs, 'device'), _key_values)
+        else:
+            _self_instance_key = yang.adata.append_list_instance_key(_parent_instance_key, yang.gdata.Id(NS_refs, 'device'), _key_values)
+        if _ref_ctx is not None and _self_instance_key != '':
+            _cached = _ref_ctx.get_target(_self_instance_key)
+            if isinstance(_cached, refs__inventory__device_entry):
+                return _cached
+        res = refs__inventory__device_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), interface=refs__inventory__device__interface.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'interface')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _parent_instance_key=_self_instance_key))
+        if _ref_ctx is not None and _self_instance_key != '':
+            _ref_ctx.set_target(_self_instance_key, res)
+        return res
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__inventory__device_entry.from_gdata(self.to_gdata())
+
+_breaker8 = None
+class refs__inventory__device(yang.adata.MNode):
+    elements: list[refs__inventory__device_entry]
+    mut def __init__(self, elements=[]):
+        self._ns = 'http://example.com/refs'
+        self._name = 'device'
+        self.elements = elements
+
+    mut def create(self, name):
+        for e in self:
+            match = True
+            if e.name != name:
+                match = False
+                continue
+            if match:
+                return e
+
+        res = refs__inventory__device_entry(name=name)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None) -> list[refs__inventory__device_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+        _actual_parent_instance_key = _parent_instance_key
+        if _actual_parent_instance_key is None:
+            _actual_parent_instance_key = yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'inventory'))
+        if n is not None:
+            return [refs__inventory__device_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_source_nodes, _parent_instance_key=_actual_parent_instance_key) for e in n.elements]
+        return []
+
+    def copy(self):
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return refs__inventory__device(elements=copied_elements)
+
+extension refs__inventory__device(Iterable[refs__inventory__device_entry]):
+    def __iter__(self) -> Iterator[refs__inventory__device_entry]:
+        return self.elements.__iter__()
+
+_breaker9 = None
 class refs__inventory(yang.adata.MNode):
     producer: refs__inventory__producer
+    device: refs__inventory__device
 
-    mut def __init__(self, producer: list[refs__inventory__producer_entry]=[]):
+    mut def __init__(self, producer: list[refs__inventory__producer_entry]=[], device: list[refs__inventory__device_entry]=[]):
         self._ns = 'http://example.com/refs'
         self.producer = refs__inventory__producer(elements=producer)
+        self.device = refs__inventory__device(elements=device)
 
     def _get_attr(self, name: str) -> ?value:
         if name == 'producer':
             return iter(self.producer)
+        if name == 'device':
+            return iter(self.device)
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__inventory:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> refs__inventory:
         _actual_lookup_root = lookup_root
         _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return refs__inventory(producer=refs__inventory__producer.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'producer')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            else:
+                _self_instance_key = yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'inventory'))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, refs__inventory):
+                    return _cached
+            res = refs__inventory(producer=refs__inventory__producer.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'producer')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _parent_instance_key=_self_instance_key), device=refs__inventory__device.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'device')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _parent_instance_key=_self_instance_key))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return refs__inventory()
 
     def copy(self):
@@ -224,74 +555,156 @@ class refs__inventory(yang.adata.MNode):
         return refs__inventory.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker10 = None
 class refs__transforms__consumer__input_ref(yang.adata.Ref):
     target: ?refs__inventory__producer_entry
     def __init__(self, value: str, target: ?refs__inventory__producer_entry=None):
         self.value = value
         self.target = target
 
-def _resolve_refs__transforms__consumer__input_ref(value: ?str, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?refs__transforms__consumer__input_ref:
+def _resolve_refs__transforms__consumer__input_ref(value: ?str, source_nodes: list[yang.gdata.Node]=[], lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?refs__transforms__consumer__input_ref:
     if value is None:
         return None
     ref_value: str = yang.adata.expect_ref_value(value, ctx='/transforms/consumer/input')
     ref = refs__transforms__consumer__input_ref(ref_value)
     ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
     if ctx is not None:
-        cache_key = yang.adata.ref_cache_key('/inventory/producer', ref_value)
-        cached_target = ctx.get_target(cache_key)
-        if isinstance(cached_target, refs__inventory__producer_entry):
-            ref.target = cached_target
-            return ref
         lookup_node = ctx.lookup_root
         if lookup_node is not None:
-            target_node = yang.adata.lookup_list_entry_by_key(lookup_node, [yang.gdata.Id(NS_refs, 'inventory'), yang.gdata.Id(NS_refs, 'producer')], yang.gdata.Id(NS_refs, 'name'), ref_value)
-            if target_node is not None:
-                target = refs__inventory__producer_entry.from_gdata(target_node, lookup_root=lookup_node, _ref_ctx=ctx)
+            lookup_res = yang.adata.lookup_ref_target(lookup_node, source_nodes, ref_value, yang.adata.RefLookupPlan([yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'inventory'), False), yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'producer'), True, key_bindings=[(yang.gdata.Id(NS_refs, 'name'), yang.adata.RefValueSource('ref_value'))])], yang.gdata.Id(NS_refs, 'name')))
+            if lookup_res is not None:
+                cache_key = lookup_res.owner_instance_key
+                cached_target = ctx.get_target(cache_key)
+                if isinstance(cached_target, refs__inventory__producer_entry):
+                    ref.target = cached_target
+                    return ref
+                target = refs__inventory__producer_entry.from_gdata(lookup_res.owner_node, lookup_root=lookup_node, _ref_ctx=ctx, _source_nodes=lookup_res.owner_source_nodes[:-1], _instance_key=cache_key)
                 ref.target = target
                 ctx.set_target(cache_key, target)
     return ref
 
-_breaker6 = None
+_breaker11 = None
+class refs__transforms__consumer__nested_input_ref(yang.adata.Ref):
+    target: ?refs__inventory__device__interface_entry
+    def __init__(self, value: str, target: ?refs__inventory__device__interface_entry=None):
+        self.value = value
+        self.target = target
+
+def _resolve_refs__transforms__consumer__nested_input_ref(value: ?str, source_nodes: list[yang.gdata.Node]=[], lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?refs__transforms__consumer__nested_input_ref:
+    if value is None:
+        return None
+    ref_value: str = yang.adata.expect_ref_value(value, ctx='/transforms/consumer/nested-input')
+    ref = refs__transforms__consumer__nested_input_ref(ref_value)
+    ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+    if ctx is not None:
+        lookup_node = ctx.lookup_root
+        if lookup_node is not None:
+            lookup_res = yang.adata.lookup_ref_target(lookup_node, source_nodes, ref_value, yang.adata.RefLookupPlan([yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'inventory'), False), yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'device'), True, key_bindings=[(yang.gdata.Id(NS_refs, 'name'), yang.adata.RefValueSource('source_path', up_levels=1, source_path=[yang.gdata.Id(NS_refs, 'device')]))]), yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'interface'), True, key_bindings=[(yang.gdata.Id(NS_refs, 'name'), yang.adata.RefValueSource('source_path', up_levels=1, source_path=[yang.gdata.Id(NS_refs, 'if-name')])), (yang.gdata.Id(NS_refs, 'subif'), yang.adata.RefValueSource('source_path', up_levels=1, source_path=[yang.gdata.Id(NS_refs, 'if-subif')]))])], yang.gdata.Id(NS_refs, 'name')))
+            if lookup_res is not None:
+                cache_key = lookup_res.owner_instance_key
+                cached_target = ctx.get_target(cache_key)
+                if isinstance(cached_target, refs__inventory__device__interface_entry):
+                    ref.target = cached_target
+                    return ref
+                target = refs__inventory__device__interface_entry.from_gdata(lookup_res.owner_node, lookup_root=lookup_node, _ref_ctx=ctx, _source_nodes=lookup_res.owner_source_nodes[:-1], _instance_key=cache_key)
+                ref.target = target
+                ctx.set_target(cache_key, target)
+    return ref
+
+_breaker12 = None
+class refs__transforms__consumer__nested_enabled_ref(yang.adata.Ref):
+    target: ?refs__inventory__device__interface__config
+    def __init__(self, value: bool, target: ?refs__inventory__device__interface__config=None):
+        self.value = value
+        self.target = target
+
+def _resolve_refs__transforms__consumer__nested_enabled_ref(value: ?bool, source_nodes: list[yang.gdata.Node]=[], lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?refs__transforms__consumer__nested_enabled_ref:
+    if value is None:
+        return None
+    ref_value: bool = yang.adata.expect_ref_value(value, ctx='/transforms/consumer/nested-enabled')
+    ref = refs__transforms__consumer__nested_enabled_ref(ref_value)
+    ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+    if ctx is not None:
+        lookup_node = ctx.lookup_root
+        if lookup_node is not None:
+            lookup_res = yang.adata.lookup_ref_target(lookup_node, source_nodes, ref_value, yang.adata.RefLookupPlan([yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'inventory'), False), yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'device'), True, key_bindings=[(yang.gdata.Id(NS_refs, 'name'), yang.adata.RefValueSource('source_path', up_levels=1, source_path=[yang.gdata.Id(NS_refs, 'device')]))]), yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'interface'), True, key_bindings=[(yang.gdata.Id(NS_refs, 'name'), yang.adata.RefValueSource('source_path', up_levels=1, source_path=[yang.gdata.Id(NS_refs, 'if-name')])), (yang.gdata.Id(NS_refs, 'subif'), yang.adata.RefValueSource('source_path', up_levels=1, source_path=[yang.gdata.Id(NS_refs, 'if-subif')]))]), yang.adata.RefLookupStep(yang.gdata.Id(NS_refs, 'config'), False)], yang.gdata.Id(NS_refs, 'enabled')))
+            if lookup_res is not None:
+                cache_key = lookup_res.owner_instance_key
+                cached_target = ctx.get_target(cache_key)
+                if isinstance(cached_target, refs__inventory__device__interface__config):
+                    ref.target = cached_target
+                    return ref
+                target = refs__inventory__device__interface__config.from_gdata(lookup_res.owner_node, lookup_root=lookup_node, _ref_ctx=ctx, _source_nodes=lookup_res.owner_source_nodes[:-1], _instance_key=cache_key)
+                ref.target = target
+                ctx.set_target(cache_key, target)
+    return ref
+
+_breaker13 = None
 class refs__transforms__consumer_entry(yang.adata.MNode):
     name: str
     input: ?refs__transforms__consumer__input_ref
+    device: ?str
+    if_name: ?str
+    if_subif: ?u64
+    nested_input: ?refs__transforms__consumer__nested_input_ref
+    nested_enabled: ?refs__transforms__consumer__nested_enabled_ref
 
-    mut def __init__(self, name: str, input: ?refs__transforms__consumer__input_ref):
+    mut def __init__(self, name: str, input: ?refs__transforms__consumer__input_ref, device: ?str, if_name: ?str, if_subif: ?u64, nested_input: ?refs__transforms__consumer__nested_input_ref, nested_enabled: ?refs__transforms__consumer__nested_enabled_ref):
         self._ns = 'http://example.com/refs'
         self.name = name
         self.input = input
+        self.device = device
+        self.if_name = if_name
+        self.if_subif = if_subif
+        self.nested_input = nested_input
+        self.nested_enabled = nested_enabled
 
     def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'input':
             return self.input
+        if name == 'device':
+            return self.device
+        if name == 'if_name':
+            return self.if_name
+        if name == 'if_subif':
+            return self.if_subif
+        if name == 'nested_input':
+            return self.nested_input
+        if name == 'nested_enabled':
+            return self.nested_enabled
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:transforms', 'consumer'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__transforms__consumer_entry:
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None, _instance_key: ?str=None) -> refs__transforms__consumer_entry:
         _actual_lookup_root = lookup_root
         _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
-        _cache_key = ''
-        if _ref_ctx is not None:
-            _key_value = n.get_str(yang.gdata.Id(NS_refs, 'name'))
-            _cache_key = yang.adata.ref_cache_key('/transforms/consumer', _key_value)
-            _cached = _ref_ctx.get_target(_cache_key)
+        _self_source_nodes = _source_nodes + [n]
+        _self_instance_key = ''
+        _key_values = [(yang.gdata.Id(NS_refs, 'name'), n.get_str(yang.gdata.Id(NS_refs, 'name')))]
+        if _instance_key is not None:
+            _self_instance_key = _instance_key
+        elif _parent_instance_key is None:
+            _self_instance_key = yang.adata.append_list_instance_key(yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'transforms')), yang.gdata.Id(NS_refs, 'consumer'), _key_values)
+        else:
+            _self_instance_key = yang.adata.append_list_instance_key(_parent_instance_key, yang.gdata.Id(NS_refs, 'consumer'), _key_values)
+        if _ref_ctx is not None and _self_instance_key != '':
+            _cached = _ref_ctx.get_target(_self_instance_key)
             if isinstance(_cached, refs__transforms__consumer_entry):
                 return _cached
-        res = refs__transforms__consumer_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), input=_resolve_refs__transforms__consumer__input_ref(n.get_opt_str(yang.gdata.Id(NS_refs, 'input')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
-        if _ref_ctx is not None and _cache_key != '':
-            _ref_ctx.set_target(_cache_key, res)
+        res = refs__transforms__consumer_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), input=_resolve_refs__transforms__consumer__input_ref(n.get_opt_str(yang.gdata.Id(NS_refs, 'input')), source_nodes=yang.adata.append_source_node(_self_source_nodes, n.get_opt_leaf(yang.gdata.Id(NS_refs, 'input'))), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), device=n.get_opt_str(yang.gdata.Id(NS_refs, 'device')), if_name=n.get_opt_str(yang.gdata.Id(NS_refs, 'if-name')), if_subif=n.get_opt_u64(yang.gdata.Id(NS_refs, 'if-subif')), nested_input=_resolve_refs__transforms__consumer__nested_input_ref(n.get_opt_str(yang.gdata.Id(NS_refs, 'nested-input')), source_nodes=yang.adata.append_source_node(_self_source_nodes, n.get_opt_leaf(yang.gdata.Id(NS_refs, 'nested-input'))), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), nested_enabled=_resolve_refs__transforms__consumer__nested_enabled_ref(n.get_opt_bool(yang.gdata.Id(NS_refs, 'nested-enabled')), source_nodes=yang.adata.append_source_node(_self_source_nodes, n.get_opt_leaf(yang.gdata.Id(NS_refs, 'nested-enabled'))), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        if _ref_ctx is not None and _self_instance_key != '':
+            _ref_ctx.set_target(_self_instance_key, res)
         return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return refs__transforms__consumer_entry.from_gdata(self.to_gdata())
 
-_breaker7 = None
+_breaker14 = None
 class refs__transforms__consumer(yang.adata.MNode):
     elements: list[refs__transforms__consumer_entry]
     mut def __init__(self, elements=[]):
@@ -299,7 +712,7 @@ class refs__transforms__consumer(yang.adata.MNode):
         self._name = 'consumer'
         self.elements = elements
 
-    mut def create(self, name, input=None):
+    mut def create(self, name, input=None, device=None, if_name=None, if_subif=None, nested_input=None, nested_enabled=None):
         for e in self:
             match = True
             if e.name != name:
@@ -308,17 +721,30 @@ class refs__transforms__consumer(yang.adata.MNode):
             if match:
                 if input is not None:
                     e.input = input
+                if device is not None:
+                    e.device = device
+                if if_name is not None:
+                    e.if_name = if_name
+                if if_subif is not None:
+                    e.if_subif = if_subif
+                if nested_input is not None:
+                    e.nested_input = nested_input
+                if nested_enabled is not None:
+                    e.nested_enabled = nested_enabled
                 return e
 
-        res = refs__transforms__consumer_entry(name=name, input=input)
+        res = refs__transforms__consumer_entry(name=name, input=input, device=device, if_name=if_name, if_subif=if_subif, nested_input=nested_input, nested_enabled=nested_enabled)
         self.elements.append(res)
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[refs__transforms__consumer_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None) -> list[refs__transforms__consumer_entry]:
         _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+        _actual_parent_instance_key = _parent_instance_key
+        if _actual_parent_instance_key is None:
+            _actual_parent_instance_key = yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'transforms'))
         if n is not None:
-            return [refs__transforms__consumer_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
+            return [refs__transforms__consumer_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_source_nodes, _parent_instance_key=_actual_parent_instance_key) for e in n.elements]
         return []
 
     def copy(self):
@@ -335,7 +761,7 @@ extension refs__transforms__consumer(Iterable[refs__transforms__consumer_entry])
     def __iter__(self) -> Iterator[refs__transforms__consumer_entry]:
         return self.elements.__iter__()
 
-_breaker8 = None
+_breaker15 = None
 class refs__transforms(yang.adata.MNode):
     consumer: refs__transforms__consumer
 
@@ -351,11 +777,24 @@ class refs__transforms(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:transforms'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__transforms:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> refs__transforms:
         _actual_lookup_root = lookup_root
         _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return refs__transforms(consumer=refs__transforms__consumer.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'consumer')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            else:
+                _self_instance_key = yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_refs, 'transforms'))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, refs__transforms):
+                    return _cached
+            res = refs__transforms(consumer=refs__transforms__consumer.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'consumer')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _parent_instance_key=_self_instance_key))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return refs__transforms()
 
     def copy(self):
@@ -363,7 +802,7 @@ class refs__transforms(yang.adata.MNode):
         return refs__transforms.from_gdata(self.to_gdata())
 
 
-_breaker9 = None
+_breaker16 = None
 class root(yang.adata.MNode):
     inventory: refs__inventory
     transforms: refs__transforms
@@ -383,13 +822,26 @@ class root(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> root:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> root:
         _actual_lookup_root = lookup_root
         if _actual_lookup_root is None:
             _actual_lookup_root = n
         _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return root(inventory=refs__inventory.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'inventory')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), transforms=refs__transforms.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'transforms')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            else:
+                _self_instance_key = yang.adata.root_instance_key()
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, root):
+                    return _cached
+            res = root(inventory=refs__inventory.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'inventory')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, yang.gdata.Id(NS_refs, 'inventory'))), transforms=refs__transforms.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'transforms')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, yang.gdata.Id(NS_refs, 'transforms'))))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return root()
 
     def copy(self):
@@ -409,12 +861,27 @@ def src_schema():
             Container('config', children=[
                 Leaf('interval', type_=Type('uint32'))
             ])
+        ]),
+        List('device', key='name', children=[
+            Leaf('name', type_=Type('string')),
+            List('interface', key='name subif', children=[
+                Leaf('name', type_=Type('string')),
+                Leaf('subif', type_=Type('uint32')),
+                Container('config', children=[
+                    Leaf('enabled', type_=Type('boolean'))
+                ])
+            ])
         ])
     ]),
     Container('transforms', children=[
         List('consumer', key='name', children=[
             Leaf('name', type_=Type('string')),
-            Leaf('input', type_=Type('leafref', path='/refs:inventory/refs:producer/refs:name'))
+            Leaf('input', type_=Type('leafref', path='/refs:inventory/refs:producer/refs:name')),
+            Leaf('device', type_=Type('string')),
+            Leaf('if-name', type_=Type('string')),
+            Leaf('if-subif', type_=Type('uint32')),
+            Leaf('nested-input', type_=Type('leafref', path='/refs:inventory/refs:device[refs:name=current()/../refs:device]/refs:interface[refs:name=current()/../refs:if-name][refs:subif=current()/../refs:if-subif]/refs:name')),
+            Leaf('nested-enabled', type_=Type('leafref', path='/refs:inventory/refs:device[refs:name=current()/../refs:device]/refs:interface[refs:name=current()/../refs:if-name][refs:subif=current()/../refs:if-subif]/refs:config/refs:enabled'))
         ])
     ])
 ])

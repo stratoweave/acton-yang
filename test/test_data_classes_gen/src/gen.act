@@ -523,6 +523,32 @@ ys_refs = r"""module refs {
         }
       }
     }
+
+    list device {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      list interface {
+        key "name subif";
+
+        leaf name {
+          type string;
+        }
+
+        leaf subif {
+          type uint32;
+        }
+
+        container config {
+          leaf enabled {
+            type boolean;
+          }
+        }
+      }
+    }
   }
 
   container transforms {
@@ -536,6 +562,34 @@ ys_refs = r"""module refs {
       leaf input {
         type leafref {
           path "/refs:inventory/refs:producer/refs:name";
+        }
+      }
+
+      leaf device {
+        type string;
+      }
+
+      leaf if-name {
+        type string;
+      }
+
+      leaf if-subif {
+        type uint32;
+      }
+
+      leaf nested-input {
+        type leafref {
+          path "/refs:inventory/refs:device[refs:name=current()/../refs:device]/" +
+               "refs:interface[refs:name=current()/../refs:if-name][refs:subif=current()/../refs:if-subif]/" +
+               "refs:name";
+        }
+      }
+
+      leaf nested-enabled {
+        type leafref {
+          path "/refs:inventory/refs:device[refs:name=current()/../refs:device]/" +
+               "refs:interface[refs:name=current()/../refs:if-name][refs:subif=current()/../refs:if-subif]/" +
+               "refs:config/refs:enabled";
         }
       }
     }

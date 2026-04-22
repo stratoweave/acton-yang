@@ -377,11 +377,17 @@ def _pradata_recursive(s: yang.schema.DNodeInner, node: yang.gdata.Node, self_na
     def pname(pe: list[PathElement]):
         return yang.schema.get_path_name([e.node for e in pe])
 
+    def pnodes(pe: list[PathElement]) -> list[yang.schema.DNode]:
+        nodes = []
+        for elem in pe:
+            nodes.append(elem.node)
+        return nodes
+
     root_node = spath[0].node
 
     def leaf_value_expr(leaf: yang.schema.DLeaf, leaf_path: list[PathElement], raw_expr: str) -> str:
         if isinstance(root_node, yang.schema.DRoot):
-            if yang.schema.supported_leafref_target_info(root_node, leaf) is not None:
+            if yang.schema.supported_leafref_target_info(root_node, pnodes(leaf_path), leaf) is not None:
                 return "{pname(leaf_path)}_ref({raw_expr})"
         return raw_expr
 

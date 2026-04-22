@@ -28,6 +28,50 @@ class Ref(object):
         self.value = value
 
 
+class RefValueSource(object):
+    kind: str
+    up_levels: int
+    source_path: list[yang.gdata.Id]
+    literal_value: ?value
+
+    def __init__(self, kind: str, up_levels: int=0, source_path: list[yang.gdata.Id]=[], literal_value: ?value=None):
+        self.kind = kind
+        self.up_levels = up_levels
+        self.source_path = source_path
+        self.literal_value = literal_value
+
+
+class RefLookupStep(object):
+    step_id: yang.gdata.Id
+    is_list: bool
+    key_bindings: list[(yang.gdata.Id, RefValueSource)]
+
+    def __init__(self, step_id: yang.gdata.Id, is_list: bool, key_bindings: list[(yang.gdata.Id, RefValueSource)]=[]):
+        self.step_id = step_id
+        self.is_list = is_list
+        self.key_bindings = key_bindings
+
+
+class RefLookupPlan(object):
+    steps: list[RefLookupStep]
+    leaf_id: yang.gdata.Id
+
+    def __init__(self, steps: list[RefLookupStep], leaf_id: yang.gdata.Id):
+        self.steps = steps
+        self.leaf_id = leaf_id
+
+
+class RefLookupResult(object):
+    owner_node: yang.gdata.Container
+    owner_source_nodes: list[yang.gdata.Node]
+    owner_instance_key: str
+
+    def __init__(self, owner_node: yang.gdata.Container, owner_source_nodes: list[yang.gdata.Node], owner_instance_key: str):
+        self.owner_node = owner_node
+        self.owner_source_nodes = owner_source_nodes
+        self.owner_instance_key = owner_instance_key
+
+
 class RefContext(object):
     lookup_root: ?yang.gdata.Node
     target_cache: dict[str, MNode]
@@ -56,6 +100,38 @@ def expect_ref_value[T](value: ?T, ctx: ?str=None) -> T:
     raise ValueError("expected value (not None){"for: {{ctx}}" if ctx is not None else ""}")
 
 
+def root_instance_key() -> str:
+    return "/"
+
+
+def append_source_node(source_nodes: list[yang.gdata.Node], node: ?yang.gdata.Node) -> list[yang.gdata.Node]:
+    if node is not None:
+        return source_nodes + [node]
+    return source_nodes
+
+
+def append_container_instance_key(parent_instance_key: ?str, step_id: yang.gdata.Id) -> str:
+    if parent_instance_key is None or parent_instance_key == "":
+        return ""
+    parent = parent_instance_key
+    if parent == root_instance_key():
+        return "{parent}{step_id}"
+    return "{parent}/{step_id}"
+
+
+def append_list_instance_key(parent_instance_key: ?str, step_id: yang.gdata.Id, key_values: list[(yang.gdata.Id, ?value)]) -> str:
+    base = append_container_instance_key(parent_instance_key, step_id)
+    if base == "":
+        return ""
+    parts = [base]
+    for key_id, key_value in key_values:
+        if key_value is None:
+            return ""
+        bound_key_value = expect_ref_value(key_value)
+        parts.append("[{key_id}={repr(bound_key_value)}]")
+    return "".join(parts)
+
+
 def ref_cache_key(path: str, key_value: value) -> str:
     return "{path}::{repr(key_value)}"
 
@@ -81,6 +157,105 @@ def lookup_list_entry_by_key(root: ?yang.gdata.Node, list_path: list[yang.gdata.
                 key_leaf = element.get_opt_leaf(key_id)
                 if key_leaf is not None and yang.gdata.vals_equal(key_leaf.val, key_value):
                     return element
+
+
+def lookup_list_entry_by_keys(target_list: ?yang.gdata.List, key_values: list[(yang.gdata.Id, ?value)]) -> ?yang.gdata.Node:
+    if isinstance(target_list, yang.gdata.List):
+        for element in target_list.elements:
+            match = True
+            for key_id, key_value in key_values:
+                if key_value is None:
+                    return None
+                bound_key_value = expect_ref_value(key_value)
+                maybe_key_leaf = element.get_opt_leaf(key_id)
+                if isinstance(maybe_key_leaf, yang.gdata.Leaf):
+                    if not yang.gdata.vals_equal(maybe_key_leaf.val, bound_key_value):
+                        match = False
+                        break
+                else:
+                    match = False
+                    break
+            if match:
+                return element
+
+
+def resolve_ref_source_value(source_nodes: list[yang.gdata.Node], ref_value: value, source: RefValueSource) -> ?value:
+    if source.kind == "ref_value":
+        return ref_value
+    if source.kind == "literal":
+        return source.literal_value
+    if source.kind == "source_path":
+        source_index = len(source_nodes) - 1 - source.up_levels
+        if source_index < 0:
+            return None
+
+        current = source_nodes[source_index]
+        source_path = source.source_path
+        if len(source_path) == 0:
+            if isinstance(current, yang.gdata.Leaf):
+                return current.val
+            return None
+
+        for step in source_path[:-1]:
+            if isinstance(current, yang.gdata.Container):
+                next_container = current.get_opt_cnt(step)
+                if next_container is not None:
+                    current = next_container
+                    continue
+            return None
+
+        final_step = source_path[-1]
+        if isinstance(current, yang.gdata.Container):
+            final_leaf = current.get_opt_leaf(final_step)
+            if final_leaf is not None:
+                return final_leaf.val
+    return None
+
+
+def lookup_ref_target(root: ?yang.gdata.Node, source_nodes: list[yang.gdata.Node], ref_value: value, plan: RefLookupPlan) -> ?RefLookupResult:
+    if isinstance(root, yang.gdata.Node):
+        current = root
+    else:
+        return None
+    current_source_nodes = [current]
+    current_instance_key = root_instance_key()
+    for step in plan.steps:
+        if step.is_list:
+            if isinstance(current, yang.gdata.Container):
+                target_list = current.get_opt_list(step.step_id)
+                if target_list is None:
+                    return None
+
+                key_values = []
+                for key_id, binding in step.key_bindings:
+                    key_value = resolve_ref_source_value(source_nodes, ref_value, binding)
+                    if key_value is None:
+                        return None
+                    key_values.append((key_id, key_value))
+
+                target_entry = lookup_list_entry_by_keys(target_list, key_values)
+                if isinstance(target_entry, yang.gdata.Container):
+                    current = target_entry
+                    current_source_nodes.append(current)
+                    current_instance_key = append_list_instance_key(current_instance_key, step.step_id, key_values)
+                    continue
+                return None
+            return None
+
+        if isinstance(current, yang.gdata.Container):
+            next_container = current.get_opt_cnt(step.step_id)
+            if next_container is not None:
+                current = next_container
+                current_source_nodes.append(current)
+                current_instance_key = append_container_instance_key(current_instance_key, step.step_id)
+                continue
+        return None
+
+    if isinstance(current, yang.gdata.Container):
+        target_leaf = current.get_opt_leaf(plan.leaf_id)
+        if isinstance(target_leaf, yang.gdata.Leaf):
+            if yang.gdata.vals_equal(target_leaf.val, ref_value):
+                return RefLookupResult(current, current_source_nodes, current_instance_key)
 
 
 extension MNode (YangData):

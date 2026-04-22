@@ -66,9 +66,24 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-group-container'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> main_module__main_container__sub_group_container:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> main_module__main_container__sub_group_container:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return main_module__main_container__sub_group_container(sub_group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-group-leaf')))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            else:
+                _self_instance_key = yang.adata.append_container_instance_key(yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_main_module, 'main-container')), yang.gdata.Id(NS_main_module, 'sub-group-container'))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, main_module__main_container__sub_group_container):
+                    return _cached
+            res = main_module__main_container__sub_group_container(sub_group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-group-leaf')))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return main_module__main_container__sub_group_container()
 
     def copy(self):
@@ -77,12 +92,40 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
 
 
 _breaker2 = None
+class main_module__main_container__sub_list__ref_to_main_ref(yang.adata.Ref):
+    target: ?main_module__main_container
+    def __init__(self, value: str, target: ?main_module__main_container=None):
+        self.value = value
+        self.target = target
+
+def _resolve_main_module__main_container__sub_list__ref_to_main_ref(value: ?str, source_nodes: list[yang.gdata.Node]=[], lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?main_module__main_container__sub_list__ref_to_main_ref:
+    if value is None:
+        return None
+    ref_value: str = yang.adata.expect_ref_value(value, ctx='/main-container/sub-list/ref-to-main')
+    ref = main_module__main_container__sub_list__ref_to_main_ref(ref_value)
+    ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+    if ctx is not None:
+        lookup_node = ctx.lookup_root
+        if lookup_node is not None:
+            lookup_res = yang.adata.lookup_ref_target(lookup_node, source_nodes, ref_value, yang.adata.RefLookupPlan([yang.adata.RefLookupStep(yang.gdata.Id(NS_main_module, 'main-container'), False)], yang.gdata.Id(NS_main_module, 'main-leaf')))
+            if lookup_res is not None:
+                cache_key = lookup_res.owner_instance_key
+                cached_target = ctx.get_target(cache_key)
+                if isinstance(cached_target, main_module__main_container):
+                    ref.target = cached_target
+                    return ref
+                target = main_module__main_container.from_gdata(lookup_res.owner_node, lookup_root=lookup_node, _ref_ctx=ctx, _source_nodes=lookup_res.owner_source_nodes[:-1], _instance_key=cache_key)
+                ref.target = target
+                ctx.set_target(cache_key, target)
+    return ref
+
+_breaker3 = None
 class main_module__main_container__sub_list_entry(yang.adata.MNode):
     name: str
     sub_value: ?str
-    ref_to_main: ?str
+    ref_to_main: ?main_module__main_container__sub_list__ref_to_main_ref
 
-    mut def __init__(self, name: str, sub_value: ?str, ref_to_main: ?str):
+    mut def __init__(self, name: str, sub_value: ?str, ref_to_main: ?main_module__main_container__sub_list__ref_to_main_ref):
         self._ns = 'http://example.com/main'
         self.name = name
         self.sub_value = sub_value
@@ -100,14 +143,32 @@ class main_module__main_container__sub_list_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-list'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> main_module__main_container__sub_list_entry:
-        return main_module__main_container__sub_list_entry(name=n.get_str(yang.gdata.Id(NS_main_module, 'name')), sub_value=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-value')), ref_to_main=n.get_opt_str(yang.gdata.Id(NS_main_module, 'ref-to-main')))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None, _instance_key: ?str=None) -> main_module__main_container__sub_list_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _self_source_nodes = _source_nodes + [n]
+        _self_instance_key = ''
+        _key_values = [(yang.gdata.Id(NS_main_module, 'name'), n.get_str(yang.gdata.Id(NS_main_module, 'name')))]
+        if _instance_key is not None:
+            _self_instance_key = _instance_key
+        elif _parent_instance_key is None:
+            _self_instance_key = yang.adata.append_list_instance_key(yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_main_module, 'main-container')), yang.gdata.Id(NS_main_module, 'sub-list'), _key_values)
+        else:
+            _self_instance_key = yang.adata.append_list_instance_key(_parent_instance_key, yang.gdata.Id(NS_main_module, 'sub-list'), _key_values)
+        if _ref_ctx is not None and _self_instance_key != '':
+            _cached = _ref_ctx.get_target(_self_instance_key)
+            if isinstance(_cached, main_module__main_container__sub_list_entry):
+                return _cached
+        res = main_module__main_container__sub_list_entry(name=n.get_str(yang.gdata.Id(NS_main_module, 'name')), sub_value=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-value')), ref_to_main=_resolve_main_module__main_container__sub_list__ref_to_main_ref(n.get_opt_str(yang.gdata.Id(NS_main_module, 'ref-to-main')), source_nodes=yang.adata.append_source_node(_self_source_nodes, n.get_opt_leaf(yang.gdata.Id(NS_main_module, 'ref-to-main'))), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        if _ref_ctx is not None and _self_instance_key != '':
+            _ref_ctx.set_target(_self_instance_key, res)
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return main_module__main_container__sub_list_entry.from_gdata(self.to_gdata())
 
-_breaker3 = None
+_breaker4 = None
 class main_module__main_container__sub_list(yang.adata.MNode):
     elements: list[main_module__main_container__sub_list_entry]
     mut def __init__(self, elements=[]):
@@ -133,9 +194,13 @@ class main_module__main_container__sub_list(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[main_module__main_container__sub_list_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _parent_instance_key: ?str=None) -> list[main_module__main_container__sub_list_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+        _actual_parent_instance_key = _parent_instance_key
+        if _actual_parent_instance_key is None:
+            _actual_parent_instance_key = yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_main_module, 'main-container'))
         if n is not None:
-            return [main_module__main_container__sub_list_entry.from_gdata(e) for e in n.elements]
+            return [main_module__main_container__sub_list_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_source_nodes, _parent_instance_key=_actual_parent_instance_key) for e in n.elements]
         return []
 
     def copy(self):
@@ -152,7 +217,7 @@ extension main_module__main_container__sub_list(Iterable[main_module__main_conta
     def __iter__(self) -> Iterator[main_module__main_container__sub_list_entry]:
         return self.elements.__iter__()
 
-_breaker4 = None
+_breaker5 = None
 class main_module__main_container__group_container(yang.adata.MNode):
     group_leaf: str
     augmented_in_group: ?str
@@ -172,9 +237,24 @@ class main_module__main_container__group_container(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'group-container'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> main_module__main_container__group_container:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> main_module__main_container__group_container:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return main_module__main_container__group_container(group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'group-leaf')), augmented_in_group=n.get_opt_str(yang.gdata.Id(NS_main_module, 'augmented-in-group')))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            else:
+                _self_instance_key = yang.adata.append_container_instance_key(yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_main_module, 'main-container')), yang.gdata.Id(NS_main_module, 'group-container'))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, main_module__main_container__group_container):
+                    return _cached
+            res = main_module__main_container__group_container(group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'group-leaf')), augmented_in_group=n.get_opt_str(yang.gdata.Id(NS_main_module, 'augmented-in-group')))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return main_module__main_container__group_container()
 
     def copy(self):
@@ -182,7 +262,7 @@ class main_module__main_container__group_container(yang.adata.MNode):
         return main_module__main_container__group_container.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker6 = None
 class main_module__main_container(yang.adata.MNode):
     main_leaf: ?str
     sub_group_container: main_module__main_container__sub_group_container
@@ -214,9 +294,24 @@ class main_module__main_container(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> main_module__main_container:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> main_module__main_container:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return main_module__main_container(main_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'main-leaf')), sub_group_container=main_module__main_container__sub_group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'sub-group-container'))), sub_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-leaf')), sub_list=main_module__main_container__sub_list.from_gdata(n.get_opt_list(yang.gdata.Id(NS_main_module, 'sub-list'))), group_container=main_module__main_container__group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'group-container'))))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            else:
+                _self_instance_key = yang.adata.append_container_instance_key(yang.adata.root_instance_key(), yang.gdata.Id(NS_main_module, 'main-container'))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, main_module__main_container):
+                    return _cached
+            res = main_module__main_container(main_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'main-leaf')), sub_group_container=main_module__main_container__sub_group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'sub-group-container')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, yang.gdata.Id(NS_main_module, 'sub-group-container'))), sub_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-leaf')), sub_list=main_module__main_container__sub_list.from_gdata(n.get_opt_list(yang.gdata.Id(NS_main_module, 'sub-list')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _parent_instance_key=_self_instance_key), group_container=main_module__main_container__group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'group-container')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, yang.gdata.Id(NS_main_module, 'group-container'))))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return main_module__main_container()
 
     def copy(self):
@@ -224,7 +319,7 @@ class main_module__main_container(yang.adata.MNode):
         return main_module__main_container.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker7 = None
 class root(yang.adata.MNode):
     main_container: main_module__main_container
 
@@ -240,9 +335,26 @@ class root(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None, _source_nodes: list[yang.gdata.Node]=[], _instance_key: ?str=None) -> root:
+        _actual_lookup_root = lookup_root
+        if _actual_lookup_root is None:
+            _actual_lookup_root = n
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return root(main_container=main_module__main_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'main-container'))))
+            _self_source_nodes = _source_nodes + [n]
+            _self_instance_key = ''
+            if _instance_key is not None:
+                _self_instance_key = _instance_key
+            else:
+                _self_instance_key = yang.adata.root_instance_key()
+            if _ref_ctx is not None and _self_instance_key != '':
+                _cached = _ref_ctx.get_target(_self_instance_key)
+                if isinstance(_cached, root):
+                    return _cached
+            res = root(main_container=main_module__main_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'main-container')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx, _source_nodes=_self_source_nodes, _instance_key=yang.adata.append_container_instance_key(_self_instance_key, yang.gdata.Id(NS_main_module, 'main-container'))))
+            if _ref_ctx is not None and _self_instance_key != '':
+                _ref_ctx.set_target(_self_instance_key, res)
+            return res
         return root()
 
     def copy(self):
