@@ -1,0 +1,422 @@
+import base64
+import json
+import xml
+import yang
+import yang.adata
+import yang.gdata
+import yang.xml
+import yang.xpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0 = DContainer(module='refs', namespace='http://example.com/refs', prefix='refs', name='inventory', config=True, presence=False, children=[
+    DList(module='refs', namespace='http://example.com/refs', prefix='refs', name='producer', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DContainer(module='refs', namespace='http://example.com/refs', prefix='refs', name='config', config=True, presence=False, children=[
+            DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='interval', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)])))
+        ])
+    ])
+])
+
+SRC_DNODE_CHILD_1 = DContainer(module='refs', namespace='http://example.com/refs', prefix='refs', name='transforms', config=True, presence=False, children=[
+    DList(module='refs', namespace='http://example.com/refs', prefix='refs', name='consumer', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='refs', namespace='http://example.com/refs', prefix='refs', name='input', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep('refs', 'inventory', []), yang.xpath.NodeTestStep('refs', 'producer', []), yang.xpath.NodeTestStep('refs', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+    ])
+])
+
+SRC_DNODE = DRoot(
+    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
+    identities=[],
+    rpcs=[],
+    module_metadata={'http://example.com/refs':('refs', None)},
+)
+
+def src_yang():
+    res = []
+    res.append(r"""module refs {
+  yang-version "1.1";
+  namespace "http://example.com/refs";
+  prefix "refs";
+
+  container inventory {
+    list producer {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      container config {
+        leaf interval {
+          type uint32;
+        }
+      }
+    }
+  }
+
+  container transforms {
+    list consumer {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      leaf input {
+        type leafref {
+          path "/refs:inventory/refs:producer/refs:name";
+        }
+      }
+    }
+  }
+}""")
+    return res
+
+
+NS_refs = 'http://example.com/refs'
+
+
+_breaker1 = None
+class refs__inventory__producer__config(yang.adata.MNode):
+    interval: ?u64
+
+    mut def __init__(self, interval: ?u64):
+        self._ns = 'http://example.com/refs'
+        self.interval = interval
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'interval':
+            return self.interval
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory', 'producer', 'config'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__inventory__producer__config:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        if n is not None:
+            return refs__inventory__producer__config(interval=n.get_opt_u64(yang.gdata.Id(NS_refs, 'interval')))
+        return refs__inventory__producer__config()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__inventory__producer__config.from_gdata(self.to_gdata())
+
+
+_breaker2 = None
+class refs__inventory__producer_entry(yang.adata.MNode):
+    name: str
+    config: refs__inventory__producer__config
+
+    mut def __init__(self, name: str, config: ?refs__inventory__producer__config=None):
+        self._ns = 'http://example.com/refs'
+        self.name = name
+        self.config = config if config is not None else refs__inventory__producer__config()
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'name':
+            return self.name
+        if name == 'config':
+            return self.config
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory', 'producer'])
+
+    @staticmethod
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__inventory__producer_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _cache_key = ''
+        if _ref_ctx is not None:
+            _key_value = n.get_str(yang.gdata.Id(NS_refs, 'name'))
+            _cache_key = yang.adata.ref_cache_key('/inventory/producer', _key_value)
+            _cached = _ref_ctx.get_target(_cache_key)
+            if isinstance(_cached, refs__inventory__producer_entry):
+                return _cached
+        res = refs__inventory__producer_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), config=refs__inventory__producer__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'config')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        if _ref_ctx is not None and _cache_key != '':
+            _ref_ctx.set_target(_cache_key, res)
+        return res
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__inventory__producer_entry.from_gdata(self.to_gdata())
+
+_breaker3 = None
+class refs__inventory__producer(yang.adata.MNode):
+    elements: list[refs__inventory__producer_entry]
+    mut def __init__(self, elements=[]):
+        self._ns = 'http://example.com/refs'
+        self._name = 'producer'
+        self.elements = elements
+
+    mut def create(self, name):
+        for e in self:
+            match = True
+            if e.name != name:
+                match = False
+                continue
+            if match:
+                return e
+
+        res = refs__inventory__producer_entry(name=name)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[refs__inventory__producer_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+        if n is not None:
+            return [refs__inventory__producer_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
+        return []
+
+    def copy(self):
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return refs__inventory__producer(elements=copied_elements)
+
+extension refs__inventory__producer(Iterable[refs__inventory__producer_entry]):
+    def __iter__(self) -> Iterator[refs__inventory__producer_entry]:
+        return self.elements.__iter__()
+
+_breaker4 = None
+class refs__inventory(yang.adata.MNode):
+    producer: refs__inventory__producer
+
+    mut def __init__(self, producer: list[refs__inventory__producer_entry]=[]):
+        self._ns = 'http://example.com/refs'
+        self.producer = refs__inventory__producer(elements=producer)
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'producer':
+            return iter(self.producer)
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:inventory'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__inventory:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        if n is not None:
+            return refs__inventory(producer=refs__inventory__producer.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'producer')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        return refs__inventory()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__inventory.from_gdata(self.to_gdata())
+
+
+_breaker5 = None
+class refs__transforms__consumer__input_ref(yang.adata.Ref):
+    target: ?refs__inventory__producer_entry
+    def __init__(self, value: str, target: ?refs__inventory__producer_entry=None):
+        self.value = value
+        self.target = target
+
+def _resolve_refs__transforms__consumer__input_ref(value: ?str, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?refs__transforms__consumer__input_ref:
+    if value is None:
+        return None
+    ref_value: str = yang.adata.expect_ref_value(value, ctx='/transforms/consumer/input')
+    ref = refs__transforms__consumer__input_ref(ref_value)
+    ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+    if ctx is not None:
+        cache_key = yang.adata.ref_cache_key('/inventory/producer', ref_value)
+        cached_target = ctx.get_target(cache_key)
+        if isinstance(cached_target, refs__inventory__producer_entry):
+            ref.target = cached_target
+            return ref
+        lookup_node = ctx.lookup_root
+        if lookup_node is not None:
+            target_node = yang.adata.lookup_list_entry_by_key(lookup_node, [yang.gdata.Id(NS_refs, 'inventory'), yang.gdata.Id(NS_refs, 'producer')], yang.gdata.Id(NS_refs, 'name'), ref_value)
+            if target_node is not None:
+                target = refs__inventory__producer_entry.from_gdata(target_node, lookup_root=lookup_node, _ref_ctx=ctx)
+                ref.target = target
+                ctx.set_target(cache_key, target)
+    return ref
+
+_breaker6 = None
+class refs__transforms__consumer_entry(yang.adata.MNode):
+    name: str
+    input: ?refs__transforms__consumer__input_ref
+
+    mut def __init__(self, name: str, input: ?refs__transforms__consumer__input_ref):
+        self._ns = 'http://example.com/refs'
+        self.name = name
+        self.input = input
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'name':
+            return self.name
+        if name == 'input':
+            return self.input
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:transforms', 'consumer'])
+
+    @staticmethod
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__transforms__consumer_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _cache_key = ''
+        if _ref_ctx is not None:
+            _key_value = n.get_str(yang.gdata.Id(NS_refs, 'name'))
+            _cache_key = yang.adata.ref_cache_key('/transforms/consumer', _key_value)
+            _cached = _ref_ctx.get_target(_cache_key)
+            if isinstance(_cached, refs__transforms__consumer_entry):
+                return _cached
+        res = refs__transforms__consumer_entry(name=n.get_str(yang.gdata.Id(NS_refs, 'name')), input=_resolve_refs__transforms__consumer__input_ref(n.get_opt_str(yang.gdata.Id(NS_refs, 'input')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        if _ref_ctx is not None and _cache_key != '':
+            _ref_ctx.set_target(_cache_key, res)
+        return res
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__transforms__consumer_entry.from_gdata(self.to_gdata())
+
+_breaker7 = None
+class refs__transforms__consumer(yang.adata.MNode):
+    elements: list[refs__transforms__consumer_entry]
+    mut def __init__(self, elements=[]):
+        self._ns = 'http://example.com/refs'
+        self._name = 'consumer'
+        self.elements = elements
+
+    mut def create(self, name, input=None):
+        for e in self:
+            match = True
+            if e.name != name:
+                match = False
+                continue
+            if match:
+                if input is not None:
+                    e.input = input
+                return e
+
+        res = refs__transforms__consumer_entry(name=name, input=input)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[refs__transforms__consumer_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+        if n is not None:
+            return [refs__transforms__consumer_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
+        return []
+
+    def copy(self):
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return refs__transforms__consumer(elements=copied_elements)
+
+extension refs__transforms__consumer(Iterable[refs__transforms__consumer_entry]):
+    def __iter__(self) -> Iterator[refs__transforms__consumer_entry]:
+        return self.elements.__iter__()
+
+_breaker8 = None
+class refs__transforms(yang.adata.MNode):
+    consumer: refs__transforms__consumer
+
+    mut def __init__(self, consumer: list[refs__transforms__consumer_entry]=[]):
+        self._ns = 'http://example.com/refs'
+        self.consumer = refs__transforms__consumer(elements=consumer)
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'consumer':
+            return iter(self.consumer)
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['refs:transforms'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> refs__transforms:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        if n is not None:
+            return refs__transforms(consumer=refs__transforms__consumer.from_gdata(n.get_opt_list(yang.gdata.Id(NS_refs, 'consumer')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        return refs__transforms()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return refs__transforms.from_gdata(self.to_gdata())
+
+
+_breaker9 = None
+class root(yang.adata.MNode):
+    inventory: refs__inventory
+    transforms: refs__transforms
+
+    mut def __init__(self, inventory: ?refs__inventory=None, transforms: ?refs__transforms=None):
+        self._ns = ''
+        self.inventory = inventory if inventory is not None else refs__inventory()
+        self.transforms = transforms if transforms is not None else refs__transforms()
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'inventory':
+            return self.inventory
+        if name == 'transforms':
+            return self.transforms
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> root:
+        _actual_lookup_root = lookup_root
+        if _actual_lookup_root is None:
+            _actual_lookup_root = n
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        if n is not None:
+            return root(inventory=refs__inventory.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'inventory')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), transforms=refs__transforms.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_refs, 'transforms')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        return root()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: yang.gdata.TreeProvider):
+    pass
+
+def src_schema():
+    res = {}
+    res["refs"] = Module('refs', yang_version=1.1, namespace='http://example.com/refs', prefix='refs', children=[
+    Container('inventory', children=[
+        List('producer', key='name', children=[
+            Leaf('name', type_=Type('string')),
+            Container('config', children=[
+                Leaf('interval', type_=Type('uint32'))
+            ])
+        ])
+    ]),
+    Container('transforms', children=[
+        List('consumer', key='name', children=[
+            Leaf('name', type_=Type('string')),
+            Leaf('input', type_=Type('leafref', path='/refs:inventory/refs:producer/refs:name'))
+        ])
+    ])
+])
+    return res
+

@@ -21,6 +21,68 @@ class MNode(object):
         raise NotImplementedError("_get_attrs")
 
 
+class Ref(object):
+    value: value
+
+    def __init__(self, value: value):
+        self.value = value
+
+
+class RefContext(object):
+    lookup_root: ?yang.gdata.Node
+    target_cache: dict[str, MNode]
+
+    def __init__(self, lookup_root: ?yang.gdata.Node=None, target_cache: ?dict[str, MNode]=None):
+        self.lookup_root = lookup_root
+        self.target_cache = target_cache if target_cache is not None else {}
+
+    def get_target(self, key: str) -> ?MNode:
+        return self.target_cache.get(key)
+
+    mut def set_target(self, key: str, target: MNode):
+        self.target_cache[key] = target
+
+
+def init_ref_ctx(lookup_root: ?yang.gdata.Node, ctx: ?RefContext=None) -> ?RefContext:
+    if ctx is not None:
+        return ctx
+    if lookup_root is not None:
+        return RefContext(lookup_root=lookup_root)
+
+
+def expect_ref_value[T](value: ?T, ctx: ?str=None) -> T:
+    if value is not None:
+        return value
+    raise ValueError("expected value (not None){"for: {{ctx}}" if ctx is not None else ""}")
+
+
+def ref_cache_key(path: str, key_value: value) -> str:
+    return "{path}::{repr(key_value)}"
+
+
+def lookup_list_entry_by_key(root: ?yang.gdata.Node, list_path: list[yang.gdata.Id], key_id: yang.gdata.Id, key_value: value) -> ?yang.gdata.Node:
+    if root is None or len(list_path) == 0:
+        return None
+
+    current = root
+    # Phase 1 only supports container ancestors on the way to the target list.
+    for step in list_path[:-1]:
+        if isinstance(current, yang.gdata.Container):
+            next_container = current.get_opt_cnt(step)
+            if next_container is not None:
+                current = next_container
+                continue
+        return None
+
+    if isinstance(current, yang.gdata.Container):
+        target_list = current.get_opt_list(list_path[-1])
+        if target_list is not None:
+            for element in target_list.elements:
+                key_leaf = element.get_opt_leaf(key_id)
+                if key_leaf is not None and yang.gdata.vals_equal(key_leaf.val, key_value):
+                    return element
+
+
 extension MNode (YangData):
     def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         usname = yang.schema.safe_name(name if is_unique else "{schema.prefix}_{name}")
@@ -67,6 +129,8 @@ extension MNode (YangData):
 
 
 def try_validate_mnode_value(val: value, schema_type: yang.schema.DType, path: list[PathElement]) -> ?(t: str, val: value):
+    if isinstance(val, Ref):
+        return try_validate_mnode_value(val.value, schema_type, path)
     if isinstance(schema_type, yang.schema.DTypeUnion):
         for alt_type in schema_type.types:
             tv = try_validate_mnode_value(val, alt_type, path)

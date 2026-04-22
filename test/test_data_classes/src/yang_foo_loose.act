@@ -527,7 +527,9 @@ class foo__c1__li__c4(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:c1', 'li', 'c4'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__c1__li__c4:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__c1__li__c4:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__c1__li__c4(l5=n.get_opt_str(yang.gdata.Id(NS_foo, 'l5')))
         return foo__c1__li__c4()
@@ -561,8 +563,20 @@ class foo__c1__li_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:c1', 'li'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__c1__li_entry:
-        return foo__c1__li_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), val=n.get_opt_str(yang.gdata.Id(NS_foo, 'val')), c4=foo__c1__li__c4.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c4'))))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__c1__li_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _cache_key = ''
+        if _ref_ctx is not None:
+            _key_value = n.get_str(yang.gdata.Id(NS_foo, 'name'))
+            _cache_key = yang.adata.ref_cache_key('/c1/li', _key_value)
+            _cached = _ref_ctx.get_target(_cache_key)
+            if isinstance(_cached, foo__c1__li_entry):
+                return _cached
+        res = foo__c1__li_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), val=n.get_opt_str(yang.gdata.Id(NS_foo, 'val')), c4=foo__c1__li__c4.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c4')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
+        if _ref_ctx is not None and _cache_key != '':
+            _ref_ctx.set_target(_cache_key, res)
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
@@ -592,9 +606,10 @@ class foo__c1__li(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__c1__li_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[foo__c1__li_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
         if n is not None:
-            return [foo__c1__li_entry.from_gdata(e) for e in n.elements]
+            return [foo__c1__li_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
         return []
 
     def copy(self):
@@ -612,6 +627,34 @@ extension foo__c1__li(Iterable[foo__c1__li_entry]):
         return self.elements.__iter__()
 
 _breaker4 = None
+class foo__c1__l_leafref_ref(yang.adata.Ref):
+    target: ?foo__c1__li_entry
+    def __init__(self, value: str, target: ?foo__c1__li_entry=None):
+        self.value = value
+        self.target = target
+
+def _resolve_foo__c1__l_leafref_ref(value: ?str, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?foo__c1__l_leafref_ref:
+    if value is None:
+        return None
+    ref_value: str = yang.adata.expect_ref_value(value, ctx='/c1/l_leafref')
+    ref = foo__c1__l_leafref_ref(ref_value)
+    ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
+    if ctx is not None:
+        cache_key = yang.adata.ref_cache_key('/c1/li', ref_value)
+        cached_target = ctx.get_target(cache_key)
+        if isinstance(cached_target, foo__c1__li_entry):
+            ref.target = cached_target
+            return ref
+        lookup_node = ctx.lookup_root
+        if lookup_node is not None:
+            target_node = yang.adata.lookup_list_entry_by_key(lookup_node, [yang.gdata.Id(NS_foo, 'c1'), yang.gdata.Id(NS_foo, 'li')], yang.gdata.Id(NS_foo, 'name'), ref_value)
+            if target_node is not None:
+                target = foo__c1__li_entry.from_gdata(target_node, lookup_root=lookup_node, _ref_ctx=ctx)
+                ref.target = target
+                ctx.set_target(cache_key, target)
+    return ref
+
+_breaker5 = None
 class foo__c1(yang.adata.MNode):
     f_l1: ?str
     l3: ?u64
@@ -627,9 +670,9 @@ class foo__c1(yang.adata.MNode):
     l4: ?str
     bar_l1: ?str
     l2: ?str
-    l_leafref: ?str
+    l_leafref: ?foo__c1__l_leafref_ref
 
-    mut def __init__(self, f_l1: ?str, l3: ?u64, l_empty: ?bool, l_empty_delete: ?bool, l_decimal64: ?Decimal, li: list[foo__c1__li_entry]=[], ll_uint64: ?list[u64]=None, ll_str: ?list[str]=None, l_identityref: ?Identityref, ll_identityref: ?list[Identityref]=None, l_identityref_noval: ?Identityref, l4: ?str, bar_l1: ?str, l2: ?str, l_leafref: ?str):
+    mut def __init__(self, f_l1: ?str, l3: ?u64, l_empty: ?bool, l_empty_delete: ?bool, l_decimal64: ?Decimal, li: list[foo__c1__li_entry]=[], ll_uint64: ?list[u64]=None, ll_str: ?list[str]=None, l_identityref: ?Identityref, ll_identityref: ?list[Identityref]=None, l_identityref_noval: ?Identityref, l4: ?str, bar_l1: ?str, l2: ?str, l_leafref: ?foo__c1__l_leafref_ref):
         self._ns = 'http://example.com/foo'
         self.f_l1 = f_l1
         self.l3 = l3
@@ -683,9 +726,11 @@ class foo__c1(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:c1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__c1:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__c1:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__c1(f_l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l3=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l3')), l_empty=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty')), l_empty_delete=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty_delete')), l_decimal64=n.get_opt_Decimal(yang.gdata.Id(NS_foo, 'l_decimal64')), li=foo__c1__li.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li'))), ll_uint64=n.get_opt_u64s(yang.gdata.Id(NS_foo, 'll_uint64')), ll_str=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll_str')), l_identityref=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref')), ll_identityref=n.get_opt_Identityrefs(yang.gdata.Id(NS_foo, 'll_identityref')), l_identityref_noval=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref_noval')), l4=n.get_opt_str(yang.gdata.Id(NS_foo, 'l4')), bar_l1=n.get_opt_str(yang.gdata.Id(NS_bar, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_bar, 'l2')), l_leafref=n.get_opt_str(yang.gdata.Id(NS_bar, 'l_leafref')))
+            return foo__c1(f_l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l3=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l3')), l_empty=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty')), l_empty_delete=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty_delete')), l_decimal64=n.get_opt_Decimal(yang.gdata.Id(NS_foo, 'l_decimal64')), li=foo__c1__li.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), ll_uint64=n.get_opt_u64s(yang.gdata.Id(NS_foo, 'll_uint64')), ll_str=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll_str')), l_identityref=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref')), ll_identityref=n.get_opt_Identityrefs(yang.gdata.Id(NS_foo, 'll_identityref')), l_identityref_noval=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref_noval')), l4=n.get_opt_str(yang.gdata.Id(NS_foo, 'l4')), bar_l1=n.get_opt_str(yang.gdata.Id(NS_bar, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_bar, 'l2')), l_leafref=_resolve_foo__c1__l_leafref_ref(n.get_opt_str(yang.gdata.Id(NS_bar, 'l_leafref')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__c1()
 
     def copy(self):
@@ -693,7 +738,7 @@ class foo__c1(yang.adata.MNode):
         return foo__c1.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker6 = None
 class foo__pc1__foo(yang.adata.MNode):
     l1: list[bytes]
 
@@ -709,7 +754,9 @@ class foo__pc1__foo(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc1', 'foo'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__pc1__foo:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__pc1__foo:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__pc1__foo(l1=n.get_opt_bytess(yang.gdata.Id(NS_foo, 'l1')))
         return foo__pc1__foo()
@@ -719,7 +766,7 @@ class foo__pc1__foo(yang.adata.MNode):
         return foo__pc1__foo.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker7 = None
 class foo__pc1(yang.adata.MNode):
     foo: foo__pc1__foo
 
@@ -735,9 +782,11 @@ class foo__pc1(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> ?foo__pc1:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?foo__pc1:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__pc1(foo=foo__pc1__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo'))))
+            return foo__pc1(foo=foo__pc1__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return None
 
     def copy(self):
@@ -748,7 +797,7 @@ class foo__pc1(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc1.copy()')
 
 
-_breaker7 = None
+_breaker8 = None
 class foo__pc2__foo(yang.adata.MNode):
     l_mandatory: ?str
 
@@ -764,7 +813,9 @@ class foo__pc2__foo(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc2', 'foo'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__pc2__foo:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__pc2__foo:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__pc2__foo(l_mandatory=n.get_opt_str(yang.gdata.Id(NS_foo, 'l_mandatory')))
         return foo__pc2__foo()
@@ -774,7 +825,7 @@ class foo__pc2__foo(yang.adata.MNode):
         return foo__pc2__foo.from_gdata(self.to_gdata())
 
 
-_breaker8 = None
+_breaker9 = None
 class foo__pc2(yang.adata.MNode):
     foo: foo__pc2__foo
 
@@ -790,9 +841,11 @@ class foo__pc2(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc2'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> ?foo__pc2:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?foo__pc2:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__pc2(foo=foo__pc2__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo'))))
+            return foo__pc2(foo=foo__pc2__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return None
 
     def copy(self):
@@ -803,7 +856,7 @@ class foo__pc2(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc2.copy()')
 
 
-_breaker9 = None
+_breaker10 = None
 class foo__pc3__level1__level2__level3(yang.adata.MNode):
     l3: ?str
     l3_optional: ?str
@@ -823,7 +876,9 @@ class foo__pc3__level1__level2__level3(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc3', 'level1', 'level2', 'level3'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__pc3__level1__level2__level3:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__pc3__level1__level2__level3:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__pc3__level1__level2__level3(l3=n.get_opt_str(yang.gdata.Id(NS_foo, 'l3')), l3_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l3-optional')))
         return foo__pc3__level1__level2__level3()
@@ -833,7 +888,7 @@ class foo__pc3__level1__level2__level3(yang.adata.MNode):
         return foo__pc3__level1__level2__level3.from_gdata(self.to_gdata())
 
 
-_breaker10 = None
+_breaker11 = None
 class foo__pc3__level1__level2(yang.adata.MNode):
     l2: ?str
     l2_optional: ?str
@@ -857,9 +912,11 @@ class foo__pc3__level1__level2(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc3', 'level1', 'level2'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__pc3__level1__level2:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__pc3__level1__level2:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__pc3__level1__level2(l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')), l2_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2-optional')), level3=foo__pc3__level1__level2__level3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level3'))))
+            return foo__pc3__level1__level2(l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')), l2_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2-optional')), level3=foo__pc3__level1__level2__level3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level3')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__pc3__level1__level2()
 
     def copy(self):
@@ -867,7 +924,7 @@ class foo__pc3__level1__level2(yang.adata.MNode):
         return foo__pc3__level1__level2.from_gdata(self.to_gdata())
 
 
-_breaker11 = None
+_breaker12 = None
 class foo__pc3__level1(yang.adata.MNode):
     l1: ?str
     l1_optional: ?str
@@ -891,9 +948,11 @@ class foo__pc3__level1(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc3', 'level1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__pc3__level1:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__pc3__level1:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__pc3__level1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l1_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1-optional')), level2=foo__pc3__level1__level2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level2'))))
+            return foo__pc3__level1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l1_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1-optional')), level2=foo__pc3__level1__level2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level2')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__pc3__level1()
 
     def copy(self):
@@ -901,7 +960,7 @@ class foo__pc3__level1(yang.adata.MNode):
         return foo__pc3__level1.from_gdata(self.to_gdata())
 
 
-_breaker12 = None
+_breaker13 = None
 class foo__pc3(yang.adata.MNode):
     level1: foo__pc3__level1
 
@@ -917,9 +976,11 @@ class foo__pc3(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:pc3'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> ?foo__pc3:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?foo__pc3:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__pc3(level1=foo__pc3__level1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level1'))))
+            return foo__pc3(level1=foo__pc3__level1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level1')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return None
 
     def copy(self):
@@ -930,7 +991,7 @@ class foo__pc3(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc3.copy()')
 
 
-_breaker13 = None
+_breaker14 = None
 class foo__empty_presence(yang.adata.MNode):
 
     mut def __init__(self):
@@ -941,7 +1002,9 @@ class foo__empty_presence(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:empty-presence'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> ?foo__empty_presence:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?foo__empty_presence:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__empty_presence()
         return None
@@ -954,7 +1017,7 @@ class foo__empty_presence(yang.adata.MNode):
         raise Exception('Unreachable in foo__empty_presence.copy()')
 
 
-_breaker14 = None
+_breaker15 = None
 class foo__c_dot(yang.adata.MNode):
     l_dot1: ?str
     l_dot2: ?str
@@ -974,7 +1037,9 @@ class foo__c_dot(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:c.dot'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__c_dot:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__c_dot:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__c_dot(l_dot1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l.dot1')), l_dot2=n.get_opt_str(yang.gdata.Id(NS_bar, 'l.dot2')))
         return foo__c_dot()
@@ -984,7 +1049,7 @@ class foo__c_dot(yang.adata.MNode):
         return foo__c_dot.from_gdata(self.to_gdata())
 
 
-_breaker15 = None
+_breaker16 = None
 class foo__cc__death_entry(yang.adata.MNode):
     name: str
 
@@ -1000,14 +1065,26 @@ class foo__cc__death_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:cc', 'death'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__cc__death_entry:
-        return foo__cc__death_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__cc__death_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _cache_key = ''
+        if _ref_ctx is not None:
+            _key_value = n.get_str(yang.gdata.Id(NS_foo, 'name'))
+            _cache_key = yang.adata.ref_cache_key('/cc/death', _key_value)
+            _cached = _ref_ctx.get_target(_cache_key)
+            if isinstance(_cached, foo__cc__death_entry):
+                return _cached
+        res = foo__cc__death_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')))
+        if _ref_ctx is not None and _cache_key != '':
+            _ref_ctx.set_target(_cache_key, res)
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return foo__cc__death_entry.from_gdata(self.to_gdata())
 
-_breaker16 = None
+_breaker17 = None
 class foo__cc__death(yang.adata.MNode):
     elements: list[foo__cc__death_entry]
     mut def __init__(self, elements=[]):
@@ -1029,9 +1106,10 @@ class foo__cc__death(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__cc__death_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[foo__cc__death_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
         if n is not None:
-            return [foo__cc__death_entry.from_gdata(e) for e in n.elements]
+            return [foo__cc__death_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
         return []
 
     def copy(self):
@@ -1048,7 +1126,7 @@ extension foo__cc__death(Iterable[foo__cc__death_entry]):
     def __iter__(self) -> Iterator[foo__cc__death_entry]:
         return self.elements.__iter__()
 
-_breaker17 = None
+_breaker18 = None
 class foo__cc(yang.adata.MNode):
     cake: ?str
     death: foo__cc__death
@@ -1068,9 +1146,11 @@ class foo__cc(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:cc'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__cc:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__cc:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__cc(cake=n.get_opt_str(yang.gdata.Id(NS_foo, 'cake')), death=foo__cc__death.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'death'))))
+            return foo__cc(cake=n.get_opt_str(yang.gdata.Id(NS_foo, 'cake')), death=foo__cc__death.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'death')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__cc()
 
     def copy(self):
@@ -1078,7 +1158,7 @@ class foo__cc(yang.adata.MNode):
         return foo__cc.from_gdata(self.to_gdata())
 
 
-_breaker18 = None
+_breaker19 = None
 class foo__f_conflict__f_inner(yang.adata.MNode):
 
     mut def __init__(self):
@@ -1089,7 +1169,9 @@ class foo__f_conflict__f_inner(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:conflict', 'inner'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> ?foo__f_conflict__f_inner:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?foo__f_conflict__f_inner:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__f_conflict__f_inner()
         return None
@@ -1102,7 +1184,7 @@ class foo__f_conflict__f_inner(yang.adata.MNode):
         raise Exception('Unreachable in foo__f_conflict__f_inner.copy()')
 
 
-_breaker19 = None
+_breaker20 = None
 class foo__f_conflict__bar_inner(yang.adata.MNode):
 
     mut def __init__(self):
@@ -1113,7 +1195,9 @@ class foo__f_conflict__bar_inner(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:conflict', 'bar:inner'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> ?foo__f_conflict__bar_inner:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> ?foo__f_conflict__bar_inner:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__f_conflict__bar_inner()
         return None
@@ -1126,7 +1210,7 @@ class foo__f_conflict__bar_inner(yang.adata.MNode):
         raise Exception('Unreachable in foo__f_conflict__bar_inner.copy()')
 
 
-_breaker20 = None
+_breaker21 = None
 class foo__f_conflict(yang.adata.MNode):
     f_foo: ?str
     f_inner: ?foo__f_conflict__f_inner
@@ -1170,9 +1254,11 @@ class foo__f_conflict(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:conflict'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__f_conflict:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__f_conflict:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__f_conflict(f_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), f_inner=foo__f_conflict__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner'))), bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), bar_inner=foo__f_conflict__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner'))))
+            return foo__f_conflict(f_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), f_inner=foo__f_conflict__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), bar_inner=foo__f_conflict__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__f_conflict()
 
     def copy(self):
@@ -1180,7 +1266,7 @@ class foo__f_conflict(yang.adata.MNode):
         return foo__f_conflict.from_gdata(self.to_gdata())
 
 
-_breaker21 = None
+_breaker22 = None
 class foo__special_entry(yang.adata.MNode):
     yes: bool
 
@@ -1196,14 +1282,26 @@ class foo__special_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:special'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__special_entry:
-        return foo__special_entry(yes=n.get_bool(yang.gdata.Id(NS_foo, 'yes')))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__special_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _cache_key = ''
+        if _ref_ctx is not None:
+            _key_value = n.get_bool(yang.gdata.Id(NS_foo, 'yes'))
+            _cache_key = yang.adata.ref_cache_key('/special', _key_value)
+            _cached = _ref_ctx.get_target(_cache_key)
+            if isinstance(_cached, foo__special_entry):
+                return _cached
+        res = foo__special_entry(yes=n.get_bool(yang.gdata.Id(NS_foo, 'yes')))
+        if _ref_ctx is not None and _cache_key != '':
+            _ref_ctx.set_target(_cache_key, res)
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return foo__special_entry.from_gdata(self.to_gdata())
 
-_breaker22 = None
+_breaker23 = None
 class foo__special(yang.adata.MNode):
     elements: list[foo__special_entry]
     mut def __init__(self, elements=[]):
@@ -1225,9 +1323,10 @@ class foo__special(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__special_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[foo__special_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
         if n is not None:
-            return [foo__special_entry.from_gdata(e) for e in n.elements]
+            return [foo__special_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
         return []
 
     def copy(self):
@@ -1244,7 +1343,7 @@ extension foo__special(Iterable[foo__special_entry]):
     def __iter__(self) -> Iterator[foo__special_entry]:
         return self.elements.__iter__()
 
-_breaker23 = None
+_breaker24 = None
 class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
     key1: str
     key2: str
@@ -1268,14 +1367,17 @@ class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:nested', 'inner', 'li1', 'li2'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__nested__f_inner__li1__li2_entry:
-        return foo__nested__f_inner__li1__li2_entry(key1=n.get_str(yang.gdata.Id(NS_foo, 'key1')), key2=n.get_str(yang.gdata.Id(NS_foo, 'key2')), baz=n.get_opt_str(yang.gdata.Id(NS_foo, 'baz')))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__nested__f_inner__li1__li2_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        res = foo__nested__f_inner__li1__li2_entry(key1=n.get_str(yang.gdata.Id(NS_foo, 'key1')), key2=n.get_str(yang.gdata.Id(NS_foo, 'key2')), baz=n.get_opt_str(yang.gdata.Id(NS_foo, 'baz')))
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1__li2_entry.from_gdata(self.to_gdata())
 
-_breaker24 = None
+_breaker25 = None
 class foo__nested__f_inner__li1__li2(yang.adata.MNode):
     elements: list[foo__nested__f_inner__li1__li2_entry]
     mut def __init__(self, elements=[]):
@@ -1302,9 +1404,10 @@ class foo__nested__f_inner__li1__li2(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__nested__f_inner__li1__li2_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[foo__nested__f_inner__li1__li2_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
         if n is not None:
-            return [foo__nested__f_inner__li1__li2_entry.from_gdata(e) for e in n.elements]
+            return [foo__nested__f_inner__li1__li2_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
         return []
 
     def copy(self):
@@ -1321,7 +1424,7 @@ extension foo__nested__f_inner__li1__li2(Iterable[foo__nested__f_inner__li1__li2
     def __iter__(self) -> Iterator[foo__nested__f_inner__li1__li2_entry]:
         return self.elements.__iter__()
 
-_breaker25 = None
+_breaker26 = None
 class foo__nested__f_inner__li1_entry(yang.adata.MNode):
     name: str
     f_bar: ?str
@@ -1349,14 +1452,26 @@ class foo__nested__f_inner__li1_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:nested', 'inner', 'li1'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__nested__f_inner__li1_entry:
-        return foo__nested__f_inner__li1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), f_bar=n.get_opt_str(yang.gdata.Id(NS_foo, 'bar')), li2=foo__nested__f_inner__li1__li2.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li2'))), bar_bar=n.get_opt_str(yang.gdata.Id(NS_bar, 'bar')))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__nested__f_inner__li1_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _cache_key = ''
+        if _ref_ctx is not None:
+            _key_value = n.get_str(yang.gdata.Id(NS_foo, 'name'))
+            _cache_key = yang.adata.ref_cache_key('/nested/f:inner/li1', _key_value)
+            _cached = _ref_ctx.get_target(_cache_key)
+            if isinstance(_cached, foo__nested__f_inner__li1_entry):
+                return _cached
+        res = foo__nested__f_inner__li1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), f_bar=n.get_opt_str(yang.gdata.Id(NS_foo, 'bar')), li2=foo__nested__f_inner__li1__li2.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li2')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), bar_bar=n.get_opt_str(yang.gdata.Id(NS_bar, 'bar')))
+        if _ref_ctx is not None and _cache_key != '':
+            _ref_ctx.set_target(_cache_key, res)
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1_entry.from_gdata(self.to_gdata())
 
-_breaker26 = None
+_breaker27 = None
 class foo__nested__f_inner__li1(yang.adata.MNode):
     elements: list[foo__nested__f_inner__li1_entry]
     mut def __init__(self, elements=[]):
@@ -1382,9 +1497,10 @@ class foo__nested__f_inner__li1(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__nested__f_inner__li1_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[foo__nested__f_inner__li1_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
         if n is not None:
-            return [foo__nested__f_inner__li1_entry.from_gdata(e) for e in n.elements]
+            return [foo__nested__f_inner__li1_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
         return []
 
     def copy(self):
@@ -1401,7 +1517,7 @@ extension foo__nested__f_inner__li1(Iterable[foo__nested__f_inner__li1_entry]):
     def __iter__(self) -> Iterator[foo__nested__f_inner__li1_entry]:
         return self.elements.__iter__()
 
-_breaker27 = None
+_breaker28 = None
 class foo__nested__f_inner(yang.adata.MNode):
     foo: ?str
     li1: foo__nested__f_inner__li1
@@ -1421,9 +1537,11 @@ class foo__nested__f_inner(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:nested', 'inner'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__nested__f_inner:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__nested__f_inner:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__nested__f_inner(foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), li1=foo__nested__f_inner__li1.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li1'))))
+            return foo__nested__f_inner(foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), li1=foo__nested__f_inner__li1.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li1')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__nested__f_inner()
 
     def copy(self):
@@ -1431,7 +1549,7 @@ class foo__nested__f_inner(yang.adata.MNode):
         return foo__nested__f_inner.from_gdata(self.to_gdata())
 
 
-_breaker28 = None
+_breaker29 = None
 class foo__nested__bar_inner(yang.adata.MNode):
     foo: ?str
 
@@ -1447,7 +1565,9 @@ class foo__nested__bar_inner(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:nested', 'bar:inner'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__nested__bar_inner:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__nested__bar_inner:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__nested__bar_inner(foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')))
         return foo__nested__bar_inner()
@@ -1457,7 +1577,7 @@ class foo__nested__bar_inner(yang.adata.MNode):
         return foo__nested__bar_inner.from_gdata(self.to_gdata())
 
 
-_breaker29 = None
+_breaker30 = None
 class foo__nested(yang.adata.MNode):
     f_inner: foo__nested__f_inner
     bar_inner: foo__nested__bar_inner
@@ -1477,9 +1597,11 @@ class foo__nested(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:nested'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__nested:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__nested:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__nested(f_inner=foo__nested__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner'))), bar_inner=foo__nested__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner'))))
+            return foo__nested(f_inner=foo__nested__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), bar_inner=foo__nested__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__nested()
 
     def copy(self):
@@ -1487,7 +1609,7 @@ class foo__nested(yang.adata.MNode):
         return foo__nested.from_gdata(self.to_gdata())
 
 
-_breaker30 = None
+_breaker31 = None
 class foo__li_union_entry(yang.adata.MNode):
     k1: str
     k2: value
@@ -1515,14 +1637,17 @@ class foo__li_union_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:li-union'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__li_union_entry:
-        return foo__li_union_entry(k1=n.get_str(yang.gdata.Id(NS_foo, 'k1')), k2=n.get_value(yang.gdata.Id(NS_foo, 'k2')), k3=n.get_bytes(yang.gdata.Id(NS_foo, 'k3')), checker=n.get_opt_value(yang.gdata.Id(NS_foo, 'checker')))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__li_union_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        res = foo__li_union_entry(k1=n.get_str(yang.gdata.Id(NS_foo, 'k1')), k2=n.get_value(yang.gdata.Id(NS_foo, 'k2')), k3=n.get_bytes(yang.gdata.Id(NS_foo, 'k3')), checker=n.get_opt_value(yang.gdata.Id(NS_foo, 'checker')))
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return foo__li_union_entry.from_gdata(self.to_gdata())
 
-_breaker31 = None
+_breaker32 = None
 class foo__li_union(yang.adata.MNode):
     elements: list[foo__li_union_entry]
     mut def __init__(self, elements=[]):
@@ -1564,9 +1689,10 @@ class foo__li_union(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__li_union_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[foo__li_union_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
         if n is not None:
-            return [foo__li_union_entry.from_gdata(e) for e in n.elements]
+            return [foo__li_union_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
         return []
 
     def copy(self):
@@ -1583,7 +1709,7 @@ extension foo__li_union(Iterable[foo__li_union_entry]):
     def __iter__(self) -> Iterator[foo__li_union_entry]:
         return self.elements.__iter__()
 
-_breaker32 = None
+_breaker33 = None
 class foo__li_union_one_base_entry(yang.adata.MNode):
     k1: value
 
@@ -1599,14 +1725,26 @@ class foo__li_union_one_base_entry(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:li-union-one-base'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__li_union_one_base_entry:
-        return foo__li_union_one_base_entry(k1=n.get_value(yang.gdata.Id(NS_foo, 'k1')))
+    mut def from_gdata(n: yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__li_union_one_base_entry:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
+        _cache_key = ''
+        if _ref_ctx is not None:
+            _key_value = n.get_value(yang.gdata.Id(NS_foo, 'k1'))
+            _cache_key = yang.adata.ref_cache_key('/li-union-one-base', _key_value)
+            _cached = _ref_ctx.get_target(_cache_key)
+            if isinstance(_cached, foo__li_union_one_base_entry):
+                return _cached
+        res = foo__li_union_one_base_entry(k1=n.get_value(yang.gdata.Id(NS_foo, 'k1')))
+        if _ref_ctx is not None and _cache_key != '':
+            _ref_ctx.set_target(_cache_key, res)
+        return res
 
     def copy(self):
         """Create a deep copy of this adata object"""
         return foo__li_union_one_base_entry.from_gdata(self.to_gdata())
 
-_breaker33 = None
+_breaker34 = None
 class foo__li_union_one_base(yang.adata.MNode):
     elements: list[foo__li_union_one_base_entry]
     mut def __init__(self, elements=[]):
@@ -1630,9 +1768,10 @@ class foo__li_union_one_base(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__li_union_one_base_entry]:
+    mut def from_gdata(n: ?yang.gdata.List, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> list[foo__li_union_one_base_entry]:
+        _ref_ctx = yang.adata.init_ref_ctx(lookup_root, _ref_ctx)
         if n is not None:
-            return [foo__li_union_one_base_entry.from_gdata(e) for e in n.elements]
+            return [foo__li_union_one_base_entry.from_gdata(e, lookup_root=lookup_root, _ref_ctx=_ref_ctx) for e in n.elements]
         return []
 
     def copy(self):
@@ -1649,7 +1788,7 @@ extension foo__li_union_one_base(Iterable[foo__li_union_one_base_entry]):
     def __iter__(self) -> Iterator[foo__li_union_one_base_entry]:
         return self.elements.__iter__()
 
-_breaker34 = None
+_breaker35 = None
 class foo__state__c1(yang.adata.MNode):
     l1: ?str
     l2: ?str
@@ -1669,7 +1808,9 @@ class foo__state__c1(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:state', 'c1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__state__c1:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__state__c1:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__state__c1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')))
         return foo__state__c1()
@@ -1679,7 +1820,7 @@ class foo__state__c1(yang.adata.MNode):
         return foo__state__c1.from_gdata(self.to_gdata())
 
 
-_breaker35 = None
+_breaker36 = None
 class foo__state(yang.adata.MNode):
     c1: foo__state__c1
 
@@ -1695,9 +1836,11 @@ class foo__state(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:state'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__state:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__state:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return foo__state(c1=foo__state__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
+            return foo__state(c1=foo__state__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return foo__state()
 
     def copy(self):
@@ -1705,7 +1848,7 @@ class foo__state(yang.adata.MNode):
         return foo__state.from_gdata(self.to_gdata())
 
 
-_breaker36 = None
+_breaker37 = None
 class foo__c2(yang.adata.MNode):
     l1: ?str
 
@@ -1721,7 +1864,9 @@ class foo__c2(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['foo:c2'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__c2:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> foo__c2:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return foo__c2(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
         return foo__c2()
@@ -1731,7 +1876,7 @@ class foo__c2(yang.adata.MNode):
         return foo__c2.from_gdata(self.to_gdata())
 
 
-_breaker37 = None
+_breaker38 = None
 class bar__test_idref(yang.adata.MNode):
     idref: list[Identityref]
 
@@ -1747,7 +1892,9 @@ class bar__test_idref(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['bar:test-idref'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> bar__test_idref:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> bar__test_idref:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return bar__test_idref(idref=n.get_opt_Identityrefs(yang.gdata.Id(NS_bar, 'idref')))
         return bar__test_idref()
@@ -1757,7 +1904,7 @@ class bar__test_idref(yang.adata.MNode):
         return bar__test_idref.from_gdata(self.to_gdata())
 
 
-_breaker38 = None
+_breaker39 = None
 class bar__bar_conflict(yang.adata.MNode):
     foo: ?str
 
@@ -1773,7 +1920,9 @@ class bar__bar_conflict(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['bar:conflict'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> bar__bar_conflict:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> bar__bar_conflict:
+        _actual_lookup_root = lookup_root
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
             return bar__bar_conflict(foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')))
         return bar__bar_conflict()
@@ -1783,7 +1932,7 @@ class bar__bar_conflict(yang.adata.MNode):
         return bar__bar_conflict.from_gdata(self.to_gdata())
 
 
-_breaker39 = None
+_breaker40 = None
 class root(yang.adata.MNode):
     c1: foo__c1
     pc1: ?foo__pc1
@@ -1895,9 +2044,13 @@ class root(yang.adata.MNode):
         return yang.adata.from_adata(SRC_DNODE, self, loose=True)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?yang.gdata.Node, lookup_root: ?yang.gdata.Node=None, _ref_ctx: ?yang.adata.RefContext=None) -> root:
+        _actual_lookup_root = lookup_root
+        if _actual_lookup_root is None:
+            _actual_lookup_root = n
+        _ref_ctx = yang.adata.init_ref_ctx(_actual_lookup_root, _ref_ctx)
         if n is not None:
-            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc1'))), pc2=foo__pc2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc2'))), pc3=foo__pc3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc3'))), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'empty-presence'))), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c.dot'))), cc=foo__cc.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'cc'))), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'conflict'))), special=foo__special.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'special'))), nested=foo__nested.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'nested'))), li_union=foo__li_union.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union'))), li_union_one_base=foo__li_union_one_base.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union-one-base'))), state=foo__state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'state'))), ll_empty=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c2'))), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'test-idref'))), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'conflict'))))
+            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), pc1=foo__pc1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc1')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), pc2=foo__pc2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc2')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), pc3=foo__pc3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc3')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'empty-presence')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c.dot')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), cc=foo__cc.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'cc')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'conflict')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), special=foo__special.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'special')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), nested=foo__nested.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'nested')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), li_union=foo__li_union.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), li_union_one_base=foo__li_union_one_base.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union-one-base')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), state=foo__state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'state')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), ll_empty=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c2')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'test-idref')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'conflict')), lookup_root=_actual_lookup_root, _ref_ctx=_ref_ctx))
         return root()
 
     def copy(self):

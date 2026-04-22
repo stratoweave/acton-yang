@@ -20,7 +20,7 @@ def adata():
     ad.c1.l4 = 'foo-qux'
     ad.c1.bar_l1 = 'foo-bar'
     ad.c1.l2 = 'bar'
-    ad.c1.l_leafref = 'tuta'
+    ad.c1.l_leafref = foo__c1__l_leafref_ref('tuta')
     
     # List /c1/li element: tuta
     li_element = ad.c1.li.create('tuta', val='baba')
