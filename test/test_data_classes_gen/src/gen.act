@@ -4,9 +4,12 @@ import file
 import yang
 import yang.schema
 
-def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose=False) -> None:
+def compile_root(yangs: list[str]) -> yang.schema.DRoot:
     modules = yang.compile_modules(yang.parse_modules(yang.parse_statements(yangs)))
-    root = yang.compile_to_droot(yang.compile_to_dmodules(modules))
+    return yang.compile_to_droot(yang.compile_to_dmodules(modules))
+
+def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose=False) -> None:
+    root = compile_root(yangs)
     src = root.prdaclass(schema_yang=yangs, loose=loose, include_state=True)
     wf = file.WriteFile(wfcap, filename)
 
@@ -24,6 +27,27 @@ def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose
     src += "\n"
 
     # TF can't we write to the same file multiple times?!
+    await async wf.write(src.encode())
+    await async wf.close()
+
+def yang_to_oper_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str) -> None:
+    root = compile_root(yangs)
+    src = root.prdaclass(schema_yang=yangs, loose=True, include_state=True, include_subs=True)
+    wf = file.WriteFile(wfcap, filename)
+
+    src += "def src_schema():\n"
+    src += "    res = {{}}\n"
+    for y in yangs:
+        ys = yang.schema_from_src(y)
+        if isinstance(ys, yang.schema.Module):
+            src += '    res["{ys.name}"] = {ys.prsrc()}\n'
+        elif isinstance(ys, yang.schema.Submodule):
+            src += '    res["{ys.name}"] = {ys.prsrc()}\n'
+        else:
+            raise ValueError("Expected Module or Submodule, got {type(ys)}")
+    src += "    return res\n"
+    src += "\n"
+
     await async wf.write(src.encode())
     await async wf.close()
 
@@ -486,6 +510,73 @@ ys_basics = r"""module basics {
     }
 }"""
 
+ys_subs = r"""module filter-test {
+    yang-version "1.1";
+    namespace "http://example.com/filter-test";
+    prefix "ft";
+
+    container system-state {
+        config false;
+        container clock {
+            leaf current-datetime {
+                type string;
+            }
+            leaf boot-datetime {
+                type string;
+            }
+        }
+    }
+
+    container interfaces {
+        list interface {
+            key "name";
+            leaf name {
+                type string;
+            }
+            leaf description {
+                type string;
+            }
+            leaf type {
+                type string;
+            }
+            leaf enabled {
+                type boolean;
+            }
+            leaf admin-status {
+                config false;
+                type string;
+            }
+            leaf oper-status {
+                config false;
+                type string;
+            }
+            leaf last-change {
+                config false;
+                type string;
+            }
+            container statistics {
+                config false;
+                leaf in-octets {
+                    type uint64;
+                }
+                leaf out-octets {
+                    type uint64;
+                }
+            }
+            container ipv4 {
+                leaf mtu {
+                    type uint16;
+                }
+            }
+            container ipv6 {
+                leaf mtu {
+                    type uint16;
+                }
+            }
+        }
+    }
+}"""
+
 ys_yangrpc = r"""module yangrpc {
   yang-version "1.1";
   namespace "http://example.com/yangrpc";
@@ -512,5 +603,6 @@ actor main(env: Env):
     yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo_loose.act", loose=True)
     yang_to_act(wfcap, yangs=[ys_loose_required], filename="../test_data_classes/src/yang_loose_required.act", loose=True)
     yang_to_act(wfcap, yangs=[ys_basics], filename="../test_data_classes/src/yang_basics.act")
+    yang_to_oper_act(wfcap, yangs=[ys_subs], filename="../test_data_classes/src/yang_filter_test_oper.act")
     yang_to_act(wfcap, yangs=[ys_yangrpc], filename="../test_data_classes/src/yangrpc.act")
     env.exit(0)

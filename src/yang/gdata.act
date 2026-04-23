@@ -1754,17 +1754,121 @@ def expect[T](a: ?T, ctx: str) -> T:
         return a
     raise ValueError("expected value (not None) for: {ctx}")
 
-def _value_match_equal(a: value, b: value) -> bool:
-    """Compare filter value matches (plain values vs match operators)."""
-    if isinstance(a, ValueMatch):
-        if isinstance(a, VWildcard):
-            if isinstance(b, VWildcard):
-                return a.pattern == b.pattern
+def value_match_eq(a: ?value, b: ?value) -> bool:
+    """Eq of value match
+
+    value_match is actually of type value since we do simple equality check for
+    plain values and more advanced stuff if it happens to be a ValueMatch
+    instance. This compares equality between two value_match values.
+    """
+    if a is not None and b is not None:
+        if isinstance(a, ValueMatch):
+            if isinstance(b, ValueMatch):
+                return a == b
             return False
-        raise ValueError("Unknown value match type: {type(a)}")
-    if isinstance(b, ValueMatch):
+        if isinstance(b, ValueMatch):
+            return False
+        return vals_equal(a, b)
+    return a is None and b is None
+
+def filter_head_eq(a: FNode, b: FNode) -> bool:
+    """Compare only the merge-relevant head of two filter nodes.
+
+    This checks equality on the node name and value_match and intentionally
+    ignores children so descendant selections can be merged under the same
+    filter head.
+    """
+    return a.name == b.name and value_match_eq(a.value_match, b.value_match)
+
+def filter_has_selection(f: FNode) -> bool:
+    """Return True when a filter node selects data under its own head.
+
+    Nodes with only predicate descendants still select the whole subtree at
+    their head if they match, so they report no child selection here.
+    """
+    if len(f.children) == 0:
+        return f.value_match is None
+    for child in f.children:
+        if filter_has_selection(child):
+            return True
+    return False
+
+def filter_predicate_children(f: FNode) -> list[FNode]:
+    """Return child filters that constrain matching without selecting data."""
+    return [child for child in f.children if not filter_has_selection(child)]
+
+def filter_selection_children(f: FNode) -> list[FNode]:
+    """Return child filters that select descendants under this node."""
+    return [child for child in f.children if filter_has_selection(child)]
+
+def filter_child_list_eq_unordered(a: list[FNode], b: list[FNode]) -> bool:
+    """Compare two child filter lists without preserving sibling order."""
+    if len(a) != len(b):
         return False
-    return vals_equal(a, b)
+    used = [False for _ in range(len(b))]
+    for child in a:
+        found = False
+        for i in range(len(b)):
+            if not used[i] and child == b[i]:
+                used[i] = True
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+def filter_merge_eq(a: FNode, b: FNode) -> bool:
+    """Compare filter nodes by merge identity.
+
+    Merge identity includes the node head and any predicate-only children.
+    Descendant selections are intentionally excluded so they can be merged
+    under the same predicate context.
+    """
+    if not filter_head_eq(a, b):
+        return False
+    return filter_child_list_eq_unordered(filter_predicate_children(a), filter_predicate_children(b))
+
+def filter_merge(a: FNode, b: FNode) -> FNode:
+    """Merge two filter nodes with the same merge identity.
+
+    Predicate-only children stay attached to the head they constrain.
+    If either side already selects the whole subtree at that head, it
+    dominates any narrower descendant selection. Otherwise, selection
+    children with equal merge identity are merged recursively while
+    distinct selections are preserved.
+    """
+    if not filter_merge_eq(a, b):
+        raise ValueError("Cannot merge different filter nodes")
+    predicates = filter_predicate_children(a)
+    a_selection = filter_selection_children(a)
+    b_selection = filter_selection_children(b)
+    if len(a_selection) == 0 or len(b_selection) == 0:
+        return FNode(a.name, value_match=a.value_match, children=predicates)
+    children: list[FNode] = [c for c in a_selection]
+    for child in b_selection:
+        merged = False
+        for i in range(len(children)):
+            if filter_merge_eq(children[i], child):
+                children[i] = filter_merge(children[i], child)
+                merged = True
+                break
+        if not merged:
+            children.append(child)
+    return FNode(a.name, value_match=a.value_match, children=predicates + children)
+
+def filter_merge_list(nodes: list[FNode]) -> list[FNode]:
+    """Merge a list of sibling filter nodes by merge identity."""
+    merged: list[FNode] = []
+    for node in nodes:
+        did_merge = False
+        for i in range(len(merged)):
+            if filter_merge_eq(merged[i], node):
+                merged[i] = filter_merge(merged[i], node)
+                did_merge = True
+                break
+        if not did_merge:
+            merged.append(node)
+    return merged
 
 extension ValueMatch(Eq):
     def __eq__(self, other: ValueMatch) -> bool:
@@ -1777,15 +1881,8 @@ extension FNode(Eq):
     def __eq__(self, other: FNode) -> bool:
         if self.name != other.name:
             return False
-        if self.value_match is None and other.value_match is not None:
+        if not value_match_eq(self.value_match, other.value_match):
             return False
-        if self.value_match is not None and other.value_match is None:
-            return False
-        if self.value_match is not None and other.value_match is not None:
-            a = expect(self.value_match, "filter value")
-            b = expect(other.value_match, "filter value")
-            if not _value_match_equal(a, b):
-                return False
         if len(self.children) != len(other.children):
             return False
         for i in range(len(self.children)):
@@ -3080,6 +3177,53 @@ extension SubscriptionSpec(Hashable):
         else:
             "none".hash(hasher)
 
+class Dst(object):
+    """Destination for merged subscription delivery."""
+    @property
+    on_update: action(?Node, ?Exception) -> None
+
+    def __init__(self, on_update: action(?Node, ?Exception) -> None):
+        self.on_update = on_update
+
+    def deliver(self, want: set[SubscriptionSpec]) -> Delivery:
+        return Delivery(self, want)
+
+
+class Delivery(object):
+    """Set of subscriptions delivered to one destination.
+
+    Equality and hashing follow only the delivered subscription set.
+    The destination callback does not participate in delivery identity.
+    """
+    dst: Dst
+    want: set[SubscriptionSpec]
+
+    def __init__(self, dst: Dst, want: set[SubscriptionSpec]):
+        self.dst = dst
+        self.want = want
+
+    def __str__(self) -> str:
+        return "Delivery({self.want})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
+extension Delivery(Hashable):
+    def __eq__(self, other: Delivery) -> bool:
+        if len(self.want) != len(other.want):
+            return False
+        for spec in self.want:
+            if spec not in other.want:
+                return False
+        return True
+
+    def hash(self, hasher):
+        len(self.want).hash(hasher)
+        for spec in hack_sorted(iter(self.want)):
+            spec.hash(hasher)
+
+
 class TreeProvider(object):
     """Imperative transport interface for RPCs and owner-scoped subscriptions."""
     rpc: proc(action(?Node, ?Exception) -> None, Node) -> None
@@ -3088,13 +3232,39 @@ class TreeProvider(object):
     remove_subscriptions: proc(str) -> None
 
 
-actor SubscriptionManager(tp: TreeProvider, owner_id: str, on_update: action(?Node, ?Exception) -> None):
-    """Declarative subscription owner that reconciles desired subscriptions."""
-    def declare(want: set[SubscriptionSpec]):
-        tp.declare_subscriptions(owner_id, on_update, want)
+class SubscriptionManager(object):
+    """Declarative subscription owner that reconciles destination-bound subscriptions."""
+    tp: TreeProvider
+    owner_id: str
+    child_owner_ids: dict[Delivery, str]
+    next_child_ix: int
 
-    def close():
-        tp.remove_subscriptions(owner_id)
+    def __init__(self, tp: TreeProvider, owner_id: str):
+        self.tp = tp
+        self.owner_id = owner_id
+        self.child_owner_ids = {}
+        self.next_child_ix = 0
+
+    def declare(self, want: set[Delivery]):
+        stale_deliveries = [delivery for delivery in self.child_owner_ids.keys() if delivery not in want]
+        for delivery in stale_deliveries:
+            self.tp.remove_subscriptions(self.child_owner_ids[delivery])
+            del self.child_owner_ids[delivery]
+
+        for delivery in want:
+            try:
+                actual_owner_id = self.child_owner_ids[delivery]
+            except KeyError:
+                actual_owner_id = "{self.owner_id}:{self.next_child_ix}"
+                self.next_child_ix += 1
+                self.child_owner_ids[delivery] = actual_owner_id
+            self.tp.declare_subscriptions(actual_owner_id, delivery.dst.on_update, delivery.want)
+
+    def close(self):
+        child_deliveries = [delivery for delivery in self.child_owner_ids.keys()]
+        for delivery in child_deliveries:
+            self.tp.remove_subscriptions(self.child_owner_ids[delivery])
+            del self.child_owner_ids[delivery]
 
 
 def _node_match(n: xml.Node, name: str, ns: ?str) -> bool:
@@ -4807,6 +4977,127 @@ def _test_filter_list_select_leaf():
                 ], ns=NS_acme, module="acme")
             }, ns=NS_acme, module="acme")
         }).prsrc(deterministic=True)
+    )
+
+
+def _test_filter_merge_keeps_multi_key_list_identity():
+    """Merging keyed list predicates should not select cross-product rows."""
+    k1 = Id(NS_acme, "k1")
+    k2 = Id(NS_acme, "k2")
+    payload = Id(NS_acme, "payload")
+    pairs = Id(NS_acme, "pairs")
+    data = Container({
+        pairs: List([k1, k2], [
+            Container({
+                k1: Leaf("1"),
+                k2: Leaf("1"),
+                payload: Leaf("11"),
+            }),
+            Container({
+                k1: Leaf("1"),
+                k2: Leaf("2"),
+                payload: Leaf("12"),
+            }),
+            Container({
+                k1: Leaf("2"),
+                k2: Leaf("1"),
+                payload: Leaf("21"),
+            }),
+            Container({
+                k1: Leaf("2"),
+                k2: Leaf("2"),
+                payload: Leaf("22"),
+            }),
+        ], ns=NS_acme, module="acme"),
+    }, ns=NS_acme, module="acme")
+    pair_11 = FNode(pairs, children=[
+        FNode(k1, value_match="1"),
+        FNode(k2, value_match="1"),
+        FNode(payload),
+    ])
+    pair_22 = FNode(pairs, children=[
+        FNode(k1, value_match="2"),
+        FNode(k2, value_match="2"),
+        FNode(payload),
+    ])
+    filt = FNode(children=filter_merge_list([pair_11, pair_22]))
+    res = expect(filter(data, filt), "filter result")
+    testing.assertEqual(
+        res.prsrc(deterministic=True),
+        Container({
+            pairs: List([k1, k2], [
+                Container({
+                    k1: Leaf("1"),
+                    k2: Leaf("1"),
+                    payload: Leaf("11"),
+                }),
+                Container({
+                    k1: Leaf("2"),
+                    k2: Leaf("2"),
+                    payload: Leaf("22"),
+                }),
+            ], ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme").prsrc(deterministic=True)
+    )
+
+
+def _test_filter_merge_preserves_subtree_selector():
+    """Merging a subtree selector with a descendant should keep the subtree."""
+    foo = Id(NS_acme, "foo")
+    l = Id(NS_acme, "l")
+    name = Id(NS_acme, "name")
+    statistics = Id(NS_acme, "statistics")
+    in_octets = Id(NS_acme, "in-octets")
+    out_octets = Id(NS_acme, "out-octets")
+    data = Container({
+        foo: Container({
+            l: List([name], [
+                Container({
+                    name: Leaf("eth0"),
+                    statistics: Container({
+                        in_octets: Leaf(u64(1234)),
+                        out_octets: Leaf(u64(5678)),
+                    }, ns=NS_acme, module="acme"),
+                }),
+                Container({
+                    name: Leaf("eth1"),
+                    statistics: Container({
+                        in_octets: Leaf(u64(42)),
+                        out_octets: Leaf(u64(84)),
+                    }, ns=NS_acme, module="acme"),
+                }),
+            ], ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme"),
+    }, ns=NS_acme, module="acme")
+    select_statistics = FNode(l, children=[
+        FNode(name, value_match="eth0"),
+        FNode(statistics),
+    ])
+    select_statistics_in = FNode(l, children=[
+        FNode(name, value_match="eth0"),
+        FNode(statistics, children=[
+            FNode(in_octets),
+        ]),
+    ])
+    filt = FNode(children=[
+        FNode(foo, children=filter_merge_list([select_statistics, select_statistics_in])),
+    ])
+    res = expect(filter(data, filt), "filter result")
+    testing.assertEqual(
+        res.prsrc(deterministic=True),
+        Container({
+            foo: Container({
+                l: List([name], [
+                    Container({
+                        name: Leaf("eth0"),
+                        statistics: Container({
+                            in_octets: Leaf(u64(1234)),
+                            out_octets: Leaf(u64(5678)),
+                        }, ns=NS_acme, module="acme"),
+                    }),
+                ], ns=NS_acme, module="acme"),
+            }, ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme").prsrc(deterministic=True)
     )
 
 

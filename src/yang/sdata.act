@@ -1,0 +1,152 @@
+"""Subscription data helpers for generated *_subs modules.
+"""
+
+import yang.gdata
+
+
+class SubscriptionPath(value):
+    parent: ?SubscriptionPath
+    name: yang.gdata.Id
+    predicates: list[yang.gdata.FNode]
+
+    def __init__(self, name: yang.gdata.Id, predicates: list[yang.gdata.FNode]=[], parent: ?SubscriptionPath=None):
+        self.parent = parent
+        self.name = name
+        self.predicates = predicates
+
+    def _sig(self) -> str:
+        preds = [p.prsrc(deterministic=True) for p in self.predicates]
+        return "{repr(self.name)}[" + ",".join(preds) + "]"
+
+    def _segments(self) -> list[SubscriptionPath]:
+        parent = self.parent
+        if parent is not None:
+            res = parent._segments()
+            res.append(self)
+            return res
+        return [self]
+
+    def filt(self, tail_children: ?list[yang.gdata.FNode]=None) -> ?yang.gdata.FNode:
+        return _filt_for_segments(self._segments(), tail_children)
+
+    def relative_to(self, anchor: ?SubscriptionPath) -> list[SubscriptionPath]:
+        actual_self = self._segments()
+        if anchor is not None:
+            actual_anchor = anchor._segments()
+            if len(actual_self) <= len(actual_anchor):
+                raise ValueError("Selected path must be below the subscription anchor")
+            for i in range(len(actual_anchor)):
+                if actual_anchor[i]._sig() != actual_self[i]._sig():
+                    raise ValueError("Selected path must be below the subscription anchor")
+            return actual_self[len(actual_anchor):]
+        return actual_self
+
+
+def _filt_for_segments(segments: list[SubscriptionPath], tail_children: ?list[yang.gdata.FNode]=None) -> ?yang.gdata.FNode:
+    actual_tail_children: list[yang.gdata.FNode] = []
+    if tail_children is not None:
+        actual_tail_children = tail_children
+    if len(segments) == 0:
+        if len(actual_tail_children) == 0:
+            return None
+        return yang.gdata.FNode(children=actual_tail_children)
+    child: ?yang.gdata.FNode = None
+    for seg in reversed(segments):
+        predicates: list[yang.gdata.FNode] = [p for p in seg.predicates]
+        if child is not None:
+            predicates.append(child)
+        elif len(actual_tail_children) > 0:
+            predicates.extend(actual_tail_children)
+        child = yang.gdata.FNode(seg.name, children=predicates)
+    return child
+
+
+class SubscriptionNode(value):
+    _path: ?SubscriptionPath
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        self._path = path
+
+    def filt(self) -> ?yang.gdata.FNode:
+        path = self._path
+        if path is not None:
+            return path.filt()
+        return None
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        return []
+
+    def _depth_select(self, depth: int) -> list[SubscriptionNode]:
+        if depth <= 0:
+            return []
+        selected = self._direct_children()
+        if depth == 1:
+            return selected
+        res: list[SubscriptionNode] = []
+        for child in selected:
+            descendants = child._depth_select(depth - 1)
+            if len(descendants) == 0:
+                res.append(child)
+            else:
+                res.extend(descendants)
+        return res
+
+    def _subscription_spec(self, rel_children: list[yang.gdata.FNode], period: ?value=None) -> yang.gdata.SubscriptionSpec:
+        merged_children = yang.gdata.filter_merge_list(rel_children)
+        path = self._path
+        if path is not None:
+            return yang.gdata.SubscriptionSpec(path.filt(tail_children=merged_children), period=period)
+        return yang.gdata.SubscriptionSpec(yang.gdata.FNode(children=merged_children), period=period)
+
+    def _subscribe_select(self, select: list[SubscriptionNode], period: ?value=None) -> yang.gdata.SubscriptionSpec:
+        if len(select) == 0:
+            return yang.gdata.SubscriptionSpec(self.filt(), period=period)
+        rel_children: list[yang.gdata.FNode] = []
+        for child in select:
+            child_path = child._path
+            if child_path is not None:
+                rel = _filt_for_segments(child_path.relative_to(self._path))
+                if rel is not None:
+                    rel_children.append(rel)
+            else:
+                raise ValueError("Selected path must be below the subscription anchor")
+        return self._subscription_spec(rel_children, period=period)
+
+    def _subscribe_select_depth(self, select: list[SubscriptionNode], depth: int, period: ?value=None) -> yang.gdata.SubscriptionSpec:
+        rel_children: list[yang.gdata.FNode] = []
+        for child in select:
+            child_path = child._path
+            if child_path is not None:
+                tail_children: ?list[yang.gdata.FNode] = None
+                selected_descendants: list[yang.gdata.FNode] = []
+                for descendant in child._depth_select(depth):
+                    descendant_path = descendant._path
+                    if descendant_path is not None:
+                        rel_desc = _filt_for_segments(descendant_path.relative_to(child_path))
+                        if rel_desc is not None:
+                            selected_descendants.append(rel_desc)
+                if len(selected_descendants) > 0:
+                    tail_children = yang.gdata.filter_merge_list(selected_descendants)
+                rel = _filt_for_segments(child_path.relative_to(self._path), tail_children=tail_children)
+                if rel is not None:
+                    rel_children.append(rel)
+            else:
+                raise ValueError("Selected path must be below the subscription anchor")
+        return self._subscription_spec(rel_children, period=period)
+
+    def _spec(self, select: ?list[SubscriptionNode]=None, depth: ?int=None, period: ?value=None) -> yang.gdata.SubscriptionSpec:
+        if depth is not None and depth <= 0:
+            raise ValueError("depth must be positive")
+        actual_select: list[SubscriptionNode] = []
+        if select is not None:
+            actual_select = [child for child in select]
+        if depth is not None and len(actual_select) > 0:
+            return self._subscribe_select_depth(actual_select, depth, period=period)
+        if depth is not None:
+            actual_select.extend(self._depth_select(depth))
+        if len(actual_select) == 0:
+            return yang.gdata.SubscriptionSpec(self.filt(), period=period)
+        return self._subscribe_select(actual_select, period=period)
+
+    def subscribe(self, select: ?list[SubscriptionNode]=None, depth: ?int=None, period: ?value=None) -> yang.gdata.SubscriptionSpec:
+        return self._spec(select=select, depth=depth, period=period)

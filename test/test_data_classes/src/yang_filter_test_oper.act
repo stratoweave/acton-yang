@@ -1,0 +1,638 @@
+import base64
+import json
+import xml
+import yang
+import yang.adata
+import yang.gdata
+import yang.xml
+import yang.xpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+from yang.sdata import SubscriptionPath, SubscriptionNode
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0 = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='system-state', config=False, presence=False, children=[
+    DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='clock', config=False, presence=False, children=[
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='current-datetime', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='boot-datetime', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    ])
+])
+
+SRC_DNODE_CHILD_1 = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='interfaces', config=True, presence=False, children=[
+    DList(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='interface', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='description', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='type', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='enabled', config=True, mandatory=False, type_=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='admin-status', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='oper-status', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='last-change', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='statistics', config=False, presence=False, children=[
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='in-octets', config=False, mandatory=False, type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='out-octets', config=False, mandatory=False, type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)])))
+        ]),
+        DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='ipv4', config=True, presence=False, children=[
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='mtu', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+        ]),
+        DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='ipv6', config=True, presence=False, children=[
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='mtu', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+        ])
+    ])
+])
+
+SRC_DNODE = DRoot(
+    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
+    identities=[],
+    rpcs=[],
+    module_metadata={'http://example.com/filter-test':('filter-test', None)},
+)
+
+def src_yang():
+    res = []
+    res.append(r"""module filter-test {
+    yang-version "1.1";
+    namespace "http://example.com/filter-test";
+    prefix "ft";
+
+    container system-state {
+        config false;
+        container clock {
+            leaf current-datetime {
+                type string;
+            }
+            leaf boot-datetime {
+                type string;
+            }
+        }
+    }
+
+    container interfaces {
+        list interface {
+            key "name";
+            leaf name {
+                type string;
+            }
+            leaf description {
+                type string;
+            }
+            leaf type {
+                type string;
+            }
+            leaf enabled {
+                type boolean;
+            }
+            leaf admin-status {
+                config false;
+                type string;
+            }
+            leaf oper-status {
+                config false;
+                type string;
+            }
+            leaf last-change {
+                config false;
+                type string;
+            }
+            container statistics {
+                config false;
+                leaf in-octets {
+                    type uint64;
+                }
+                leaf out-octets {
+                    type uint64;
+                }
+            }
+            container ipv4 {
+                leaf mtu {
+                    type uint16;
+                }
+            }
+            container ipv6 {
+                leaf mtu {
+                    type uint16;
+                }
+            }
+        }
+    }
+}""")
+    return res
+
+
+NS_filter_test = 'http://example.com/filter-test'
+
+
+_breaker1 = None
+class filter_test__system_state__clock(yang.adata.MNode):
+    current_datetime: ?str
+    boot_datetime: ?str
+
+    mut def __init__(self, current_datetime: ?str, boot_datetime: ?str):
+        self._ns = 'http://example.com/filter-test'
+        self.current_datetime = current_datetime
+        self.boot_datetime = boot_datetime
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'current_datetime':
+            return self.current_datetime
+        if name == 'boot_datetime':
+            return self.boot_datetime
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:system-state', 'clock'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> filter_test__system_state__clock:
+        if n is not None:
+            return filter_test__system_state__clock(current_datetime=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'current-datetime')), boot_datetime=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'boot-datetime')))
+        return filter_test__system_state__clock()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return filter_test__system_state__clock.from_gdata(self.to_gdata())
+
+
+_breaker2 = None
+class filter_test__system_state(yang.adata.MNode):
+    clock: filter_test__system_state__clock
+
+    mut def __init__(self, clock: ?filter_test__system_state__clock=None):
+        self._ns = 'http://example.com/filter-test'
+        self.clock = clock if clock is not None else filter_test__system_state__clock()
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'clock':
+            return self.clock
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:system-state'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> filter_test__system_state:
+        if n is not None:
+            return filter_test__system_state(clock=filter_test__system_state__clock.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'clock'))))
+        return filter_test__system_state()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return filter_test__system_state.from_gdata(self.to_gdata())
+
+
+_breaker3 = None
+class filter_test__interfaces__interface__statistics(yang.adata.MNode):
+    in_octets: ?u64
+    out_octets: ?u64
+
+    mut def __init__(self, in_octets: ?u64, out_octets: ?u64):
+        self._ns = 'http://example.com/filter-test'
+        self.in_octets = in_octets
+        self.out_octets = out_octets
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'in_octets':
+            return self.in_octets
+        if name == 'out_octets':
+            return self.out_octets
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface', 'statistics'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> filter_test__interfaces__interface__statistics:
+        if n is not None:
+            return filter_test__interfaces__interface__statistics(in_octets=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'in-octets')), out_octets=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'out-octets')))
+        return filter_test__interfaces__interface__statistics()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return filter_test__interfaces__interface__statistics.from_gdata(self.to_gdata())
+
+
+_breaker4 = None
+class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
+    mtu: ?u64
+
+    mut def __init__(self, mtu: ?u64):
+        self._ns = 'http://example.com/filter-test'
+        self.mtu = mtu
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'mtu':
+            return self.mtu
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface', 'ipv4'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> filter_test__interfaces__interface__ipv4:
+        if n is not None:
+            return filter_test__interfaces__interface__ipv4(mtu=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'mtu')))
+        return filter_test__interfaces__interface__ipv4()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return filter_test__interfaces__interface__ipv4.from_gdata(self.to_gdata())
+
+
+_breaker5 = None
+class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
+    mtu: ?u64
+
+    mut def __init__(self, mtu: ?u64):
+        self._ns = 'http://example.com/filter-test'
+        self.mtu = mtu
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'mtu':
+            return self.mtu
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface', 'ipv6'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> filter_test__interfaces__interface__ipv6:
+        if n is not None:
+            return filter_test__interfaces__interface__ipv6(mtu=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'mtu')))
+        return filter_test__interfaces__interface__ipv6()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return filter_test__interfaces__interface__ipv6.from_gdata(self.to_gdata())
+
+
+_breaker6 = None
+class filter_test__interfaces__interface_entry(yang.adata.MNode):
+    name: str
+    description: ?str
+    type: ?str
+    enabled: ?bool
+    admin_status: ?str
+    oper_status: ?str
+    last_change: ?str
+    statistics: filter_test__interfaces__interface__statistics
+    ipv4: filter_test__interfaces__interface__ipv4
+    ipv6: filter_test__interfaces__interface__ipv6
+
+    mut def __init__(self, name: str, description: ?str, type: ?str, enabled: ?bool, admin_status: ?str, oper_status: ?str, last_change: ?str, statistics: ?filter_test__interfaces__interface__statistics=None, ipv4: ?filter_test__interfaces__interface__ipv4=None, ipv6: ?filter_test__interfaces__interface__ipv6=None):
+        self._ns = 'http://example.com/filter-test'
+        self.name = name
+        self.description = description
+        self.type = type
+        self.enabled = enabled
+        self.admin_status = admin_status
+        self.oper_status = oper_status
+        self.last_change = last_change
+        self.statistics = statistics if statistics is not None else filter_test__interfaces__interface__statistics()
+        self.ipv4 = ipv4 if ipv4 is not None else filter_test__interfaces__interface__ipv4()
+        self.ipv6 = ipv6 if ipv6 is not None else filter_test__interfaces__interface__ipv6()
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'name':
+            return self.name
+        if name == 'description':
+            return self.description
+        if name == 'type':
+            return self.type
+        if name == 'enabled':
+            return self.enabled
+        if name == 'admin_status':
+            return self.admin_status
+        if name == 'oper_status':
+            return self.oper_status
+        if name == 'last_change':
+            return self.last_change
+        if name == 'statistics':
+            return self.statistics
+        if name == 'ipv4':
+            return self.ipv4
+        if name == 'ipv6':
+            return self.ipv6
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface'])
+
+    @staticmethod
+    mut def from_gdata(n: yang.gdata.Node) -> filter_test__interfaces__interface_entry:
+        return filter_test__interfaces__interface_entry(name=n.get_str(yang.gdata.Id(NS_filter_test, 'name')), description=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'description')), type=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'type')), enabled=n.get_opt_bool(yang.gdata.Id(NS_filter_test, 'enabled')), admin_status=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'admin-status')), oper_status=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'oper-status')), last_change=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'last-change')), statistics=filter_test__interfaces__interface__statistics.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'statistics'))), ipv4=filter_test__interfaces__interface__ipv4.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'ipv4'))), ipv6=filter_test__interfaces__interface__ipv6.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'ipv6'))))
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return filter_test__interfaces__interface_entry.from_gdata(self.to_gdata())
+
+_breaker7 = None
+class filter_test__interfaces__interface(yang.adata.MNode):
+    elements: list[filter_test__interfaces__interface_entry]
+    mut def __init__(self, elements=[]):
+        self._ns = 'http://example.com/filter-test'
+        self._name = 'interface'
+        self.elements = elements
+
+    mut def create(self, name, description=None, type=None, enabled=None, admin_status=None, oper_status=None, last_change=None):
+        for e in self:
+            match = True
+            if e.name != name:
+                match = False
+                continue
+            if match:
+                if description is not None:
+                    e.description = description
+                if type is not None:
+                    e.type = type
+                if enabled is not None:
+                    e.enabled = enabled
+                if admin_status is not None:
+                    e.admin_status = admin_status
+                if oper_status is not None:
+                    e.oper_status = oper_status
+                if last_change is not None:
+                    e.last_change = last_change
+                return e
+
+        res = filter_test__interfaces__interface_entry(name=name, description=description, type=type, enabled=enabled, admin_status=admin_status, oper_status=oper_status, last_change=last_change)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.List) -> list[filter_test__interfaces__interface_entry]:
+        if n is not None:
+            return [filter_test__interfaces__interface_entry.from_gdata(e) for e in n.elements]
+        return []
+
+    def copy(self):
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return filter_test__interfaces__interface(elements=copied_elements)
+
+extension filter_test__interfaces__interface(Iterable[filter_test__interfaces__interface_entry]):
+    def __iter__(self) -> Iterator[filter_test__interfaces__interface_entry]:
+        return self.elements.__iter__()
+
+_breaker8 = None
+class filter_test__interfaces(yang.adata.MNode):
+    interface: filter_test__interfaces__interface
+
+    mut def __init__(self, interface: list[filter_test__interfaces__interface_entry]=[]):
+        self._ns = 'http://example.com/filter-test'
+        self.interface = filter_test__interfaces__interface(elements=interface)
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'interface':
+            return iter(self.interface)
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces'])
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> filter_test__interfaces:
+        if n is not None:
+            return filter_test__interfaces(interface=filter_test__interfaces__interface.from_gdata(n.get_opt_list(yang.gdata.Id(NS_filter_test, 'interface'))))
+        return filter_test__interfaces()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return filter_test__interfaces.from_gdata(self.to_gdata())
+
+
+_breaker9 = None
+class root(yang.adata.MNode):
+    system_state: filter_test__system_state
+    interfaces: filter_test__interfaces
+
+    mut def __init__(self, system_state: ?filter_test__system_state=None, interfaces: ?filter_test__interfaces=None):
+        self._ns = ''
+        self.system_state = system_state if system_state is not None else filter_test__system_state()
+        self.interfaces = interfaces if interfaces is not None else filter_test__interfaces()
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'system_state':
+            return self.system_state
+        if name == 'interfaces':
+            return self.interfaces
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=True)
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+        if n is not None:
+            return root(system_state=filter_test__system_state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'system-state'))), interfaces=filter_test__interfaces.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'interfaces'))))
+        return root()
+
+    def copy(self):
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: yang.gdata.TreeProvider):
+    pass
+
+
+
+class filter_test__system_state__clock_subs(SubscriptionNode):
+    current_datetime: SubscriptionNode
+    boot_datetime: SubscriptionNode
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.current_datetime = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'current-datetime'), parent=path))
+        self.boot_datetime = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'boot-datetime'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.current_datetime, self.boot_datetime]
+        return direct
+
+class filter_test__system_state_subs(SubscriptionNode):
+    clock: filter_test__system_state__clock_subs
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.clock = filter_test__system_state__clock_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'clock'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.clock]
+        return direct
+
+class filter_test__interfaces__interface__statistics_subs(SubscriptionNode):
+    in_octets: SubscriptionNode
+    out_octets: SubscriptionNode
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.in_octets = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'in-octets'), parent=path))
+        self.out_octets = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'out-octets'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.in_octets, self.out_octets]
+        return direct
+
+class filter_test__interfaces__interface__ipv4_subs(SubscriptionNode):
+    mtu: SubscriptionNode
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.mtu = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'mtu'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.mtu]
+        return direct
+
+class filter_test__interfaces__interface__ipv6_subs(SubscriptionNode):
+    mtu: SubscriptionNode
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.mtu = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'mtu'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.mtu]
+        return direct
+
+class filter_test__interfaces__interface_subs(SubscriptionNode):
+    name: SubscriptionNode
+    description: SubscriptionNode
+    type: SubscriptionNode
+    enabled: SubscriptionNode
+    admin_status: SubscriptionNode
+    oper_status: SubscriptionNode
+    last_change: SubscriptionNode
+    statistics: filter_test__interfaces__interface__statistics_subs
+    ipv4: filter_test__interfaces__interface__ipv4_subs
+    ipv6: filter_test__interfaces__interface__ipv6_subs
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
+        self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
+        self.type = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'type'), parent=path))
+        self.enabled = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'enabled'), parent=path))
+        self.admin_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'admin-status'), parent=path))
+        self.oper_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'oper-status'), parent=path))
+        self.last_change = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'last-change'), parent=path))
+        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'statistics'), parent=path))
+        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv4'), parent=path))
+        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv6'), parent=path))
+
+    def entry(self, name: str) -> filter_test__interfaces__interface_entry_subs:
+        predicates = [
+            yang.gdata.FNode(yang.gdata.Id(NS_filter_test, 'name'), value_match=name),
+        ]
+        base_path = self._path!.parent
+        return filter_test__interfaces__interface_entry_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interface'), predicates=predicates, parent=base_path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6]
+        return direct
+
+class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
+    name: SubscriptionNode
+    description: SubscriptionNode
+    type: SubscriptionNode
+    enabled: SubscriptionNode
+    admin_status: SubscriptionNode
+    oper_status: SubscriptionNode
+    last_change: SubscriptionNode
+    statistics: filter_test__interfaces__interface__statistics_subs
+    ipv4: filter_test__interfaces__interface__ipv4_subs
+    ipv6: filter_test__interfaces__interface__ipv6_subs
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
+        self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
+        self.type = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'type'), parent=path))
+        self.enabled = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'enabled'), parent=path))
+        self.admin_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'admin-status'), parent=path))
+        self.oper_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'oper-status'), parent=path))
+        self.last_change = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'last-change'), parent=path))
+        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'statistics'), parent=path))
+        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv4'), parent=path))
+        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv6'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6]
+        return direct
+
+class filter_test__interfaces_subs(SubscriptionNode):
+    interface: filter_test__interfaces__interface_subs
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.interface = filter_test__interfaces__interface_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interface'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.interface]
+        return direct
+
+class root_subs(SubscriptionNode):
+    system_state: filter_test__system_state_subs
+    interfaces: filter_test__interfaces_subs
+
+    def __init__(self, path: ?SubscriptionPath=None):
+        SubscriptionNode.__init__(self, path)
+        self.system_state = filter_test__system_state_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'system-state'), parent=path))
+        self.interfaces = filter_test__interfaces_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interfaces'), parent=path))
+
+    def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.system_state, self.interfaces]
+        return direct
+
+subs = root_subs()
+
+actor DstAdapter(cb: action(?root, ?Exception) -> None):
+    def on_update(n: ?yang.gdata.Node, err: ?Exception):
+        if err is not None:
+            cb(None, err)
+            return
+        if n is not None:
+            cb(root.from_gdata(n), None)
+            return
+        cb(None, None)
+
+def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:
+    adapter = DstAdapter(cb)
+    return yang.gdata.Dst(adapter.on_update)
+def src_schema():
+    res = {}
+    res["filter-test"] = Module('filter-test', yang_version=1.1, namespace='http://example.com/filter-test', prefix='ft', children=[
+    Container('system-state', config=False, children=[
+        Container('clock', children=[
+            Leaf('current-datetime', type_=Type('string')),
+            Leaf('boot-datetime', type_=Type('string'))
+        ])
+    ]),
+    Container('interfaces', children=[
+        List('interface', key='name', children=[
+            Leaf('name', type_=Type('string')),
+            Leaf('description', type_=Type('string')),
+            Leaf('type', type_=Type('string')),
+            Leaf('enabled', type_=Type('boolean')),
+            Leaf('admin-status', type_=Type('string'), config=False),
+            Leaf('oper-status', type_=Type('string'), config=False),
+            Leaf('last-change', type_=Type('string'), config=False),
+            Container('statistics', config=False, children=[
+                Leaf('in-octets', type_=Type('uint64')),
+                Leaf('out-octets', type_=Type('uint64'))
+            ]),
+            Container('ipv4', children=[
+                Leaf('mtu', type_=Type('uint16'))
+            ]),
+            Container('ipv6', children=[
+                Leaf('mtu', type_=Type('uint16'))
+            ])
+        ])
+    ])
+])
+    return res
+
