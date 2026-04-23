@@ -3135,7 +3135,11 @@ class Dst(object):
 
 
 class Delivery(object):
-    """Set of subscriptions delivered to one destination."""
+    """Set of subscriptions delivered to one destination.
+
+    Equality and hashing follow only the delivered subscription set.
+    The destination callback does not participate in delivery identity.
+    """
     dst: Dst
     want: set[SubscriptionSpec]
 
@@ -3150,8 +3154,19 @@ class Delivery(object):
         return str(self)
 
 
-def _delivery_sig(want: set[SubscriptionSpec]) -> str:
-    return "\n".join([str(spec) for spec in hack_sorted(iter(want))])
+extension Delivery(Hashable):
+    def __eq__(self, other: Delivery) -> bool:
+        if len(self.want) != len(other.want):
+            return False
+        for spec in self.want:
+            if spec not in other.want:
+                return False
+        return True
+
+    def hash(self, hasher):
+        len(self.want).hash(hasher)
+        for spec in hack_sorted(iter(self.want)):
+            spec.hash(hasher)
 
 
 class TreeProvider(object):
@@ -3166,7 +3181,7 @@ class SubscriptionManager(object):
     """Declarative subscription owner that reconciles destination-bound subscriptions."""
     tp: TreeProvider
     owner_id: str
-    child_owner_ids: dict[str, str]
+    child_owner_ids: dict[Delivery, str]
     next_child_ix: int
 
     def __init__(self, tp: TreeProvider, owner_id: str):
@@ -3175,37 +3190,26 @@ class SubscriptionManager(object):
         self.child_owner_ids = {}
         self.next_child_ix = 0
 
-    def declare(self, want: list[Delivery]):
-        dsts: dict[str, Dst] = {}
-        grouped: dict[str, set[SubscriptionSpec]] = {}
+    def declare(self, want: set[Delivery]):
+        stale_deliveries = [delivery for delivery in self.child_owner_ids.keys() if delivery not in want]
+        for delivery in stale_deliveries:
+            self.tp.remove_subscriptions(self.child_owner_ids[delivery])
+            del self.child_owner_ids[delivery]
 
         for delivery in want:
-            key = _delivery_sig(delivery.want)
-            # TODO: Delivery identity currently ignores callback identity. If
-            # the same spec set is declared for multiple destinations, the
-            # later destination wins during reconciliation.
-            grouped[key] = delivery.want
-            dsts[key] = delivery.dst
-
-        stale_keys = [key for key in self.child_owner_ids.keys() if key not in grouped]
-        for key in stale_keys:
-            self.tp.remove_subscriptions(self.child_owner_ids[key])
-            del self.child_owner_ids[key]
-
-        for key in grouped.keys():
             try:
-                actual_owner_id = self.child_owner_ids[key]
+                actual_owner_id = self.child_owner_ids[delivery]
             except KeyError:
                 actual_owner_id = "{self.owner_id}:{self.next_child_ix}"
                 self.next_child_ix += 1
-                self.child_owner_ids[key] = actual_owner_id
-            self.tp.declare_subscriptions(actual_owner_id, dsts[key].on_update, grouped[key])
+                self.child_owner_ids[delivery] = actual_owner_id
+            self.tp.declare_subscriptions(actual_owner_id, delivery.dst.on_update, delivery.want)
 
     def close(self):
-        child_keys = [key for key in self.child_owner_ids.keys()]
-        for key in child_keys:
-            self.tp.remove_subscriptions(self.child_owner_ids[key])
-            del self.child_owner_ids[key]
+        child_deliveries = [delivery for delivery in self.child_owner_ids.keys()]
+        for delivery in child_deliveries:
+            self.tp.remove_subscriptions(self.child_owner_ids[delivery])
+            del self.child_owner_ids[delivery]
 
 
 def _node_match(n: xml.Node, name: str, ns: ?str) -> bool:

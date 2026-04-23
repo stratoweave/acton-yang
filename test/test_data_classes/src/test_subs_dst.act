@@ -172,7 +172,7 @@ actor _test_subs_dst_grouping(t: testing.AsyncT):
     sub = ft_oper.subs
     iface = sub.interfaces.interface.entry("eth0")
 
-    want = [
+    want = {
         state_dst.deliver({
             sub.system_state.clock.subscribe(depth=1, period=0.05),
             iface.subscribe(select=[iface.statistics], period=1.0),
@@ -180,6 +180,6 @@ actor _test_subs_dst_grouping(t: testing.AsyncT):
         links_dst.deliver({
             sub.interfaces.interface.oper_status.subscribe(period=1.0),
         }),
-    ]
+    }
 
     subs.declare(want)
