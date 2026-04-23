@@ -51,10 +51,10 @@ jobs:
         with:
           repository: stratoweave/stratoweave
       - name: "Update yang library dependency"
-      # We use the commit SHA for both the main stratoweave app and gen_dmc, to ensure we're getting the same Zig package hash in both
+      # We use the commit SHA for both the main stratoweave app and gen_adata, to ensure we're getting the same Zig package hash in both
         run: |
           acton pkg add yang --url https://github.com/stratoweave/acton-yang/archive/${{ github.sha }}.zip
-          cd gen_dmc
+          cd gen_adata
           acton pkg add yang --url https://github.com/stratoweave/acton-yang/archive/${{ github.sha }}.zip
       - name: "Regenerate StratoWeave adata"
         run: |
