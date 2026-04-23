@@ -202,7 +202,7 @@ def from_xml(root: yang.schema.DRoot, data: xml.Node, loose: bool=False, root_pa
     return from_data(root, data, type_narrower, loose, root_path)
 
 
-def _xml_node_ns(n: xml.Node) -> ?str:
+def xml_node_ns(n: xml.Node) -> ?str:
     for nsdef in n.nsdefs:
         n0 = nsdef.0
         n1 = nsdef.1
@@ -215,7 +215,7 @@ def _filter_is_wrapper(n: xml.Node) -> bool:
     """Return True if node is a NETCONF <filter> wrapper element."""
     if n.tag != "filter":
         return False
-    ns = _xml_node_ns(n)
+    ns = xml_node_ns(n)
     return ns is None or ns == NETCONF_NS
 
 
@@ -235,7 +235,7 @@ def _filter_value_match(root: yang.schema.DRoot, schema_leaf: yang.schema.DNodeL
 
 def _filter_schema_child(s: yang.schema.DNodeInner, n: xml.Node) -> yang.schema.DNode:
     """Resolve the schema child that matches the XML node name/namespace."""
-    ns = _xml_node_ns(n)
+    ns = xml_node_ns(n)
     return s.get(n.tag, namespace=ns, allow_unqualified=True)
 
 
