@@ -309,12 +309,13 @@ class _XmlRegexToRe(object):
         bp = BP_ATOMIC
         while True:
             ielems, ibp = self.parse_branch()
-            if not ielems and self.try_get_char_in('|') is None:
-                break
+            if not ielems:
+                if self.try_get_char_in('|') is None:
+                    break
+                elems.append('|')
+                continue
             if ibp < bp:
                 bp = ibp
-            if elems:
-                elems.append('|')
             elems.extend(ielems)
         if len(elems) > 1:
             if BP_OR < bp:
