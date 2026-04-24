@@ -236,9 +236,9 @@ def from_data_recursive[A(YangData)](root: yang.schema.DRoot, s: yang.schema.DNo
                 elif opval.op == OP_DELETE:
                     wcchild = yang.gdata.Delete(cchild.children, ns=cns, module=cmod)
                 elif opval.op == OP_CREATE:
-                    wcchild = yang.gdata.Create(cchild.children, ns=cns, module=cmod)
+                    wcchild = yang.gdata.Create(cchild.children, presence=cchild.presence, ns=cns, module=cmod)
                 elif opval.op == OP_REPLACE:
-                    wcchild = yang.gdata.Replace(cchild.children, ns=cns, module=cmod)
+                    wcchild = yang.gdata.Replace(cchild.children, presence=cchild.presence, ns=cns, module=cmod)
 
                 if wcchild is not None and not isinstance(wcchild, yang.gdata.Container):
                     # Absent, Delete, Create, Replace wrappers are not Container and may not have any children
