@@ -10,6 +10,7 @@ import yang.data
 import yang.adata
 import yang.gdata
 import yang.json
+import yang.restconf
 import yang.xml
 from yang.identityref import Identityref
 from yang.type import Decimal
@@ -824,9 +825,11 @@ def _test_json_path():
     gda = yang.json.from_json(yang_foo.SRC_DNODE, jda)
 
     jdb = {
-        "foo": "WINNING"
+        "foo:inner": {
+            "foo": "WINNING"
         }
-    gdb2 = yang.json.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner"])
+    }
+    gdb2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner"])
 
     testing.assertEqual(gda.prsrc(), gdb2.prsrc())
 
@@ -846,36 +849,31 @@ def _test_json_path_nested_key_in_payload():
     gda = yang.json.from_json(yang_foo.SRC_DNODE, jda)
 
     jdb = {
-        "name": "AAA",
-        "bar": "WINNING"
-        }
-    gdb2 = yang.json.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
-
-    testing.assertEqual(gda.prsrc(), gdb2.prsrc())
-    return gdb2.prsrc()
-
-def _test_json_path_nested_no_key_in_payload():
-    jda = {
-        "foo:nested": {
-            "inner": {
-                "li1": [
-                    {
-                        "name": "AAA",
-                        "bar": "WINNING"
-                    }
-                ]
+        "foo:li1": [
+            {
+                "name": "AAA",
+                "bar": "WINNING"
             }
-        }
+        ]
     }
-    gda = yang.json.from_json(yang_foo.SRC_DNODE, jda)
-
-    jdb = {
-        "bar": "WINNING"
-        }
-    gdb2 = yang.json.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
+    gdb2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
 
     testing.assertEqual(gda.prsrc(), gdb2.prsrc())
     return gdb2.prsrc()
+
+def _test_json_path_nested_no_key_in_payload_errors():
+    jdb = {
+        "foo:li1": [
+            {
+                "bar": "WINNING"
+            }
+        ]
+    }
+    try:
+        yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
+        testing.error("Expected exception on missing list key in payload")
+    except ValueError:
+        pass
 
 def _test_json_path_nested_key_mismatch():
     jda = {
@@ -893,11 +891,15 @@ def _test_json_path_nested_key_mismatch():
     gda = yang.json.from_json(yang_foo.SRC_DNODE, jda)
 
     jdb = {
-        "name": "banana",
-        "bar": "WINNING"
-        }
+        "foo:li1": [
+            {
+                "name": "banana",
+                "bar": "WINNING"
+            }
+        ]
+    }
     try:
-        gdb2 = yang.json.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
+        gdb2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
         testing.error("Expected exception on key mismatch")
     except ValueError:
         pass
@@ -924,9 +926,15 @@ def _test_json_path_nested():
     gda = yang.json.from_json(yang_foo.SRC_DNODE, jda)
 
     jdb = {
-        "baz": "WINNING"
-        }
-    gdb2 = yang.json.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA", "li2", "BBB,CCC"])
+        "foo:li2": [
+            {
+                "key1": "BBB",
+                "key2": "CCC",
+                "baz": "WINNING"
+            }
+        ]
+    }
+    gdb2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA", "li2", "BBB,CCC"])
 
     testing.assertEqual(gda.prsrc(), gdb2.prsrc())
     return gdb2.prsrc()
@@ -948,10 +956,15 @@ def _test_json_path_conflict():
     gda = yang.json.from_json(yang_foo.SRC_DNODE, jda)
 
     jdb = {
-        "bar": "WINNING",
-        "bar:bar": "WINNING2"
+        "foo:li1": [
+            {
+                "name": "AAA",
+                "bar": "WINNING",
+                "bar:bar": "WINNING2"
+            }
+        ]
     }
-    gdb2 = yang.json.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
+    gdb2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner", "li1", "AAA"])
     testing.assertEqual(gda.prsrc(), gdb2.prsrc())
     return gdb2.prsrc()
 
@@ -966,45 +979,47 @@ def _test_json_path_conflict_other():
     gda = yang.json.from_json(yang_foo.SRC_DNODE, jda)
 
     jdb = {
-        "foo": "WINNING"
+        "bar:inner": {
+            "foo": "WINNING"
+        }
     }
-    gdb2 = yang.json.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "bar:inner"])
+    gdb2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "bar:inner"])
     testing.assertEqual(gda.prsrc(), gdb2.prsrc())
     return gdb2.prsrc()
 
 def _test_json_path_conflict_supefluous_namespace_qualifier():
-    jda = {
-        "foo:nested": {
-            "inner": {
-                "foo": "WINNING"
-            }
+    # `inner` is same-module as `nested`; a body qualified with `foo:inner` is
+    # ill-formed under RFC 7951 §4 (only top-level / cross-module members are
+    # qualified). The path's last component is used to derive the expected
+    # top-level key `foo:inner`, which doesn't match the body below.
+    jdb = {
+        "inner": {
+            "foo": "WINNING"
         }
     }
     try:
-        # We must not use the namespace qualifier on the inner container
-        # because it is defined in the same module as its parent
-        yang.json.from_json_path(yang_foo.SRC_DNODE, jda, ["foo:nested", "foo:inner"])
-    except ValueError as e:
-        if str(e) != "ValueError: Invalid path":
-            testing.error("Expected exception on invalid path")
+        yang.restconf.from_json_path(yang_foo.SRC_DNODE, jdb, ["foo:nested", "inner"])
+        testing.error("Expected exception on unqualified top-level body key")
+    except ValueError:
+        pass
 
 def _test_json_path_remove():
-    gd2 = yang.json.from_json_path(yang_foo.SRC_DNODE, {}, ["foo:nested", "inner"], "remove")
+    gd2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, {}, ["foo:nested", "inner"], "remove")
     return gd2.prsrc()
 
 def _test_json_path_remove_list_element():
-    gd2 = yang.json.from_json_path(yang_foo.SRC_DNODE, {}, ["foo:nested", "inner", "li1", "AAA"], "remove")
+    gd2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, {}, ["foo:nested", "inner", "li1", "AAA"], "remove")
     return gd2.prsrc()
 
 def _test_json_ops():
     ds1 = yang.json.from_json(yang_foo.SRC_DNODE, {})
-    p1_2 = yang.json.from_json_path(yang_foo.SRC_DNODE, {"bar": "p1"}, ["foo:nested", "inner", "li1", "AAA"])
+    p1_2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, {"foo:li1": [{"name": "AAA", "bar": "p1"}]}, ["foo:nested", "inner", "li1", "AAA"])
     ds2 = yang.gdata.patch(ds1, p1_2)
     if ds2 is not None:
-        p2_2 = yang.json.from_json_path(yang_foo.SRC_DNODE, {"bar": "p2"}, ["foo:nested", "inner", "li1", "BBB"])
+        p2_2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, {"foo:li1": [{"name": "BBB", "bar": "p2"}]}, ["foo:nested", "inner", "li1", "BBB"])
         ds3 = yang.gdata.patch(ds2, p2_2)
         if ds3 is not None:
-            p3_2 = yang.json.from_json_path(yang_foo.SRC_DNODE, {}, ["foo:nested", "inner", "li1", "AAA"], "remove")
+            p3_2 = yang.restconf.from_json_path(yang_foo.SRC_DNODE, {}, ["foo:nested", "inner", "li1", "AAA"], "remove")
             ds4 = yang.gdata.patch(ds3, p3_2)
             if ds4 is not None:
                 return ds4.prsrc()
