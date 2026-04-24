@@ -672,7 +672,8 @@ class Node(value):
             return "{sname}({", ".join(args)})"
         elif isinstance(self, Create):
             sname = "Create"
-            args = base_args
+            presence_args = ["presence=True"] if self.presence else []
+            args = presence_args + base_args
             if len(self_children) == 0:
                 return "{sname}({", ".join(args)})"
             else:
@@ -690,7 +691,8 @@ class Node(value):
             return "{sname}({", ".join(args)})"
         elif isinstance(self, Replace):
             sname = "Replace"
-            args = base_args
+            presence_args = ["presence=True"] if self.presence else []
+            args = presence_args + base_args
             if len(self_children) == 0:
                 return "{sname}({", ".join(args)})"
             else:
@@ -1264,6 +1266,8 @@ extension Node(Eq):
             return True
 
         if isinstance(self, Create) and isinstance(other, Create):
+            if self.presence != other.presence:
+                return False
             if set(self.children.keys()) != set(other.children.keys()):
                 return False
             for key in self.children.keys():
@@ -1272,6 +1276,8 @@ extension Node(Eq):
             return True
 
         if isinstance(self, Replace) and isinstance(other, Replace):
+            if self.presence != other.presence:
+                return False
             if set(self.children.keys()) != set(other.children.keys()):
                 return False
             for key in self.children.keys():
@@ -1583,10 +1589,11 @@ class Create(Node):
 
     Unlike the default implicit merge, Create of an existing node is a failure.
     """
-    def __init__(self, children: dict[Id, Node]={}, ns: ?str=None, module: ?str=None, txid: ?str=None):
+    def __init__(self, children: dict[Id, Node]={}, presence: bool=False, ns: ?str=None, module: ?str=None, txid: ?str=None):
         self.ns = ns
         self.module = module
         self.children = children
+        self.presence = presence
         self.txid = txid
 
     @staticmethod
@@ -1596,11 +1603,18 @@ class Create(Node):
             if node_type != "Create":
                 raise ValueError("Invalid gdata node type for Create: {node_type}")
             ns, module, txid = node_meta_from_json(data)
-            return Create(children=node_children_from_json(data), ns=ns, module=module, txid=txid)
+            presence_data = data.get("presence")
+            if isinstance(presence_data, bool):
+                presence = presence_data
+            else:
+                presence = False
+            return Create(children=node_children_from_json(data), presence=presence, ns=ns, module=module, txid=txid)
         raise ValueError("Expected dict for Create, got {type(data)}")
 
     def to_json(self) -> dict[str, ?value]:
         result = base_node_json(self, "Create")
+        if self.presence:
+            result["presence"] = True
         if len(self.children) > 0:
             result["children"] = children_to_json(self.children)
         return result
@@ -1611,7 +1625,7 @@ class CreateLeaf(Create):
     """
     val: value
     def __init__(self, val: value, ns: ?str=None, module: ?str=None, txid: ?str=None):
-        Create.__init__(self, {}, ns, module, txid)
+        Create.__init__(self, {}, ns=ns, module=module, txid=txid)
         self.val = val
 
     @staticmethod
@@ -1633,10 +1647,11 @@ class Replace(Node):
     """Imperative replace of a node
     NETCONF replace operation maps to Replace
     """
-    def __init__(self, children: dict[Id, Node]={}, ns: ?str=None, module: ?str=None, txid: ?str=None):
+    def __init__(self, children: dict[Id, Node]={}, presence: bool=False, ns: ?str=None, module: ?str=None, txid: ?str=None):
         self.ns = ns
         self.module = module
         self.children = children
+        self.presence = presence
         self.txid = txid
 
     @staticmethod
@@ -1646,11 +1661,18 @@ class Replace(Node):
             if node_type != "Replace":
                 raise ValueError("Invalid gdata node type for Replace: {node_type}")
             ns, module, txid = node_meta_from_json(data)
-            return Replace(children=node_children_from_json(data), ns=ns, module=module, txid=txid)
+            presence_data = data.get("presence")
+            if isinstance(presence_data, bool):
+                presence = presence_data
+            else:
+                presence = False
+            return Replace(children=node_children_from_json(data), presence=presence, ns=ns, module=module, txid=txid)
         raise ValueError("Expected dict for Replace, got {type(data)}")
 
     def to_json(self) -> dict[str, ?value]:
         result = base_node_json(self, "Replace")
+        if self.presence:
+            result["presence"] = True
         if len(self.children) > 0:
             result["children"] = children_to_json(self.children)
         return result
@@ -1661,7 +1683,7 @@ class ReplaceLeaf(Replace):
     """
     val: value
     def __init__(self, val: value, ns: ?str=None, module: ?str=None, txid: ?str=None):
-        Replace.__init__(self, {}, ns, module, txid)
+        Replace.__init__(self, {}, ns=ns, module=module, txid=txid)
         self.val = val
 
     @staticmethod
@@ -2493,9 +2515,9 @@ def _filter_container_result(data: Node, children: dict[Id, Node]) -> Node:
     if isinstance(data, Delete):
         return Delete(children, ns=data.ns, module=data.module)
     if isinstance(data, Create):
-        return Create(children, ns=data.ns, module=data.module)
+        return Create(children, presence=data.presence, ns=data.ns, module=data.module)
     if isinstance(data, Replace):
-        return Replace(children, ns=data.ns, module=data.module)
+        return Replace(children, presence=data.presence, ns=data.ns, module=data.module)
     if isinstance(data, Container):
         return Container(children, presence=data.presence, ns=data.ns, module=data.module)
     return Container(children)
@@ -2953,12 +2975,22 @@ def _patch_rec(old: Node, p: ?Node, path: list[_PathElement]) -> ?Node:
                     elif cpatch.presence:
                         # Preserve presence containers even when empty
                         new_children[key] = Container({}, presence=True, ns=cpatch.ns, module=cpatch.module)
-                elif isinstance(cpatch, Create) or isinstance(cpatch, Replace):
-                    empty_cnt = Container({}, ns=cpatch.ns, module=cpatch.module)
+                elif isinstance(cpatch, Create):
+                    empty_cnt = Container({}, presence=cpatch.presence, ns=cpatch.ns, module=cpatch.module)
                     patch_cnt = Container(cpatch.children, ns=cpatch.ns, module=cpatch.module)
                     res = _patch_rec(empty_cnt, patch_cnt, path + [_PathElement(key)])
                     if res is not None:
                         new_children[key] = res
+                    elif cpatch.presence:
+                        new_children[key] = Container({}, presence=True, ns=cpatch.ns, module=cpatch.module)
+                elif isinstance(cpatch, Replace):
+                    empty_cnt = Container({}, presence=cpatch.presence, ns=cpatch.ns, module=cpatch.module)
+                    patch_cnt = Container(cpatch.children, ns=cpatch.ns, module=cpatch.module)
+                    res = _patch_rec(empty_cnt, patch_cnt, path + [_PathElement(key)])
+                    if res is not None:
+                        new_children[key] = res
+                    elif cpatch.presence:
+                        new_children[key] = Container({}, presence=True, ns=cpatch.ns, module=cpatch.module)
                 elif isinstance(cpatch, LeafList):
                     # Apply leaf-list ops against an empty leaf-list so removes are no-ops
                     empty_ll = LeafList([], user_order=cpatch.user_order, ns=cpatch.ns, module=cpatch.module)
@@ -4145,6 +4177,20 @@ def _test_patch_create_container_missing():
 
     testing.assertEqual(res, exp)
 
+def _test_patch_create_presence_container_missing():
+    old = Container({})
+
+    p = Container({
+        Id("", "pc"): Create({}, presence=True)
+    })
+
+    res = patch(old, p)
+    exp = Container({
+        Id("", "pc"): Container({}, presence=True)
+    })
+
+    testing.assertEqual(res!.prsrc(deterministic=True), exp.prsrc(deterministic=True))
+
 def _test_patch_create_container_existing_error():
     old = Container({
         Id("", "c"): Container({
@@ -4186,6 +4232,20 @@ def _test_patch_replace_container_existing():
     })
 
     testing.assertEqual(res, exp)
+
+def _test_patch_replace_presence_container_missing():
+    old = Container({})
+
+    p = Container({
+        Id("", "pc"): Replace({}, presence=True)
+    })
+
+    res = patch(old, p)
+    exp = Container({
+        Id("", "pc"): Container({}, presence=True)
+    })
+
+    testing.assertEqual(res!.prsrc(deterministic=True), exp.prsrc(deterministic=True))
 
 def _test_patch_delete_container_missing_error():
     old = Container({
@@ -5612,6 +5672,8 @@ def _test_serialization_roundtrip_operations():
         Id(ns_ops, "replace"): Replace({
             Id(ns_ops, "child"): Leaf(True),
         }, ns=ns_ops, module="ops"),
+        Id(ns_ops, "create-presence"): Create(presence=True, ns=ns_ops, module="ops"),
+        Id(ns_ops, "replace-presence"): Replace(presence=True, ns=ns_ops, module="ops"),
     }, ns=ns_ops, module="ops", txid="tx-ops")
 
     encoded = _serde_roundtrip_json(original)
