@@ -37,7 +37,7 @@ _breaker1 = None
 class foo__ieee_802_3(yang.adata.MNode):
     ieee_802_3: ?str
 
-    mut def __init__(self, ieee_802_3: ?str):
+    mut def __init__(self, ieee_802_3: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.ieee_802_3 = ieee_802_3
 
@@ -54,7 +54,7 @@ class foo__ieee_802_3(yang.adata.MNode):
             return foo__ieee_802_3(ieee_802_3=n.get_opt_str(yang.gdata.Id(NS_foo, 'ieee-802.3')))
         return foo__ieee_802_3()
 
-    def copy(self):
+    def copy(self) -> foo__ieee_802_3:
         """Create a deep copy of this adata object"""
         return foo__ieee_802_3.from_gdata(self.to_gdata())
 
@@ -63,7 +63,7 @@ _breaker2 = None
 class root(yang.adata.MNode):
     ieee_802_3: foo__ieee_802_3
 
-    mut def __init__(self, ieee_802_3: ?foo__ieee_802_3=None):
+    mut def __init__(self, ieee_802_3: ?foo__ieee_802_3=None) -> None:
         self._ns = ''
         self.ieee_802_3 = ieee_802_3 if ieee_802_3 is not None else foo__ieee_802_3()
 
@@ -80,7 +80,7 @@ class root(yang.adata.MNode):
             return root(ieee_802_3=foo__ieee_802_3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'ieee-802.3'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

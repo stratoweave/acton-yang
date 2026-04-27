@@ -58,7 +58,7 @@ class bar__c1__li1_entry(yang.adata.MNode):
     l1: str
     l2: ?Identityref
 
-    mut def __init__(self, l1: str, l2: ?Identityref):
+    mut def __init__(self, l1: str, l2: ?Identityref) -> None:
         self._ns = 'http://example.com/bar'
         self.l1 = l1
         self.l2 = l2
@@ -76,19 +76,19 @@ class bar__c1__li1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> bar__c1__li1_entry:
         return bar__c1__li1_entry(l1=n.get_str(yang.gdata.Id(NS_bar, 'l1')), l2=n.get_opt_Identityref(yang.gdata.Id(NS_bar, 'l2')))
 
-    def copy(self):
+    def copy(self) -> bar__c1__li1_entry:
         """Create a deep copy of this adata object"""
         return bar__c1__li1_entry.from_gdata(self.to_gdata())
 
 _breaker2 = None
 class bar__c1__li1(yang.adata.MNode):
     elements: list[bar__c1__li1_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[bar__c1__li1_entry]=[]) -> None:
         self._ns = 'http://example.com/bar'
         self._name = 'li1'
         self.elements = elements
 
-    mut def create(self, l1, l2=None):
+    mut def create(self, l1: str, l2: ?Identityref=None) -> bar__c1__li1_entry:
         for e in self:
             match = True
             if e.l1 != l1:
@@ -109,7 +109,7 @@ class bar__c1__li1(yang.adata.MNode):
             return [bar__c1__li1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> bar__c1__li1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -127,7 +127,7 @@ _breaker3 = None
 class bar__c1(yang.adata.MNode):
     li1: bar__c1__li1
 
-    mut def __init__(self, li1: list[bar__c1__li1_entry]=[]):
+    mut def __init__(self, li1: list[bar__c1__li1_entry]=[]) -> None:
         self._ns = 'http://example.com/bar'
         self.li1 = bar__c1__li1(elements=li1)
 
@@ -144,7 +144,7 @@ class bar__c1(yang.adata.MNode):
             return bar__c1(li1=bar__c1__li1.from_gdata(n.get_opt_list(yang.gdata.Id(NS_bar, 'li1'))))
         return bar__c1()
 
-    def copy(self):
+    def copy(self) -> bar__c1:
         """Create a deep copy of this adata object"""
         return bar__c1.from_gdata(self.to_gdata())
 
@@ -153,7 +153,7 @@ _breaker4 = None
 class root(yang.adata.MNode):
     c1: bar__c1
 
-    mut def __init__(self, c1: ?bar__c1=None):
+    mut def __init__(self, c1: ?bar__c1=None) -> None:
         self._ns = ''
         self.c1 = c1 if c1 is not None else bar__c1()
 
@@ -170,7 +170,7 @@ class root(yang.adata.MNode):
             return root(c1=bar__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'c1'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

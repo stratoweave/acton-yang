@@ -69,7 +69,7 @@ NS_derived_module = 'http://example.com/derived'
 _breaker1 = None
 class root(yang.adata.MNode):
 
-    mut def __init__(self):
+    mut def __init__(self) -> None:
         self._ns = ''
         pass
 
@@ -82,7 +82,7 @@ class root(yang.adata.MNode):
             return root()
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

@@ -44,7 +44,7 @@ class foo__foo__bar(yang.adata.MNode):
     bar_l1: str
     l2: str
 
-    mut def __init__(self, foo_l1: str, bar_l1: str, l2: str):
+    mut def __init__(self, foo_l1: str, bar_l1: str, l2: str) -> None:
         self._ns = 'http://example.com/foo'
         self.foo_l1 = foo_l1
         self.bar_l1 = bar_l1
@@ -67,7 +67,7 @@ class foo__foo__bar(yang.adata.MNode):
             return foo__foo__bar(foo_l1=n.get_str(yang.gdata.Id(NS_foo, 'l1')), bar_l1=n.get_str(yang.gdata.Id(NS_bar, 'l1')), l2=n.get_str(yang.gdata.Id(NS_bar, 'l2')))
         return None
 
-    def copy(self):
+    def copy(self) -> foo__foo__bar:
         """Create a deep copy of this adata object"""
         ad = foo__foo__bar.from_gdata(self.to_gdata())
         if ad is not None:
@@ -79,11 +79,11 @@ _breaker2 = None
 class foo__foo(yang.adata.MNode):
     bar: ?foo__foo__bar
 
-    mut def __init__(self, bar: ?foo__foo__bar=None):
+    mut def __init__(self, bar: ?foo__foo__bar=None) -> None:
         self._ns = 'http://example.com/foo'
         self.bar = bar
 
-    mut def create_bar(self, foo_l1, bar_l1, l2):
+    mut def create_bar(self, foo_l1: str, bar_l1: str, l2: str) -> foo__foo__bar:
         existing = self.bar
         if existing is not None:
             existing.foo_l1 = foo_l1
@@ -107,7 +107,7 @@ class foo__foo(yang.adata.MNode):
             return foo__foo(bar=foo__foo__bar.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'bar'))))
         return None
 
-    def copy(self):
+    def copy(self) -> foo__foo:
         """Create a deep copy of this adata object"""
         ad = foo__foo.from_gdata(self.to_gdata())
         if ad is not None:
@@ -119,11 +119,11 @@ _breaker3 = None
 class root(yang.adata.MNode):
     foo: ?foo__foo
 
-    mut def __init__(self, foo: ?foo__foo=None):
+    mut def __init__(self, foo: ?foo__foo=None) -> None:
         self._ns = ''
         self.foo = foo
 
-    mut def create_foo(self):
+    mut def create_foo(self) -> foo__foo:
         existing = self.foo
         if existing is not None:
             return existing
@@ -144,7 +144,7 @@ class root(yang.adata.MNode):
             return root(foo=foo__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

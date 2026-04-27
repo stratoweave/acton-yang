@@ -45,7 +45,7 @@ class foo__c1(yang.adata.MNode):
     in_: ?str
     with_: ?str
 
-    mut def __init__(self, as_: ?str, for_: ?str, import_: ?str, in_: ?str, with_: ?str):
+    mut def __init__(self, as_: ?str, for_: ?str, import_: ?str, in_: ?str, with_: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.as_ = as_
         self.for_ = for_
@@ -74,7 +74,7 @@ class foo__c1(yang.adata.MNode):
             return foo__c1(as_=n.get_opt_str(yang.gdata.Id(NS_foo, 'as')), for_=n.get_opt_str(yang.gdata.Id(NS_foo, 'for')), import_=n.get_opt_str(yang.gdata.Id(NS_foo, 'import')), in_=n.get_opt_str(yang.gdata.Id(NS_foo, 'in')), with_=n.get_opt_str(yang.gdata.Id(NS_foo, 'with')))
         return foo__c1()
 
-    def copy(self):
+    def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 

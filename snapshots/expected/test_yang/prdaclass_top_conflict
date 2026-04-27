@@ -42,7 +42,7 @@ _breaker1 = None
 class bar__bar_c1(yang.adata.MNode):
     l1: ?str
 
-    mut def __init__(self, l1: ?str):
+    mut def __init__(self, l1: ?str) -> None:
         self._ns = 'http://example.com/bar'
         self.l1 = l1
 
@@ -59,7 +59,7 @@ class bar__bar_c1(yang.adata.MNode):
             return bar__bar_c1(l1=n.get_opt_str(yang.gdata.Id(NS_bar, 'l1')))
         return bar__bar_c1()
 
-    def copy(self):
+    def copy(self) -> bar__bar_c1:
         """Create a deep copy of this adata object"""
         return bar__bar_c1.from_gdata(self.to_gdata())
 
@@ -68,7 +68,7 @@ _breaker2 = None
 class foo__foo_c1(yang.adata.MNode):
     l1: ?str
 
-    mut def __init__(self, l1: ?str):
+    mut def __init__(self, l1: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.l1 = l1
 
@@ -85,7 +85,7 @@ class foo__foo_c1(yang.adata.MNode):
             return foo__foo_c1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
         return foo__foo_c1()
 
-    def copy(self):
+    def copy(self) -> foo__foo_c1:
         """Create a deep copy of this adata object"""
         return foo__foo_c1.from_gdata(self.to_gdata())
 
@@ -95,7 +95,7 @@ class root(yang.adata.MNode):
     bar_c1: bar__bar_c1
     foo_c1: foo__foo_c1
 
-    mut def __init__(self, bar_c1: ?bar__bar_c1=None, foo_c1: ?foo__foo_c1=None):
+    mut def __init__(self, bar_c1: ?bar__bar_c1=None, foo_c1: ?foo__foo_c1=None) -> None:
         self._ns = ''
         self.bar_c1 = bar_c1 if bar_c1 is not None else bar__bar_c1()
         self.foo_c1 = foo_c1 if foo_c1 is not None else foo__foo_c1()
@@ -115,7 +115,7 @@ class root(yang.adata.MNode):
             return root(bar_c1=bar__bar_c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'c1'))), foo_c1=foo__foo_c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

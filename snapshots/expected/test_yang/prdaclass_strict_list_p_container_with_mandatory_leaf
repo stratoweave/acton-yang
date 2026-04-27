@@ -40,7 +40,7 @@ _breaker1 = None
 class foo__l1__bar(yang.adata.MNode):
     hi: str
 
-    mut def __init__(self, hi: str):
+    mut def __init__(self, hi: str) -> None:
         self._ns = 'http://example.com/foo'
         self.hi = hi
 
@@ -57,7 +57,7 @@ class foo__l1__bar(yang.adata.MNode):
             return foo__l1__bar(hi=n.get_str(yang.gdata.Id(NS_foo, 'hi')))
         return None
 
-    def copy(self):
+    def copy(self) -> foo__l1__bar:
         """Create a deep copy of this adata object"""
         ad = foo__l1__bar.from_gdata(self.to_gdata())
         if ad is not None:
@@ -70,12 +70,12 @@ class foo__l1_entry(yang.adata.MNode):
     name: str
     bar: ?foo__l1__bar
 
-    mut def __init__(self, name: str, bar: ?foo__l1__bar=None):
+    mut def __init__(self, name: str, bar: ?foo__l1__bar=None) -> None:
         self._ns = 'http://example.com/foo'
         self.name = name
         self.bar = bar
 
-    mut def create_bar(self, hi):
+    mut def create_bar(self, hi: str) -> foo__l1__bar:
         existing = self.bar
         if existing is not None:
             existing.hi = hi
@@ -97,19 +97,19 @@ class foo__l1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__l1_entry:
         return foo__l1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), bar=foo__l1__bar.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'bar'))))
 
-    def copy(self):
+    def copy(self) -> foo__l1_entry:
         """Create a deep copy of this adata object"""
         return foo__l1_entry.from_gdata(self.to_gdata())
 
 _breaker3 = None
 class foo__l1(yang.adata.MNode):
     elements: list[foo__l1_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[foo__l1_entry]=[]) -> None:
         self._ns = 'http://example.com/foo'
         self._name = 'l1'
         self.elements = elements
 
-    mut def create(self, name):
+    mut def create(self, name: str) -> foo__l1_entry:
         for e in self:
             match = True
             if e.name != name:
@@ -128,7 +128,7 @@ class foo__l1(yang.adata.MNode):
             return [foo__l1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> foo__l1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []

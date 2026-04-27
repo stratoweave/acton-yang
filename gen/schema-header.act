@@ -645,7 +645,7 @@ class DNodeInner(DNode):
                 opt_args.append("{usname(child)}: list[{pname(child)}_entry]=[]")
 
         init_args_str = ", ".join(["self"] + req_args + opt_args)
-        res.append("    mut def __init__({init_args_str}):")
+        res.append("    mut def __init__({init_args_str}) -> None:")
         # Set namespace from us
         res.append("        self._ns = '{self.namespace}'")
 
@@ -689,19 +689,28 @@ class DNodeInner(DNode):
                 child_unique_namer = UniqueNamer(child)
 
                 pc_args_req = []
+                pc_args_req_sig = []
                 pc_args_opt = []
+                pc_args_opt_sig = []
                 for cchild in child.children:
                     if isinstance(cchild, DLeaf):
+                        carg = child_unique_namer.unique_safe_name(cchild.name, cchild.prefix)
+                        ctype = yang_leaf_to_acton_arg_type(cchild, list_keys(self), loose)
                         if is_optional_arg_yang_leaf(cchild, list_keys(self), loose):
-                            pc_args_opt.append(child_unique_namer.unique_safe_name(cchild.name, cchild.prefix))
+                            pc_args_opt.append(carg)
+                            pc_args_opt_sig.append("{carg}: {ctype}=None")
                         else:
-                            pc_args_req.append(child_unique_namer.unique_safe_name(cchild.name, cchild.prefix))
+                            pc_args_req.append(carg)
+                            pc_args_req_sig.append("{carg}: {ctype}")
                     elif isinstance(cchild, DContainer):
                         if not (loose or optional_subtree(cchild) or cchild.presence):
-                            pc_args_req.append(child_unique_namer.unique_safe_name(cchild.name, cchild.prefix))
-                pc_args_str = ", ".join(["self"] + pc_args_req + ["{arg}=None" for arg in pc_args_opt])
+                            carg = child_unique_namer.unique_safe_name(cchild.name, cchild.prefix)
+                            ctype = get_path_name(spath + [child, cchild])
+                            pc_args_req.append(carg)
+                            pc_args_req_sig.append("{carg}: {ctype}")
+                pc_args_str = ", ".join(["self"] + pc_args_req_sig + pc_args_opt_sig)
                 pc_params_str= ", ".join(["{arg}={arg}" for arg in pc_args_req + pc_args_opt])
-                res.append("    mut def create_{usname(child)}({pc_args_str}):")
+                res.append("    mut def create_{usname(child)}({pc_args_str}) -> {pname(child)}:")
                 res.append("        existing = self.{usname(child)}")
                 res.append("        if existing is not None:")
                 for req_arg in pc_args_req:
@@ -761,7 +770,10 @@ class DNodeInner(DNode):
         res.append("")
 
         # .copy() method
-        res.append("    def copy(self):")
+        if isinstance(self, DList):
+            res.append("    def copy(self) -> {pname()}_entry:")
+        else:
+            res.append("    def copy(self) -> {pname()}:")
         res.append('        """Create a deep copy of this adata object"""')
         if isinstance(self, DList):
             res.append("        return {pname()}_entry.from_gdata(self.to_gdata())")
@@ -789,9 +801,9 @@ class DNodeInner(DNode):
             res.append("    elements: list[{pname()}_entry]")
 
             init_args = ["self"]
-            init_args.append("elements=[]")
+            init_args.append("elements: list[{pname()}_entry]=[]")
             init_args_str: str = ", ".join(init_args)
-            res.append("    mut def __init__({init_args_str}):")
+            res.append("    mut def __init__({init_args_str}) -> None:")
             # Set namespace from us
             res.append("        self._ns = '{self.namespace}'")
             res.append("        self._name = {repr(self.name)}")
@@ -803,23 +815,32 @@ class DNodeInner(DNode):
 
             list_key_args = us_list_key()
             list_args_req = []
+            list_args_req_sig = []
             list_args_opt = []
+            list_args_opt_sig = []
             list_key_types = {}
             for child in attr_children:
                 if isinstance(child, DLeaf):
-                    if usname(child) in list_key_args:
-                        list_key_types[usname(child)] = child.type_
-                        list_args_req.append(usname(child))
+                    arg = usname(child)
+                    arg_type = yang_leaf_to_acton_arg_type(child, list_keys(self), loose)
+                    if arg in list_key_args:
+                        list_key_types[arg] = child.type_
+                        list_args_req.append(arg)
+                        list_args_req_sig.append("{arg}: {arg_type}")
                         continue
                     if is_optional_arg_yang_leaf(child, list_keys(self), loose):
-                        list_args_opt.append(usname(child))
+                        list_args_opt.append(arg)
+                        list_args_opt_sig.append("{arg}: {arg_type}=None")
                     else:
-                        list_args_req.append(usname(child))
+                        list_args_req.append(arg)
+                        list_args_req_sig.append("{arg}: {arg_type}")
                 elif isinstance(child, DContainer):
                     if not (loose or optional_subtree(child) or child.presence):
-                        list_args_req.append(usname(child))
-            list_args_str = ", ".join(["self"] + list_args_req + ["{arg}=None" for arg in list_args_opt])
-            res.append("    mut def create({list_args_str}):")
+                        arg = usname(child)
+                        list_args_req.append(arg)
+                        list_args_req_sig.append("{arg}: {pname(child)}")
+            list_args_str = ", ".join(["self"] + list_args_req_sig + list_args_opt_sig)
+            res.append("    mut def create({list_args_str}) -> {pname()}_entry:")
             res.append("        for e in self:")
             res.append("            match = True")
             for us_key in list_key_args:
@@ -878,7 +899,7 @@ class DNodeInner(DNode):
             res.append("")
 
             # .copy() method for list wrapper
-            res.append("    def copy(self):")
+            res.append("    def copy(self) -> {pname()}:")
             res.append('        """Create a deep copy of this list object"""')
             res.append("        # Copy each element in the list")
             res.append("        copied_elements = []")
@@ -1955,7 +1976,7 @@ class DRoot(DNodeInner):
                     child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("    {usname(child)}: {child_type}")
                 res.append("")
-                res.append("    def __init__(self, path: ?SubscriptionPath=None):")
+                res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
@@ -1975,7 +1996,7 @@ class DRoot(DNodeInner):
                 for child in selectables:
                     child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("    {usname(child)}: {child_type}")
-                res.append("    def __init__(self, path: ?SubscriptionPath=None):")
+                res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
@@ -2009,7 +2030,7 @@ class DRoot(DNodeInner):
                         child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                         res.append("    {usname(child)}: {child_type}")
                     res.append("")
-                    res.append("    def __init__(self, path: ?SubscriptionPath=None):")
+                    res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
                     res.append("        SubscriptionNode.__init__(self, path)")
                     for child in selectables:
                         child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"

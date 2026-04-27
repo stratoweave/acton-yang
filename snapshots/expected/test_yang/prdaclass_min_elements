@@ -39,7 +39,7 @@ _breaker1 = None
 class foo__li1_entry(yang.adata.MNode):
     l1: str
 
-    mut def __init__(self, l1: str):
+    mut def __init__(self, l1: str) -> None:
         self._ns = 'http://example.com/foo'
         self.l1 = l1
 
@@ -54,19 +54,19 @@ class foo__li1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__li1_entry:
         return foo__li1_entry(l1=n.get_str(yang.gdata.Id(NS_foo, 'l1')))
 
-    def copy(self):
+    def copy(self) -> foo__li1_entry:
         """Create a deep copy of this adata object"""
         return foo__li1_entry.from_gdata(self.to_gdata())
 
 _breaker2 = None
 class foo__li1(yang.adata.MNode):
     elements: list[foo__li1_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[foo__li1_entry]=[]) -> None:
         self._ns = 'http://example.com/foo'
         self._name = 'li1'
         self.elements = elements
 
-    mut def create(self, l1):
+    mut def create(self, l1: str) -> foo__li1_entry:
         for e in self:
             match = True
             if e.l1 != l1:
@@ -85,7 +85,7 @@ class foo__li1(yang.adata.MNode):
             return [foo__li1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> foo__li1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -104,7 +104,7 @@ class root(yang.adata.MNode):
     li1: foo__li1
     ll1: list[str]
 
-    mut def __init__(self, li1: list[foo__li1_entry]=[], ll1: ?list[str]=None):
+    mut def __init__(self, li1: list[foo__li1_entry]=[], ll1: ?list[str]=None) -> None:
         self._ns = ''
         self.li1 = foo__li1(elements=li1)
         self.ll1 = ll1 if ll1 is not None else []
@@ -124,7 +124,7 @@ class root(yang.adata.MNode):
             return root(li1=foo__li1.from_gdata(n.get_list(yang.gdata.Id(NS_foo, 'li1'))), ll1=n.get_strs(yang.gdata.Id(NS_foo, 'll1')))
         raise ValueError('Missing required subtree root')
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
