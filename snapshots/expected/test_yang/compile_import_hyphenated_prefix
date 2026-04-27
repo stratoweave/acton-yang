@@ -38,7 +38,7 @@ _breaker1 = None
 class acme_foo_bar__c1(yang.adata.MNode):
     l1: ?str
 
-    mut def __init__(self, l1: ?str):
+    mut def __init__(self, l1: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.l1 = l1
 
@@ -55,7 +55,7 @@ class acme_foo_bar__c1(yang.adata.MNode):
             return acme_foo_bar__c1(l1=n.get_opt_str(yang.gdata.Id(NS_acme_foo_bar, 'l1')))
         return acme_foo_bar__c1()
 
-    def copy(self):
+    def copy(self) -> acme_foo_bar__c1:
         """Create a deep copy of this adata object"""
         return acme_foo_bar__c1.from_gdata(self.to_gdata())
 
@@ -64,7 +64,7 @@ _breaker2 = None
 class root(yang.adata.MNode):
     c1: acme_foo_bar__c1
 
-    mut def __init__(self, c1: ?acme_foo_bar__c1=None):
+    mut def __init__(self, c1: ?acme_foo_bar__c1=None) -> None:
         self._ns = ''
         self.c1 = c1 if c1 is not None else acme_foo_bar__c1()
 
@@ -81,7 +81,7 @@ class root(yang.adata.MNode):
             return root(c1=acme_foo_bar__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_acme_foo_bar, 'c1'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

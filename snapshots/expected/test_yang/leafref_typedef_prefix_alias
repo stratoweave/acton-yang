@@ -47,7 +47,7 @@ _breaker1 = None
 class base_module__network_instances__network_instance__config(yang.adata.MNode):
     name: ?str
 
-    mut def __init__(self, name: ?str):
+    mut def __init__(self, name: ?str) -> None:
         self._ns = 'http://example.com/base'
         self.name = name
 
@@ -64,7 +64,7 @@ class base_module__network_instances__network_instance__config(yang.adata.MNode)
             return base_module__network_instances__network_instance__config(name=n.get_opt_str(yang.gdata.Id(NS_base_module, 'name')))
         return base_module__network_instances__network_instance__config()
 
-    def copy(self):
+    def copy(self) -> base_module__network_instances__network_instance__config:
         """Create a deep copy of this adata object"""
         return base_module__network_instances__network_instance__config.from_gdata(self.to_gdata())
 
@@ -74,7 +74,7 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
     name: str
     config: base_module__network_instances__network_instance__config
 
-    mut def __init__(self, name: str, config: ?base_module__network_instances__network_instance__config=None):
+    mut def __init__(self, name: str, config: ?base_module__network_instances__network_instance__config=None) -> None:
         self._ns = 'http://example.com/base'
         self.name = name
         self.config = config if config is not None else base_module__network_instances__network_instance__config()
@@ -92,19 +92,19 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> base_module__network_instances__network_instance_entry:
         return base_module__network_instances__network_instance_entry(name=n.get_str(yang.gdata.Id(NS_base_module, 'name')), config=base_module__network_instances__network_instance__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base_module, 'config'))))
 
-    def copy(self):
+    def copy(self) -> base_module__network_instances__network_instance_entry:
         """Create a deep copy of this adata object"""
         return base_module__network_instances__network_instance_entry.from_gdata(self.to_gdata())
 
 _breaker3 = None
 class base_module__network_instances__network_instance(yang.adata.MNode):
     elements: list[base_module__network_instances__network_instance_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[base_module__network_instances__network_instance_entry]=[]) -> None:
         self._ns = 'http://example.com/base'
         self._name = 'network-instance'
         self.elements = elements
 
-    mut def create(self, name):
+    mut def create(self, name: str) -> base_module__network_instances__network_instance_entry:
         for e in self:
             match = True
             if e.name != name:
@@ -123,7 +123,7 @@ class base_module__network_instances__network_instance(yang.adata.MNode):
             return [base_module__network_instances__network_instance_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> base_module__network_instances__network_instance:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -141,7 +141,7 @@ _breaker4 = None
 class base_module__network_instances(yang.adata.MNode):
     network_instance: base_module__network_instances__network_instance
 
-    mut def __init__(self, network_instance: list[base_module__network_instances__network_instance_entry]=[]):
+    mut def __init__(self, network_instance: list[base_module__network_instances__network_instance_entry]=[]) -> None:
         self._ns = 'http://example.com/base'
         self.network_instance = base_module__network_instances__network_instance(elements=network_instance)
 
@@ -158,7 +158,7 @@ class base_module__network_instances(yang.adata.MNode):
             return base_module__network_instances(network_instance=base_module__network_instances__network_instance.from_gdata(n.get_opt_list(yang.gdata.Id(NS_base_module, 'network-instance'))))
         return base_module__network_instances()
 
-    def copy(self):
+    def copy(self) -> base_module__network_instances:
         """Create a deep copy of this adata object"""
         return base_module__network_instances.from_gdata(self.to_gdata())
 
@@ -167,7 +167,7 @@ _breaker5 = None
 class consumer_module__uses_typedef(yang.adata.MNode):
     ni: ?str
 
-    mut def __init__(self, ni: ?str):
+    mut def __init__(self, ni: ?str) -> None:
         self._ns = 'http://example.com/consumer'
         self.ni = ni
 
@@ -184,7 +184,7 @@ class consumer_module__uses_typedef(yang.adata.MNode):
             return consumer_module__uses_typedef(ni=n.get_opt_str(yang.gdata.Id(NS_consumer_module, 'ni')))
         return consumer_module__uses_typedef()
 
-    def copy(self):
+    def copy(self) -> consumer_module__uses_typedef:
         """Create a deep copy of this adata object"""
         return consumer_module__uses_typedef.from_gdata(self.to_gdata())
 
@@ -194,7 +194,7 @@ class root(yang.adata.MNode):
     network_instances: base_module__network_instances
     uses_typedef: consumer_module__uses_typedef
 
-    mut def __init__(self, network_instances: ?base_module__network_instances=None, uses_typedef: ?consumer_module__uses_typedef=None):
+    mut def __init__(self, network_instances: ?base_module__network_instances=None, uses_typedef: ?consumer_module__uses_typedef=None) -> None:
         self._ns = ''
         self.network_instances = network_instances if network_instances is not None else base_module__network_instances()
         self.uses_typedef = uses_typedef if uses_typedef is not None else consumer_module__uses_typedef()
@@ -214,7 +214,7 @@ class root(yang.adata.MNode):
             return root(network_instances=base_module__network_instances.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base_module, 'network-instances'))), uses_typedef=consumer_module__uses_typedef.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_consumer_module, 'uses-typedef'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

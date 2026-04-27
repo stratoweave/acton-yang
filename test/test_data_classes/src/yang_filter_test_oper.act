@@ -135,7 +135,7 @@ class filter_test__system_state__clock(yang.adata.MNode):
     current_datetime: ?str
     boot_datetime: ?str
 
-    mut def __init__(self, current_datetime: ?str, boot_datetime: ?str):
+    mut def __init__(self, current_datetime: ?str, boot_datetime: ?str) -> None:
         self._ns = 'http://example.com/filter-test'
         self.current_datetime = current_datetime
         self.boot_datetime = boot_datetime
@@ -155,7 +155,7 @@ class filter_test__system_state__clock(yang.adata.MNode):
             return filter_test__system_state__clock(current_datetime=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'current-datetime')), boot_datetime=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'boot-datetime')))
         return filter_test__system_state__clock()
 
-    def copy(self):
+    def copy(self) -> filter_test__system_state__clock:
         """Create a deep copy of this adata object"""
         return filter_test__system_state__clock.from_gdata(self.to_gdata())
 
@@ -164,7 +164,7 @@ _breaker2 = None
 class filter_test__system_state(yang.adata.MNode):
     clock: filter_test__system_state__clock
 
-    mut def __init__(self, clock: ?filter_test__system_state__clock=None):
+    mut def __init__(self, clock: ?filter_test__system_state__clock=None) -> None:
         self._ns = 'http://example.com/filter-test'
         self.clock = clock if clock is not None else filter_test__system_state__clock()
 
@@ -181,7 +181,7 @@ class filter_test__system_state(yang.adata.MNode):
             return filter_test__system_state(clock=filter_test__system_state__clock.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'clock'))))
         return filter_test__system_state()
 
-    def copy(self):
+    def copy(self) -> filter_test__system_state:
         """Create a deep copy of this adata object"""
         return filter_test__system_state.from_gdata(self.to_gdata())
 
@@ -191,7 +191,7 @@ class filter_test__interfaces__interface__statistics(yang.adata.MNode):
     in_octets: ?u64
     out_octets: ?u64
 
-    mut def __init__(self, in_octets: ?u64, out_octets: ?u64):
+    mut def __init__(self, in_octets: ?u64, out_octets: ?u64) -> None:
         self._ns = 'http://example.com/filter-test'
         self.in_octets = in_octets
         self.out_octets = out_octets
@@ -211,7 +211,7 @@ class filter_test__interfaces__interface__statistics(yang.adata.MNode):
             return filter_test__interfaces__interface__statistics(in_octets=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'in-octets')), out_octets=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'out-octets')))
         return filter_test__interfaces__interface__statistics()
 
-    def copy(self):
+    def copy(self) -> filter_test__interfaces__interface__statistics:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface__statistics.from_gdata(self.to_gdata())
 
@@ -220,7 +220,7 @@ _breaker4 = None
 class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
     mtu: ?u64
 
-    mut def __init__(self, mtu: ?u64):
+    mut def __init__(self, mtu: ?u64) -> None:
         self._ns = 'http://example.com/filter-test'
         self.mtu = mtu
 
@@ -237,7 +237,7 @@ class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
             return filter_test__interfaces__interface__ipv4(mtu=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'mtu')))
         return filter_test__interfaces__interface__ipv4()
 
-    def copy(self):
+    def copy(self) -> filter_test__interfaces__interface__ipv4:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface__ipv4.from_gdata(self.to_gdata())
 
@@ -246,7 +246,7 @@ _breaker5 = None
 class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
     mtu: ?u64
 
-    mut def __init__(self, mtu: ?u64):
+    mut def __init__(self, mtu: ?u64) -> None:
         self._ns = 'http://example.com/filter-test'
         self.mtu = mtu
 
@@ -263,7 +263,7 @@ class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
             return filter_test__interfaces__interface__ipv6(mtu=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'mtu')))
         return filter_test__interfaces__interface__ipv6()
 
-    def copy(self):
+    def copy(self) -> filter_test__interfaces__interface__ipv6:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface__ipv6.from_gdata(self.to_gdata())
 
@@ -281,7 +281,7 @@ class filter_test__interfaces__interface_entry(yang.adata.MNode):
     ipv4: filter_test__interfaces__interface__ipv4
     ipv6: filter_test__interfaces__interface__ipv6
 
-    mut def __init__(self, name: str, description: ?str, type: ?str, enabled: ?bool, admin_status: ?str, oper_status: ?str, last_change: ?str, statistics: ?filter_test__interfaces__interface__statistics=None, ipv4: ?filter_test__interfaces__interface__ipv4=None, ipv6: ?filter_test__interfaces__interface__ipv6=None):
+    mut def __init__(self, name: str, description: ?str, type: ?str, enabled: ?bool, admin_status: ?str, oper_status: ?str, last_change: ?str, statistics: ?filter_test__interfaces__interface__statistics=None, ipv4: ?filter_test__interfaces__interface__ipv4=None, ipv6: ?filter_test__interfaces__interface__ipv6=None) -> None:
         self._ns = 'http://example.com/filter-test'
         self.name = name
         self.description = description
@@ -323,19 +323,19 @@ class filter_test__interfaces__interface_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> filter_test__interfaces__interface_entry:
         return filter_test__interfaces__interface_entry(name=n.get_str(yang.gdata.Id(NS_filter_test, 'name')), description=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'description')), type=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'type')), enabled=n.get_opt_bool(yang.gdata.Id(NS_filter_test, 'enabled')), admin_status=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'admin-status')), oper_status=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'oper-status')), last_change=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'last-change')), statistics=filter_test__interfaces__interface__statistics.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'statistics'))), ipv4=filter_test__interfaces__interface__ipv4.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'ipv4'))), ipv6=filter_test__interfaces__interface__ipv6.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'ipv6'))))
 
-    def copy(self):
+    def copy(self) -> filter_test__interfaces__interface_entry:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface_entry.from_gdata(self.to_gdata())
 
 _breaker7 = None
 class filter_test__interfaces__interface(yang.adata.MNode):
     elements: list[filter_test__interfaces__interface_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[filter_test__interfaces__interface_entry]=[]) -> None:
         self._ns = 'http://example.com/filter-test'
         self._name = 'interface'
         self.elements = elements
 
-    mut def create(self, name, description=None, type=None, enabled=None, admin_status=None, oper_status=None, last_change=None):
+    mut def create(self, name: str, description: ?str=None, type: ?str=None, enabled: ?bool=None, admin_status: ?str=None, oper_status: ?str=None, last_change: ?str=None) -> filter_test__interfaces__interface_entry:
         for e in self:
             match = True
             if e.name != name:
@@ -366,7 +366,7 @@ class filter_test__interfaces__interface(yang.adata.MNode):
             return [filter_test__interfaces__interface_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> filter_test__interfaces__interface:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -384,7 +384,7 @@ _breaker8 = None
 class filter_test__interfaces(yang.adata.MNode):
     interface: filter_test__interfaces__interface
 
-    mut def __init__(self, interface: list[filter_test__interfaces__interface_entry]=[]):
+    mut def __init__(self, interface: list[filter_test__interfaces__interface_entry]=[]) -> None:
         self._ns = 'http://example.com/filter-test'
         self.interface = filter_test__interfaces__interface(elements=interface)
 
@@ -401,7 +401,7 @@ class filter_test__interfaces(yang.adata.MNode):
             return filter_test__interfaces(interface=filter_test__interfaces__interface.from_gdata(n.get_opt_list(yang.gdata.Id(NS_filter_test, 'interface'))))
         return filter_test__interfaces()
 
-    def copy(self):
+    def copy(self) -> filter_test__interfaces:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces.from_gdata(self.to_gdata())
 
@@ -411,7 +411,7 @@ class root(yang.adata.MNode):
     system_state: filter_test__system_state
     interfaces: filter_test__interfaces
 
-    mut def __init__(self, system_state: ?filter_test__system_state=None, interfaces: ?filter_test__interfaces=None):
+    mut def __init__(self, system_state: ?filter_test__system_state=None, interfaces: ?filter_test__interfaces=None) -> None:
         self._ns = ''
         self.system_state = system_state if system_state is not None else filter_test__system_state()
         self.interfaces = interfaces if interfaces is not None else filter_test__interfaces()
@@ -431,7 +431,7 @@ class root(yang.adata.MNode):
             return root(system_state=filter_test__system_state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'system-state'))), interfaces=filter_test__interfaces.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'interfaces'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
@@ -445,7 +445,7 @@ class filter_test__system_state__clock_subs(SubscriptionNode):
     current_datetime: SubscriptionNode
     boot_datetime: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.current_datetime = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'current-datetime'), parent=path))
         self.boot_datetime = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'boot-datetime'), parent=path))
@@ -457,7 +457,7 @@ class filter_test__system_state__clock_subs(SubscriptionNode):
 class filter_test__system_state_subs(SubscriptionNode):
     clock: filter_test__system_state__clock_subs
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.clock = filter_test__system_state__clock_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'clock'), parent=path))
 
@@ -469,7 +469,7 @@ class filter_test__interfaces__interface__statistics_subs(SubscriptionNode):
     in_octets: SubscriptionNode
     out_octets: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.in_octets = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'in-octets'), parent=path))
         self.out_octets = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'out-octets'), parent=path))
@@ -481,7 +481,7 @@ class filter_test__interfaces__interface__statistics_subs(SubscriptionNode):
 class filter_test__interfaces__interface__ipv4_subs(SubscriptionNode):
     mtu: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.mtu = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'mtu'), parent=path))
 
@@ -492,7 +492,7 @@ class filter_test__interfaces__interface__ipv4_subs(SubscriptionNode):
 class filter_test__interfaces__interface__ipv6_subs(SubscriptionNode):
     mtu: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.mtu = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'mtu'), parent=path))
 
@@ -511,7 +511,7 @@ class filter_test__interfaces__interface_subs(SubscriptionNode):
     statistics: filter_test__interfaces__interface__statistics_subs
     ipv4: filter_test__interfaces__interface__ipv4_subs
     ipv6: filter_test__interfaces__interface__ipv6_subs
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
         self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
@@ -547,7 +547,7 @@ class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
     ipv4: filter_test__interfaces__interface__ipv4_subs
     ipv6: filter_test__interfaces__interface__ipv6_subs
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
         self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
@@ -567,7 +567,7 @@ class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
 class filter_test__interfaces_subs(SubscriptionNode):
     interface: filter_test__interfaces__interface_subs
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.interface = filter_test__interfaces__interface_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interface'), parent=path))
 
@@ -579,7 +579,7 @@ class root_subs(SubscriptionNode):
     system_state: filter_test__system_state_subs
     interfaces: filter_test__interfaces_subs
 
-    def __init__(self, path: ?SubscriptionPath=None):
+    def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.system_state = filter_test__system_state_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'system-state'), parent=path))
         self.interfaces = filter_test__interfaces_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interfaces'), parent=path))

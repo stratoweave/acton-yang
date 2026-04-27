@@ -41,7 +41,7 @@ class base__c1(yang.adata.MNode):
     bar_foo: ?str
     foo_foo: ?str
 
-    mut def __init__(self, bar_foo: ?str, foo_foo: ?str):
+    mut def __init__(self, bar_foo: ?str, foo_foo: ?str) -> None:
         self._ns = 'http://example.com/base'
         self.bar_foo = bar_foo
         self.foo_foo = foo_foo
@@ -61,7 +61,7 @@ class base__c1(yang.adata.MNode):
             return base__c1(bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), foo_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')))
         return base__c1()
 
-    def copy(self):
+    def copy(self) -> base__c1:
         """Create a deep copy of this adata object"""
         return base__c1.from_gdata(self.to_gdata())
 

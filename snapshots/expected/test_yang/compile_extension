@@ -46,7 +46,7 @@ class foo__c1__things_entry(yang.adata.MNode):
     name: str
     id: ?str
 
-    mut def __init__(self, name: str, id: ?str):
+    mut def __init__(self, name: str, id: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.name = name
         self.id = id
@@ -64,19 +64,19 @@ class foo__c1__things_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__c1__things_entry:
         return foo__c1__things_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), id=n.get_opt_str(yang.gdata.Id(NS_foo, 'id')))
 
-    def copy(self):
+    def copy(self) -> foo__c1__things_entry:
         """Create a deep copy of this adata object"""
         return foo__c1__things_entry.from_gdata(self.to_gdata())
 
 _breaker2 = None
 class foo__c1__things(yang.adata.MNode):
     elements: list[foo__c1__things_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[foo__c1__things_entry]=[]) -> None:
         self._ns = 'http://example.com/foo'
         self._name = 'things'
         self.elements = elements
 
-    mut def create(self, name, id=None):
+    mut def create(self, name: str, id: ?str=None) -> foo__c1__things_entry:
         for e in self:
             match = True
             if e.name != name:
@@ -97,7 +97,7 @@ class foo__c1__things(yang.adata.MNode):
             return [foo__c1__things_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> foo__c1__things:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -115,7 +115,7 @@ _breaker3 = None
 class foo__c1(yang.adata.MNode):
     things: foo__c1__things
 
-    mut def __init__(self, things: list[foo__c1__things_entry]=[]):
+    mut def __init__(self, things: list[foo__c1__things_entry]=[]) -> None:
         self._ns = 'http://example.com/foo'
         self.things = foo__c1__things(elements=things)
 
@@ -132,7 +132,7 @@ class foo__c1(yang.adata.MNode):
             return foo__c1(things=foo__c1__things.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'things'))))
         return foo__c1()
 
-    def copy(self):
+    def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 
@@ -141,7 +141,7 @@ _breaker4 = None
 class root(yang.adata.MNode):
     c1: foo__c1
 
-    mut def __init__(self, c1: ?foo__c1=None):
+    mut def __init__(self, c1: ?foo__c1=None) -> None:
         self._ns = ''
         self.c1 = c1 if c1 is not None else foo__c1()
 
@@ -158,7 +158,7 @@ class root(yang.adata.MNode):
             return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

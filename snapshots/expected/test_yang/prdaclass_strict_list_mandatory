@@ -39,7 +39,7 @@ class foo__l1_entry(yang.adata.MNode):
     name: str
     id: str
 
-    mut def __init__(self, name: str, id: str):
+    mut def __init__(self, name: str, id: str) -> None:
         self._ns = 'http://example.com/foo'
         self.name = name
         self.id = id
@@ -57,19 +57,19 @@ class foo__l1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__l1_entry:
         return foo__l1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), id=n.get_str(yang.gdata.Id(NS_foo, 'id')))
 
-    def copy(self):
+    def copy(self) -> foo__l1_entry:
         """Create a deep copy of this adata object"""
         return foo__l1_entry.from_gdata(self.to_gdata())
 
 _breaker2 = None
 class foo__l1(yang.adata.MNode):
     elements: list[foo__l1_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[foo__l1_entry]=[]) -> None:
         self._ns = 'http://example.com/foo'
         self._name = 'l1'
         self.elements = elements
 
-    mut def create(self, name, id):
+    mut def create(self, name: str, id: str) -> foo__l1_entry:
         for e in self:
             match = True
             if e.name != name:
@@ -89,7 +89,7 @@ class foo__l1(yang.adata.MNode):
             return [foo__l1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> foo__l1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []

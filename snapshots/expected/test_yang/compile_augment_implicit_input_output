@@ -51,7 +51,7 @@ NS_foo = 'http://example.com/foo'
 _breaker1 = None
 class foo__c1(yang.adata.MNode):
 
-    mut def __init__(self):
+    mut def __init__(self) -> None:
         self._ns = 'http://example.com/foo'
         pass
 
@@ -64,7 +64,7 @@ class foo__c1(yang.adata.MNode):
             return foo__c1()
         return foo__c1()
 
-    def copy(self):
+    def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 
@@ -73,7 +73,7 @@ _breaker2 = None
 class root(yang.adata.MNode):
     c1: foo__c1
 
-    mut def __init__(self, c1: ?foo__c1=None):
+    mut def __init__(self, c1: ?foo__c1=None) -> None:
         self._ns = ''
         self.c1 = c1 if c1 is not None else foo__c1()
 
@@ -90,7 +90,7 @@ class root(yang.adata.MNode):
             return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
@@ -99,7 +99,7 @@ _breaker3 = None
 class foo__r1__input__c3(yang.adata.MNode):
     l3: ?str
 
-    mut def __init__(self, l3: ?str):
+    mut def __init__(self, l3: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.l3 = l3
 
@@ -116,7 +116,7 @@ class foo__r1__input__c3(yang.adata.MNode):
             return foo__r1__input__c3(l3=n.get_opt_str(yang.gdata.Id(NS_foo, 'l3')))
         return foo__r1__input__c3()
 
-    def copy(self):
+    def copy(self) -> foo__r1__input__c3:
         """Create a deep copy of this adata object"""
         return foo__r1__input__c3.from_gdata(self.to_gdata())
 
@@ -125,7 +125,7 @@ _breaker4 = None
 class foo__r1__input(yang.adata.MNode):
     c3: foo__r1__input__c3
 
-    mut def __init__(self, c3: ?foo__r1__input__c3=None):
+    mut def __init__(self, c3: ?foo__r1__input__c3=None) -> None:
         self._ns = 'http://example.com/foo'
         self.c3 = c3 if c3 is not None else foo__r1__input__c3()
 
@@ -142,7 +142,7 @@ class foo__r1__input(yang.adata.MNode):
             return foo__r1__input(c3=foo__r1__input__c3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c3'))))
         return foo__r1__input()
 
-    def copy(self):
+    def copy(self) -> foo__r1__input:
         """Create a deep copy of this adata object"""
         return foo__r1__input.from_gdata(self.to_gdata())
 
@@ -151,7 +151,7 @@ _breaker5 = None
 class foo__r1__output(yang.adata.MNode):
     l4: ?str
 
-    mut def __init__(self, l4: ?str):
+    mut def __init__(self, l4: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.l4 = l4
 
@@ -168,7 +168,7 @@ class foo__r1__output(yang.adata.MNode):
             return foo__r1__output(l4=n.get_opt_str(yang.gdata.Id(NS_foo, 'l4')))
         return foo__r1__output()
 
-    def copy(self):
+    def copy(self) -> foo__r1__output:
         """Create a deep copy of this adata object"""
         return foo__r1__output.from_gdata(self.to_gdata())
 

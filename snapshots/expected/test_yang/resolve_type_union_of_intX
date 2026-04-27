@@ -44,7 +44,7 @@ class root(yang.adata.MNode):
     l3: ?value
     l4: ?value
 
-    mut def __init__(self, l1: ?int, l2: ?u64, l3: ?value, l4: ?value):
+    mut def __init__(self, l1: ?int, l2: ?u64, l3: ?value, l4: ?value) -> None:
         self._ns = ''
         self.l1 = l1
         self.l2 = l2
@@ -70,7 +70,7 @@ class root(yang.adata.MNode):
             return root(l1=n.get_opt_int(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l2')), l3=n.get_opt_value(yang.gdata.Id(NS_foo, 'l3')), l4=n.get_opt_value(yang.gdata.Id(NS_foo, 'l4')))
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

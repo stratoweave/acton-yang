@@ -120,7 +120,7 @@ class foo__tc1(yang.adata.MNode):
     l1: str
     l2: ?str
 
-    mut def __init__(self, l1: str, l2: ?str):
+    mut def __init__(self, l1: str, l2: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l2 = l2
@@ -140,7 +140,7 @@ class foo__tc1(yang.adata.MNode):
             return foo__tc1(l1=n.get_str(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')))
         raise ValueError('Missing required subtree foo__tc1')
 
-    def copy(self):
+    def copy(self) -> foo__tc1:
         """Create a deep copy of this adata object"""
         return foo__tc1.from_gdata(self.to_gdata())
 
@@ -150,7 +150,7 @@ class foo__li__c1(yang.adata.MNode):
     l1: str
     l2: ?str
 
-    mut def __init__(self, l1: str, l2: ?str):
+    mut def __init__(self, l1: str, l2: ?str) -> None:
         self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l2 = l2
@@ -170,7 +170,7 @@ class foo__li__c1(yang.adata.MNode):
             return foo__li__c1(l1=n.get_str(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')))
         raise ValueError('Missing required subtree foo__li__c1')
 
-    def copy(self):
+    def copy(self) -> foo__li__c1:
         """Create a deep copy of this adata object"""
         return foo__li__c1.from_gdata(self.to_gdata())
 
@@ -180,7 +180,7 @@ class foo__li_entry(yang.adata.MNode):
     name: str
     c1: foo__li__c1
 
-    mut def __init__(self, name: str, c1: foo__li__c1):
+    mut def __init__(self, name: str, c1: foo__li__c1) -> None:
         self._ns = 'http://example.com/foo'
         self.name = name
         self.c1 = c1
@@ -198,19 +198,19 @@ class foo__li_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__li_entry:
         return foo__li_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), c1=foo__li__c1.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'c1'))))
 
-    def copy(self):
+    def copy(self) -> foo__li_entry:
         """Create a deep copy of this adata object"""
         return foo__li_entry.from_gdata(self.to_gdata())
 
 _breaker4 = None
 class foo__li(yang.adata.MNode):
     elements: list[foo__li_entry]
-    mut def __init__(self, elements=[]):
+    mut def __init__(self, elements: list[foo__li_entry]=[]) -> None:
         self._ns = 'http://example.com/foo'
         self._name = 'li'
         self.elements = elements
 
-    mut def create(self, name, c1):
+    mut def create(self, name: str, c1: foo__li__c1) -> foo__li_entry:
         for e in self:
             match = True
             if e.name != name:
@@ -230,7 +230,7 @@ class foo__li(yang.adata.MNode):
             return [foo__li_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self):
+    def copy(self) -> foo__li:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -249,7 +249,7 @@ class root(yang.adata.MNode):
     tc1: foo__tc1
     li: foo__li
 
-    mut def __init__(self, tc1: foo__tc1, li: list[foo__li_entry]=[]):
+    mut def __init__(self, tc1: foo__tc1, li: list[foo__li_entry]=[]) -> None:
         self._ns = ''
         self.tc1 = tc1
         self.li = foo__li(elements=li)
@@ -269,7 +269,7 @@ class root(yang.adata.MNode):
             return root(tc1=foo__tc1.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'tc1'))), li=foo__li.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li'))))
         raise ValueError('Missing required subtree root')
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

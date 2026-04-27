@@ -53,7 +53,7 @@ NS_yangrpc = 'http://example.com/yangrpc'
 _breaker1 = None
 class root(yang.adata.MNode):
 
-    mut def __init__(self):
+    mut def __init__(self) -> None:
         self._ns = ''
         pass
 
@@ -66,7 +66,7 @@ class root(yang.adata.MNode):
             return root()
         return root()
 
-    def copy(self):
+    def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
@@ -75,7 +75,7 @@ _breaker2 = None
 class yangrpc__foo__input__woo(yang.adata.MNode):
     woo_b: ?int
 
-    mut def __init__(self, woo_b: ?int):
+    mut def __init__(self, woo_b: ?int) -> None:
         self._ns = 'http://example.com/yangrpc'
         self.woo_b = woo_b
 
@@ -92,7 +92,7 @@ class yangrpc__foo__input__woo(yang.adata.MNode):
             return yangrpc__foo__input__woo(woo_b=n.get_opt_int(yang.gdata.Id(NS_yangrpc, 'woo_b')))
         return yangrpc__foo__input__woo()
 
-    def copy(self):
+    def copy(self) -> yangrpc__foo__input__woo:
         """Create a deep copy of this adata object"""
         return yangrpc__foo__input__woo.from_gdata(self.to_gdata())
 
@@ -102,7 +102,7 @@ class yangrpc__foo__input(yang.adata.MNode):
     a: ?str
     woo: yangrpc__foo__input__woo
 
-    mut def __init__(self, a: ?str, woo: ?yangrpc__foo__input__woo=None):
+    mut def __init__(self, a: ?str, woo: ?yangrpc__foo__input__woo=None) -> None:
         self._ns = 'http://example.com/yangrpc'
         self.a = a
         self.woo = woo if woo is not None else yangrpc__foo__input__woo()
@@ -122,7 +122,7 @@ class yangrpc__foo__input(yang.adata.MNode):
             return yangrpc__foo__input(a=n.get_opt_str(yang.gdata.Id(NS_yangrpc, 'a')), woo=yangrpc__foo__input__woo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_yangrpc, 'woo'))))
         return yangrpc__foo__input()
 
-    def copy(self):
+    def copy(self) -> yangrpc__foo__input:
         """Create a deep copy of this adata object"""
         return yangrpc__foo__input.from_gdata(self.to_gdata())
 
@@ -131,7 +131,7 @@ _breaker4 = None
 class yangrpc__foo__output(yang.adata.MNode):
     outoo: ?str
 
-    mut def __init__(self, outoo: ?str):
+    mut def __init__(self, outoo: ?str) -> None:
         self._ns = 'http://example.com/yangrpc'
         self.outoo = outoo
 
@@ -148,7 +148,7 @@ class yangrpc__foo__output(yang.adata.MNode):
             return yangrpc__foo__output(outoo=n.get_opt_str(yang.gdata.Id(NS_yangrpc, 'outoo')))
         return yangrpc__foo__output()
 
-    def copy(self):
+    def copy(self) -> yangrpc__foo__output:
         """Create a deep copy of this adata object"""
         return yangrpc__foo__output.from_gdata(self.to_gdata())
 
