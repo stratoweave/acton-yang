@@ -2674,14 +2674,13 @@ def _filter_child(data: Node, flist: list[FNode]) -> (node: ?Node, select: bool)
     return (node=None, select=False)
 
 
-def filter(data: ?Node, filt: FNode) -> ?Node:
-    if data is None:
-        return None
-    d = expect(data, "filter root")
-    if filt.name is None:
-        return _filter_container_children(d, filt.children)
-    res = _filter_child(d, [filt])
-    return res.node
+def filter(data: ?Node, filt: ?FNode=None) -> ?Node:
+    if data is not None and filt is not None:
+        if filt.name is None:
+            return _filter_container_children(data, filt.children)
+        res = _filter_child(data, [filt])
+        return res.node
+    return data
 
 
 def _prune_leaf(data: Leaf, flist: list[FNode]) -> (node: ?Node, matched: bool, select: bool):
@@ -4808,6 +4807,17 @@ def _test_to_xmlstr_list_removal():
 
 ################################################################################
 # Filter tests
+def _test_filter_none_returns_data():
+    """No filter selects the full input tree."""
+    data = Container({
+        Id(NS_acme, "foo"): Container({
+            Id(NS_acme, "l1"): Leaf(u64(1)),
+        }, ns=NS_acme, module="acme"),
+    })
+    res = expect(filter(data), "filter result")
+    testing.assertEqual(res.prsrc(deterministic=True), data.prsrc(deterministic=True))
+
+
 def _test_filter_container_wildcard():
     """Select a container without child predicates returns the full subtree."""
     data = Container({
