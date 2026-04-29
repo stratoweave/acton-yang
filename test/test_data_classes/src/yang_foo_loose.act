@@ -183,9 +183,7 @@ SRC_DNODE = DRoot(
     module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
 )
 
-def src_yang():
-    res = []
-    res.append(r"""module foo {
+SRC_YANG_0 = r"""module foo {
     yang-version "1.1";
     namespace "http://example.com/foo";
     prefix "f";
@@ -425,8 +423,9 @@ def src_yang():
         type string;
     }
 
-}""")
-    res.append(r"""submodule qux {
+}"""
+
+SRC_YANG_1 = r"""submodule qux {
     yang-version "1.1";
     belongs-to foo {
         prefix "f";
@@ -443,8 +442,9 @@ def src_yang():
             type string;
         }
     }
-}""")
-    res.append(r"""module bar {
+}"""
+
+SRC_YANG_2 = r"""module bar {
     yang-version "1.1";
     namespace "http://example.com/bar";
     prefix "bar";
@@ -503,8 +503,14 @@ def src_yang():
             type string;
         }
     }
-}""")
-    return res
+}"""
+
+def src_yang():
+    return [
+        SRC_YANG_0,
+        SRC_YANG_1,
+        SRC_YANG_2,
+    ]
 
 
 NS_bar = 'http://example.com/bar'

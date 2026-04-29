@@ -30,9 +30,7 @@ SRC_DNODE = DRoot(
     module_metadata={'http://example.com/loose-required':('loose-required', None)},
 )
 
-def src_yang():
-    res = []
-    res.append(r"""module loose-required {
+SRC_YANG_0 = r"""module loose-required {
     yang-version "1.1";
     namespace "http://example.com/loose-required";
     prefix "lr";
@@ -43,8 +41,12 @@ def src_yang():
             mandatory true;
         }
     }
-}""")
-    return res
+}"""
+
+def src_yang():
+    return [
+        SRC_YANG_0,
+    ]
 
 
 NS_loose_required = 'http://example.com/loose-required'

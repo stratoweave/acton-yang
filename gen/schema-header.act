@@ -1873,11 +1873,19 @@ class DRoot(DNodeInner):
 #"""def src_yang():
 #   return {repr(self.src)}
 #"""
-            res.append("def src_yang():")
-            res.append("    res = []")
+            src_yang_names = []
+            i = 0
             for s in schema_yang:
-                res.append('    res.append(r"""{s}""")')
-            res.append("    return res")
+                src_yang_name = "SRC_YANG_{i}"
+                src_yang_names.append(src_yang_name)
+                res.append('{src_yang_name} = r"""{s}"""')
+                res.append("")
+                i += 1
+            res.append("def src_yang():")
+            res.append("    return [")
+            for src_yang_name in src_yang_names:
+                res.append("        {src_yang_name},")
+            res.append("    ]")
             res.append("")
             res.append("")
 
