@@ -2890,9 +2890,47 @@ def prune(data: ?Node, filt: FNode) -> ?Node:
 
 
 # TODO: Can we make patch return a Node instead of ?Node?
-def _patch_rec(old: Node, p: ?Node, path: list[_PathElement]) -> ?Node:
+def _patch_rec(old: ?Node, p: ?Node, path: list[_PathElement]) -> ?Node:
     if p is None:
         return old
+
+    if old is None:
+        # No base: synthesize an empty base of the right shape from p
+        if isinstance(p, Absent):
+            return None
+        if isinstance(p, Delete):
+            raise ValueError("data-missing: node does not exist at {_format_gdata_path(path)}")
+        if isinstance(p, CreateLeaf):
+            return Leaf(p.val, ns=p.ns, module=p.module)
+        if isinstance(p, ReplaceLeaf):
+            return Leaf(p.val, ns=p.ns, module=p.module)
+        if isinstance(p, Create):
+            empty = Container({}, presence=p.presence, ns=p.ns, module=p.module)
+            patch_cnt = Container(p.children, ns=p.ns, module=p.module)
+            res = _patch_rec(empty, patch_cnt, path)
+            if res is None and p.presence:
+                return Container({}, presence=True, ns=p.ns, module=p.module)
+            return res
+        if isinstance(p, Replace):
+            empty = Container({}, presence=p.presence, ns=p.ns, module=p.module)
+            patch_cnt = Container(p.children, ns=p.ns, module=p.module)
+            res = _patch_rec(empty, patch_cnt, path)
+            if res is None and p.presence:
+                return Container({}, presence=True, ns=p.ns, module=p.module)
+            return res
+        if isinstance(p, Container):
+            empty = Container({}, presence=p.presence, ns=p.ns, module=p.module)
+            res = _patch_rec(empty, p, path)
+            if res is None and p.presence:
+                return Container({}, presence=True, ns=p.ns, module=p.module)
+            return res
+        if isinstance(p, List):
+            return _patch_rec(List(p.keys, elements=[], user_order=p.user_order, ns=p.ns, module=p.module), p, path)
+        if isinstance(p, LeafList):
+            return _patch_rec(LeafList([], user_order=p.user_order, ns=p.ns, module=p.module), p, path)
+        if isinstance(p, Leaf):
+            return p
+        raise ValueError("Unhandled node type in patch at {_format_gdata_path(path)}: {type(p)}")
 
     if isinstance(p, Absent):
         # Patch says remove this node
@@ -2947,58 +2985,13 @@ def _patch_rec(old: Node, p: ?Node, path: list[_PathElement]) -> ?Node:
                 else:
                     del new_children[key]
             else:
-                # Key not in old
-                if isinstance(cpatch, Absent):
-                    # Trying to remove something not in old -> ignore
-                    pass
-                elif isinstance(cpatch, Delete):
-                    # TODO: structured error (error-tag, ...)
-                    raise ValueError("data-missing: node does not exist at {_format_gdata_path(path + [_PathElement(key)])}")
-                elif isinstance(cpatch, CreateLeaf):
-                    new_children[key] = Leaf(cpatch.val, ns=cpatch.ns, module=cpatch.module)
-                elif isinstance(cpatch, ReplaceLeaf):
-                    new_children[key] = Leaf(cpatch.val, ns=cpatch.ns, module=cpatch.module)
-                # Apply patch against an empty node so nested ops are sanitized
-                # (remove->noop, create->merge, delete->data-missing). We end up
-                # with a "declarative" gdata tree without imperative operations.
-                elif isinstance(cpatch, List):
-                    empty_list = List(cpatch.keys, elements=[], user_order=cpatch.user_order, ns=cpatch.ns, module=cpatch.module)
-                    res = _patch_rec(empty_list, cpatch, path + [_PathElement(key)])
-                    if res is not None:
-                        new_children[key] = res
-                elif isinstance(cpatch, Container):
-                    empty_cnt = Container({}, presence=cpatch.presence, ns=cpatch.ns, module=cpatch.module)
-                    res = _patch_rec(empty_cnt, cpatch, path + [_PathElement(key)])
-                    if res is not None:
-                        new_children[key] = res
-                    elif cpatch.presence:
-                        # Preserve presence containers even when empty
-                        new_children[key] = Container({}, presence=True, ns=cpatch.ns, module=cpatch.module)
-                elif isinstance(cpatch, Create):
-                    empty_cnt = Container({}, presence=cpatch.presence, ns=cpatch.ns, module=cpatch.module)
-                    patch_cnt = Container(cpatch.children, ns=cpatch.ns, module=cpatch.module)
-                    res = _patch_rec(empty_cnt, patch_cnt, path + [_PathElement(key)])
-                    if res is not None:
-                        new_children[key] = res
-                    elif cpatch.presence:
-                        new_children[key] = Container({}, presence=True, ns=cpatch.ns, module=cpatch.module)
-                elif isinstance(cpatch, Replace):
-                    empty_cnt = Container({}, presence=cpatch.presence, ns=cpatch.ns, module=cpatch.module)
-                    patch_cnt = Container(cpatch.children, ns=cpatch.ns, module=cpatch.module)
-                    res = _patch_rec(empty_cnt, patch_cnt, path + [_PathElement(key)])
-                    if res is not None:
-                        new_children[key] = res
-                    elif cpatch.presence:
-                        new_children[key] = Container({}, presence=True, ns=cpatch.ns, module=cpatch.module)
-                elif isinstance(cpatch, LeafList):
-                    # Apply leaf-list ops against an empty leaf-list so removes are no-ops
-                    empty_ll = LeafList([], user_order=cpatch.user_order, ns=cpatch.ns, module=cpatch.module)
-                    res = _patch_rec(empty_ll, cpatch, path + [_PathElement(key)])
-                    if res is not None:
-                        new_children[key] = res
-                else:
-                    # New leaf / leaf-list child
-                    new_children[key] = cpatch
+                # Key not in old: apply patch against an empty base so nested
+                # ops are sanitized (remove->noop, create->merge,
+                # delete->data-missing). Yields a "declarative" gdata tree
+                # without imperative operations.
+                res = _patch_rec(None, cpatch, path + [_PathElement(key)])
+                if res is not None:
+                    new_children[key] = res
 
         # No need to remove unchanged nodes; they are already in new_children
         if len(new_children) == 0:
@@ -3041,16 +3034,12 @@ def _patch_rec(old: Node, p: ?Node, path: list[_PathElement]) -> ?Node:
                         # Remove the element
                         del old_map[k]
                 else:
-                    # New element: Apply patch against an empty node so nested ops are sanitized
-                    # (remove->noop, create->merge, delete->data-missing). We end up
-                    # with a "declarative" gdata tree without imperative operations.
-                    if isinstance(pelem, Create):
-                        # Bypass data-exists error check for create op
-                        patch_elem = Container(pelem.children)
-                    else:
-                        patch_elem = pelem
+                    # New element: apply patch against an empty base so nested
+                    # ops are sanitized (remove->noop, create->merge,
+                    # delete->data-missing). Yields a "declarative" gdata tree
+                    # without imperative operations.
                     elem_path = path + [_PathElement(keys=pelem.key_values(p.keys))]
-                    res = _patch_rec(Container(), patch_elem, elem_path)
+                    res = _patch_rec(None, pelem, elem_path)
                     if res is not None and isinstance(res, Container):
                         old_map[k] = res
 
@@ -3138,9 +3127,7 @@ def _patch_rec(old: Node, p: ?Node, path: list[_PathElement]) -> ?Node:
             raise ValueError("Unhandled node type in patch at {_format_gdata_path(path)}: {type(p)}")
 
 
-def patch(old: Node, p: ?Node) -> ?Node:
-    # TODO: Accept None as old tree so callers merging from an empty base do
-    # not need to synthesize Container({}) first.
+def patch(old: ?Node, p: ?Node) -> ?Node:
     return _patch_rec(old, p, [])
 
 
@@ -3804,6 +3791,20 @@ def _test_patch_no_change():
 
     res = patch(old, p)
     testing.assertEqual(res, old)
+
+def _test_patch_none_old():
+    p = Container({
+        Id(NS_acme, "a"): Leaf(u64(1)),
+        Id(NS_acme, "l"): List([Id(NS_acme, "k")], [
+            Container({
+                Id(NS_acme, "k"): Leaf("x"),
+                Id(NS_acme, "v"): Leaf(u64(7)),
+            }),
+        ]),
+    }, ns="http://example.com/acme", module="acme")
+
+    res = patch(None, p)
+    testing.assertEqual(res, p)
 
 def _test_patch_leaf_change():
     old = Container({
