@@ -1,0 +1,366 @@
+"""RESTCONF body / path handling.
+
+from_json_path and from_xml_path build sparse gdata trees from a parsed RESTCONF
+body applied at a resolved schema path. Each handles its own envelope - JSON's
+{"mod:name": ...} dict, XML's outer element tag and namespace. After validation,
+the common parts like actually parsing the body and constructing the tree is
+done in the _from_unwrapped_body function.
+
+A RESTCONF body is the subtree rooted at the path terminal — exactly that
+one element, no siblings. The envelope checks enforce this. We can't just
+shift root_path to parent-of-terminal and hand the wrapped body to
+from_data_recursive: it would happily parse siblings and raise on missing
+mandatory ones.
+"""
+
+import testing
+import uri
+import xml
+
+import yang
+import yang.data
+import yang.gdata
+import yang.schema
+from yang.data import from_data_recursive, YangData, PathElement, YangValidationError, format_schema_path
+from yang.data import fqname, fq_list_keys, parse_qualified_name, user_order
+from yang.data import OP_MERGE, OP_REPLACE, OP_REMOVE
+from yang.json import try_parse_json_value
+from yang.xml import xml_node_ns, NETCONF_NS, NETCONF_OPS
+
+
+def _resolve_path_key_leaf(list_node: yang.schema.DList, key_name: str, path: list[PathElement]) -> yang.schema.DNodeLeaf:
+    key_node = list_node.get(key_name, allow_unqualified=False)
+    if isinstance(key_node, yang.schema.DNodeLeaf):
+        return key_node
+    raise ValueError("Invalid list key schema at {format_schema_path(path)}: {key_name}")
+
+
+def _coerce_path_key_value(root: yang.schema.DRoot, key_leaf: yang.schema.DNodeLeaf, raw_value: ?value, path: list[PathElement]) -> value:
+    typed_value = try_parse_json_value(raw_value, key_leaf, key_leaf.type_, path, root)
+    if typed_value is not None:
+        return typed_value.val
+    raise YangValidationError(path, key_leaf.type_, raw_value)
+
+
+def resolve_path(root: yang.schema.DRoot, path: list[str]) -> list[PathElement]:
+    """Resolve a RESTCONF path against a schema, returning traversed nodes.
+
+    Each path segment is either a node name (optionally "module:name") or
+    comma-separated key values for list nodes. The function walks the schema
+    tree and returns a PathElement for each resolved node. For list nodes the
+    PathElement includes the schema-coerced key values dict. A list node path
+    segment must include all key values.
+
+    Args:
+        root: Root schema node
+        path: Path segments, e.g. ["mod:c1", "list1", "key1", "inner"]
+
+    Returns:
+        List of PathElement starting with the root, followed by each traversed
+        schema node.
+    """
+    result = [PathElement(root)]
+    s: yang.schema.DNodeInner = root
+    i = 0
+    while i < len(path):
+        point = path[i]
+        local_name, module = parse_qualified_name(point)
+        child = s.get(local_name, module=module, allow_unqualified=False)
+
+        if isinstance(child, yang.schema.DList):
+            # Next segment is comma-separated key values
+            i += 1
+            if i < len(path):
+                key_strs = [uri.unquote(k) for k in path[i].split(",")]
+                # RESTCONF element paths must fully identify a keyed list entry.
+                if len(key_strs) != len(child.key):
+                    raise ValueError("Invalid list key values at {format_schema_path(result + [PathElement(child)])}: expected {len(child.key)} value(s), got {len(key_strs)}")
+                keys_dict = {}
+                for key_name, key_val in zip(child.key, key_strs):
+                    key_leaf = _resolve_path_key_leaf(child, key_name, result + [PathElement(child)])
+                    key_path = result + [PathElement(child), PathElement(key_leaf)]
+                    keys_dict[key_name] = _coerce_path_key_value(root, key_leaf, key_val, key_path)
+                result.append(PathElement(child, keys=keys_dict))
+            else:
+                # TODO: oper data lists may be keyless
+                # A keyed list node in the path must always be followed by its key tuple.
+                raise ValueError("Missing list key values at {format_schema_path(result + [PathElement(child)])}")
+            s = child
+        elif isinstance(child, yang.schema.DNodeInner):
+            result.append(PathElement(child))
+            s = child
+        else:
+            # Terminal node (leaf, leaf-list) — path must end here
+            if i + 1 < len(path):
+                raise ValueError("Invalid RESTCONF path to non-inner node at {format_schema_path(result + [PathElement(child)])}: {point}")
+            result.append(PathElement(child))
+            i += 1
+            break
+
+        i += 1
+    return result
+
+
+def _from_unwrapped_body[A(YangData)](root: yang.schema.DRoot, data: ?A, type_narrower: (?value) -> A, path_elements: list[PathElement], op: str=OP_MERGE, loose: bool=False) -> yang.gdata.Container:
+    """Build a sparse gdata tree with `data` applied at the terminal (path_elements[-1]).
+
+    `data` must already be unwrapped by the format-specific front-end (e.g. the
+    outer JSON `{"mod:name": ...}` stripped.
+
+    `data` is None exactly when `op == OP_REMOVE` — a remove constructs the
+    Absent terminal (and key-only wrappers for list entries) from the path
+    alone. MERGE / REPLACE require a non-None body.
+
+    This is the format-independent half of from_json_path / from_xml_path.
+    """
+    n = len(path_elements)
+
+    def _set_ns(i: int) -> bool:
+        if i == 0:
+            return True
+        return path_elements[i - 1].node.namespace != path_elements[i].node.namespace
+
+    # First build the terminal (innermost) node
+    last = path_elements[n - 1]
+    last_node = last.node
+
+    if isinstance(last_node, yang.schema.DNodeInner) and (isinstance(last_node, yang.schema.DRoot) or isinstance(last_node, yang.schema.DContainer)):
+        if op == OP_MERGE:
+            if data is None:
+                raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
+            inner = from_data_recursive(root, last_node, data!, type_narrower, loose=loose, set_ns=_set_ns(n - 1), spath=path_elements)
+        elif op == OP_REPLACE and isinstance(last_node, yang.schema.DContainer):
+            if data is None:
+                raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
+            parsed = from_data_recursive(root, last_node, data!, type_narrower, loose=loose, set_ns=_set_ns(n - 1), spath=path_elements)
+            maybe_ns = _set_ns(n - 1) and last_node.namespace != ""
+            inner = yang.gdata.Replace(parsed.children, presence=parsed.presence, ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+        elif op == OP_REMOVE:
+            inner = yang.gdata.Absent()
+        else:
+            raise ValueError("Invalid operation at {format_schema_path(path_elements)}: {op}")
+
+    elif isinstance(last_node, yang.schema.DList):
+        keys = last.keys
+        if keys is not None:
+            maybe_ns = _set_ns(n - 1) and last_node.namespace != ""
+            if op == OP_REMOVE:
+                # Body is ignored; construct key children directly from URL keys.
+                element_children = {}
+                for key_name in last_node.key:
+                    key_val = keys.get(key_name)
+                    if key_val is not None:
+                        element_children[yang.gdata.Id(last_node.namespace, key_name)] = yang.gdata.Leaf(key_val)
+                inner = yang.gdata.List(fq_list_keys(last_node), [yang.gdata.Absent(element_children)], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+            elif op == OP_MERGE or op == OP_REPLACE:
+                if data is None:
+                    raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
+                element_gdata = from_data_recursive(root, last_node, data!, type_narrower, loose, set_ns=False, spath=path_elements)
+                # List keys in the body MUST equal the URL path keys.
+                for key_name in last_node.key:
+                    url_key_val = keys.get(key_name)
+                    body_leaf = element_gdata.children.get(yang.gdata.Id(last_node.namespace, key_name))
+                    if isinstance(body_leaf, yang.gdata.Leaf) and url_key_val is not None:
+                        if not yang.gdata.vals_equal(body_leaf.val, url_key_val):
+                            raise ValueError("Key value mismatch between path and payload at {format_schema_path(path_elements)}: key {key_name}")
+                if op == OP_REPLACE:
+                    wrapped: yang.gdata.Node = yang.gdata.Replace(element_gdata.children)
+                else:
+                    wrapped = element_gdata
+                inner = yang.gdata.List(fq_list_keys(last_node), [wrapped], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+            else:
+                raise ValueError("Invalid operation at {format_schema_path(path_elements)}: {op}")
+        else:
+            raise ValueError("Invalid path invariant at {format_schema_path(path_elements)}: list target is missing key values")
+    else:
+        raise ValueError("Unknown schema node type at {format_schema_path(path_elements)}: {type(last_node)}")
+
+    # Now wrap the terminal node inside-out from terminal back to root. "inner"
+    # is a gdata.Node at this point; ancestor list entries are rebuilt from the
+    # key values captured in each PathElement.
+    for i in range(n - 2, -1, -1):
+        s = path_elements[i].node
+        child_node = path_elements[i + 1].node
+        maybe_ns = _set_ns(i) and s.namespace != ""
+
+        if isinstance(s, yang.schema.DNodeInner) and (isinstance(s, yang.schema.DRoot) or isinstance(s, yang.schema.DContainer)):
+            inner = yang.gdata.Container({fqname(child_node): inner}, ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
+
+        elif isinstance(s, yang.schema.DList):
+            ancestor_keys = path_elements[i].keys
+            if ancestor_keys is not None:
+                element_children: dict[yang.gdata.Id, yang.gdata.Node] = {}
+                for key_name in s.key:
+                    key_val = ancestor_keys.get(key_name)
+                    if key_val is not None:
+                        element_children[yang.gdata.Id(s.namespace, key_name)] = yang.gdata.Leaf(key_val)
+                element_children[fqname(child_node)] = inner
+                inner = yang.gdata.List(fq_list_keys(s), [yang.gdata.Container(element_children)], user_order(s.ordered_by), ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
+            else:
+                raise ValueError("Invalid path invariant at {format_schema_path(path_elements[:i+1])}: ancestor list is missing key values")
+        else:
+            raise ValueError("Unknown schema node type at {format_schema_path(path_elements[:i+1])}: {type(s)}")
+
+    if isinstance(inner, yang.gdata.Container):
+        return inner
+    else:
+        raise ValueError("Internal error: expected Container at root level")
+
+
+def from_json_path(root: yang.schema.DRoot, data: ?dict[str, ?value]=None, path: list[str]=[], op: str=OP_MERGE, loose: bool=False) -> yang.gdata.Container:
+    """Parse a RESTCONF JSON body at the given URL path into a sparse gdata tree.
+
+    The body's top level is a single {"mod:name": ...} member matching the
+    path terminal — a dict value for a container, a length-1 array for a
+    list entry. An empty path targets the datastore root; the body then
+    wraps root's top-level children directly with no outer envelope.
+
+    Args:
+        root: Root schema node
+        data: RESTCONF JSON body. None for op="remove"; non-None for merge
+              and replace.
+        path: Path segments, e.g. ["mod1:c1", "list1", "key1", "inner"]
+        op: "merge" (PATCH), "replace" (PUT), or "remove" (DELETE)
+        loose: Allow missing mandatory fields
+    """
+    def type_narrower(v):
+        if isinstance(v, dict):
+            return v
+        raise ValueError("Value is not a dict: {type(v)}")
+
+    path_elements = resolve_path(root, path)
+    last = path_elements[-1]
+    last_node = last.node
+
+    body = None
+    if op != OP_REMOVE:
+        if data is not None:
+            body = data
+            # Strip the outer `{"mod:name": ...}` wrapper using the path terminal
+            # to derive the expected qualified top-level key. Enforce exactly one
+            # top-level member — RESTCONF bodies are the subtree rooted at the
+            # terminal and must not carry sibling keys. DRoot (empty path) has no
+            # outer envelope — the body IS root's children.
+            if not isinstance(last_node, yang.schema.DRoot):
+                expected_key = f"{last_node.module}:{last_node.name}"
+                if len(data) != 1 or expected_key not in data:
+                    raise ValueError("Expected single top-level key '{expected_key}' at {format_schema_path(path_elements)}")
+                outer_val = data[expected_key]
+                if isinstance(last_node, yang.schema.DList):
+                    if isinstance(outer_val, list):
+                        if len(outer_val) != 1:
+                            raise ValueError("Expected list array of length 1 at {format_schema_path(path_elements)}")
+                        entry = outer_val[0]
+                        if isinstance(entry, dict):
+                            body = entry
+                        else:
+                            raise ValueError("Expected object list entry in body at {format_schema_path(path_elements)}")
+                    else:
+                        raise ValueError("Expected array value for list body at {format_schema_path(path_elements)}")
+                else:
+                    if isinstance(outer_val, dict):
+                        body = outer_val
+                    else:
+                        raise ValueError("Expected object value for container body at {format_schema_path(path_elements)}")
+        else:
+            raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
+
+    return _from_unwrapped_body(root, body, type_narrower, path_elements, op, loose)
+
+
+def _reject_netconf_ops_xml(node: xml.Node):
+    """Reject any NETCONF edit-config operation attribute in a RESTCONF XML body.
+
+    Walks the tree once, and raises `ValueError` on the first offending element.
+    .
+    """
+    def resolve(scope: list[(?str, str)], prefix: ?str) -> ?str:
+        """Resolve given prefix to prefixed namespace, or defauilt."""
+        # Later bindings shadow earlier — walk from the end.
+        for i in range(len(scope) - 1, -1, -1):
+            p = scope[i].0
+            u = scope[i].1
+            if (prefix is None and p is None) or (prefix is not None and p is not None and prefix == p):
+                return u
+        return None
+
+    def walk(n: xml.Node, inherited: list[(?str, str)]) -> None:
+        scope = inherited + n.nsdefs
+        for attr_key, attr_val in n.attributes:
+            if ":" in attr_key:
+                parts = attr_key.split(":", 1)
+                prefix = parts[0]
+                local_name = parts[1]
+            else:
+                prefix = None
+                local_name = attr_key
+            if local_name != "operation":
+                continue
+            if attr_val not in NETCONF_OPS:
+                continue
+            if resolve(scope, prefix) != NETCONF_NS:
+                continue
+            raise ValueError("NETCONF operation attribute not allowed in RESTCONF XML body: <{n.tag} {attr_key}=\"{attr_val}\">")
+
+        for child in n.children:
+            walk(child, scope)
+
+    walk(node, [])
+
+
+def from_xml_path(root: yang.schema.DRoot, data: ?xml.Node=None, path: list[str]=[], op: str=OP_MERGE, loose: bool=False) -> yang.gdata.Container:
+    """Parse a RESTCONF XML body at the given URL path into a sparse gdata tree.
+
+    The body is a single element whose tag and namespace match the path
+    terminal — `<cnt xmlns="urn:mod">...</cnt>` for a container, a single
+    `<listname>` element carrying the entry's leaves for a list entry. An
+    empty path targets the datastore root; the body then wraps root's
+    top-level children directly with no outer envelope.
+
+    Args:
+        root: Root schema node
+        data: RESTCONF XML body (a single root element). None for
+              op="remove"; non-None for merge and replace.
+        path: Path segments, e.g. ["mod1:c1", "list1", "key1", "inner"]
+        op: "merge" (PATCH), "replace" (PUT), or "remove" (DELETE)
+        loose: Allow missing mandatory fields
+    """
+    def type_narrower(v):
+        if isinstance(v, xml.Node):
+            return v
+        raise ValueError("Value is not an xml.Node: {type(v)}")
+
+    path_elements = resolve_path(root, path)
+    last_node = path_elements[-1].node
+
+    body = None
+    if op != OP_REMOVE:
+        if data is not None:
+            body = data
+            # Validate the outer `<name xmlns="...">` element matches the terminal.
+            # The "exactly one element" invariant is structural in XML — `data` is
+            # a single `xml.Node` by construction, so the parser can't hand us
+            # siblings here. DRoot (empty path) has no outer element wrapper —
+            # parse directly.
+            if not isinstance(last_node, yang.schema.DRoot):
+                if data.tag != last_node.name:
+                    raise ValueError("Expected element tag '{last_node.name}' at {format_schema_path(path_elements)}, got '{data.tag}'")
+                actual_ns = xml_node_ns(data)
+                if actual_ns != last_node.namespace:
+                    raise ValueError("Expected element namespace '{last_node.namespace}' at {format_schema_path(path_elements)}, got '{actual_ns}'")
+            _reject_netconf_ops_xml(data)
+        else:
+            raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
+
+    return _from_unwrapped_body(root, body, type_narrower, path_elements, op, loose)
+
+
+def _test_reject_netconf_ops_xml():
+    """nc:operation on a descendant must be rejected — if it slipped through,
+    the XML reader would translate it to a Delete wrapper and change semantics."""
+    body = xml.decode('<c2 xmlns="urn:example" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><l2 nc:operation="delete"/></c2>')
+    try:
+        _reject_netconf_ops_xml(body)
+        testing.error("Expected exception on NETCONF operation attribute")
+    except ValueError as e:
+        testing.assertIn("NETCONF operation attribute not allowed", e.error_message)
