@@ -1543,20 +1543,19 @@ class foo__li_union(yang.adata.MNode):
                 match = False
                 continue
             e_k2 = e.k2
+            k2_match = False
             if isinstance(e_k2, u64) and isinstance(k2, u64):
-                if e_k2 != k2:
-                    match = False
-                    continue
-            e_k2 = e.k2
-            if isinstance(e_k2, str) and isinstance(k2, str):
-                if e_k2 != k2:
-                    match = False
-                    continue
-            e_k2 = e.k2
-            if isinstance(e_k2, bytes) and isinstance(k2, bytes):
-                if e_k2 != k2:
-                    match = False
-                    continue
+                if e_k2 == k2:
+                    k2_match = True
+            elif isinstance(e_k2, str) and isinstance(k2, str):
+                if e_k2 == k2:
+                    k2_match = True
+            elif isinstance(e_k2, bytes) and isinstance(k2, bytes):
+                if e_k2 == k2:
+                    k2_match = True
+            if not k2_match:
+                match = False
+                continue
             if e.k3 != k3:
                 match = False
                 continue
@@ -1624,10 +1623,13 @@ class foo__li_union_one_base(yang.adata.MNode):
         for e in self:
             match = True
             e_k1 = e.k1
+            k1_match = False
             if isinstance(e_k1, str) and isinstance(k1, str):
-                if e_k1 != k1:
-                    match = False
-                    continue
+                if e_k1 == k1:
+                    k1_match = True
+            if not k1_match:
+                match = False
+                continue
             if match:
                 return e
 

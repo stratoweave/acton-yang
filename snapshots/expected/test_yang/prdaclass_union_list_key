@@ -86,15 +86,16 @@ class foo__c1__l1(yang.adata.MNode):
                 match = False
                 continue
             e_k2 = e.k2
+            k2_match = False
             if isinstance(e_k2, u64) and isinstance(k2, u64):
-                if e_k2 != k2:
-                    match = False
-                    continue
-            e_k2 = e.k2
-            if isinstance(e_k2, str) and isinstance(k2, str):
-                if e_k2 != k2:
-                    match = False
-                    continue
+                if e_k2 == k2:
+                    k2_match = True
+            elif isinstance(e_k2, str) and isinstance(k2, str):
+                if e_k2 == k2:
+                    k2_match = True
+            if not k2_match:
+                match = False
+                continue
             if match:
                 e.l1 = l1
                 return e
