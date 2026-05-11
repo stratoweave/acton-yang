@@ -844,47 +844,56 @@ class DNodeInner(DNode):
                         arg = usname(child)
                         list_args_req.append(arg)
                         list_args_req_sig.append("{arg}: {pname(child)}")
+
+            # .get() returns the entry matching all key values, or None
+            if len(list_key_args) > 0:
+                # Keys come first in list_args_req(_sig)
+                get_args_sig = ", ".join(["self"] + list_args_req_sig[:len(list_key_args)])
+                res.append("    def get({get_args_sig}) -> ?{pname()}_entry:")
+                res.append("        for e in self:")
+                for us_key in list_key_args:
+                    key_dtype = list_key_types[us_key]
+                    if isinstance(key_dtype, DTypeUnion):
+                        # Union keys are Acton "value"-typed and have no Eq.
+                        # Narrow with isinstance per union member; if no type
+                        # pair matched (or values differed), treat as mismatch.
+                        # TODO: use Acton unions
+                        unique_base_types = []
+                        for t in key_dtype.types:
+                            acton_type = yang_type_to_acton_type(t)
+                            if acton_type not in unique_base_types:
+                                unique_base_types.append(acton_type)
+                        res.append("            e_{us_key} = e.{us_key}")
+                        res.append("            {us_key}_match = False")
+                        for i, t in enumerate(unique_base_types):
+                            keyword = "if" if i == 0 else "elif"
+                            res.append("            {keyword} isinstance(e_{us_key}, {t}) and isinstance({us_key}, {t}):")
+                            res.append("                if e_{us_key} == {us_key}:")
+                            res.append("                    {us_key}_match = True")
+                        res.append("            if not {us_key}_match:")
+                        res.append("                continue")
+                    else:
+                        # Concrete Acton type with Eq; compare directly.
+                        res.append("            if e.{us_key} != {us_key}:")
+                        res.append("                continue")
+                res.append("            return e")
+                res.append("")
+
+            # create() finds an existing entry by key via .get() (when the
+            # list has keys), updates its non-key args, and returns it.
+            # Otherwise it appends a fresh entry.
             list_args_str = ", ".join(["self"] + list_args_req_sig + list_args_opt_sig)
             res.append("    mut def create({list_args_str}) -> {pname()}_entry:")
-            res.append("        for e in self:")
-            res.append("            match = True")
-            for us_key in list_key_args:
-                key_dtype = list_key_types[us_key]
-                if isinstance(key_dtype, DTypeUnion):
-                    # Union keys are Acton "value"-typed and have no Eq.
-                    # Narrow with isinstance per union member; if no type
-                    # pair matched (or values differed), treat as mismatch.
-                    # TODO: use Acton unions
-                    unique_base_types = []
-                    for t in key_dtype.types:
-                        acton_type = yang_type_to_acton_type(t)
-                        if acton_type not in unique_base_types:
-                            unique_base_types.append(acton_type)
-                    res.append("            e_{us_key} = e.{us_key}")
-                    res.append("            {us_key}_match = False")
-                    for i, t in enumerate(unique_base_types):
-                        keyword = "if" if i == 0 else "elif"
-                        res.append("            {keyword} isinstance(e_{us_key}, {t}) and isinstance({us_key}, {t}):")
-                        res.append("                if e_{us_key} == {us_key}:")
-                        res.append("                    {us_key}_match = True")
-                    res.append("            if not {us_key}_match:")
-                    res.append("                match = False")
-                    res.append("                continue")
-                else:
-                    # Concrete Acton type with Eq; compare directly.
-                    res.append("            if e.{us_key} != {us_key}:")
-                    res.append("                match = False")
-                    res.append("                continue")
-            res.append("            if match:")
-            for req_arg in list_args_req:
-                if req_arg in list_key_args:
-                    continue
-                res.append("                e.{req_arg} = {req_arg}")
-            for opt_arg in list_args_opt:
-                res.append("                if {opt_arg} is not None:")
-                res.append("                    e.{opt_arg} = {opt_arg}")
-            res.append("                return e")
-            res.append("")
+            if len(list_key_args) > 0:
+                key_call_args = ", ".join(list_args_req[:len(list_key_args)])
+                res.append("        e = self.get({key_call_args})")
+                res.append("        if e is not None:")
+                for req_arg in list_args_req[len(list_key_args):]:
+                    res.append("            e.{req_arg} = {req_arg}")
+                for opt_arg in list_args_opt:
+                    res.append("            if {opt_arg} is not None:")
+                    res.append("                e.{opt_arg} = {opt_arg}")
+                res.append("            return e")
             list_params_str = ", ".join(["{arg}={arg}" for arg in list_args_req + list_args_opt])
             res.append("        res = {pname()}_entry({list_params_str})")
             res.append("        self.elements.append(res)")

@@ -79,11 +79,9 @@ class foo__c1__l1(yang.adata.MNode):
         self._name = 'l1'
         self.elements = elements
 
-    mut def create(self, k1: str, k2: value, l1: str) -> foo__c1__l1_entry:
+    def get(self, k1: str, k2: value) -> ?foo__c1__l1_entry:
         for e in self:
-            match = True
             if e.k1 != k1:
-                match = False
                 continue
             e_k2 = e.k2
             k2_match = False
@@ -94,12 +92,14 @@ class foo__c1__l1(yang.adata.MNode):
                 if e_k2 == k2:
                     k2_match = True
             if not k2_match:
-                match = False
                 continue
-            if match:
-                e.l1 = l1
-                return e
+            return e
 
+    mut def create(self, k1: str, k2: value, l1: str) -> foo__c1__l1_entry:
+        e = self.get(k1, k2)
+        if e is not None:
+            e.l1 = l1
+            return e
         res = foo__c1__l1_entry(k1=k1, k2=k2, l1=l1)
         self.elements.append(res)
         return res

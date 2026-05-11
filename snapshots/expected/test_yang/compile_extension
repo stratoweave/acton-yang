@@ -76,17 +76,18 @@ class foo__c1__things(yang.adata.MNode):
         self._name = 'things'
         self.elements = elements
 
-    mut def create(self, name: str, id: ?str=None) -> foo__c1__things_entry:
+    def get(self, name: str) -> ?foo__c1__things_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                if id is not None:
-                    e.id = id
-                return e
+            return e
 
+    mut def create(self, name: str, id: ?str=None) -> foo__c1__things_entry:
+        e = self.get(name)
+        if e is not None:
+            if id is not None:
+                e.id = id
+            return e
         res = foo__c1__things_entry(name=name, id=id)
         self.elements.append(res)
         return res

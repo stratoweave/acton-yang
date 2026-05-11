@@ -212,16 +212,17 @@ class foo__li(yang.adata.MNode):
         self._name = 'li'
         self.elements = elements
 
-    mut def create(self, name: str, c1: foo__li__c1) -> foo__li_entry:
+    def get(self, name: str) -> ?foo__li_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                e.c1 = c1
-                return e
+            return e
 
+    mut def create(self, name: str, c1: foo__li__c1) -> foo__li_entry:
+        e = self.get(name)
+        if e is not None:
+            e.c1 = c1
+            return e
         res = foo__li_entry(name=name, c1=c1)
         self.elements.append(res)
         return res

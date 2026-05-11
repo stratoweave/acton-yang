@@ -451,6 +451,54 @@ def _test_list_create_idempotency():
     # TODO: fix this!!!
     return r.to_gdata().to_xmlstr()
 
+def _test_list_get():
+    r = yang_foo_root()
+    e_a = r.c1.li.create("a")
+    e_a.val = "1"
+    e_b = r.c1.li.create("b")
+    e_b.val = "2"
+
+    found = r.c1.li.get("b")
+    testing.assertNotNone(found)
+    if found is not None:
+        testing.assertEqual(found.val, "2")
+
+    testing.assertNone(r.c1.li.get("missing"))
+
+def _test_list_get_union_key():
+    r = yang_foo_root()
+    r.li_union_one_base.create("foo")
+    r.li_union_one_base.create("hello")
+
+    found = r.li_union_one_base.get("hello")
+    testing.assertNotNone(found)
+    if found is not None:
+        k1 = found.k1
+        if isinstance(k1, str):
+            testing.assertEqual(k1, "hello")
+        else:
+            testing.error("k1 in adata is not str")
+
+    testing.assertNone(r.li_union_one_base.get("missing"))
+
+def _test_list_get_compound_key():
+    r = yang_foo_root()
+    r.li_union.create("a", u64(1), "hi".encode())
+    r.li_union.create("a", u64(2), "hi".encode())
+    r.li_union.create("b", u64(1), "hi".encode())
+
+    found = r.li_union.get("a", u64(2), "hi".encode())
+    testing.assertNotNone(found)
+    if found is not None:
+        testing.assertEqual(found.k1, "a")
+        k2 = found.k2
+        if isinstance(k2, u64):
+            testing.assertEqual(k2, u64(2))
+        else:
+            testing.error("k2 in adata is not u64")
+
+    testing.assertNone(r.li_union.get("z", u64(1), "hi".encode()))
+
 def _test_p_container_create_idempotency():
     r = yang_foo_root()
     pc1 = r.create_pc1()

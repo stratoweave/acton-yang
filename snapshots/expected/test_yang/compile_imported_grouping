@@ -88,17 +88,18 @@ class bar__c1__li1(yang.adata.MNode):
         self._name = 'li1'
         self.elements = elements
 
-    mut def create(self, l1: str, l2: ?Identityref=None) -> bar__c1__li1_entry:
+    def get(self, l1: str) -> ?bar__c1__li1_entry:
         for e in self:
-            match = True
             if e.l1 != l1:
-                match = False
                 continue
-            if match:
-                if l2 is not None:
-                    e.l2 = l2
-                return e
+            return e
 
+    mut def create(self, l1: str, l2: ?Identityref=None) -> bar__c1__li1_entry:
+        e = self.get(l1)
+        if e is not None:
+            if l2 is not None:
+                e.l2 = l2
+            return e
         res = bar__c1__li1_entry(l1=l1, l2=l2)
         self.elements.append(res)
         return res

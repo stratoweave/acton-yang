@@ -67,11 +67,6 @@ class base__system_capabilities__per_node_capabilities(yang.adata.MNode):
         self.elements = elements
 
     mut def create(self) -> base__system_capabilities__per_node_capabilities_entry:
-        for e in self:
-            match = True
-            if match:
-                return e
-
         res = base__system_capabilities__per_node_capabilities_entry()
         self.elements.append(res)
         return res

@@ -104,15 +104,16 @@ class base_module__network_instances__network_instance(yang.adata.MNode):
         self._name = 'network-instance'
         self.elements = elements
 
-    mut def create(self, name: str) -> base_module__network_instances__network_instance_entry:
+    def get(self, name: str) -> ?base_module__network_instances__network_instance_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                return e
+            return e
 
+    mut def create(self, name: str) -> base_module__network_instances__network_instance_entry:
+        e = self.get(name)
+        if e is not None:
+            return e
         res = base_module__network_instances__network_instance_entry(name=name)
         self.elements.append(res)
         return res
