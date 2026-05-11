@@ -1,0 +1,116 @@
+import base64
+import json
+import xml
+import yang
+import yang.adata
+import yang.gdata
+import yang.xml
+import yang.xpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0 = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=[
+'name',
+'id'
+    ], config=True, min_elements=0, ordered_by='system', children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='id', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='other', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+])
+
+SRC_DNODE = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[],
+    rpcs=[],
+    module_metadata={'http://example.com/foo':('foo', None)},
+)
+
+NS_foo = 'http://example.com/foo'
+
+
+_breaker1 = None
+class foo__l1_entry(yang.adata.MNode):
+    name: str
+    id: str
+    other: ?str
+
+    mut def __init__(self, name: str, id: str, other: ?str) -> None:
+        self._ns = 'http://example.com/foo'
+        self.name = name
+        self.id = id
+        self.other = other
+
+    def _get_attr(self, name: str) -> ?value:
+        if name == 'name':
+            return self.name
+        if name == 'id':
+            return self.id
+        if name == 'other':
+            return self.other
+
+    mut def to_gdata(self) -> yang.gdata.Node:
+        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])
+
+    @staticmethod
+    mut def from_gdata(n: yang.gdata.Node) -> foo__l1_entry:
+        return foo__l1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), id=n.get_str(yang.gdata.Id(NS_foo, 'id')), other=n.get_opt_str(yang.gdata.Id(NS_foo, 'other')))
+
+    def copy(self) -> foo__l1_entry:
+        """Create a deep copy of this adata object"""
+        return foo__l1_entry.from_gdata(self.to_gdata())
+
+_breaker2 = None
+class foo__l1(yang.adata.MNode):
+    elements: list[foo__l1_entry]
+    mut def __init__(self, elements: list[foo__l1_entry]=[]) -> None:
+        self._ns = 'http://example.com/foo'
+        self._name = 'l1'
+        self.elements = elements
+
+    mut def create(self, name: str, id: str, other: ?str=None) -> foo__l1_entry:
+        for e in self:
+            match = True
+            if e.name != name:
+                match = False
+                continue
+            if e.id != id:
+                match = False
+                continue
+            if match:
+                if other is not None:
+                    e.other = other
+                return e
+
+        res = foo__l1_entry(name=name, id=id, other=other)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__l1_entry]:
+        if n is not None:
+            return [foo__l1_entry.from_gdata(e) for e in n.elements]
+        return []
+
+    def copy(self) -> foo__l1:
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return foo__l1(elements=copied_elements)
+
+extension foo__l1(Iterable[foo__l1_entry]):
+    def __iter__(self) -> Iterator[foo__l1_entry]:
+        return self.elements.__iter__()

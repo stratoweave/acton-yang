@@ -522,9 +522,10 @@ class DNodeInner(DNode):
         def next_breaker_name(i: int) -> (str, int):
             return ("_breaker{i + 1}", i + 1)
 
-        # Reorder children so that positional arguments, like list keys, come first
+        # Reorder and filter children so that list keys come first - ordered as
+        # they appear in the key statement
         new_children = []
-        pos_child_idx = 0
+        key_children = {}
         for child in self.children:
             if include_state == False and child.config == False:
                 continue
@@ -535,10 +536,14 @@ class DNodeInner(DNode):
             elif isinstance(child, DAnyxml):
                 continue # TODO
             if isinstance(child, DLeaf) and isinstance(self, DList) and child.is_key(self):
-                new_children.insert(pos_child_idx, child)
-                pos_child_idx += 1
+                key_children[child.name] = child
             else:
                 new_children.append(child)
+        if isinstance(self, DList):
+            new_children = [key_children[k] for k in self.key] + new_children
+        # TODO: don't mutate this objects children attribute here. This is
+        # convenient because we can change behavior (DRpc) or skip printing
+        # unsupported nodes (DAny*), but it is lazy and wrong!
         self.children = new_children
 
         unique_namer = UniqueNamer(self)

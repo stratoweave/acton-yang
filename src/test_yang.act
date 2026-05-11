@@ -2368,6 +2368,31 @@ def _test_prdaclass_list_key_reorder():
     src = root.prdaclass(top=False, root_path=["foo:l1"])
     return src
 
+def _test_prdaclass_list_multi_key_reorder():
+    """Composite key whose key-statement order differs from the schema
+    declaration order: keys must come first in key-statement order
+    (name then id), not in declaration order (id then name)."""
+    ys = r"""module foo {
+    yang-version "1.1";
+    namespace "http://example.com/foo";
+    prefix "foo";
+    list l1 {
+        key "name id";
+        leaf id {
+            type string;
+        }
+        leaf name {
+            type string;
+        }
+        leaf other {
+            type string;
+        }
+    }
+}"""
+    root = yang.compile([ys])
+    src = root.prdaclass(top=False, root_path=["foo:l1"])
+    return src
+
 def _test_prdaclass_top_conflict():
     ys_foo = r"""module foo {
     yang-version "1.1";
