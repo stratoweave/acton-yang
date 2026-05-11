@@ -25,6 +25,7 @@ proc def cmd_transform(env, file_cap, args):
     """
     infile = args.get_str("infile")
     transforms = args.get_strlist("transform")
+    outfile = args.get_str("output")
 
     rfc = file.ReadFileCap(file_cap)
 
@@ -53,7 +54,18 @@ proc def cmd_transform(env, file_cap, args):
             y = n.to_statement()
 
         yang_out = y.pryang()
-        print(yang_out)
+        if outfile == "-":
+            print(yang_out)
+        else:
+            try:
+                wfc = file.WriteFileCap(file_cap)
+                wf = file.WriteFile(wfc, outfile)
+                wf.write(yang_out.encode())
+                wf.close()
+                print("Wrote output to {outfile}", err=True)
+            except OSError as e:
+                print("Error writing file {outfile}: {e}", err=True)
+                env.exit(1)
 
 
 proc def cmd_compile(env, file_cap, args):
@@ -72,7 +84,8 @@ proc def cmd_compile(env, file_cap, args):
     loose = args.get_bool("loose")
     exclude_patterns = args.get_strlist("exclude")
     stage = args.get_str("stage")
-    should_print = args.get_bool("print")
+    outfile = args.get_str("output")
+    want_output = outfile != ""
     strict_quoting = not args.get_bool("no-strict-quoting")
 
     if len(infiles) == 0:
@@ -131,38 +144,35 @@ proc def cmd_compile(env, file_cap, args):
 
     try:
         sw = time.Stopwatch()
+        stage_output = None
 
         if stage == "statement":
             # For statement stage, stop after parsing.
             stmts = yang.parse_statements(yang_sources, strict_quoting=strict_quoting)
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
-            if should_print:
-                for stmt in stmts:
-                    print(stmt.prsrc())
+            if want_output:
+                stage_output = "\n".join([stmt.prsrc() for stmt in stmts])
         elif stage == "schema-tree":
             # For schema tree, use partial compilation (skip type resolution)
             modules = yang.compile_modules(yang.parse_modules(yang.parse_statements(yang_sources, strict_quoting=strict_quoting)))
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
-            if should_print:
-                for m in modules:
-                    print(m.print_tree())
+            if want_output:
+                stage_output = "\n".join([m.print_tree() for m in modules])
         elif stage == "dnode-tree":
             # For dnode tree, use full compilation
             root = yang.compile(yang_sources, strict_quoting=strict_quoting)
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
-            if should_print:
-                print(root.print_tree())
+            if want_output:
+                stage_output = root.print_tree()
         elif stage == "dnode-src":
             root = yang.compile(yang_sources, strict_quoting=strict_quoting)
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
             sw.reset()
             stage_output = root.prsrc()
-            if should_print:
-                print(stage_output)
             t2 = sw.elapsed()
             print("Generated SRC_DNODE in {t2.to_float()}s", err=True)
         elif stage == "adata":
@@ -170,16 +180,28 @@ proc def cmd_compile(env, file_cap, args):
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
             sw.reset()
-            adata = root.prdaclass(loose=loose)
+            stage_output = root.prdaclass(loose=loose)
             t2 = sw.elapsed()
-            if should_print:
-                print(adata)
             print("Generated adata in {t2.to_float()}s", err=True)
         else:
             # Default: just compile without output
             root = yang.compile(yang_sources, strict_quoting=strict_quoting)
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
+
+        if stage_output is not None:
+            if outfile == "-":
+                print(stage_output)
+            else:
+                try:
+                    wfc = file.WriteFileCap(file_cap)
+                    wf = file.WriteFile(wfc, outfile)
+                    wf.write(stage_output.encode())
+                    wf.close()
+                    print("Wrote output to {outfile}", err=True)
+                except OSError as e:
+                    print("Error writing file {outfile}: {e}", err=True)
+                    env.exit(1)
     except Exception as exc:
         print("Error during compilation: {exc}", err=True)
         env.exit(1)
@@ -211,6 +233,7 @@ actor main(env):
     transform_cmd = p.add_cmd("transform", "apply transforms to a YANG module", _cmd_transform)
     transform_cmd.add_arg("infile", "input YANG file", required=True)
     transform_cmd.add_arg("transform", "transform(s) to apply (e.g., unions, explicit-cases)", required=True, nargs="+")
+    transform_cmd.add_option("output", "str", default="-", help="write output to file (default '-' for stdout)", short="o")
 
     # Compile subcommand
     compile_cmd = p.add_cmd("compile", "compile YANG modules together", _cmd_compile)
@@ -218,7 +241,7 @@ actor main(env):
     compile_cmd.add_bool("loose", "generate loose validation mode classes", short="l")
     compile_cmd.add_option("exclude", "strlist", "*", [], "glob pattern(s) to exclude files", short="e")
     compile_cmd.add_option("stage", "str", default="", help="compile stage (adata, dnode-src, schema-tree, dnode-tree, statement, default full compile only)", short="s")
-    compile_cmd.add_bool("print", "print the output produced by the selected stage", short="p")
+    compile_cmd.add_option("output", "str", default="", help="write stage output to file (use '-' for stdout)", short="o")
     compile_cmd.add_bool("no-strict-quoting", "disable strict quoting enforcement (enabled by default)")
 
     try:
