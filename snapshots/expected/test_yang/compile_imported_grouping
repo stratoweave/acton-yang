@@ -124,6 +124,27 @@ extension bar__c1__li1(Iterable[bar__c1__li1_entry]):
     def __iter__(self) -> Iterator[bar__c1__li1_entry]:
         return self.elements.__iter__()
 
+extension bar__c1__li1(Indexed[str, bar__c1__li1_entry]):
+    def __getitem__(self, k: str) -> bar__c1__li1_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: bar__c1__li1_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.l1 == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.l1 == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
+
 _breaker3 = None
 class bar__c1(yang.adata.MNode):
     li1: bar__c1__li1

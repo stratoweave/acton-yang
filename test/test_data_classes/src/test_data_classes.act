@@ -465,6 +465,19 @@ def _test_list_get():
 
     testing.assertNone(r.c1.li.get("missing"))
 
+def _test_list_indexed():
+    r = yang_foo_root()
+    r.c1.li.create("a", val="1")
+    r.c1.li.create("b", val="2")
+
+    testing.assertEqual(r.c1.li["b"].val, "2")
+
+    r.c1.li["b"] = yang_foo.foo__c1__li_entry(name="b", val="22")
+    testing.assertEqual(r.c1.li["b"].val, "22")
+
+    del r.c1.li["b"]
+    testing.assertNone(r.c1.li.get("b"))
+
 def _test_list_get_union_key():
     r = yang_foo_root()
     r.li_union_one_base.create("foo")

@@ -618,6 +618,27 @@ extension foo__c1__li(Iterable[foo__c1__li_entry]):
     def __iter__(self) -> Iterator[foo__c1__li_entry]:
         return self.elements.__iter__()
 
+extension foo__c1__li(Indexed[str, foo__c1__li_entry]):
+    def __getitem__(self, k: str) -> foo__c1__li_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__c1__li_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
+
 _breaker4 = None
 class foo__c1(yang.adata.MNode):
     f_l1: ?str
@@ -1056,6 +1077,27 @@ extension foo__cc__death(Iterable[foo__cc__death_entry]):
     def __iter__(self) -> Iterator[foo__cc__death_entry]:
         return self.elements.__iter__()
 
+extension foo__cc__death(Indexed[str, foo__cc__death_entry]):
+    def __getitem__(self, k: str) -> foo__cc__death_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__cc__death_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
+
 _breaker17 = None
 class foo__cc(yang.adata.MNode):
     cake: ?str
@@ -1253,6 +1295,27 @@ extension foo__special(Iterable[foo__special_entry]):
     def __iter__(self) -> Iterator[foo__special_entry]:
         return self.elements.__iter__()
 
+extension foo__special(Indexed[bool, foo__special_entry]):
+    def __getitem__(self, k: bool) -> foo__special_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: bool, n: foo__special_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.yes == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: bool) -> None:
+        for i, e in enumerate(self.elements):
+            if e.yes == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
+
 _breaker23 = None
 class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
     key1: str
@@ -1410,6 +1473,27 @@ class foo__nested__f_inner__li1(yang.adata.MNode):
 extension foo__nested__f_inner__li1(Iterable[foo__nested__f_inner__li1_entry]):
     def __iter__(self) -> Iterator[foo__nested__f_inner__li1_entry]:
         return self.elements.__iter__()
+
+extension foo__nested__f_inner__li1(Indexed[str, foo__nested__f_inner__li1_entry]):
+    def __getitem__(self, k: str) -> foo__nested__f_inner__li1_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__nested__f_inner__li1_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker27 = None
 class foo__nested__f_inner(yang.adata.MNode):

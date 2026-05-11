@@ -140,3 +140,24 @@ class foo__c__li(yang.adata.MNode):
 extension foo__c__li(Iterable[foo__c__li_entry]):
     def __iter__(self) -> Iterator[foo__c__li_entry]:
         return self.elements.__iter__()
+
+extension foo__c__li(Indexed[str, foo__c__li_entry]):
+    def __getitem__(self, k: str) -> foo__c__li_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__c__li_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)

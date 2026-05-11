@@ -383,6 +383,27 @@ extension filter_test__interfaces__interface(Iterable[filter_test__interfaces__i
     def __iter__(self) -> Iterator[filter_test__interfaces__interface_entry]:
         return self.elements.__iter__()
 
+extension filter_test__interfaces__interface(Indexed[str, filter_test__interfaces__interface_entry]):
+    def __getitem__(self, k: str) -> filter_test__interfaces__interface_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: filter_test__interfaces__interface_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
+
 _breaker8 = None
 class filter_test__interfaces(yang.adata.MNode):
     interface: filter_test__interfaces__interface

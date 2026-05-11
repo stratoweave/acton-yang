@@ -925,6 +925,36 @@ class DNodeInner(DNode):
             res.append("extension {pname()}(Iterable[{pname()}_entry]):")
             res.append("    def __iter__(self) -> Iterator[{pname()}_entry]:")
             res.append("        return self.elements.__iter__()")
+
+            # Indexed extension for single-key lists with a non-union key.
+            # Composite keys would need a tuple, union keys are typed as Acton
+            # value; neither can implement Eq
+            if len(list_key_args) == 1:
+                us_key = list_key_args[0]
+                key_dtype = list_key_types[us_key]
+                if not isinstance(key_dtype, DTypeUnion):
+                    key_acton_type = yang_type_to_acton_type(key_dtype)
+                    res.append("")
+                    res.append("extension {pname()}(Indexed[{key_acton_type}, {pname()}_entry]):")
+                    res.append("    def __getitem__(self, k: {key_acton_type}) -> {pname()}_entry:")
+                    res.append("        e = self.get(k)")
+                    res.append("        if e is not None:")
+                    res.append("            return e")
+                    res.append("        raise KeyError(k)")
+                    res.append("")
+                    res.append("    mut def __setitem__(self, k: {key_acton_type}, n: {pname()}_entry) -> None:")
+                    res.append("        for i, e in enumerate(self.elements):")
+                    res.append("            if e.{us_key} == k:")
+                    res.append("                self.elements[i] = n")
+                    res.append("                return")
+                    res.append("        self.elements.append(n)")
+                    res.append("")
+                    res.append("    mut def __delitem__(self, k: {key_acton_type}) -> None:")
+                    res.append("        for i, e in enumerate(self.elements):")
+                    res.append("            if e.{us_key} == k:")
+                    res.append("                del self.elements[i]")
+                    res.append("                return")
+                    res.append("        raise KeyError(k)")
         res.append("")
 
 
