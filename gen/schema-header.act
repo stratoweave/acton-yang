@@ -849,27 +849,29 @@ class DNodeInner(DNode):
             res.append("        for e in self:")
             res.append("            match = True")
             for us_key in list_key_args:
-                # Order-preserving deduplication
-                unique_base_types = []
                 key_dtype = list_key_types[us_key]
                 if isinstance(key_dtype, DTypeUnion):
+                    # Union keys are Acton "value"-typed and have no Eq.
+                    # Narrow with isinstance per union member; if no type
+                    # pair matched (or values differed), treat as mismatch.
+                    # TODO: use Acton unions
+                    unique_base_types = []
                     for t in key_dtype.types:
                         acton_type = yang_type_to_acton_type(t)
                         if acton_type not in unique_base_types:
                             unique_base_types.append(acton_type)
-                    # Union types for mixed unions are Acton "value" types, so
-                    # we need to first attempt to bind them to a more specific type
-                    # TODO: use Acton unions
-                    for t in unique_base_types:
-                        res.append("            e_{us_key} = e.{us_key}")
-                        res.append("            if isinstance(e_{us_key}, {t}) and isinstance({us_key}, {t}):")
-                        res.append("                if e_{us_key} != {us_key}:")
-                        res.append("                    match = False")
-                        res.append("                    continue")
+                    res.append("            e_{us_key} = e.{us_key}")
+                    res.append("            {us_key}_match = False")
+                    for i, t in enumerate(unique_base_types):
+                        keyword = "if" if i == 0 else "elif"
+                        res.append("            {keyword} isinstance(e_{us_key}, {t}) and isinstance({us_key}, {t}):")
+                        res.append("                if e_{us_key} == {us_key}:")
+                        res.append("                    {us_key}_match = True")
+                    res.append("            if not {us_key}_match:")
+                    res.append("                match = False")
+                    res.append("                continue")
                 else:
-                    # Class attribute is a not a "value" Acton type because it
-                    # is either not an union or it an union that was resolved
-                    # to a single builtin type, it has equality check
+                    # Concrete Acton type with Eq; compare directly.
                     res.append("            if e.{us_key} != {us_key}:")
                     res.append("                match = False")
                     res.append("                continue")
