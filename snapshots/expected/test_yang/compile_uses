@@ -66,15 +66,16 @@ class foo__c1__li1(yang.adata.MNode):
         self._name = 'li1'
         self.elements = elements
 
-    mut def create(self, l1: str) -> foo__c1__li1_entry:
+    def get(self, l1: str) -> ?foo__c1__li1_entry:
         for e in self:
-            match = True
             if e.l1 != l1:
-                match = False
                 continue
-            if match:
-                return e
+            return e
 
+    mut def create(self, l1: str) -> foo__c1__li1_entry:
+        e = self.get(l1)
+        if e is not None:
+            return e
         res = foo__c1__li1_entry(l1=l1)
         self.elements.append(res)
         return res
@@ -98,6 +99,27 @@ class foo__c1__li1(yang.adata.MNode):
 extension foo__c1__li1(Iterable[foo__c1__li1_entry]):
     def __iter__(self) -> Iterator[foo__c1__li1_entry]:
         return self.elements.__iter__()
+
+extension foo__c1__li1(Indexed[str, foo__c1__li1_entry]):
+    def __getitem__(self, k: str) -> foo__c1__li1_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__c1__li1_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.l1 == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.l1 == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker3 = None
 class foo__c1(yang.adata.MNode):

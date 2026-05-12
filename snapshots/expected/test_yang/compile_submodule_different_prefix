@@ -115,19 +115,20 @@ class main_module__main_container__sub_list(yang.adata.MNode):
         self._name = 'sub-list'
         self.elements = elements
 
-    mut def create(self, name: str, sub_value: ?str=None, ref_to_main: ?str=None) -> main_module__main_container__sub_list_entry:
+    def get(self, name: str) -> ?main_module__main_container__sub_list_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                if sub_value is not None:
-                    e.sub_value = sub_value
-                if ref_to_main is not None:
-                    e.ref_to_main = ref_to_main
-                return e
+            return e
 
+    mut def create(self, name: str, sub_value: ?str=None, ref_to_main: ?str=None) -> main_module__main_container__sub_list_entry:
+        e = self.get(name)
+        if e is not None:
+            if sub_value is not None:
+                e.sub_value = sub_value
+            if ref_to_main is not None:
+                e.ref_to_main = ref_to_main
+            return e
         res = main_module__main_container__sub_list_entry(name=name, sub_value=sub_value, ref_to_main=ref_to_main)
         self.elements.append(res)
         return res
@@ -151,6 +152,27 @@ class main_module__main_container__sub_list(yang.adata.MNode):
 extension main_module__main_container__sub_list(Iterable[main_module__main_container__sub_list_entry]):
     def __iter__(self) -> Iterator[main_module__main_container__sub_list_entry]:
         return self.elements.__iter__()
+
+extension main_module__main_container__sub_list(Indexed[str, main_module__main_container__sub_list_entry]):
+    def __getitem__(self, k: str) -> main_module__main_container__sub_list_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: main_module__main_container__sub_list_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker4 = None
 class main_module__main_container__group_container(yang.adata.MNode):

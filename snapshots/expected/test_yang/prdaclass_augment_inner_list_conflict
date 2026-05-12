@@ -75,16 +75,17 @@ class base__c1__base_l1(yang.adata.MNode):
         self._name = 'l1'
         self.elements = elements
 
-    mut def create(self, base_k1: str, foo_k1: str) -> base__c1__base_l1_entry:
+    def get(self, base_k1: str) -> ?base__c1__base_l1_entry:
         for e in self:
-            match = True
             if e.base_k1 != base_k1:
-                match = False
                 continue
-            if match:
-                e.foo_k1 = foo_k1
-                return e
+            return e
 
+    mut def create(self, base_k1: str, foo_k1: str) -> base__c1__base_l1_entry:
+        e = self.get(base_k1)
+        if e is not None:
+            e.foo_k1 = foo_k1
+            return e
         res = base__c1__base_l1_entry(base_k1=base_k1, foo_k1=foo_k1)
         self.elements.append(res)
         return res
@@ -108,6 +109,27 @@ class base__c1__base_l1(yang.adata.MNode):
 extension base__c1__base_l1(Iterable[base__c1__base_l1_entry]):
     def __iter__(self) -> Iterator[base__c1__base_l1_entry]:
         return self.elements.__iter__()
+
+extension base__c1__base_l1(Indexed[str, base__c1__base_l1_entry]):
+    def __getitem__(self, k: str) -> base__c1__base_l1_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: base__c1__base_l1_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.base_k1 == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.base_k1 == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker3 = None
 class base__c1__foo_l1_entry(yang.adata.MNode):
@@ -140,15 +162,16 @@ class base__c1__foo_l1(yang.adata.MNode):
         self._name = 'l1'
         self.elements = elements
 
-    mut def create(self, k2: str) -> base__c1__foo_l1_entry:
+    def get(self, k2: str) -> ?base__c1__foo_l1_entry:
         for e in self:
-            match = True
             if e.k2 != k2:
-                match = False
                 continue
-            if match:
-                return e
+            return e
 
+    mut def create(self, k2: str) -> base__c1__foo_l1_entry:
+        e = self.get(k2)
+        if e is not None:
+            return e
         res = base__c1__foo_l1_entry(k2=k2)
         self.elements.append(res)
         return res
@@ -172,6 +195,27 @@ class base__c1__foo_l1(yang.adata.MNode):
 extension base__c1__foo_l1(Iterable[base__c1__foo_l1_entry]):
     def __iter__(self) -> Iterator[base__c1__foo_l1_entry]:
         return self.elements.__iter__()
+
+extension base__c1__foo_l1(Indexed[str, base__c1__foo_l1_entry]):
+    def __getitem__(self, k: str) -> base__c1__foo_l1_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: base__c1__foo_l1_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.k2 == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.k2 == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker5 = None
 class base__c1(yang.adata.MNode):

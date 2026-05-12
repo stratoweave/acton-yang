@@ -337,27 +337,28 @@ class filter_test__interfaces__interface(yang.adata.MNode):
         self._name = 'interface'
         self.elements = elements
 
-    mut def create(self, name: str, description: ?str=None, type: ?str=None, enabled: ?bool=None, admin_status: ?str=None, oper_status: ?str=None, last_change: ?str=None) -> filter_test__interfaces__interface_entry:
+    def get(self, name: str) -> ?filter_test__interfaces__interface_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                if description is not None:
-                    e.description = description
-                if type is not None:
-                    e.type = type
-                if enabled is not None:
-                    e.enabled = enabled
-                if admin_status is not None:
-                    e.admin_status = admin_status
-                if oper_status is not None:
-                    e.oper_status = oper_status
-                if last_change is not None:
-                    e.last_change = last_change
-                return e
+            return e
 
+    mut def create(self, name: str, description: ?str=None, type: ?str=None, enabled: ?bool=None, admin_status: ?str=None, oper_status: ?str=None, last_change: ?str=None) -> filter_test__interfaces__interface_entry:
+        e = self.get(name)
+        if e is not None:
+            if description is not None:
+                e.description = description
+            if type is not None:
+                e.type = type
+            if enabled is not None:
+                e.enabled = enabled
+            if admin_status is not None:
+                e.admin_status = admin_status
+            if oper_status is not None:
+                e.oper_status = oper_status
+            if last_change is not None:
+                e.last_change = last_change
+            return e
         res = filter_test__interfaces__interface_entry(name=name, description=description, type=type, enabled=enabled, admin_status=admin_status, oper_status=oper_status, last_change=last_change)
         self.elements.append(res)
         return res
@@ -381,6 +382,27 @@ class filter_test__interfaces__interface(yang.adata.MNode):
 extension filter_test__interfaces__interface(Iterable[filter_test__interfaces__interface_entry]):
     def __iter__(self) -> Iterator[filter_test__interfaces__interface_entry]:
         return self.elements.__iter__()
+
+extension filter_test__interfaces__interface(Indexed[str, filter_test__interfaces__interface_entry]):
+    def __getitem__(self, k: str) -> filter_test__interfaces__interface_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: filter_test__interfaces__interface_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker8 = None
 class filter_test__interfaces(yang.adata.MNode):

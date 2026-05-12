@@ -582,17 +582,18 @@ class foo__c1__li(yang.adata.MNode):
         self._name = 'li'
         self.elements = elements
 
-    mut def create(self, name: str, val: ?str=None) -> foo__c1__li_entry:
+    def get(self, name: str) -> ?foo__c1__li_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                if val is not None:
-                    e.val = val
-                return e
+            return e
 
+    mut def create(self, name: str, val: ?str=None) -> foo__c1__li_entry:
+        e = self.get(name)
+        if e is not None:
+            if val is not None:
+                e.val = val
+            return e
         res = foo__c1__li_entry(name=name, val=val)
         self.elements.append(res)
         return res
@@ -616,6 +617,27 @@ class foo__c1__li(yang.adata.MNode):
 extension foo__c1__li(Iterable[foo__c1__li_entry]):
     def __iter__(self) -> Iterator[foo__c1__li_entry]:
         return self.elements.__iter__()
+
+extension foo__c1__li(Indexed[str, foo__c1__li_entry]):
+    def __getitem__(self, k: str) -> foo__c1__li_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__c1__li_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker4 = None
 class foo__c1(yang.adata.MNode):
@@ -1021,15 +1043,16 @@ class foo__cc__death(yang.adata.MNode):
         self._name = 'death'
         self.elements = elements
 
-    mut def create(self, name: str) -> foo__cc__death_entry:
+    def get(self, name: str) -> ?foo__cc__death_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                return e
+            return e
 
+    mut def create(self, name: str) -> foo__cc__death_entry:
+        e = self.get(name)
+        if e is not None:
+            return e
         res = foo__cc__death_entry(name=name)
         self.elements.append(res)
         return res
@@ -1053,6 +1076,27 @@ class foo__cc__death(yang.adata.MNode):
 extension foo__cc__death(Iterable[foo__cc__death_entry]):
     def __iter__(self) -> Iterator[foo__cc__death_entry]:
         return self.elements.__iter__()
+
+extension foo__cc__death(Indexed[str, foo__cc__death_entry]):
+    def __getitem__(self, k: str) -> foo__cc__death_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__cc__death_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker17 = None
 class foo__cc(yang.adata.MNode):
@@ -1217,15 +1261,16 @@ class foo__special(yang.adata.MNode):
         self._name = 'special'
         self.elements = elements
 
-    mut def create(self, yes: bool) -> foo__special_entry:
+    def get(self, yes: bool) -> ?foo__special_entry:
         for e in self:
-            match = True
             if e.yes != yes:
-                match = False
                 continue
-            if match:
-                return e
+            return e
 
+    mut def create(self, yes: bool) -> foo__special_entry:
+        e = self.get(yes)
+        if e is not None:
+            return e
         res = foo__special_entry(yes=yes)
         self.elements.append(res)
         return res
@@ -1249,6 +1294,27 @@ class foo__special(yang.adata.MNode):
 extension foo__special(Iterable[foo__special_entry]):
     def __iter__(self) -> Iterator[foo__special_entry]:
         return self.elements.__iter__()
+
+extension foo__special(Indexed[bool, foo__special_entry]):
+    def __getitem__(self, k: bool) -> foo__special_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: bool, n: foo__special_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.yes == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: bool) -> None:
+        for i, e in enumerate(self.elements):
+            if e.yes == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker23 = None
 class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
@@ -1289,20 +1355,20 @@ class foo__nested__f_inner__li1__li2(yang.adata.MNode):
         self._name = 'li2'
         self.elements = elements
 
-    mut def create(self, key1: str, key2: str, baz: ?str=None) -> foo__nested__f_inner__li1__li2_entry:
+    def get(self, key1: str, key2: str) -> ?foo__nested__f_inner__li1__li2_entry:
         for e in self:
-            match = True
             if e.key1 != key1:
-                match = False
                 continue
             if e.key2 != key2:
-                match = False
                 continue
-            if match:
-                if baz is not None:
-                    e.baz = baz
-                return e
+            return e
 
+    mut def create(self, key1: str, key2: str, baz: ?str=None) -> foo__nested__f_inner__li1__li2_entry:
+        e = self.get(key1, key2)
+        if e is not None:
+            if baz is not None:
+                e.baz = baz
+            return e
         res = foo__nested__f_inner__li1__li2_entry(key1=key1, key2=key2, baz=baz)
         self.elements.append(res)
         return res
@@ -1370,19 +1436,20 @@ class foo__nested__f_inner__li1(yang.adata.MNode):
         self._name = 'li1'
         self.elements = elements
 
-    mut def create(self, name: str, f_bar: ?str=None, bar_bar: ?str=None) -> foo__nested__f_inner__li1_entry:
+    def get(self, name: str) -> ?foo__nested__f_inner__li1_entry:
         for e in self:
-            match = True
             if e.name != name:
-                match = False
                 continue
-            if match:
-                if f_bar is not None:
-                    e.f_bar = f_bar
-                if bar_bar is not None:
-                    e.bar_bar = bar_bar
-                return e
+            return e
 
+    mut def create(self, name: str, f_bar: ?str=None, bar_bar: ?str=None) -> foo__nested__f_inner__li1_entry:
+        e = self.get(name)
+        if e is not None:
+            if f_bar is not None:
+                e.f_bar = f_bar
+            if bar_bar is not None:
+                e.bar_bar = bar_bar
+            return e
         res = foo__nested__f_inner__li1_entry(name=name, f_bar=f_bar, bar_bar=bar_bar)
         self.elements.append(res)
         return res
@@ -1406,6 +1473,27 @@ class foo__nested__f_inner__li1(yang.adata.MNode):
 extension foo__nested__f_inner__li1(Iterable[foo__nested__f_inner__li1_entry]):
     def __iter__(self) -> Iterator[foo__nested__f_inner__li1_entry]:
         return self.elements.__iter__()
+
+extension foo__nested__f_inner__li1(Indexed[str, foo__nested__f_inner__li1_entry]):
+    def __getitem__(self, k: str) -> foo__nested__f_inner__li1_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: foo__nested__f_inner__li1_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.name == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
 
 _breaker27 = None
 class foo__nested__f_inner(yang.adata.MNode):
@@ -1536,11 +1624,9 @@ class foo__li_union(yang.adata.MNode):
         self._name = 'li-union'
         self.elements = elements
 
-    mut def create(self, k1: str, k2: value, k3: bytes, checker: ?value=None) -> foo__li_union_entry:
+    def get(self, k1: str, k2: value, k3: bytes) -> ?foo__li_union_entry:
         for e in self:
-            match = True
             if e.k1 != k1:
-                match = False
                 continue
             e_k2 = e.k2
             k2_match = False
@@ -1554,16 +1640,17 @@ class foo__li_union(yang.adata.MNode):
                 if e_k2 == k2:
                     k2_match = True
             if not k2_match:
-                match = False
                 continue
             if e.k3 != k3:
-                match = False
                 continue
-            if match:
-                if checker is not None:
-                    e.checker = checker
-                return e
+            return e
 
+    mut def create(self, k1: str, k2: value, k3: bytes, checker: ?value=None) -> foo__li_union_entry:
+        e = self.get(k1, k2, k3)
+        if e is not None:
+            if checker is not None:
+                e.checker = checker
+            return e
         res = foo__li_union_entry(k1=k1, k2=k2, k3=k3, checker=checker)
         self.elements.append(res)
         return res
@@ -1619,20 +1706,21 @@ class foo__li_union_one_base(yang.adata.MNode):
         self._name = 'li-union-one-base'
         self.elements = elements
 
-    mut def create(self, k1: value) -> foo__li_union_one_base_entry:
+    def get(self, k1: value) -> ?foo__li_union_one_base_entry:
         for e in self:
-            match = True
             e_k1 = e.k1
             k1_match = False
             if isinstance(e_k1, str) and isinstance(k1, str):
                 if e_k1 == k1:
                     k1_match = True
             if not k1_match:
-                match = False
                 continue
-            if match:
-                return e
+            return e
 
+    mut def create(self, k1: value) -> foo__li_union_one_base_entry:
+        e = self.get(k1)
+        if e is not None:
+            return e
         res = foo__li_union_one_base_entry(k1=k1)
         self.elements.append(res)
         return res
