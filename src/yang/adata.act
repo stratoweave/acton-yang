@@ -8,8 +8,6 @@ from yang.data import coerce_integer_value, unwrap_key
 from yang.data import OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE
 
 class MNode(object):
-    _ns: str
-
     mut def to_gdata(self) -> yang.gdata.Node:
         raise NotImplementedError("to_gdata")
 

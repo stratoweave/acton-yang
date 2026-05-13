@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='main-module', namespace='http://example.com/main', prefix='main', name='main-container', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='main-module', namespace='http://example.com/main', prefix='main', name='main-container', config=True, presence=False, children=[
     DLeaf(module='main-module', namespace='http://example.com/main', prefix='main', name='main-leaf', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='main-module', namespace='http://example.com/main', prefix='main', name='sub-group-container', config=True, presence=False, children=[
         DLeaf(module='main-module', namespace='http://example.com/main', prefix='main', name='sub-group-leaf', config=True, default='from-submodule', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
@@ -40,25 +40,24 @@ DMust(condition='string-length(.) > 3', description=None, error_app_tag=None, er
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/main':('main-module', None)},
 )
 
-NS_main_module = 'http://example.com/main'
+NS_main_module: str = 'http://example.com/main'
 
 
-_breaker1 = None
+_breaker1: None = None
 class main_module__main_container__sub_group_container(yang.adata.MNode):
     sub_group_leaf: str
 
     mut def __init__(self, sub_group_leaf: ?str=None) -> None:
-        self._ns = 'http://example.com/main'
         self.sub_group_leaf = sub_group_leaf if sub_group_leaf is not None else "from-submodule"
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'sub_group_leaf':
             return self.sub_group_leaf
 
@@ -71,24 +70,23 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
             return main_module__main_container__sub_group_container(sub_group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-group-leaf')))
         return main_module__main_container__sub_group_container()
 
-    def copy(self) -> main_module__main_container__sub_group_container:
+    mut def copy(self) -> main_module__main_container__sub_group_container:
         """Create a deep copy of this adata object"""
         return main_module__main_container__sub_group_container.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class main_module__main_container__sub_list_entry(yang.adata.MNode):
     name: str
     sub_value: ?str
     ref_to_main: ?str
 
     mut def __init__(self, name: str, sub_value: ?str, ref_to_main: ?str) -> None:
-        self._ns = 'http://example.com/main'
         self.name = name
         self.sub_value = sub_value
         self.ref_to_main = ref_to_main
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'sub_value':
@@ -103,19 +101,17 @@ class main_module__main_container__sub_list_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> main_module__main_container__sub_list_entry:
         return main_module__main_container__sub_list_entry(name=n.get_str(yang.gdata.Id(NS_main_module, 'name')), sub_value=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-value')), ref_to_main=n.get_opt_str(yang.gdata.Id(NS_main_module, 'ref-to-main')))
 
-    def copy(self) -> main_module__main_container__sub_list_entry:
+    mut def copy(self) -> main_module__main_container__sub_list_entry:
         """Create a deep copy of this adata object"""
         return main_module__main_container__sub_list_entry.from_gdata(self.to_gdata())
 
-_breaker3 = None
+_breaker3: None = None
 class main_module__main_container__sub_list(yang.adata.MNode):
     elements: list[main_module__main_container__sub_list_entry]
     mut def __init__(self, elements: list[main_module__main_container__sub_list_entry]=[]) -> None:
-        self._ns = 'http://example.com/main'
-        self._name = 'sub-list'
         self.elements = elements
 
-    def get(self, name: str) -> ?main_module__main_container__sub_list_entry:
+    pure def get(self, name: str) -> ?main_module__main_container__sub_list_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -139,7 +135,7 @@ class main_module__main_container__sub_list(yang.adata.MNode):
             return [main_module__main_container__sub_list_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> main_module__main_container__sub_list:
+    mut def copy(self) -> main_module__main_container__sub_list:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -174,17 +170,16 @@ extension main_module__main_container__sub_list(Indexed[str, main_module__main_c
                 return
         raise KeyError(k)
 
-_breaker4 = None
+_breaker4: None = None
 class main_module__main_container__group_container(yang.adata.MNode):
     group_leaf: str
     augmented_in_group: ?str
 
     mut def __init__(self, group_leaf: ?str=None, augmented_in_group: ?str) -> None:
-        self._ns = 'http://example.com/main'
         self.group_leaf = group_leaf if group_leaf is not None else "refined-default"
         self.augmented_in_group = augmented_in_group
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'group_leaf':
             return self.group_leaf
         if name == 'augmented_in_group':
@@ -199,12 +194,12 @@ class main_module__main_container__group_container(yang.adata.MNode):
             return main_module__main_container__group_container(group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'group-leaf')), augmented_in_group=n.get_opt_str(yang.gdata.Id(NS_main_module, 'augmented-in-group')))
         return main_module__main_container__group_container()
 
-    def copy(self) -> main_module__main_container__group_container:
+    mut def copy(self) -> main_module__main_container__group_container:
         """Create a deep copy of this adata object"""
         return main_module__main_container__group_container.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker5: None = None
 class main_module__main_container(yang.adata.MNode):
     main_leaf: ?str
     sub_group_container: main_module__main_container__sub_group_container
@@ -213,14 +208,13 @@ class main_module__main_container(yang.adata.MNode):
     group_container: main_module__main_container__group_container
 
     mut def __init__(self, main_leaf: ?str, sub_group_container: ?main_module__main_container__sub_group_container=None, sub_leaf: ?str, sub_list: list[main_module__main_container__sub_list_entry]=[], group_container: ?main_module__main_container__group_container=None) -> None:
-        self._ns = 'http://example.com/main'
         self.main_leaf = main_leaf
         self.sub_group_container = sub_group_container if sub_group_container is not None else main_module__main_container__sub_group_container()
         self.sub_leaf = sub_leaf
         self.sub_list = main_module__main_container__sub_list(elements=sub_list)
         self.group_container = group_container if group_container is not None else main_module__main_container__group_container()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'main_leaf':
             return self.main_leaf
         if name == 'sub_group_container':
@@ -241,20 +235,19 @@ class main_module__main_container(yang.adata.MNode):
             return main_module__main_container(main_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'main-leaf')), sub_group_container=main_module__main_container__sub_group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'sub-group-container'))), sub_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-leaf')), sub_list=main_module__main_container__sub_list.from_gdata(n.get_opt_list(yang.gdata.Id(NS_main_module, 'sub-list'))), group_container=main_module__main_container__group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'group-container'))))
         return main_module__main_container()
 
-    def copy(self) -> main_module__main_container:
+    mut def copy(self) -> main_module__main_container:
         """Create a deep copy of this adata object"""
         return main_module__main_container.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker6: None = None
 class root(yang.adata.MNode):
     main_container: main_module__main_container
 
     mut def __init__(self, main_container: ?main_module__main_container=None) -> None:
-        self._ns = ''
         self.main_container = main_container if main_container is not None else main_module__main_container()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'main_container':
             return self.main_container
 
@@ -267,7 +260,7 @@ class root(yang.adata.MNode):
             return root(main_container=main_module__main_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'main-container'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

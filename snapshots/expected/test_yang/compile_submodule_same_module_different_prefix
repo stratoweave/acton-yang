@@ -19,38 +19,37 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-container', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-container', config=True, presence=False, children=[
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-leaf', config=True, mandatory=False, type_=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[])),
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='augmented-leaf', config=True, mandatory=False, type_=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[]))
 ])
 
-SRC_DNODE_CHILD_1 = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-container', config=True, presence=False, children=[
+SRC_DNODE_CHILD_1: DContainer = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-container', config=True, presence=False, children=[
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-leaf', config=True, mandatory=False, type_=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[])),
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='shared-leaf', config=True, default='from-shared', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/shared':('shared', None), 'http://example.com/parent':('parent', None)},
 )
 
-NS_parent = 'http://example.com/parent'
-NS_shared = 'http://example.com/shared'
+NS_parent: str = 'http://example.com/parent'
+NS_shared: str = 'http://example.com/shared'
 
 
-_breaker1 = None
+_breaker1: None = None
 class parent__parent_container(yang.adata.MNode):
     parent_leaf: ?str
     augmented_leaf: ?str
 
     mut def __init__(self, parent_leaf: ?str, augmented_leaf: ?str) -> None:
-        self._ns = 'http://example.com/parent'
         self.parent_leaf = parent_leaf
         self.augmented_leaf = augmented_leaf
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'parent_leaf':
             return self.parent_leaf
         if name == 'augmented_leaf':
@@ -65,22 +64,21 @@ class parent__parent_container(yang.adata.MNode):
             return parent__parent_container(parent_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'parent-leaf')), augmented_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'augmented-leaf')))
         return parent__parent_container()
 
-    def copy(self) -> parent__parent_container:
+    mut def copy(self) -> parent__parent_container:
         """Create a deep copy of this adata object"""
         return parent__parent_container.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class parent__sub_container(yang.adata.MNode):
     sub_leaf: ?str
     shared_leaf: str
 
     mut def __init__(self, sub_leaf: ?str, shared_leaf: ?str=None) -> None:
-        self._ns = 'http://example.com/parent'
         self.sub_leaf = sub_leaf
         self.shared_leaf = shared_leaf if shared_leaf is not None else "from-shared"
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'sub_leaf':
             return self.sub_leaf
         if name == 'shared_leaf':
@@ -95,22 +93,21 @@ class parent__sub_container(yang.adata.MNode):
             return parent__sub_container(sub_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'sub-leaf')), shared_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'shared-leaf')))
         return parent__sub_container()
 
-    def copy(self) -> parent__sub_container:
+    mut def copy(self) -> parent__sub_container:
         """Create a deep copy of this adata object"""
         return parent__sub_container.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class root(yang.adata.MNode):
     parent_container: parent__parent_container
     sub_container: parent__sub_container
 
     mut def __init__(self, parent_container: ?parent__parent_container=None, sub_container: ?parent__sub_container=None) -> None:
-        self._ns = ''
         self.parent_container = parent_container if parent_container is not None else parent__parent_container()
         self.sub_container = sub_container if sub_container is not None else parent__sub_container()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'parent_container':
             return self.parent_container
         if name == 'sub_container':
@@ -125,7 +122,7 @@ class root(yang.adata.MNode):
             return root(parent_container=parent__parent_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_parent, 'parent-container'))), sub_container=parent__sub_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_parent, 'sub-container'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

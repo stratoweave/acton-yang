@@ -19,34 +19,33 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='c1', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='c1', config=True, presence=False, children=[
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/base':('base', None), 'http://example.com/bar':('bar', None), 'http://example.com/foo':('foo', None)},
 )
 
-NS_bar = 'http://example.com/bar'
-NS_base = 'http://example.com/base'
-NS_foo = 'http://example.com/foo'
+NS_bar: str = 'http://example.com/bar'
+NS_base: str = 'http://example.com/base'
+NS_foo: str = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class base__c1(yang.adata.MNode):
     bar_foo: ?str
     foo_foo: ?str
 
     mut def __init__(self, bar_foo: ?str, foo_foo: ?str) -> None:
-        self._ns = 'http://example.com/base'
         self.bar_foo = bar_foo
         self.foo_foo = foo_foo
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'bar_foo':
             return self.bar_foo
         if name == 'foo_foo':
@@ -61,7 +60,7 @@ class base__c1(yang.adata.MNode):
             return base__c1(bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), foo_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')))
         return base__c1()
 
-    def copy(self) -> base__c1:
+    mut def copy(self) -> base__c1:
         """Create a deep copy of this adata object"""
         return base__c1.from_gdata(self.to_gdata())
 

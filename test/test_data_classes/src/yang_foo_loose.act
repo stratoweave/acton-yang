@@ -16,10 +16,10 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_foo_basey = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey', base=[])
-_base_foo_fooy = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey])
-_base_bar_bary = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='bary', base=[_base_foo_basey])
-_identities = [
+_base_foo_basey: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey', base=[])
+_base_foo_fooy: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey])
+_base_bar_bary: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='bary', base=[_base_foo_basey])
+_identities: list[DIdentity] = [
     _base_foo_fooy,
     _base_foo_basey,
     _base_bar_bary,
@@ -27,12 +27,12 @@ _identities = [
 
 
 # Identityref constants
-foo_fooy = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
-foo_basey = Identityref('basey', ns='http://example.com/foo', mod='foo', pfx='f')
-bar_bary = Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')
+foo_fooy: Identityref = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
+foo_basey: Identityref = Identityref('basey', ns='http://example.com/foo', mod='foo', pfx='f')
+bar_bary: Identityref = Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l3', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_empty', config=True, mandatory=False, type_=DTypeEmpty(name='empty', description=None, reference=None, exts=[], builtin_type='empty', default=None)),
@@ -56,19 +56,19 @@ SRC_DNODE_CHILD_0 = DContainer(module='foo', namespace='http://example.com/foo',
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l_leafref', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep('f', 'c1', []), yang.xpath.NodeTestStep('f', 'li', []), yang.xpath.NodeTestStep('f', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
 ])
 
-SRC_DNODE_CHILD_1 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc1', config=True, presence=True, children=[
+SRC_DNODE_CHILD_1: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc1', config=True, presence=True, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, presence=False, children=[
         DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, min_elements=0, ordered_by='system', type_=DTypeBinary(name='binary', description=None, reference=None, exts=[], builtin_type='binary', default=None, length=None))
     ])
 ])
 
-SRC_DNODE_CHILD_2 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc2', config=True, presence=True, children=[
+SRC_DNODE_CHILD_2: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc2', config=True, presence=True, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_mandatory', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_3 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc3', config=True, presence=True, children=[
+SRC_DNODE_CHILD_3: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc3', config=True, presence=True, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='level1', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1-optional', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
@@ -83,32 +83,32 @@ SRC_DNODE_CHILD_3 = DContainer(module='foo', namespace='http://example.com/foo',
     ])
 ])
 
-SRC_DNODE_CHILD_4 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='empty-presence', config=True, presence=True)
+SRC_DNODE_CHILD_4: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='empty-presence', config=True, presence=True)
 
-SRC_DNODE_CHILD_5 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c.dot', config=True, presence=False, children=[
+SRC_DNODE_CHILD_5: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c.dot', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l.dot1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l.dot2', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_6 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='cc', config=True, presence=False, children=[
+SRC_DNODE_CHILD_6: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='cc', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='cake', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DList(module='foo', namespace='http://example.com/foo', prefix='f', name='death', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_7 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='conflict', config=True, presence=False, children=[
+SRC_DNODE_CHILD_7: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='conflict', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='inner', config=True, presence=True),
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='inner', config=True, presence=True)
 ])
 
-SRC_DNODE_CHILD_8 = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='special', key=['yes'], config=True, min_elements=0, ordered_by='system', children=[
+SRC_DNODE_CHILD_8: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='special', key=['yes'], config=True, min_elements=0, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='yes', config=True, mandatory=False, type_=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None))
 ])
 
-SRC_DNODE_CHILD_9 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='nested', config=True, presence=False, children=[
+SRC_DNODE_CHILD_9: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='nested', config=True, presence=False, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='inner', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li1', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
@@ -130,7 +130,7 @@ SRC_DNODE_CHILD_9 = DContainer(module='foo', namespace='http://example.com/foo',
     ])
 ])
 
-SRC_DNODE_CHILD_10 = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union', key=[
+SRC_DNODE_CHILD_10: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union', key=[
 'k1',
 'k2',
 'k3'
@@ -141,49 +141,49 @@ SRC_DNODE_CHILD_10 = DList(module='foo', namespace='http://example.com/foo', pre
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='checker', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(1514, 1514)])), DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(47, 47)])), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
 ])
 
-SRC_DNODE_CHILD_11 = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union-one-base', key=['k1'], config=True, min_elements=0, ordered_by='system', children=[
+SRC_DNODE_CHILD_11: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union-one-base', key=['k1'], config=True, min_elements=0, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='k1', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'foo':0}), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
 ])
 
-SRC_DNODE_CHILD_12 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
+SRC_DNODE_CHILD_12: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=False, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l2', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_13 = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+SRC_DNODE_CHILD_13: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 
-SRC_DNODE_CHILD_14 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
+SRC_DNODE_CHILD_14: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_15 = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
+SRC_DNODE_CHILD_15: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
     DLeafList(module='bar', namespace='http://example.com/bar', prefix='bar', name='idref', config=True, min_elements=0, ordered_by='system', type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities))
 ])
 
-SRC_DNODE_CHILD_16 = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
+SRC_DNODE_CHILD_16: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
     ])
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
 
-SRC_DNODE_IDENTITY_2 = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='bary', base=[
+SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='bary', base=[
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2, SRC_DNODE_CHILD_3, SRC_DNODE_CHILD_4, SRC_DNODE_CHILD_5, SRC_DNODE_CHILD_6, SRC_DNODE_CHILD_7, SRC_DNODE_CHILD_8, SRC_DNODE_CHILD_9, SRC_DNODE_CHILD_10, SRC_DNODE_CHILD_11, SRC_DNODE_CHILD_12, SRC_DNODE_CHILD_13, SRC_DNODE_CHILD_14, SRC_DNODE_CHILD_15, SRC_DNODE_CHILD_16],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
 )
 
-SRC_YANG_0 = r"""module foo {
+SRC_YANG_0: str = r"""module foo {
     yang-version "1.1";
     namespace "http://example.com/foo";
     prefix "f";
@@ -425,7 +425,7 @@ SRC_YANG_0 = r"""module foo {
 
 }"""
 
-SRC_YANG_1 = r"""submodule qux {
+SRC_YANG_1: str = r"""submodule qux {
     yang-version "1.1";
     belongs-to foo {
         prefix "f";
@@ -444,7 +444,7 @@ SRC_YANG_1 = r"""submodule qux {
     }
 }"""
 
-SRC_YANG_2 = r"""module bar {
+SRC_YANG_2: str = r"""module bar {
     yang-version "1.1";
     namespace "http://example.com/bar";
     prefix "bar";
@@ -505,7 +505,7 @@ SRC_YANG_2 = r"""module bar {
     }
 }"""
 
-def src_yang():
+pure def src_yang() -> list[str]:
     return [
         SRC_YANG_0,
         SRC_YANG_1,
@@ -513,19 +513,18 @@ def src_yang():
     ]
 
 
-NS_bar = 'http://example.com/bar'
-NS_foo = 'http://example.com/foo'
+NS_bar: str = 'http://example.com/bar'
+NS_foo: str = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__c1__li__c4(yang.adata.MNode):
     l5: ?str
 
     mut def __init__(self, l5: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l5 = l5
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l5':
             return self.l5
 
@@ -538,24 +537,23 @@ class foo__c1__li__c4(yang.adata.MNode):
             return foo__c1__li__c4(l5=n.get_opt_str(yang.gdata.Id(NS_foo, 'l5')))
         return foo__c1__li__c4()
 
-    def copy(self) -> foo__c1__li__c4:
+    mut def copy(self) -> foo__c1__li__c4:
         """Create a deep copy of this adata object"""
         return foo__c1__li__c4.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class foo__c1__li_entry(yang.adata.MNode):
     name: str
     val: ?str
     c4: foo__c1__li__c4
 
     mut def __init__(self, name: str, val: ?str, c4: ?foo__c1__li__c4=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.name = name
         self.val = val
         self.c4 = c4 if c4 is not None else foo__c1__li__c4()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'val':
@@ -570,19 +568,17 @@ class foo__c1__li_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__c1__li_entry:
         return foo__c1__li_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), val=n.get_opt_str(yang.gdata.Id(NS_foo, 'val')), c4=foo__c1__li__c4.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c4'))))
 
-    def copy(self) -> foo__c1__li_entry:
+    mut def copy(self) -> foo__c1__li_entry:
         """Create a deep copy of this adata object"""
         return foo__c1__li_entry.from_gdata(self.to_gdata())
 
-_breaker3 = None
+_breaker3: None = None
 class foo__c1__li(yang.adata.MNode):
     elements: list[foo__c1__li_entry]
     mut def __init__(self, elements: list[foo__c1__li_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__c1__li_entry:
+    pure def get(self, name: str) -> ?foo__c1__li_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -604,7 +600,7 @@ class foo__c1__li(yang.adata.MNode):
             return [foo__c1__li_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__c1__li:
+    mut def copy(self) -> foo__c1__li:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -639,7 +635,7 @@ extension foo__c1__li(Indexed[str, foo__c1__li_entry]):
                 return
         raise KeyError(k)
 
-_breaker4 = None
+_breaker4: None = None
 class foo__c1(yang.adata.MNode):
     f_l1: ?str
     l3: ?u64
@@ -658,7 +654,6 @@ class foo__c1(yang.adata.MNode):
     l_leafref: ?str
 
     mut def __init__(self, f_l1: ?str, l3: ?u64, l_empty: ?bool, l_empty_delete: ?bool, l_decimal64: ?Decimal, li: list[foo__c1__li_entry]=[], ll_uint64: ?list[u64]=None, ll_str: ?list[str]=None, l_identityref: ?Identityref, ll_identityref: ?list[Identityref]=None, l_identityref_noval: ?Identityref, l4: ?str, bar_l1: ?str, l2: ?str, l_leafref: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.f_l1 = f_l1
         self.l3 = l3
         self.l_empty = l_empty
@@ -675,7 +670,7 @@ class foo__c1(yang.adata.MNode):
         self.l2 = l2
         self.l_leafref = l_leafref
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'f_l1':
             return self.f_l1
         if name == 'l3':
@@ -716,20 +711,19 @@ class foo__c1(yang.adata.MNode):
             return foo__c1(f_l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l3=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l3')), l_empty=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty')), l_empty_delete=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty_delete')), l_decimal64=n.get_opt_Decimal(yang.gdata.Id(NS_foo, 'l_decimal64')), li=foo__c1__li.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li'))), ll_uint64=n.get_opt_u64s(yang.gdata.Id(NS_foo, 'll_uint64')), ll_str=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll_str')), l_identityref=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref')), ll_identityref=n.get_opt_Identityrefs(yang.gdata.Id(NS_foo, 'll_identityref')), l_identityref_noval=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref_noval')), l4=n.get_opt_str(yang.gdata.Id(NS_foo, 'l4')), bar_l1=n.get_opt_str(yang.gdata.Id(NS_bar, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_bar, 'l2')), l_leafref=n.get_opt_str(yang.gdata.Id(NS_bar, 'l_leafref')))
         return foo__c1()
 
-    def copy(self) -> foo__c1:
+    mut def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker5: None = None
 class foo__pc1__foo(yang.adata.MNode):
     l1: list[bytes]
 
     mut def __init__(self, l1: ?list[bytes]=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1 if l1 is not None else []
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -742,20 +736,19 @@ class foo__pc1__foo(yang.adata.MNode):
             return foo__pc1__foo(l1=n.get_opt_bytess(yang.gdata.Id(NS_foo, 'l1')))
         return foo__pc1__foo()
 
-    def copy(self) -> foo__pc1__foo:
+    mut def copy(self) -> foo__pc1__foo:
         """Create a deep copy of this adata object"""
         return foo__pc1__foo.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker6: None = None
 class foo__pc1(yang.adata.MNode):
     foo: foo__pc1__foo
 
     mut def __init__(self, foo: ?foo__pc1__foo=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.foo = foo if foo is not None else foo__pc1__foo()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -768,7 +761,7 @@ class foo__pc1(yang.adata.MNode):
             return foo__pc1(foo=foo__pc1__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo'))))
         return None
 
-    def copy(self) -> foo__pc1:
+    mut def copy(self) -> foo__pc1:
         """Create a deep copy of this adata object"""
         ad = foo__pc1.from_gdata(self.to_gdata())
         if ad is not None:
@@ -776,15 +769,14 @@ class foo__pc1(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc1.copy()')
 
 
-_breaker7 = None
+_breaker7: None = None
 class foo__pc2__foo(yang.adata.MNode):
     l_mandatory: ?str
 
     mut def __init__(self, l_mandatory: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l_mandatory = l_mandatory
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l_mandatory':
             return self.l_mandatory
 
@@ -797,20 +789,19 @@ class foo__pc2__foo(yang.adata.MNode):
             return foo__pc2__foo(l_mandatory=n.get_opt_str(yang.gdata.Id(NS_foo, 'l_mandatory')))
         return foo__pc2__foo()
 
-    def copy(self) -> foo__pc2__foo:
+    mut def copy(self) -> foo__pc2__foo:
         """Create a deep copy of this adata object"""
         return foo__pc2__foo.from_gdata(self.to_gdata())
 
 
-_breaker8 = None
+_breaker8: None = None
 class foo__pc2(yang.adata.MNode):
     foo: foo__pc2__foo
 
     mut def __init__(self, foo: ?foo__pc2__foo=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.foo = foo if foo is not None else foo__pc2__foo()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -823,7 +814,7 @@ class foo__pc2(yang.adata.MNode):
             return foo__pc2(foo=foo__pc2__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo'))))
         return None
 
-    def copy(self) -> foo__pc2:
+    mut def copy(self) -> foo__pc2:
         """Create a deep copy of this adata object"""
         ad = foo__pc2.from_gdata(self.to_gdata())
         if ad is not None:
@@ -831,17 +822,16 @@ class foo__pc2(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc2.copy()')
 
 
-_breaker9 = None
+_breaker9: None = None
 class foo__pc3__level1__level2__level3(yang.adata.MNode):
     l3: ?str
     l3_optional: ?str
 
     mut def __init__(self, l3: ?str, l3_optional: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l3 = l3
         self.l3_optional = l3_optional
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l3':
             return self.l3
         if name == 'l3_optional':
@@ -856,24 +846,23 @@ class foo__pc3__level1__level2__level3(yang.adata.MNode):
             return foo__pc3__level1__level2__level3(l3=n.get_opt_str(yang.gdata.Id(NS_foo, 'l3')), l3_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l3-optional')))
         return foo__pc3__level1__level2__level3()
 
-    def copy(self) -> foo__pc3__level1__level2__level3:
+    mut def copy(self) -> foo__pc3__level1__level2__level3:
         """Create a deep copy of this adata object"""
         return foo__pc3__level1__level2__level3.from_gdata(self.to_gdata())
 
 
-_breaker10 = None
+_breaker10: None = None
 class foo__pc3__level1__level2(yang.adata.MNode):
     l2: ?str
     l2_optional: ?str
     level3: foo__pc3__level1__level2__level3
 
     mut def __init__(self, l2: ?str, l2_optional: ?str, level3: ?foo__pc3__level1__level2__level3=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.l2 = l2
         self.l2_optional = l2_optional
         self.level3 = level3 if level3 is not None else foo__pc3__level1__level2__level3()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l2':
             return self.l2
         if name == 'l2_optional':
@@ -890,24 +879,23 @@ class foo__pc3__level1__level2(yang.adata.MNode):
             return foo__pc3__level1__level2(l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')), l2_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2-optional')), level3=foo__pc3__level1__level2__level3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level3'))))
         return foo__pc3__level1__level2()
 
-    def copy(self) -> foo__pc3__level1__level2:
+    mut def copy(self) -> foo__pc3__level1__level2:
         """Create a deep copy of this adata object"""
         return foo__pc3__level1__level2.from_gdata(self.to_gdata())
 
 
-_breaker11 = None
+_breaker11: None = None
 class foo__pc3__level1(yang.adata.MNode):
     l1: ?str
     l1_optional: ?str
     level2: foo__pc3__level1__level2
 
     mut def __init__(self, l1: ?str, l1_optional: ?str, level2: ?foo__pc3__level1__level2=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l1_optional = l1_optional
         self.level2 = level2 if level2 is not None else foo__pc3__level1__level2()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l1_optional':
@@ -924,20 +912,19 @@ class foo__pc3__level1(yang.adata.MNode):
             return foo__pc3__level1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l1_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1-optional')), level2=foo__pc3__level1__level2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level2'))))
         return foo__pc3__level1()
 
-    def copy(self) -> foo__pc3__level1:
+    mut def copy(self) -> foo__pc3__level1:
         """Create a deep copy of this adata object"""
         return foo__pc3__level1.from_gdata(self.to_gdata())
 
 
-_breaker12 = None
+_breaker12: None = None
 class foo__pc3(yang.adata.MNode):
     level1: foo__pc3__level1
 
     mut def __init__(self, level1: ?foo__pc3__level1=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.level1 = level1 if level1 is not None else foo__pc3__level1()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'level1':
             return self.level1
 
@@ -950,7 +937,7 @@ class foo__pc3(yang.adata.MNode):
             return foo__pc3(level1=foo__pc3__level1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'level1'))))
         return None
 
-    def copy(self) -> foo__pc3:
+    mut def copy(self) -> foo__pc3:
         """Create a deep copy of this adata object"""
         ad = foo__pc3.from_gdata(self.to_gdata())
         if ad is not None:
@@ -958,11 +945,10 @@ class foo__pc3(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc3.copy()')
 
 
-_breaker13 = None
+_breaker13: None = None
 class foo__empty_presence(yang.adata.MNode):
 
     mut def __init__(self) -> None:
-        self._ns = 'http://example.com/foo'
         pass
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -974,7 +960,7 @@ class foo__empty_presence(yang.adata.MNode):
             return foo__empty_presence()
         return None
 
-    def copy(self) -> foo__empty_presence:
+    mut def copy(self) -> foo__empty_presence:
         """Create a deep copy of this adata object"""
         ad = foo__empty_presence.from_gdata(self.to_gdata())
         if ad is not None:
@@ -982,17 +968,16 @@ class foo__empty_presence(yang.adata.MNode):
         raise Exception('Unreachable in foo__empty_presence.copy()')
 
 
-_breaker14 = None
+_breaker14: None = None
 class foo__c_dot(yang.adata.MNode):
     l_dot1: ?str
     l_dot2: ?str
 
     mut def __init__(self, l_dot1: ?str, l_dot2: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l_dot1 = l_dot1
         self.l_dot2 = l_dot2
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l_dot1':
             return self.l_dot1
         if name == 'l_dot2':
@@ -1007,20 +992,19 @@ class foo__c_dot(yang.adata.MNode):
             return foo__c_dot(l_dot1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l.dot1')), l_dot2=n.get_opt_str(yang.gdata.Id(NS_bar, 'l.dot2')))
         return foo__c_dot()
 
-    def copy(self) -> foo__c_dot:
+    mut def copy(self) -> foo__c_dot:
         """Create a deep copy of this adata object"""
         return foo__c_dot.from_gdata(self.to_gdata())
 
 
-_breaker15 = None
+_breaker15: None = None
 class foo__cc__death_entry(yang.adata.MNode):
     name: str
 
     mut def __init__(self, name: str) -> None:
-        self._ns = 'http://example.com/foo'
         self.name = name
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
 
@@ -1031,19 +1015,17 @@ class foo__cc__death_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__cc__death_entry:
         return foo__cc__death_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')))
 
-    def copy(self) -> foo__cc__death_entry:
+    mut def copy(self) -> foo__cc__death_entry:
         """Create a deep copy of this adata object"""
         return foo__cc__death_entry.from_gdata(self.to_gdata())
 
-_breaker16 = None
+_breaker16: None = None
 class foo__cc__death(yang.adata.MNode):
     elements: list[foo__cc__death_entry]
     mut def __init__(self, elements: list[foo__cc__death_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'death'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__cc__death_entry:
+    pure def get(self, name: str) -> ?foo__cc__death_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -1063,7 +1045,7 @@ class foo__cc__death(yang.adata.MNode):
             return [foo__cc__death_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__cc__death:
+    mut def copy(self) -> foo__cc__death:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1098,17 +1080,16 @@ extension foo__cc__death(Indexed[str, foo__cc__death_entry]):
                 return
         raise KeyError(k)
 
-_breaker17 = None
+_breaker17: None = None
 class foo__cc(yang.adata.MNode):
     cake: ?str
     death: foo__cc__death
 
     mut def __init__(self, cake: ?str, death: list[foo__cc__death_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
         self.cake = cake
         self.death = foo__cc__death(elements=death)
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'cake':
             return self.cake
         if name == 'death':
@@ -1123,16 +1104,15 @@ class foo__cc(yang.adata.MNode):
             return foo__cc(cake=n.get_opt_str(yang.gdata.Id(NS_foo, 'cake')), death=foo__cc__death.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'death'))))
         return foo__cc()
 
-    def copy(self) -> foo__cc:
+    mut def copy(self) -> foo__cc:
         """Create a deep copy of this adata object"""
         return foo__cc.from_gdata(self.to_gdata())
 
 
-_breaker18 = None
+_breaker18: None = None
 class foo__f_conflict__f_inner(yang.adata.MNode):
 
     mut def __init__(self) -> None:
-        self._ns = 'http://example.com/foo'
         pass
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1144,7 +1124,7 @@ class foo__f_conflict__f_inner(yang.adata.MNode):
             return foo__f_conflict__f_inner()
         return None
 
-    def copy(self) -> foo__f_conflict__f_inner:
+    mut def copy(self) -> foo__f_conflict__f_inner:
         """Create a deep copy of this adata object"""
         ad = foo__f_conflict__f_inner.from_gdata(self.to_gdata())
         if ad is not None:
@@ -1152,11 +1132,10 @@ class foo__f_conflict__f_inner(yang.adata.MNode):
         raise Exception('Unreachable in foo__f_conflict__f_inner.copy()')
 
 
-_breaker19 = None
+_breaker19: None = None
 class foo__f_conflict__bar_inner(yang.adata.MNode):
 
     mut def __init__(self) -> None:
-        self._ns = 'http://example.com/bar'
         pass
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1168,7 +1147,7 @@ class foo__f_conflict__bar_inner(yang.adata.MNode):
             return foo__f_conflict__bar_inner()
         return None
 
-    def copy(self) -> foo__f_conflict__bar_inner:
+    mut def copy(self) -> foo__f_conflict__bar_inner:
         """Create a deep copy of this adata object"""
         ad = foo__f_conflict__bar_inner.from_gdata(self.to_gdata())
         if ad is not None:
@@ -1176,7 +1155,7 @@ class foo__f_conflict__bar_inner(yang.adata.MNode):
         raise Exception('Unreachable in foo__f_conflict__bar_inner.copy()')
 
 
-_breaker20 = None
+_breaker20: None = None
 class foo__f_conflict(yang.adata.MNode):
     f_foo: ?str
     f_inner: ?foo__f_conflict__f_inner
@@ -1184,7 +1163,6 @@ class foo__f_conflict(yang.adata.MNode):
     bar_inner: ?foo__f_conflict__bar_inner
 
     mut def __init__(self, f_foo: ?str, f_inner: ?foo__f_conflict__f_inner=None, bar_foo: ?str, bar_inner: ?foo__f_conflict__bar_inner=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.f_foo = f_foo
         self.f_inner = f_inner
         self.bar_foo = bar_foo
@@ -1206,7 +1184,7 @@ class foo__f_conflict(yang.adata.MNode):
         self.bar_inner = res
         return res
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'f_foo':
             return self.f_foo
         if name == 'f_inner':
@@ -1225,20 +1203,19 @@ class foo__f_conflict(yang.adata.MNode):
             return foo__f_conflict(f_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), f_inner=foo__f_conflict__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner'))), bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), bar_inner=foo__f_conflict__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner'))))
         return foo__f_conflict()
 
-    def copy(self) -> foo__f_conflict:
+    mut def copy(self) -> foo__f_conflict:
         """Create a deep copy of this adata object"""
         return foo__f_conflict.from_gdata(self.to_gdata())
 
 
-_breaker21 = None
+_breaker21: None = None
 class foo__special_entry(yang.adata.MNode):
     yes: bool
 
     mut def __init__(self, yes: bool) -> None:
-        self._ns = 'http://example.com/foo'
         self.yes = yes
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'yes':
             return self.yes
 
@@ -1249,19 +1226,17 @@ class foo__special_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__special_entry:
         return foo__special_entry(yes=n.get_bool(yang.gdata.Id(NS_foo, 'yes')))
 
-    def copy(self) -> foo__special_entry:
+    mut def copy(self) -> foo__special_entry:
         """Create a deep copy of this adata object"""
         return foo__special_entry.from_gdata(self.to_gdata())
 
-_breaker22 = None
+_breaker22: None = None
 class foo__special(yang.adata.MNode):
     elements: list[foo__special_entry]
     mut def __init__(self, elements: list[foo__special_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'special'
         self.elements = elements
 
-    def get(self, yes: bool) -> ?foo__special_entry:
+    pure def get(self, yes: bool) -> ?foo__special_entry:
         for e in self:
             if e.yes != yes:
                 continue
@@ -1281,7 +1256,7 @@ class foo__special(yang.adata.MNode):
             return [foo__special_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__special:
+    mut def copy(self) -> foo__special:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1316,19 +1291,18 @@ extension foo__special(Indexed[bool, foo__special_entry]):
                 return
         raise KeyError(k)
 
-_breaker23 = None
+_breaker23: None = None
 class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
     key1: str
     key2: str
     baz: ?str
 
     mut def __init__(self, key1: str, key2: str, baz: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.key1 = key1
         self.key2 = key2
         self.baz = baz
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'key1':
             return self.key1
         if name == 'key2':
@@ -1343,19 +1317,17 @@ class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__nested__f_inner__li1__li2_entry:
         return foo__nested__f_inner__li1__li2_entry(key1=n.get_str(yang.gdata.Id(NS_foo, 'key1')), key2=n.get_str(yang.gdata.Id(NS_foo, 'key2')), baz=n.get_opt_str(yang.gdata.Id(NS_foo, 'baz')))
 
-    def copy(self) -> foo__nested__f_inner__li1__li2_entry:
+    mut def copy(self) -> foo__nested__f_inner__li1__li2_entry:
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1__li2_entry.from_gdata(self.to_gdata())
 
-_breaker24 = None
+_breaker24: None = None
 class foo__nested__f_inner__li1__li2(yang.adata.MNode):
     elements: list[foo__nested__f_inner__li1__li2_entry]
     mut def __init__(self, elements: list[foo__nested__f_inner__li1__li2_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li2'
         self.elements = elements
 
-    def get(self, key1: str, key2: str) -> ?foo__nested__f_inner__li1__li2_entry:
+    pure def get(self, key1: str, key2: str) -> ?foo__nested__f_inner__li1__li2_entry:
         for e in self:
             if e.key1 != key1:
                 continue
@@ -1379,7 +1351,7 @@ class foo__nested__f_inner__li1__li2(yang.adata.MNode):
             return [foo__nested__f_inner__li1__li2_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__nested__f_inner__li1__li2:
+    mut def copy(self) -> foo__nested__f_inner__li1__li2:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1393,7 +1365,7 @@ extension foo__nested__f_inner__li1__li2(Iterable[foo__nested__f_inner__li1__li2
     def __iter__(self) -> Iterator[foo__nested__f_inner__li1__li2_entry]:
         return self.elements.__iter__()
 
-_breaker25 = None
+_breaker25: None = None
 class foo__nested__f_inner__li1_entry(yang.adata.MNode):
     name: str
     f_bar: ?str
@@ -1401,13 +1373,12 @@ class foo__nested__f_inner__li1_entry(yang.adata.MNode):
     bar_bar: ?str
 
     mut def __init__(self, name: str, f_bar: ?str, li2: list[foo__nested__f_inner__li1__li2_entry]=[], bar_bar: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.name = name
         self.f_bar = f_bar
         self.li2 = foo__nested__f_inner__li1__li2(elements=li2)
         self.bar_bar = bar_bar
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'f_bar':
@@ -1424,19 +1395,17 @@ class foo__nested__f_inner__li1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__nested__f_inner__li1_entry:
         return foo__nested__f_inner__li1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), f_bar=n.get_opt_str(yang.gdata.Id(NS_foo, 'bar')), li2=foo__nested__f_inner__li1__li2.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li2'))), bar_bar=n.get_opt_str(yang.gdata.Id(NS_bar, 'bar')))
 
-    def copy(self) -> foo__nested__f_inner__li1_entry:
+    mut def copy(self) -> foo__nested__f_inner__li1_entry:
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1_entry.from_gdata(self.to_gdata())
 
-_breaker26 = None
+_breaker26: None = None
 class foo__nested__f_inner__li1(yang.adata.MNode):
     elements: list[foo__nested__f_inner__li1_entry]
     mut def __init__(self, elements: list[foo__nested__f_inner__li1_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li1'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__nested__f_inner__li1_entry:
+    pure def get(self, name: str) -> ?foo__nested__f_inner__li1_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -1460,7 +1429,7 @@ class foo__nested__f_inner__li1(yang.adata.MNode):
             return [foo__nested__f_inner__li1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__nested__f_inner__li1:
+    mut def copy(self) -> foo__nested__f_inner__li1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1495,17 +1464,16 @@ extension foo__nested__f_inner__li1(Indexed[str, foo__nested__f_inner__li1_entry
                 return
         raise KeyError(k)
 
-_breaker27 = None
+_breaker27: None = None
 class foo__nested__f_inner(yang.adata.MNode):
     foo: ?str
     li1: foo__nested__f_inner__li1
 
     mut def __init__(self, foo: ?str, li1: list[foo__nested__f_inner__li1_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
         self.foo = foo
         self.li1 = foo__nested__f_inner__li1(elements=li1)
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
         if name == 'li1':
@@ -1520,20 +1488,19 @@ class foo__nested__f_inner(yang.adata.MNode):
             return foo__nested__f_inner(foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), li1=foo__nested__f_inner__li1.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li1'))))
         return foo__nested__f_inner()
 
-    def copy(self) -> foo__nested__f_inner:
+    mut def copy(self) -> foo__nested__f_inner:
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner.from_gdata(self.to_gdata())
 
 
-_breaker28 = None
+_breaker28: None = None
 class foo__nested__bar_inner(yang.adata.MNode):
     foo: ?str
 
     mut def __init__(self, foo: ?str) -> None:
-        self._ns = 'http://example.com/bar'
         self.foo = foo
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -1546,22 +1513,21 @@ class foo__nested__bar_inner(yang.adata.MNode):
             return foo__nested__bar_inner(foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')))
         return foo__nested__bar_inner()
 
-    def copy(self) -> foo__nested__bar_inner:
+    mut def copy(self) -> foo__nested__bar_inner:
         """Create a deep copy of this adata object"""
         return foo__nested__bar_inner.from_gdata(self.to_gdata())
 
 
-_breaker29 = None
+_breaker29: None = None
 class foo__nested(yang.adata.MNode):
     f_inner: foo__nested__f_inner
     bar_inner: foo__nested__bar_inner
 
     mut def __init__(self, f_inner: ?foo__nested__f_inner=None, bar_inner: ?foo__nested__bar_inner=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.f_inner = f_inner if f_inner is not None else foo__nested__f_inner()
         self.bar_inner = bar_inner if bar_inner is not None else foo__nested__bar_inner()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'f_inner':
             return self.f_inner
         if name == 'bar_inner':
@@ -1576,12 +1542,12 @@ class foo__nested(yang.adata.MNode):
             return foo__nested(f_inner=foo__nested__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner'))), bar_inner=foo__nested__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner'))))
         return foo__nested()
 
-    def copy(self) -> foo__nested:
+    mut def copy(self) -> foo__nested:
         """Create a deep copy of this adata object"""
         return foo__nested.from_gdata(self.to_gdata())
 
 
-_breaker30 = None
+_breaker30: None = None
 class foo__li_union_entry(yang.adata.MNode):
     k1: str
     k2: value
@@ -1589,13 +1555,12 @@ class foo__li_union_entry(yang.adata.MNode):
     checker: ?value
 
     mut def __init__(self, k1: str, k2: value, k3: bytes, checker: ?value) -> None:
-        self._ns = 'http://example.com/foo'
         self.k1 = k1
         self.k2 = k2
         self.k3 = k3
         self.checker = checker
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'k1':
             return self.k1
         if name == 'k2':
@@ -1612,19 +1577,17 @@ class foo__li_union_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__li_union_entry:
         return foo__li_union_entry(k1=n.get_str(yang.gdata.Id(NS_foo, 'k1')), k2=n.get_value(yang.gdata.Id(NS_foo, 'k2')), k3=n.get_bytes(yang.gdata.Id(NS_foo, 'k3')), checker=n.get_opt_value(yang.gdata.Id(NS_foo, 'checker')))
 
-    def copy(self) -> foo__li_union_entry:
+    mut def copy(self) -> foo__li_union_entry:
         """Create a deep copy of this adata object"""
         return foo__li_union_entry.from_gdata(self.to_gdata())
 
-_breaker31 = None
+_breaker31: None = None
 class foo__li_union(yang.adata.MNode):
     elements: list[foo__li_union_entry]
     mut def __init__(self, elements: list[foo__li_union_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li-union'
         self.elements = elements
 
-    def get(self, k1: str, k2: value, k3: bytes) -> ?foo__li_union_entry:
+    pure def get(self, k1: str, k2: value, k3: bytes) -> ?foo__li_union_entry:
         for e in self:
             if e.k1 != k1:
                 continue
@@ -1661,7 +1624,7 @@ class foo__li_union(yang.adata.MNode):
             return [foo__li_union_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__li_union:
+    mut def copy(self) -> foo__li_union:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1675,15 +1638,14 @@ extension foo__li_union(Iterable[foo__li_union_entry]):
     def __iter__(self) -> Iterator[foo__li_union_entry]:
         return self.elements.__iter__()
 
-_breaker32 = None
+_breaker32: None = None
 class foo__li_union_one_base_entry(yang.adata.MNode):
     k1: value
 
     mut def __init__(self, k1: value) -> None:
-        self._ns = 'http://example.com/foo'
         self.k1 = k1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'k1':
             return self.k1
 
@@ -1694,19 +1656,17 @@ class foo__li_union_one_base_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__li_union_one_base_entry:
         return foo__li_union_one_base_entry(k1=n.get_value(yang.gdata.Id(NS_foo, 'k1')))
 
-    def copy(self) -> foo__li_union_one_base_entry:
+    mut def copy(self) -> foo__li_union_one_base_entry:
         """Create a deep copy of this adata object"""
         return foo__li_union_one_base_entry.from_gdata(self.to_gdata())
 
-_breaker33 = None
+_breaker33: None = None
 class foo__li_union_one_base(yang.adata.MNode):
     elements: list[foo__li_union_one_base_entry]
     mut def __init__(self, elements: list[foo__li_union_one_base_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li-union-one-base'
         self.elements = elements
 
-    def get(self, k1: value) -> ?foo__li_union_one_base_entry:
+    pure def get(self, k1: value) -> ?foo__li_union_one_base_entry:
         for e in self:
             e_k1 = e.k1
             k1_match = False
@@ -1731,7 +1691,7 @@ class foo__li_union_one_base(yang.adata.MNode):
             return [foo__li_union_one_base_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__li_union_one_base:
+    mut def copy(self) -> foo__li_union_one_base:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1745,17 +1705,16 @@ extension foo__li_union_one_base(Iterable[foo__li_union_one_base_entry]):
     def __iter__(self) -> Iterator[foo__li_union_one_base_entry]:
         return self.elements.__iter__()
 
-_breaker34 = None
+_breaker34: None = None
 class foo__state__c1(yang.adata.MNode):
     l1: ?str
     l2: ?str
 
     mut def __init__(self, l1: ?str, l2: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l2 = l2
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l2':
@@ -1770,20 +1729,19 @@ class foo__state__c1(yang.adata.MNode):
             return foo__state__c1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')))
         return foo__state__c1()
 
-    def copy(self) -> foo__state__c1:
+    mut def copy(self) -> foo__state__c1:
         """Create a deep copy of this adata object"""
         return foo__state__c1.from_gdata(self.to_gdata())
 
 
-_breaker35 = None
+_breaker35: None = None
 class foo__state(yang.adata.MNode):
     c1: foo__state__c1
 
     mut def __init__(self, c1: ?foo__state__c1=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.c1 = c1 if c1 is not None else foo__state__c1()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c1':
             return self.c1
 
@@ -1796,20 +1754,19 @@ class foo__state(yang.adata.MNode):
             return foo__state(c1=foo__state__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
         return foo__state()
 
-    def copy(self) -> foo__state:
+    mut def copy(self) -> foo__state:
         """Create a deep copy of this adata object"""
         return foo__state.from_gdata(self.to_gdata())
 
 
-_breaker36 = None
+_breaker36: None = None
 class foo__c2(yang.adata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -1822,20 +1779,19 @@ class foo__c2(yang.adata.MNode):
             return foo__c2(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
         return foo__c2()
 
-    def copy(self) -> foo__c2:
+    mut def copy(self) -> foo__c2:
         """Create a deep copy of this adata object"""
         return foo__c2.from_gdata(self.to_gdata())
 
 
-_breaker37 = None
+_breaker37: None = None
 class bar__test_idref(yang.adata.MNode):
     idref: list[Identityref]
 
     mut def __init__(self, idref: ?list[Identityref]=None) -> None:
-        self._ns = 'http://example.com/bar'
         self.idref = idref if idref is not None else []
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'idref':
             return self.idref
 
@@ -1848,20 +1804,19 @@ class bar__test_idref(yang.adata.MNode):
             return bar__test_idref(idref=n.get_opt_Identityrefs(yang.gdata.Id(NS_bar, 'idref')))
         return bar__test_idref()
 
-    def copy(self) -> bar__test_idref:
+    mut def copy(self) -> bar__test_idref:
         """Create a deep copy of this adata object"""
         return bar__test_idref.from_gdata(self.to_gdata())
 
 
-_breaker38 = None
+_breaker38: None = None
 class bar__bar_conflict(yang.adata.MNode):
     foo: ?str
 
     mut def __init__(self, foo: ?str) -> None:
-        self._ns = 'http://example.com/bar'
         self.foo = foo
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -1874,12 +1829,12 @@ class bar__bar_conflict(yang.adata.MNode):
             return bar__bar_conflict(foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')))
         return bar__bar_conflict()
 
-    def copy(self) -> bar__bar_conflict:
+    mut def copy(self) -> bar__bar_conflict:
         """Create a deep copy of this adata object"""
         return bar__bar_conflict.from_gdata(self.to_gdata())
 
 
-_breaker39 = None
+_breaker39: None = None
 class root(yang.adata.MNode):
     c1: foo__c1
     pc1: ?foo__pc1
@@ -1900,7 +1855,6 @@ class root(yang.adata.MNode):
     bar_conflict: bar__bar_conflict
 
     mut def __init__(self, c1: ?foo__c1=None, pc1: ?foo__pc1=None, pc2: ?foo__pc2=None, pc3: ?foo__pc3=None, empty_presence: ?foo__empty_presence=None, c_dot: ?foo__c_dot=None, cc: ?foo__cc=None, f_conflict: ?foo__f_conflict=None, special: list[foo__special_entry]=[], nested: ?foo__nested=None, li_union: list[foo__li_union_entry]=[], li_union_one_base: list[foo__li_union_one_base_entry]=[], state: ?foo__state=None, ll_empty: ?list[str]=None, c2: ?foo__c2=None, test_idref: ?bar__test_idref=None, bar_conflict: ?bar__bar_conflict=None) -> None:
-        self._ns = ''
         self.c1 = c1 if c1 is not None else foo__c1()
         self.pc1 = pc1
         self.pc2 = pc2
@@ -1951,7 +1905,7 @@ class root(yang.adata.MNode):
         self.empty_presence = res
         return res
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c1':
             return self.c1
         if name == 'pc1':
@@ -1996,7 +1950,7 @@ class root(yang.adata.MNode):
             return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc1'))), pc2=foo__pc2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc2'))), pc3=foo__pc3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc3'))), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'empty-presence'))), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c.dot'))), cc=foo__cc.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'cc'))), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'conflict'))), special=foo__special.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'special'))), nested=foo__nested.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'nested'))), li_union=foo__li_union.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union'))), li_union_one_base=foo__li_union_one_base.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union-one-base'))), state=foo__state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'state'))), ll_empty=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c2'))), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'test-idref'))), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'conflict'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
@@ -2004,7 +1958,7 @@ class root(yang.adata.MNode):
 actor rpc_root(tp: yang.gdata.TreeProvider):
     pass
 
-def src_schema():
+mut def src_schema() -> dict[str, SchemaNode]:
     res = {}
     res["foo"] = Module('foo', yang_version=1.1, namespace='http://example.com/foo', prefix='f', include=[
         Include('qux')

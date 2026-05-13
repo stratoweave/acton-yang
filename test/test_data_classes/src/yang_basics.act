@@ -16,20 +16,20 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_basics_id1 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1', base=[])
-_base_basics_id2 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[_base_basics_id1])
-_identities = [
+_base_basics_id1: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1', base=[])
+_base_basics_id2: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[_base_basics_id1])
+_identities: list[DIdentity] = [
     _base_basics_id1,
     _base_basics_id2,
 ]
 
 
 # Identityref constants
-basics_id1 = Identityref('id1', ns='http://example.com/basics', mod='basics', pfx='b')
-basics_id2 = Identityref('id2', ns='http://example.com/basics', mod='basics', pfx='b')
+basics_id1: Identityref = Identityref('id1', ns='http://example.com/basics', mod='basics', pfx='b')
+basics_id2: Identityref = Identityref('id2', ns='http://example.com/basics', mod='basics', pfx='b')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='basics', namespace='http://example.com/basics', prefix='b', name='c', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='basics', namespace='http://example.com/basics', prefix='b', name='c', config=True, presence=False, children=[
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_str_def', config=True, default='foo', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_str_def_quoted', config=True, default='"foo"', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_uint64_def', config=True, default='1234567890', mandatory=False, type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
@@ -43,20 +43,20 @@ SRC_DNODE_CHILD_0 = DContainer(module='basics', namespace='http://example.com/ba
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_identityref_def', config=True, default='id2', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_basics_id1], identities=_identities))
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[
         DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1],
     rpcs=[],
     module_metadata={'http://example.com/basics':('basics', None)},
 )
 
-SRC_YANG_0 = r"""module basics {
+SRC_YANG_0: str = r"""module basics {
     yang-version "1.1";
     namespace "http://example.com/basics";
     prefix "b";
@@ -135,16 +135,16 @@ SRC_YANG_0 = r"""module basics {
     }
 }"""
 
-def src_yang():
+pure def src_yang() -> list[str]:
     return [
         SRC_YANG_0,
     ]
 
 
-NS_basics = 'http://example.com/basics'
+NS_basics: str = 'http://example.com/basics'
 
 
-_breaker1 = None
+_breaker1: None = None
 class basics__c(yang.adata.MNode):
     l_str_def: str
     l_str_def_quoted: str
@@ -159,7 +159,6 @@ class basics__c(yang.adata.MNode):
     l_identityref_def: Identityref
 
     mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?value=None, l_union_def_int: ?value=None, l_union_def_float: ?value=None, l_union_def_bool: ?value=None, l_union_def_enumeration: ?value=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None) -> None:
-        self._ns = 'http://example.com/basics'
         self.l_str_def = l_str_def if l_str_def is not None else "foo"
         self.l_str_def_quoted = l_str_def_quoted if l_str_def_quoted is not None else "\"foo\""
         self.l_uint64_def = l_uint64_def if l_uint64_def is not None else u64(1234567890)
@@ -176,7 +175,7 @@ class basics__c(yang.adata.MNode):
         else:
             raise ValueError('Invalid default value for identityref leaf c: {error}')
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l_str_def':
             return self.l_str_def
         if name == 'l_str_def_quoted':
@@ -209,20 +208,19 @@ class basics__c(yang.adata.MNode):
             return basics__c(l_str_def=n.get_opt_str(yang.gdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(yang.gdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(yang.gdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(yang.gdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_enumeration=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(yang.gdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(yang.gdata.Id(NS_basics, 'l_identityref_def')))
         return basics__c()
 
-    def copy(self) -> basics__c:
+    mut def copy(self) -> basics__c:
         """Create a deep copy of this adata object"""
         return basics__c.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     c: basics__c
 
     mut def __init__(self, c: ?basics__c=None) -> None:
-        self._ns = ''
         self.c = c if c is not None else basics__c()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c':
             return self.c
 
@@ -235,7 +233,7 @@ class root(yang.adata.MNode):
             return root(c=basics__c.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_basics, 'c'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
@@ -243,7 +241,7 @@ class root(yang.adata.MNode):
 actor rpc_root(tp: yang.gdata.TreeProvider):
     pass
 
-def src_schema():
+mut def src_schema() -> dict[str, SchemaNode]:
     res = {}
     res["basics"] = Module('basics', yang_version=1.1, namespace='http://example.com/basics', prefix='b', children=[
     Identity('id1'),

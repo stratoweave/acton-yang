@@ -16,11 +16,11 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_base_module_PROTOCOL = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL', base=[])
-_base_base_module_TCP = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[_base_base_module_PROTOCOL])
-_base_derived_module_HTTP = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTP', base=[_base_base_module_TCP])
-_base_derived_module_HTTPS = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTPS', base=[_base_derived_module_HTTP])
-_identities = [
+_base_base_module_PROTOCOL: DIdentity = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL', base=[])
+_base_base_module_TCP: DIdentity = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[_base_base_module_PROTOCOL])
+_base_derived_module_HTTP: DIdentity = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTP', base=[_base_base_module_TCP])
+_base_derived_module_HTTPS: DIdentity = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTPS', base=[_base_derived_module_HTTP])
+_identities: list[DIdentity] = [
     _base_base_module_PROTOCOL,
     _base_base_module_TCP,
     _base_derived_module_HTTP,
@@ -29,25 +29,25 @@ _identities = [
 
 
 # Identityref constants
-base_module_PROTOCOL = Identityref('PROTOCOL', ns='http://example.com/base', mod='base-module', pfx='base-pfx')
-base_module_TCP = Identityref('TCP', ns='http://example.com/base', mod='base-module', pfx='base-pfx')
-derived_module_HTTP = Identityref('HTTP', ns='http://example.com/derived', mod='derived-module', pfx='derived')
-derived_module_HTTPS = Identityref('HTTPS', ns='http://example.com/derived', mod='derived-module', pfx='derived')
+base_module_PROTOCOL: Identityref = Identityref('PROTOCOL', ns='http://example.com/base', mod='base-module', pfx='base-pfx')
+base_module_TCP: Identityref = Identityref('TCP', ns='http://example.com/base', mod='base-module', pfx='base-pfx')
+derived_module_HTTP: Identityref = Identityref('HTTP', ns='http://example.com/derived', mod='derived-module', pfx='derived')
+derived_module_HTTPS: Identityref = Identityref('HTTPS', ns='http://example.com/derived', mod='derived-module', pfx='derived')
 
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[
         DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
     ])
 
-SRC_DNODE_IDENTITY_2 = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTP', base=[
+SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTP', base=[
         DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[
                 DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
             ])
     ])
 
-SRC_DNODE_IDENTITY_3 = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTPS', base=[
+SRC_DNODE_IDENTITY_3: DIdentity = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTPS', base=[
         DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTP', base=[
                 DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[
                         DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
@@ -55,22 +55,21 @@ SRC_DNODE_IDENTITY_3 = DIdentity(module='derived-module', namespace='http://exam
             ])
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2, SRC_DNODE_IDENTITY_3],
     rpcs=[],
     module_metadata={'http://example.com/base':('base-module', None), 'http://example.com/derived':('derived-module', None)},
 )
 
-NS_base_module = 'http://example.com/base'
-NS_derived_module = 'http://example.com/derived'
+NS_base_module: str = 'http://example.com/base'
+NS_derived_module: str = 'http://example.com/derived'
 
 
-_breaker1 = None
+_breaker1: None = None
 class root(yang.adata.MNode):
 
     mut def __init__(self) -> None:
-        self._ns = ''
         pass
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -82,7 +81,7 @@ class root(yang.adata.MNode):
             return root()
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

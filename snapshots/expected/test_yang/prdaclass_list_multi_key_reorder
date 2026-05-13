@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=[
+SRC_DNODE_CHILD_0: DList = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=[
 'name',
 'id'
     ], config=True, min_elements=0, ordered_by='system', children=[
@@ -28,29 +28,28 @@ SRC_DNODE_CHILD_0 = DList(module='foo', namespace='http://example.com/foo', pref
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='other', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None)},
 )
 
-NS_foo = 'http://example.com/foo'
+NS_foo: str = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__l1_entry(yang.adata.MNode):
     name: str
     id: str
     other: ?str
 
     mut def __init__(self, name: str, id: str, other: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.name = name
         self.id = id
         self.other = other
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'id':
@@ -65,19 +64,17 @@ class foo__l1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__l1_entry:
         return foo__l1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), id=n.get_str(yang.gdata.Id(NS_foo, 'id')), other=n.get_opt_str(yang.gdata.Id(NS_foo, 'other')))
 
-    def copy(self) -> foo__l1_entry:
+    mut def copy(self) -> foo__l1_entry:
         """Create a deep copy of this adata object"""
         return foo__l1_entry.from_gdata(self.to_gdata())
 
-_breaker2 = None
+_breaker2: None = None
 class foo__l1(yang.adata.MNode):
     elements: list[foo__l1_entry]
     mut def __init__(self, elements: list[foo__l1_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'l1'
         self.elements = elements
 
-    def get(self, name: str, id: str) -> ?foo__l1_entry:
+    pure def get(self, name: str, id: str) -> ?foo__l1_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -101,7 +98,7 @@ class foo__l1(yang.adata.MNode):
             return [foo__l1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__l1:
+    mut def copy(self) -> foo__l1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []

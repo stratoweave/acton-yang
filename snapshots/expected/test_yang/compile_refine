@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, children=[
     DLeafList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, description='refined description', default=[
 'a',
 'b'
@@ -28,26 +28,25 @@ SRC_DNODE_CHILD_0 = DContainer(module='foo', namespace='http://example.com/foo',
         ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/some-ext':('some-ext', None), 'http://example.com/foo':('foo', None)},
 )
 
-NS_foo = 'http://example.com/foo'
-NS_some_ext = 'http://example.com/some-ext'
+NS_foo: str = 'http://example.com/foo'
+NS_some_ext: str = 'http://example.com/some-ext'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__c1(yang.adata.MNode):
     l1: list[str]
 
     mut def __init__(self, l1: ?list[str]=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1 if l1 is not None else []
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -60,20 +59,19 @@ class foo__c1(yang.adata.MNode):
             return foo__c1(l1=n.get_opt_strs(yang.gdata.Id(NS_foo, 'l1')))
         return foo__c1()
 
-    def copy(self) -> foo__c1:
+    mut def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     c1: foo__c1
 
     mut def __init__(self, c1: ?foo__c1=None) -> None:
-        self._ns = ''
         self.c1 = c1 if c1 is not None else foo__c1()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c1':
             return self.c1
 
@@ -86,7 +84,7 @@ class root(yang.adata.MNode):
             return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

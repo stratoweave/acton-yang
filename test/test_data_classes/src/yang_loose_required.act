@@ -19,18 +19,18 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='loose-required', namespace='http://example.com/loose-required', prefix='lr', name='c2', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='loose-required', namespace='http://example.com/loose-required', prefix='lr', name='c2', config=True, presence=False, children=[
     DLeaf(module='loose-required', namespace='http://example.com/loose-required', prefix='lr', name='l1', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/loose-required':('loose-required', None)},
 )
 
-SRC_YANG_0 = r"""module loose-required {
+SRC_YANG_0: str = r"""module loose-required {
     yang-version "1.1";
     namespace "http://example.com/loose-required";
     prefix "lr";
@@ -43,24 +43,23 @@ SRC_YANG_0 = r"""module loose-required {
     }
 }"""
 
-def src_yang():
+pure def src_yang() -> list[str]:
     return [
         SRC_YANG_0,
     ]
 
 
-NS_loose_required = 'http://example.com/loose-required'
+NS_loose_required: str = 'http://example.com/loose-required'
 
 
-_breaker1 = None
+_breaker1: None = None
 class loose_required__c2(yang.adata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
-        self._ns = 'http://example.com/loose-required'
         self.l1 = l1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -73,20 +72,19 @@ class loose_required__c2(yang.adata.MNode):
             return loose_required__c2(l1=n.get_opt_str(yang.gdata.Id(NS_loose_required, 'l1')))
         return loose_required__c2()
 
-    def copy(self) -> loose_required__c2:
+    mut def copy(self) -> loose_required__c2:
         """Create a deep copy of this adata object"""
         return loose_required__c2.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     c2: loose_required__c2
 
     mut def __init__(self, c2: ?loose_required__c2=None) -> None:
-        self._ns = ''
         self.c2 = c2 if c2 is not None else loose_required__c2()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c2':
             return self.c2
 
@@ -99,7 +97,7 @@ class root(yang.adata.MNode):
             return root(c2=loose_required__c2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_loose_required, 'c2'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
@@ -107,7 +105,7 @@ class root(yang.adata.MNode):
 actor rpc_root(tp: yang.gdata.TreeProvider):
     pass
 
-def src_schema():
+mut def src_schema() -> dict[str, SchemaNode]:
     res = {}
     res["loose-required"] = Module('loose-required', yang_version=1.1, namespace='http://example.com/loose-required', prefix='lr', children=[
     Container('c2', children=[

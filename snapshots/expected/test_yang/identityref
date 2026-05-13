@@ -16,12 +16,12 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_base_protocol_type = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type', base=[])
-_base_bar_sctp = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[_base_base_protocol_type])
-_base_bar_dccp = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[_base_base_protocol_type])
-_base_foo_tcp = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[_base_base_protocol_type])
-_base_foo_udp = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[_base_base_protocol_type])
-_identities = [
+_base_base_protocol_type: DIdentity = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type', base=[])
+_base_bar_sctp: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[_base_base_protocol_type])
+_base_bar_dccp: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[_base_base_protocol_type])
+_base_foo_tcp: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[_base_base_protocol_type])
+_base_foo_udp: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[_base_base_protocol_type])
+_identities: list[DIdentity] = [
     _base_base_protocol_type,
     _base_bar_sctp,
     _base_bar_dccp,
@@ -31,56 +31,55 @@ _identities = [
 
 
 # Identityref constants
-base_protocol_type = Identityref('protocol-type', ns='http://example.com/base', mod='base', pfx='base')
-bar_sctp = Identityref('sctp', ns='http://example.com/bar', mod='bar', pfx='bar')
-bar_dccp = Identityref('dccp', ns='http://example.com/bar', mod='bar', pfx='bar')
-foo_tcp = Identityref('tcp', ns='http://example.com/foo', mod='foo', pfx='foo')
-foo_udp = Identityref('udp', ns='http://example.com/foo', mod='foo', pfx='foo')
+base_protocol_type: Identityref = Identityref('protocol-type', ns='http://example.com/base', mod='base', pfx='base')
+bar_sctp: Identityref = Identityref('sctp', ns='http://example.com/bar', mod='bar', pfx='bar')
+bar_dccp: Identityref = Identityref('dccp', ns='http://example.com/bar', mod='bar', pfx='bar')
+foo_tcp: Identityref = Identityref('tcp', ns='http://example.com/foo', mod='foo', pfx='foo')
+foo_udp: Identityref = Identityref('udp', ns='http://example.com/foo', mod='foo', pfx='foo')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[
     DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='active-protocol', config=True, description='Currently active protocol', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_base_protocol_type], identities=_identities))
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE_IDENTITY_2 = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[
+SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE_IDENTITY_3 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[
+SRC_DNODE_IDENTITY_3: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE_IDENTITY_4 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[
+SRC_DNODE_IDENTITY_4: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2, SRC_DNODE_IDENTITY_3, SRC_DNODE_IDENTITY_4],
     rpcs=[],
     module_metadata={'http://example.com/base':('base', None), 'http://example.com/bar':('bar', None), 'http://example.com/foo':('foo', None)},
 )
 
-NS_bar = 'http://example.com/bar'
-NS_base = 'http://example.com/base'
-NS_foo = 'http://example.com/foo'
+NS_bar: str = 'http://example.com/bar'
+NS_base: str = 'http://example.com/base'
+NS_foo: str = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class base__config(yang.adata.MNode):
     active_protocol: ?Identityref
 
     mut def __init__(self, active_protocol: ?Identityref) -> None:
-        self._ns = 'http://example.com/base'
         self.active_protocol = active_protocol
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'active_protocol':
             return self.active_protocol
 
@@ -93,20 +92,19 @@ class base__config(yang.adata.MNode):
             return base__config(active_protocol=n.get_opt_Identityref(yang.gdata.Id(NS_base, 'active-protocol')))
         return base__config()
 
-    def copy(self) -> base__config:
+    mut def copy(self) -> base__config:
         """Create a deep copy of this adata object"""
         return base__config.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     config: base__config
 
     mut def __init__(self, config: ?base__config=None) -> None:
-        self._ns = ''
         self.config = config if config is not None else base__config()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'config':
             return self.config
 
@@ -119,7 +117,7 @@ class root(yang.adata.MNode):
             return root(config=base__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base, 'config'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

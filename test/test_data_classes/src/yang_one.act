@@ -16,10 +16,10 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_foo_basey = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey', base=[])
-_base_foo_basey_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1', base=[])
-_base_foo_fooy = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey, _base_foo_basey_1])
-_identities = [
+_base_foo_basey: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey', base=[])
+_base_foo_basey_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1', base=[])
+_base_foo_fooy: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey, _base_foo_basey_1])
+_identities: list[DIdentity] = [
     _base_foo_basey,
     _base_foo_basey_1,
     _base_foo_fooy,
@@ -27,19 +27,19 @@ _identities = [
 
 
 # Identityref constants
-foo_basey = Identityref('basey', ns='http://example.com/foo', mod='foo', pfx='f')
-foo_basey_1 = Identityref('basey.1', ns='http://example.com/foo', mod='foo', pfx='f')
-foo_fooy = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
+foo_basey: Identityref = Identityref('basey', ns='http://example.com/foo', mod='foo', pfx='f')
+foo_basey_1: Identityref = Identityref('basey.1', ns='http://example.com/foo', mod='foo', pfx='f')
+foo_fooy: Identityref = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='tc1', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='tc1', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l2', config=True, mandatory=False, must=[
 DMust(condition='be cool', description=None, error_app_tag=None, error_message=None, reference=None)
         ], type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_1 = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
+SRC_DNODE_CHILD_1: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
@@ -47,23 +47,23 @@ SRC_DNODE_CHILD_1 = DList(module='foo', namespace='http://example.com/foo', pref
     ])
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
 
-SRC_DNODE_IDENTITY_2 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
+SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey'),
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None)},
 )
 
-SRC_YANG_0 = r"""module foo {
+SRC_YANG_0: str = r"""module foo {
     yang-version "1.1";
     namespace "http://example.com/foo";
     prefix "f";
@@ -108,26 +108,25 @@ SRC_YANG_0 = r"""module foo {
     }
 }"""
 
-def src_yang():
+pure def src_yang() -> list[str]:
     return [
         SRC_YANG_0,
     ]
 
 
-NS_foo = 'http://example.com/foo'
+NS_foo: str = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__tc1(yang.adata.MNode):
     l1: str
     l2: ?str
 
     mut def __init__(self, l1: str, l2: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l2 = l2
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l2':
@@ -142,22 +141,21 @@ class foo__tc1(yang.adata.MNode):
             return foo__tc1(l1=n.get_str(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')))
         raise ValueError('Missing required subtree foo__tc1')
 
-    def copy(self) -> foo__tc1:
+    mut def copy(self) -> foo__tc1:
         """Create a deep copy of this adata object"""
         return foo__tc1.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class foo__li__c1(yang.adata.MNode):
     l1: str
     l2: ?str
 
     mut def __init__(self, l1: str, l2: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l2 = l2
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l2':
@@ -172,22 +170,21 @@ class foo__li__c1(yang.adata.MNode):
             return foo__li__c1(l1=n.get_str(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')))
         raise ValueError('Missing required subtree foo__li__c1')
 
-    def copy(self) -> foo__li__c1:
+    mut def copy(self) -> foo__li__c1:
         """Create a deep copy of this adata object"""
         return foo__li__c1.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class foo__li_entry(yang.adata.MNode):
     name: str
     c1: foo__li__c1
 
     mut def __init__(self, name: str, c1: foo__li__c1) -> None:
-        self._ns = 'http://example.com/foo'
         self.name = name
         self.c1 = c1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'c1':
@@ -200,19 +197,17 @@ class foo__li_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__li_entry:
         return foo__li_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), c1=foo__li__c1.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'c1'))))
 
-    def copy(self) -> foo__li_entry:
+    mut def copy(self) -> foo__li_entry:
         """Create a deep copy of this adata object"""
         return foo__li_entry.from_gdata(self.to_gdata())
 
-_breaker4 = None
+_breaker4: None = None
 class foo__li(yang.adata.MNode):
     elements: list[foo__li_entry]
     mut def __init__(self, elements: list[foo__li_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__li_entry:
+    pure def get(self, name: str) -> ?foo__li_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -233,7 +228,7 @@ class foo__li(yang.adata.MNode):
             return [foo__li_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__li:
+    mut def copy(self) -> foo__li:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -268,17 +263,16 @@ extension foo__li(Indexed[str, foo__li_entry]):
                 return
         raise KeyError(k)
 
-_breaker5 = None
+_breaker5: None = None
 class root(yang.adata.MNode):
     tc1: foo__tc1
     li: foo__li
 
     mut def __init__(self, tc1: foo__tc1, li: list[foo__li_entry]=[]) -> None:
-        self._ns = ''
         self.tc1 = tc1
         self.li = foo__li(elements=li)
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'tc1':
             return self.tc1
         if name == 'li':
@@ -293,7 +287,7 @@ class root(yang.adata.MNode):
             return root(tc1=foo__tc1.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'tc1'))), li=foo__li.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li'))))
         raise ValueError('Missing required subtree root')
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 
@@ -301,7 +295,7 @@ class root(yang.adata.MNode):
 actor rpc_root(tp: yang.gdata.TreeProvider):
     pass
 
-def src_schema():
+mut def src_schema() -> dict[str, SchemaNode]:
     res = {}
     res["foo"] = Module('foo', yang_version=1.1, namespace='http://example.com/foo', prefix='f', children=[
     Identity('basey'),

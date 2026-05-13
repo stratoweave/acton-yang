@@ -19,32 +19,31 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
+SRC_DNODE_CHILD_0: DList = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='bar', config=True, presence=True, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='hi', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None)},
 )
 
-NS_foo = 'http://example.com/foo'
+NS_foo: str = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__l1__bar(yang.adata.MNode):
     hi: str
 
     mut def __init__(self, hi: str) -> None:
-        self._ns = 'http://example.com/foo'
         self.hi = hi
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'hi':
             return self.hi
 
@@ -57,7 +56,7 @@ class foo__l1__bar(yang.adata.MNode):
             return foo__l1__bar(hi=n.get_str(yang.gdata.Id(NS_foo, 'hi')))
         return None
 
-    def copy(self) -> foo__l1__bar:
+    mut def copy(self) -> foo__l1__bar:
         """Create a deep copy of this adata object"""
         ad = foo__l1__bar.from_gdata(self.to_gdata())
         if ad is not None:
@@ -65,13 +64,12 @@ class foo__l1__bar(yang.adata.MNode):
         raise Exception('Unreachable in foo__l1__bar.copy()')
 
 
-_breaker2 = None
+_breaker2: None = None
 class foo__l1_entry(yang.adata.MNode):
     name: str
     bar: ?foo__l1__bar
 
     mut def __init__(self, name: str, bar: ?foo__l1__bar=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.name = name
         self.bar = bar
 
@@ -84,7 +82,7 @@ class foo__l1_entry(yang.adata.MNode):
         self.bar = res
         return res
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'bar':
@@ -97,19 +95,17 @@ class foo__l1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__l1_entry:
         return foo__l1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), bar=foo__l1__bar.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'bar'))))
 
-    def copy(self) -> foo__l1_entry:
+    mut def copy(self) -> foo__l1_entry:
         """Create a deep copy of this adata object"""
         return foo__l1_entry.from_gdata(self.to_gdata())
 
-_breaker3 = None
+_breaker3: None = None
 class foo__l1(yang.adata.MNode):
     elements: list[foo__l1_entry]
     mut def __init__(self, elements: list[foo__l1_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'l1'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__l1_entry:
+    pure def get(self, name: str) -> ?foo__l1_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -129,7 +125,7 @@ class foo__l1(yang.adata.MNode):
             return [foo__l1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__l1:
+    mut def copy(self) -> foo__l1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []

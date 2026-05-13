@@ -588,11 +588,11 @@ class DNodeInner(DNode):
             # - the list entry class
             # Here we create the list entry class, the list itself comes later
             breaker_name, breaker_idx = next_breaker_name(breaker_idx)
-            res.append("{breaker_name} = None")
+            res.append("{breaker_name}: None = None")
             res.append("class {pname()}_entry(yang.adata.MNode):")
         else:
             breaker_name, breaker_idx = next_breaker_name(breaker_idx)
-            res.append("{breaker_name} = None")
+            res.append("{breaker_name}: None = None")
             res.append("class {pname()}(yang.adata.MNode):")
 
         for child in attr_children:
@@ -647,8 +647,6 @@ class DNodeInner(DNode):
 
         init_args_str = ", ".join(["self"] + req_args + opt_args)
         res.append("    mut def __init__({init_args_str}) -> None:")
-        # Set namespace from us
-        res.append("        self._ns = '{self.namespace}'")
 
         for child in attr_children:
             if isinstance(child, DContainer):
@@ -726,7 +724,7 @@ class DNodeInner(DNode):
                 res.append("")
 
         if len(attr_children) > 0:
-            res.append("    def _get_attr(self, name: str) -> ?value:")
+            res.append("    pure def _get_attr(self, name: str) -> ?value:")
             for child in attr_children:
                 res.append("        if name == '{usname(child)}':")
                 if isinstance(child, DList):
@@ -772,9 +770,9 @@ class DNodeInner(DNode):
 
         # .copy() method
         if isinstance(self, DList):
-            res.append("    def copy(self) -> {pname()}_entry:")
+            res.append("    mut def copy(self) -> {pname()}_entry:")
         else:
-            res.append("    def copy(self) -> {pname()}:")
+            res.append("    mut def copy(self) -> {pname()}:")
         res.append('        """Create a deep copy of this adata object"""')
         if isinstance(self, DList):
             res.append("        return {pname()}_entry.from_gdata(self.to_gdata())")
@@ -797,7 +795,7 @@ class DNodeInner(DNode):
             # - the list entry class
             # Here we create the list class, list entry class was created above
             breaker_name, breaker_idx = next_breaker_name(breaker_idx)
-            res.append("{breaker_name} = None")
+            res.append("{breaker_name}: None = None")
             res.append("class {pname()}(yang.adata.MNode):")
             res.append("    elements: list[{pname()}_entry]")
 
@@ -805,9 +803,6 @@ class DNodeInner(DNode):
             init_args.append("elements: list[{pname()}_entry]=[]")
             init_args_str: str = ", ".join(init_args)
             res.append("    mut def __init__({init_args_str}) -> None:")
-            # Set namespace from us
-            res.append("        self._ns = '{self.namespace}'")
-            res.append("        self._name = {repr(self.name)}")
             res.append("        self.elements = elements")
             res.append("")
 
@@ -845,7 +840,7 @@ class DNodeInner(DNode):
             if len(list_key_args) > 0:
                 # Keys come first in list_args_req(_sig)
                 get_args_sig = ", ".join(["self"] + list_args_req_sig[:len(list_key_args)])
-                res.append("    def get({get_args_sig}) -> ?{pname()}_entry:")
+                res.append("    pure def get({get_args_sig}) -> ?{pname()}_entry:")
                 res.append("        for e in self:")
                 for us_key in list_key_args:
                     key_dtype = list_key_types[us_key]
@@ -911,7 +906,7 @@ class DNodeInner(DNode):
             res.append("")
 
             # .copy() method for list wrapper
-            res.append("    def copy(self) -> {pname()}:")
+            res.append("    mut def copy(self) -> {pname()}:")
             res.append('        """Create a deep copy of this list object"""')
             res.append("        # Copy each element in the list")
             res.append("        copied_elements = []")
@@ -1258,10 +1253,10 @@ class DIdentity(DNode):
         for identity in sorted_identities:
             var_name = base_var_map[identity.key()]
             base_refs = [base_var_map[base.key()] for base in identity.base]
-            result.append("{var_name} = DIdentity(module={repr(identity.module)}, namespace={repr(identity.namespace)}, prefix={repr(identity.prefix)}, name={repr(identity.name)}, base=[{', '.join(base_refs)}])")
+            result.append("{var_name}: DIdentity = DIdentity(module={repr(identity.module)}, namespace={repr(identity.namespace)}, prefix={repr(identity.prefix)}, name={repr(identity.name)}, base=[{', '.join(base_refs)}])")
 
         # Build the global _identities list
-        result.append("_identities = [")
+        result.append("_identities: list[DIdentity] = [")
         for identity in identities:
             # Reference the variable
             result.append("    {base_var_map[identity.key()]},")
@@ -1285,7 +1280,7 @@ class DIdentity(DNode):
 
         for identity in identities:
             var_name = safe_name("{identity.module}_{identity.name}", safe_kw=False)
-            result.append("{var_name} = Identityref({repr(identity.name)}, ns={repr(identity.namespace)}, mod={repr(identity.module)}, pfx={repr(identity.prefix)})")
+            result.append("{var_name}: Identityref = Identityref({repr(identity.name)}, ns={repr(identity.namespace)}, mod={repr(identity.module)}, pfx={repr(identity.prefix)})")
         result.append("")
         result.append("")
 
@@ -1831,7 +1826,7 @@ class DRoot(DNodeInner):
 
                 const_name = _next_const(node_const_prefix)
                 if not should_split:
-                    res.append("{const_name} = {node.prsrc()}")
+                    res.append("{const_name}: {node._get_class_name()} = {node.prsrc()}")
                     res.append("")
                     return const_name
 
@@ -1851,7 +1846,7 @@ class DRoot(DNodeInner):
                 if len(attrs_text) > 0:
                     args.append(attrs_text)
                 args.append("children={children_expr}")
-                res.append("{const_name} = {node._get_class_name()}({', '.join(args)})")
+                res.append("{const_name}: {node._get_class_name()} = {node._get_class_name()}({', '.join(args)})")
                 res.append("")
                 return const_name
 
@@ -1859,7 +1854,7 @@ class DRoot(DNodeInner):
                 return node.prsrc()
 
             const_name = _next_const(node_const_prefix)
-            res.append("{const_name} = {node.prsrc()}")
+            res.append("{const_name}: {node._get_class_name()} = {node.prsrc()}")
             res.append("")
             return const_name
 
@@ -1898,7 +1893,7 @@ class DRoot(DNodeInner):
             ))
         src_dnode_rpcs = _list_expr(src_dnode_rpc_consts)
 
-        res.append("SRC_DNODE = DRoot(")
+        res.append("SRC_DNODE: DRoot = DRoot(")
         res.append("    children={src_dnode_children},")
         res.append("    identities={src_dnode_identities},")
         res.append("    rpcs={src_dnode_rpcs},")
@@ -1907,23 +1902,15 @@ class DRoot(DNodeInner):
         res.append("")
 
         if schema_yang is not None:
-# TODO: serialize list[str] of YANG models with repr(), use raw string to avoid interpolation?!
-# TODO: Why is the src_yang() function not found in from_xml, if it is
-# defined at the bottom of the module?!
-# After these two are addressed, then we can do away with these hacky workarounds
-#
-#"""def src_yang():
-#   return {repr(self.src)}
-#"""
             src_yang_names = []
             i = 0
             for s in schema_yang:
                 src_yang_name = "SRC_YANG_{i}"
                 src_yang_names.append(src_yang_name)
-                res.append('{src_yang_name} = r"""{s}"""')
+                res.append('{src_yang_name}: str = r"""{s}"""')
                 res.append("")
                 i += 1
-            res.append("def src_yang():")
+            res.append("pure def src_yang() -> list[str]:")
             res.append("    return [")
             for src_yang_name in src_yang_names:
                 res.append("        {src_yang_name},")
@@ -1931,7 +1918,7 @@ class DRoot(DNodeInner):
             res.append("")
             res.append("")
 
-        res.extend(["NS_{safe_name(self.module_metadata[ns].module)} = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
+        res.extend(["NS_{safe_name(self.module_metadata[ns].module)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
         res.append("")
         res.append("")
         res.extend(inner)
@@ -1939,7 +1926,8 @@ class DRoot(DNodeInner):
             res.append("")
             res.extend(self._prsubsclasses())
             res.append("actor DstAdapter(cb: action(?root, ?Exception) -> None):")
-            res.append("    def on_update(n: ?yang.gdata.Node, err: ?Exception):")
+            res.append("    on_update: action(?yang.gdata.Node, ?Exception) -> None")
+            res.append("    def on_update(n: ?yang.gdata.Node, err: ?Exception) -> None:")
             res.append("        if err is not None:")
             res.append("            cb(None, err)")
             res.append("            return")
@@ -1948,7 +1936,7 @@ class DRoot(DNodeInner):
             res.append("            return")
             res.append("        cb(None, None)")
             res.append("")
-            res.append("def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:")
+            res.append("proc def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:")
             res.append("    adapter = DstAdapter(cb)")
             res.append("    return yang.gdata.Dst(adapter.on_update)")
             res.append("")
@@ -2026,13 +2014,13 @@ class DRoot(DNodeInner):
                     child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("    {usname(child)}: {child_type}")
                 res.append("")
-                res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
+                res.append("    pure def __init__(self, path: ?SubscriptionPath=None) -> None:")
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
                 res.append("")
-                res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                 if len(selectables) > 0:
                     res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
                 else:
@@ -2046,7 +2034,7 @@ class DRoot(DNodeInner):
                 for child in selectables:
                     child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("    {usname(child)}: {child_type}")
-                res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
+                res.append("    pure def __init__(self, path: ?SubscriptionPath=None) -> None:")
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
@@ -2057,7 +2045,7 @@ class DRoot(DNodeInner):
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
                         entry_args.append("{us_list_key(key_name)}: {yang_leaf_to_acton_arg_type(key_leaf, list_keys(node), loose=False)}")
-                    res.append("    def entry(self, {', '.join(entry_args)}) -> {subs_entry_path_name(spath)}:")
+                    res.append("    pure def entry(self, {', '.join(entry_args)}) -> {subs_entry_path_name(spath)}:")
                     res.append("        predicates = [")
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
@@ -2066,7 +2054,7 @@ class DRoot(DNodeInner):
                     res.append("        base_path = self._path!.parent")
                     res.append("        return {subs_entry_path_name(spath)}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(node.module)}, '{node.name}'), predicates=predicates, parent=base_path))")
                     res.append("")
-                res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                 if len(selectables) > 0:
                     res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
                 else:
@@ -2080,13 +2068,13 @@ class DRoot(DNodeInner):
                         child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                         res.append("    {usname(child)}: {child_type}")
                     res.append("")
-                    res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
+                    res.append("    pure def __init__(self, path: ?SubscriptionPath=None) -> None:")
                     res.append("        SubscriptionNode.__init__(self, path)")
                     for child in selectables:
                         child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                         res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
                     res.append("")
-                    res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                    res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                     if len(selectables) > 0:
                         res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
                     else:
@@ -2099,7 +2087,7 @@ class DRoot(DNodeInner):
 
         res = []
         res.extend(emit_node([self]))
-        res.append("{root_const_name} = root_subs()")
+        res.append("{root_const_name}: root_subs = root_subs()")
         res.append("")
         return res
 
@@ -2116,10 +2104,11 @@ class DRoot(DNodeInner):
         res.append("")
         res.extend(self._prsubsclasses(root_const_name=root_const_name))
         res.append("actor DstAdapter(cb: action(?yang.gdata.Node, ?Exception) -> None):")
-        res.append("    def on_update(n: ?yang.gdata.Node, err: ?Exception):")
+        res.append("    on_update: action(?yang.gdata.Node, ?Exception) -> None")
+        res.append("    def on_update(n: ?yang.gdata.Node, err: ?Exception) -> None:")
         res.append("        cb(n, err)")
         res.append("")
-        res.append("def dst(cb: action(?yang.gdata.Node, ?Exception) -> None) -> yang.gdata.Dst:")
+        res.append("proc def dst(cb: action(?yang.gdata.Node, ?Exception) -> None) -> yang.gdata.Dst:")
         res.append("    adapter = DstAdapter(cb)")
         res.append("    return yang.gdata.Dst(adapter.on_update)")
         res.append("")

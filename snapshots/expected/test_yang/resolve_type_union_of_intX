@@ -19,25 +19,25 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerSigned(name='int8', description=None, reference=None, exts=[], builtin_type='int8', default=None, ranges=Ranges([(-128, 127)])), DTypeIntegerSigned(name='int32', description=None, reference=None, exts=[], builtin_type='int32', default=None, ranges=Ranges([(-2147483648, 2147483647)]))]))
+SRC_DNODE_CHILD_0: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerSigned(name='int8', description=None, reference=None, exts=[], builtin_type='int8', default=None, ranges=Ranges([(-128, 127)])), DTypeIntegerSigned(name='int32', description=None, reference=None, exts=[], builtin_type='int32', default=None, ranges=Ranges([(-2147483648, 2147483647)]))]))
 
-SRC_DNODE_CHILD_1 = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l2', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)])), DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)]))]))
+SRC_DNODE_CHILD_1: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l2', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)])), DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)]))]))
 
-SRC_DNODE_CHILD_2 = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)])), DTypeIntegerSigned(name='int16', description=None, reference=None, exts=[], builtin_type='int16', default=None, ranges=Ranges([(-32768, 32767)]))]))
+SRC_DNODE_CHILD_2: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)])), DTypeIntegerSigned(name='int16', description=None, reference=None, exts=[], builtin_type='int16', default=None, ranges=Ranges([(-32768, 32767)]))]))
 
-SRC_DNODE_CHILD_3 = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)])), DTypeIntegerSigned(name='int16', description=None, reference=None, exts=[], builtin_type='int16', default=None, ranges=Ranges([(-32768, 32767)]))]))
+SRC_DNODE_CHILD_3: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)])), DTypeIntegerSigned(name='int16', description=None, reference=None, exts=[], builtin_type='int16', default=None, ranges=Ranges([(-32768, 32767)]))]))
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2, SRC_DNODE_CHILD_3],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None)},
 )
 
-NS_foo = 'http://example.com/foo'
+NS_foo: str = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class root(yang.adata.MNode):
     l1: ?int
     l2: ?u64
@@ -45,13 +45,12 @@ class root(yang.adata.MNode):
     l4: ?value
 
     mut def __init__(self, l1: ?int, l2: ?u64, l3: ?value, l4: ?value) -> None:
-        self._ns = ''
         self.l1 = l1
         self.l2 = l2
         self.l3 = l3
         self.l4 = l4
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l2':
@@ -70,7 +69,7 @@ class root(yang.adata.MNode):
             return root(l1=n.get_opt_int(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l2')), l3=n.get_opt_value(yang.gdata.Id(NS_foo, 'l3')), l4=n.get_opt_value(yang.gdata.Id(NS_foo, 'l4')))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

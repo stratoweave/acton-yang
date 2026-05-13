@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='native', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='native', config=True, presence=False, children=[
     DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='voice', config=True, presence=False, children=[
         DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='service', config=True, presence=False, children=[
             DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='voip', config=True, presence=False, children=[
@@ -33,28 +33,27 @@ SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/base':('base', None), 'http://example.com/voice':('voice', None)},
 )
 
-NS_base = 'http://example.com/base'
-NS_voice = 'http://example.com/voice'
+NS_base: str = 'http://example.com/base'
+NS_voice: str = 'http://example.com/voice'
 
 
-_breaker1 = None
+_breaker1: None = None
 class base__native__voice__service__voip__sip(yang.adata.MNode):
     bind: ?str
     port: u64
 
     mut def __init__(self, bind: ?str, port: ?u64=None) -> None:
-        self._ns = 'http://example.com/voice'
         self.bind = bind
         self.port = port if port is not None else u64(5060)
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'bind':
             return self.bind
         if name == 'port':
@@ -69,22 +68,21 @@ class base__native__voice__service__voip__sip(yang.adata.MNode):
             return base__native__voice__service__voip__sip(bind=n.get_opt_str(yang.gdata.Id(NS_voice, 'bind')), port=n.get_opt_u64(yang.gdata.Id(NS_voice, 'port')))
         return base__native__voice__service__voip__sip()
 
-    def copy(self) -> base__native__voice__service__voip__sip:
+    mut def copy(self) -> base__native__voice__service__voip__sip:
         """Create a deep copy of this adata object"""
         return base__native__voice__service__voip__sip.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class base__native__voice__service__voip(yang.adata.MNode):
     enabled: bool
     sip: base__native__voice__service__voip__sip
 
     mut def __init__(self, enabled: ?bool=None, sip: ?base__native__voice__service__voip__sip=None) -> None:
-        self._ns = 'http://example.com/voice'
         self.enabled = enabled if enabled is not None else False
         self.sip = sip if sip is not None else base__native__voice__service__voip__sip()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'enabled':
             return self.enabled
         if name == 'sip':
@@ -99,20 +97,19 @@ class base__native__voice__service__voip(yang.adata.MNode):
             return base__native__voice__service__voip(enabled=n.get_opt_bool(yang.gdata.Id(NS_voice, 'enabled')), sip=base__native__voice__service__voip__sip.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'sip'))))
         return base__native__voice__service__voip()
 
-    def copy(self) -> base__native__voice__service__voip:
+    mut def copy(self) -> base__native__voice__service__voip:
         """Create a deep copy of this adata object"""
         return base__native__voice__service__voip.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class base__native__voice__service(yang.adata.MNode):
     voip: base__native__voice__service__voip
 
     mut def __init__(self, voip: ?base__native__voice__service__voip=None) -> None:
-        self._ns = 'http://example.com/voice'
         self.voip = voip if voip is not None else base__native__voice__service__voip()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'voip':
             return self.voip
 
@@ -125,20 +122,19 @@ class base__native__voice__service(yang.adata.MNode):
             return base__native__voice__service(voip=base__native__voice__service__voip.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'voip'))))
         return base__native__voice__service()
 
-    def copy(self) -> base__native__voice__service:
+    mut def copy(self) -> base__native__voice__service:
         """Create a deep copy of this adata object"""
         return base__native__voice__service.from_gdata(self.to_gdata())
 
 
-_breaker4 = None
+_breaker4: None = None
 class base__native__voice(yang.adata.MNode):
     service: base__native__voice__service
 
     mut def __init__(self, service: ?base__native__voice__service=None) -> None:
-        self._ns = 'http://example.com/voice'
         self.service = service if service is not None else base__native__voice__service()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'service':
             return self.service
 
@@ -151,20 +147,19 @@ class base__native__voice(yang.adata.MNode):
             return base__native__voice(service=base__native__voice__service.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'service'))))
         return base__native__voice()
 
-    def copy(self) -> base__native__voice:
+    mut def copy(self) -> base__native__voice:
         """Create a deep copy of this adata object"""
         return base__native__voice.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker5: None = None
 class base__native(yang.adata.MNode):
     voice: base__native__voice
 
     mut def __init__(self, voice: ?base__native__voice=None) -> None:
-        self._ns = 'http://example.com/base'
         self.voice = voice if voice is not None else base__native__voice()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'voice':
             return self.voice
 
@@ -177,20 +172,19 @@ class base__native(yang.adata.MNode):
             return base__native(voice=base__native__voice.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'voice'))))
         return base__native()
 
-    def copy(self) -> base__native:
+    mut def copy(self) -> base__native:
         """Create a deep copy of this adata object"""
         return base__native.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker6: None = None
 class root(yang.adata.MNode):
     native: base__native
 
     mut def __init__(self, native: ?base__native=None) -> None:
-        self._ns = ''
         self.native = native if native is not None else base__native()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'native':
             return self.native
 
@@ -203,7 +197,7 @@ class root(yang.adata.MNode):
             return root(native=base__native.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base, 'native'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

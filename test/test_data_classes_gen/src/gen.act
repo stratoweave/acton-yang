@@ -13,7 +13,7 @@ def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose
     src = root.prdaclass(schema_yang=yangs, loose=loose, include_state=True)
     wf = file.WriteFile(wfcap, filename)
 
-    src += "def src_schema():\n"
+    src += "mut def src_schema() -> dict[str, SchemaNode]:\n"
     src += "    res = {{}}\n"
     for y in yangs:
         ys = yang.schema_from_src(y)
@@ -35,7 +35,7 @@ def yang_to_oper_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str) 
     src = root.prdaclass(schema_yang=yangs, loose=True, include_state=True, include_subs=True)
     wf = file.WriteFile(wfcap, filename)
 
-    src += "def src_schema():\n"
+    src += "mut def src_schema() -> dict[str, SchemaNode]:\n"
     src += "    res = {{}}\n"
     for y in yangs:
         ys = yang.schema_from_src(y)
