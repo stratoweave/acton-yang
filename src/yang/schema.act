@@ -2014,13 +2014,13 @@ class DRoot(DNodeInner):
                     child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("    {usname(child)}: {child_type}")
                 res.append("")
-                res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
+                res.append("    pure def __init__(self, path: ?SubscriptionPath=None) -> None:")
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
                 res.append("")
-                res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                 if len(selectables) > 0:
                     res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
                 else:
@@ -2034,7 +2034,7 @@ class DRoot(DNodeInner):
                 for child in selectables:
                     child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                     res.append("    {usname(child)}: {child_type}")
-                res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
+                res.append("    pure def __init__(self, path: ?SubscriptionPath=None) -> None:")
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
@@ -2045,7 +2045,7 @@ class DRoot(DNodeInner):
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
                         entry_args.append("{us_list_key(key_name)}: {yang_leaf_to_acton_arg_type(key_leaf, list_keys(node), loose=False)}")
-                    res.append("    def entry(self, {', '.join(entry_args)}) -> {subs_entry_path_name(spath)}:")
+                    res.append("    pure def entry(self, {', '.join(entry_args)}) -> {subs_entry_path_name(spath)}:")
                     res.append("        predicates = [")
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
@@ -2054,7 +2054,7 @@ class DRoot(DNodeInner):
                     res.append("        base_path = self._path!.parent")
                     res.append("        return {subs_entry_path_name(spath)}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(node.module)}, '{node.name}'), predicates=predicates, parent=base_path))")
                     res.append("")
-                res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                 if len(selectables) > 0:
                     res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
                 else:
@@ -2068,13 +2068,13 @@ class DRoot(DNodeInner):
                         child_type = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                         res.append("    {usname(child)}: {child_type}")
                     res.append("")
-                    res.append("    def __init__(self, path: ?SubscriptionPath=None) -> None:")
+                    res.append("    pure def __init__(self, path: ?SubscriptionPath=None) -> None:")
                     res.append("        SubscriptionNode.__init__(self, path)")
                     for child in selectables:
                         child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
                         res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(yang.gdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
                     res.append("")
-                    res.append("    def _direct_children(self) -> list[SubscriptionNode]:")
+                    res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                     if len(selectables) > 0:
                         res.append("        direct: list[SubscriptionNode] = [{', '.join(['self.{usname(child)}' for child in selectables])}]")
                     else:

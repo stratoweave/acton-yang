@@ -459,23 +459,23 @@ class filter_test__system_state__clock_subs(SubscriptionNode):
     current_datetime: SubscriptionNode
     boot_datetime: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.current_datetime = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'current-datetime'), parent=path))
         self.boot_datetime = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'boot-datetime'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.current_datetime, self.boot_datetime]
         return direct
 
 class filter_test__system_state_subs(SubscriptionNode):
     clock: filter_test__system_state__clock_subs
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.clock = filter_test__system_state__clock_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'clock'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.clock]
         return direct
 
@@ -483,34 +483,34 @@ class filter_test__interfaces__interface__statistics_subs(SubscriptionNode):
     in_octets: SubscriptionNode
     out_octets: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.in_octets = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'in-octets'), parent=path))
         self.out_octets = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'out-octets'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.in_octets, self.out_octets]
         return direct
 
 class filter_test__interfaces__interface__ipv4_subs(SubscriptionNode):
     mtu: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.mtu = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'mtu'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.mtu]
         return direct
 
 class filter_test__interfaces__interface__ipv6_subs(SubscriptionNode):
     mtu: SubscriptionNode
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.mtu = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'mtu'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.mtu]
         return direct
 
@@ -525,7 +525,7 @@ class filter_test__interfaces__interface_subs(SubscriptionNode):
     statistics: filter_test__interfaces__interface__statistics_subs
     ipv4: filter_test__interfaces__interface__ipv4_subs
     ipv6: filter_test__interfaces__interface__ipv6_subs
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
         self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
@@ -538,14 +538,14 @@ class filter_test__interfaces__interface_subs(SubscriptionNode):
         self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv4'), parent=path))
         self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv6'), parent=path))
 
-    def entry(self, name: str) -> filter_test__interfaces__interface_entry_subs:
+    pure def entry(self, name: str) -> filter_test__interfaces__interface_entry_subs:
         predicates = [
             yang.gdata.FNode(yang.gdata.Id(NS_filter_test, 'name'), value_match=name),
         ]
         base_path = self._path!.parent
         return filter_test__interfaces__interface_entry_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interface'), predicates=predicates, parent=base_path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6]
         return direct
 
@@ -561,7 +561,7 @@ class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
     ipv4: filter_test__interfaces__interface__ipv4_subs
     ipv6: filter_test__interfaces__interface__ipv6_subs
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
         self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
@@ -574,18 +574,18 @@ class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
         self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv4'), parent=path))
         self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv6'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6]
         return direct
 
 class filter_test__interfaces_subs(SubscriptionNode):
     interface: filter_test__interfaces__interface_subs
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.interface = filter_test__interfaces__interface_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interface'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.interface]
         return direct
 
@@ -593,12 +593,12 @@ class root_subs(SubscriptionNode):
     system_state: filter_test__system_state_subs
     interfaces: filter_test__interfaces_subs
 
-    def __init__(self, path: ?SubscriptionPath=None) -> None:
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
         self.system_state = filter_test__system_state_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'system-state'), parent=path))
         self.interfaces = filter_test__interfaces_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'interfaces'), parent=path))
 
-    def _direct_children(self) -> list[SubscriptionNode]:
+    pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.system_state, self.interfaces]
         return direct
 
