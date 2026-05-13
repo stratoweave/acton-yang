@@ -1927,7 +1927,7 @@ class DRoot(DNodeInner):
             res.append("")
             res.append("")
 
-        res.extend(["NS_{safe_name(self.module_metadata[ns].module)} = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
+        res.extend(["NS_{safe_name(self.module_metadata[ns].module)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
         res.append("")
         res.append("")
         res.extend(inner)

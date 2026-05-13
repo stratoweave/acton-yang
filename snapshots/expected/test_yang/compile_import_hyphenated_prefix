@@ -30,8 +30,8 @@ SRC_DNODE: DRoot = DRoot(
     module_metadata={'http://example.com/qux':('acme_qux-baz', None), 'http://example.com/foo':('acme_foo-bar', None)},
 )
 
-NS_acme_foo_bar = 'http://example.com/foo'
-NS_acme_qux_baz = 'http://example.com/qux'
+NS_acme_foo_bar: str = 'http://example.com/foo'
+NS_acme_qux_baz: str = 'http://example.com/qux'
 
 
 _breaker1: None = None

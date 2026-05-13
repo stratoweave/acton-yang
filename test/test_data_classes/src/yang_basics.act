@@ -141,7 +141,7 @@ pure def src_yang() -> list[str]:
     ]
 
 
-NS_basics = 'http://example.com/basics'
+NS_basics: str = 'http://example.com/basics'
 
 
 _breaker1: None = None

@@ -513,8 +513,8 @@ pure def src_yang() -> list[str]:
     ]
 
 
-NS_bar = 'http://example.com/bar'
-NS_foo = 'http://example.com/foo'
+NS_bar: str = 'http://example.com/bar'
+NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None

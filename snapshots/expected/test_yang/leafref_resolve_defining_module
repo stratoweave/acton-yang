@@ -45,8 +45,8 @@ SRC_DNODE: DRoot = DRoot(
     module_metadata={'http://example.com/other':('other-module', None), 'http://example.com/base':('base-module', None)},
 )
 
-NS_base_module = 'http://example.com/base'
-NS_other_module = 'http://example.com/other'
+NS_base_module: str = 'http://example.com/base'
+NS_other_module: str = 'http://example.com/other'
 
 
 _breaker1: None = None

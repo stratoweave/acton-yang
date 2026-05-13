@@ -36,8 +36,8 @@ SRC_DNODE: DRoot = DRoot(
     module_metadata={'http://example.com/shared':('shared', None), 'http://example.com/parent':('parent', None)},
 )
 
-NS_parent = 'http://example.com/parent'
-NS_shared = 'http://example.com/shared'
+NS_parent: str = 'http://example.com/parent'
+NS_shared: str = 'http://example.com/shared'
 
 
 _breaker1: None = None

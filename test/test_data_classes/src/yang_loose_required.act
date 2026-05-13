@@ -49,7 +49,7 @@ pure def src_yang() -> list[str]:
     ]
 
 
-NS_loose_required = 'http://example.com/loose-required'
+NS_loose_required: str = 'http://example.com/loose-required'
 
 
 _breaker1: None = None

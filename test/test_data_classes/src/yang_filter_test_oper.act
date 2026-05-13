@@ -129,7 +129,7 @@ pure def src_yang() -> list[str]:
     ]
 
 
-NS_filter_test = 'http://example.com/filter-test'
+NS_filter_test: str = 'http://example.com/filter-test'
 
 
 _breaker1: None = None

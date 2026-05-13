@@ -71,7 +71,7 @@ pure def src_yang() -> list[str]:
     ]
 
 
-NS_yangrpc = 'http://example.com/yangrpc'
+NS_yangrpc: str = 'http://example.com/yangrpc'
 
 
 _breaker1: None = None

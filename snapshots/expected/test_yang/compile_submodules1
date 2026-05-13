@@ -34,7 +34,7 @@ SRC_DNODE: DRoot = DRoot(
     module_metadata={'http://example.com/foo':('foo', '2019-01-01')},
 )
 
-NS_foo = 'http://example.com/foo'
+NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
