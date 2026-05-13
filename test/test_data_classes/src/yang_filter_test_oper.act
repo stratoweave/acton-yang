@@ -605,7 +605,8 @@ class root_subs(SubscriptionNode):
 subs: root_subs = root_subs()
 
 actor DstAdapter(cb: action(?root, ?Exception) -> None):
-    def on_update(n: ?yang.gdata.Node, err: ?Exception):
+    on_update: action(?yang.gdata.Node, ?Exception) -> None
+    def on_update(n: ?yang.gdata.Node, err: ?Exception) -> None:
         if err is not None:
             cb(None, err)
             return
@@ -614,7 +615,7 @@ actor DstAdapter(cb: action(?root, ?Exception) -> None):
             return
         cb(None, None)
 
-def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:
+proc def dst(cb: action(?root, ?Exception) -> None) -> yang.gdata.Dst:
     adapter = DstAdapter(cb)
     return yang.gdata.Dst(adapter.on_update)
 mut def src_schema() -> dict[str, SchemaNode]:
