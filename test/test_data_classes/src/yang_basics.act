@@ -241,7 +241,7 @@ class root(yang.adata.MNode):
 actor rpc_root(tp: yang.gdata.TreeProvider):
     pass
 
-def src_schema():
+mut def src_schema() -> dict[str, SchemaNode]:
     res = {}
     res["basics"] = Module('basics', yang_version=1.1, namespace='http://example.com/basics', prefix='b', children=[
     Identity('id1'),

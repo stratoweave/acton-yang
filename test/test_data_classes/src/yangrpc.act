@@ -194,7 +194,7 @@ actor rpc_root(tp: yang.gdata.TreeProvider):
         tp.rpc_xml(lambda _, err: cb(err), rpc_xml)
 
 
-def src_schema():
+mut def src_schema() -> dict[str, SchemaNode]:
     res = {}
     res["yangrpc"] = Module('yangrpc', yang_version=1.1, namespace='http://example.com/yangrpc', prefix='yrpc', children=[
     Rpc('foo', input=Input(children=[
