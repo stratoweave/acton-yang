@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_RPC_0 = DRpc(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='foo', input=DInput(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', children=[
+SRC_DNODE_RPC_0: DRpc = DRpc(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='foo', input=DInput(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', children=[
     DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='a', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo', config=False, presence=False, children=[
         DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo_b', config=False, mandatory=False, type_=DTypeIntegerSigned(name='int64', description=None, reference=None, exts=[], builtin_type='int64', default=None, ranges=Ranges([(-9223372036854775808, 9223372036854775807)])))
@@ -38,9 +38,9 @@ SRC_DNODE_RPC_0 = DRpc(module='yangrpc', namespace='http://example.com/yangrpc',
     ])
 ])
 
-SRC_DNODE_RPC_1 = DRpc(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='silent')
+SRC_DNODE_RPC_1: DRpc = DRpc(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='silent')
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[],
     identities=[],
     rpcs=[SRC_DNODE_RPC_0, SRC_DNODE_RPC_1],

@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instances', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instances', config=True, presence=False, children=[
     DList(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instance', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='state', config=True, presence=False, children=[
@@ -29,7 +29,7 @@ SRC_DNODE_CHILD_0 = DContainer(module='base-module', namespace='http://example.c
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],

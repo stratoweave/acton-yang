@@ -29,7 +29,7 @@ basics_id1 = Identityref('id1', ns='http://example.com/basics', mod='basics', pf
 basics_id2 = Identityref('id2', ns='http://example.com/basics', mod='basics', pfx='b')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='basics', namespace='http://example.com/basics', prefix='b', name='c', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='basics', namespace='http://example.com/basics', prefix='b', name='c', config=True, presence=False, children=[
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_str_def', config=True, default='foo', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_str_def_quoted', config=True, default='"foo"', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_uint64_def', config=True, default='1234567890', mandatory=False, type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
@@ -43,13 +43,13 @@ SRC_DNODE_CHILD_0 = DContainer(module='basics', namespace='http://example.com/ba
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_identityref_def', config=True, default='id2', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_basics_id1], identities=_identities))
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[
         DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1],
     rpcs=[],

@@ -32,14 +32,14 @@ foo_basey_1 = Identityref('basey.1', ns='http://example.com/foo', mod='foo', pfx
 foo_fooy = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='tc1', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='tc1', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l2', config=True, mandatory=False, must=[
 DMust(condition='be cool', description=None, error_app_tag=None, error_message=None, reference=None)
         ], type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_1 = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
+SRC_DNODE_CHILD_1: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
@@ -47,16 +47,16 @@ SRC_DNODE_CHILD_1 = DList(module='foo', namespace='http://example.com/foo', pref
     ])
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
 
-SRC_DNODE_IDENTITY_2 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
+SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey'),
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey.1')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],

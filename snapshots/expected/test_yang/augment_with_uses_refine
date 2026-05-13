@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='system-capabilities', config=True, description='System capabilities', presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='system-capabilities', config=True, description='System capabilities', presence=False, children=[
     DList(module='base', namespace='http://example.com/base', prefix='base', name='per-node-capabilities', config=True, description='Per-node capabilities', min_elements=0, ordered_by='system'),
     DContainer(module='augmenter', namespace='http://example.com/augmenter', prefix='aug', name='subscription-capabilities', config=True, presence=False, children=[
         DLeaf(module='augmenter', namespace='http://example.com/augmenter', prefix='aug', name='max-nodes', config=True, default='42', mandatory=False, type_=DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)]))),
@@ -29,7 +29,7 @@ SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],

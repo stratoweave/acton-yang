@@ -19,13 +19,13 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='other-module', namespace='http://example.com/other', prefix='other', name='network-instances', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='other-module', namespace='http://example.com/other', prefix='other', name='network-instances', config=True, presence=False, children=[
     DList(module='other-module', namespace='http://example.com/other', prefix='other', name='network-instance', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='other-module', namespace='http://example.com/other', prefix='other', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_1 = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instances', config=True, presence=False, children=[
+SRC_DNODE_CHILD_1: DContainer = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instances', config=True, presence=False, children=[
     DList(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instance', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[
@@ -34,11 +34,11 @@ SRC_DNODE_CHILD_1 = DContainer(module='base-module', namespace='http://example.c
     ])
 ])
 
-SRC_DNODE_CHILD_2 = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='uses-leafref', config=True, presence=False, children=[
+SRC_DNODE_CHILD_2: DContainer = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='uses-leafref', config=True, presence=False, children=[
     DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='ni', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep(None, 'network-instances', []), yang.xpath.NodeTestStep(None, 'network-instance', []), yang.xpath.NodeTestStep(None, 'config', []), yang.xpath.NodeTestStep(None, 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2],
     identities=[],
     rpcs=[],

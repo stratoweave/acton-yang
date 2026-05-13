@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='native', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='native', config=True, presence=False, children=[
     DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='voice', config=True, presence=False, children=[
         DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='service', config=True, presence=False, children=[
             DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='voip', config=True, presence=False, children=[
@@ -33,7 +33,7 @@ SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],

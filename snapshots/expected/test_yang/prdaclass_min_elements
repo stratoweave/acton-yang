@@ -19,13 +19,13 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='li1', key=['l1'], config=True, min_elements=1, ordered_by='system', children=[
+SRC_DNODE_CHILD_0: DList = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='li1', key=['l1'], config=True, min_elements=1, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_1 = DLeafList(module='foo', namespace='http://example.com/foo', prefix='foo', name='ll1', config=True, min_elements=1, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+SRC_DNODE_CHILD_1: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='foo', name='ll1', config=True, min_elements=1, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
     identities=[],
     rpcs=[],

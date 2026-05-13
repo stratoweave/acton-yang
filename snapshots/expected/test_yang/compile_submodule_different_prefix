@@ -19,7 +19,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='main-module', namespace='http://example.com/main', prefix='main', name='main-container', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='main-module', namespace='http://example.com/main', prefix='main', name='main-container', config=True, presence=False, children=[
     DLeaf(module='main-module', namespace='http://example.com/main', prefix='main', name='main-leaf', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='main-module', namespace='http://example.com/main', prefix='main', name='sub-group-container', config=True, presence=False, children=[
         DLeaf(module='main-module', namespace='http://example.com/main', prefix='main', name='sub-group-leaf', config=True, default='from-submodule', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
@@ -40,7 +40,7 @@ DMust(condition='string-length(.) > 3', description=None, error_app_tag=None, er
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],

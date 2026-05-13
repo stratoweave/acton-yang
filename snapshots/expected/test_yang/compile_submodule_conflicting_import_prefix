@@ -19,17 +19,17 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-container', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-container', config=True, presence=False, children=[
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-leaf', config=True, mandatory=False, type_=DTypeString(name='other:other-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[])),
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='augmented-leaf', config=True, mandatory=False, type_=DTypeString(name='another:another-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[YangPattern(yang_regex='[a-z]+', pcre='^([a-z]+)$', invert=False)]))
 ])
 
-SRC_DNODE_CHILD_1 = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-container', config=True, presence=False, children=[
+SRC_DNODE_CHILD_1: DContainer = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-container', config=True, presence=False, children=[
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-leaf', config=True, mandatory=False, type_=DTypeString(name='another:another-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[YangPattern(yang_regex='[a-z]+', pcre='^([a-z]+)$', invert=False)])),
     DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='another-leaf', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
     identities=[],
     rpcs=[],

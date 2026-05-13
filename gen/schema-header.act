@@ -1835,7 +1835,7 @@ class DRoot(DNodeInner):
 
                 const_name = _next_const(node_const_prefix)
                 if not should_split:
-                    res.append("{const_name} = {node.prsrc()}")
+                    res.append("{const_name}: {node._get_class_name()} = {node.prsrc()}")
                     res.append("")
                     return const_name
 
@@ -1855,7 +1855,7 @@ class DRoot(DNodeInner):
                 if len(attrs_text) > 0:
                     args.append(attrs_text)
                 args.append("children={children_expr}")
-                res.append("{const_name} = {node._get_class_name()}({', '.join(args)})")
+                res.append("{const_name}: {node._get_class_name()} = {node._get_class_name()}({', '.join(args)})")
                 res.append("")
                 return const_name
 
@@ -1863,7 +1863,7 @@ class DRoot(DNodeInner):
                 return node.prsrc()
 
             const_name = _next_const(node_const_prefix)
-            res.append("{const_name} = {node.prsrc()}")
+            res.append("{const_name}: {node._get_class_name()} = {node.prsrc()}")
             res.append("")
             return const_name
 
@@ -1902,7 +1902,7 @@ class DRoot(DNodeInner):
             ))
         src_dnode_rpcs = _list_expr(src_dnode_rpc_consts)
 
-        res.append("SRC_DNODE = DRoot(")
+        res.append("SRC_DNODE: DRoot = DRoot(")
         res.append("    children={src_dnode_children},")
         res.append("    identities={src_dnode_identities},")
         res.append("    rpcs={src_dnode_rpcs},")

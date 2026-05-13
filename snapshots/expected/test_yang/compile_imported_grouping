@@ -29,20 +29,20 @@ foo_id1 = Identityref('id1', ns='http://example.com/foo', mod='foo', pfx='foo')
 foo_id2 = Identityref('id2', ns='http://example.com/foo', mod='foo', pfx='foo')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='c1', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='c1', config=True, presence=False, children=[
     DList(module='bar', namespace='http://example.com/bar', prefix='bar', name='li1', key=['l1'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l1', config=True, description='leaf 1', mandatory=False, type_=DTypeString(name='foo:string2', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l2', config=True, mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_id1], identities=_identities))
     ])
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id2', base=[
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id2', base=[
         DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1],
     rpcs=[],

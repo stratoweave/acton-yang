@@ -38,29 +38,29 @@ foo_tcp = Identityref('tcp', ns='http://example.com/foo', mod='foo', pfx='foo')
 foo_udp = Identityref('udp', ns='http://example.com/foo', mod='foo', pfx='foo')
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[
     DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='active-protocol', config=True, description='Currently active protocol', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_base_protocol_type], identities=_identities))
 ])
 
-SRC_DNODE_IDENTITY_0 = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
 
-SRC_DNODE_IDENTITY_1 = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE_IDENTITY_2 = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[
+SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE_IDENTITY_3 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[
+SRC_DNODE_IDENTITY_3: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE_IDENTITY_4 = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[
+SRC_DNODE_IDENTITY_4: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[
         DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')
     ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2, SRC_DNODE_IDENTITY_3, SRC_DNODE_IDENTITY_4],
     rpcs=[],

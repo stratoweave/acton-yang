@@ -20,14 +20,14 @@ from yang.sdata import SubscriptionPath, SubscriptionNode
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0 = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='system-state', config=False, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='system-state', config=False, presence=False, children=[
     DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='clock', config=False, presence=False, children=[
         DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='current-datetime', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='boot-datetime', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_1 = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='interfaces', config=True, presence=False, children=[
+SRC_DNODE_CHILD_1: DContainer = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='interfaces', config=True, presence=False, children=[
     DList(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='interface', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='description', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
@@ -49,7 +49,7 @@ SRC_DNODE_CHILD_1 = DContainer(module='filter-test', namespace='http://example.c
     ])
 ])
 
-SRC_DNODE = DRoot(
+SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
     identities=[],
     rpcs=[],
