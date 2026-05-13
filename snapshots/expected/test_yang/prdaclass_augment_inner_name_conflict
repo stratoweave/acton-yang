@@ -39,7 +39,7 @@ NS_base = 'http://example.com/base'
 NS_foo = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class base__c1__base_c2(yang.adata.MNode):
     foo: ?str
 
@@ -65,7 +65,7 @@ class base__c1__base_c2(yang.adata.MNode):
         return base__c1__base_c2.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class base__c1__foo_c2(yang.adata.MNode):
     foo: ?str
 
@@ -91,7 +91,7 @@ class base__c1__foo_c2(yang.adata.MNode):
         return base__c1__foo_c2.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class base__c1(yang.adata.MNode):
     base_c2: base__c1__base_c2
     foo_c2: base__c1__foo_c2
@@ -121,7 +121,7 @@ class base__c1(yang.adata.MNode):
         return base__c1.from_gdata(self.to_gdata())
 
 
-_breaker4 = None
+_breaker4: None = None
 class root(yang.adata.MNode):
     c1: base__c1
 

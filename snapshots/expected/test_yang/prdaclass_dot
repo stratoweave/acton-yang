@@ -33,7 +33,7 @@ SRC_DNODE = DRoot(
 NS_foo = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__ieee_802_3(yang.adata.MNode):
     ieee_802_3: ?str
 
@@ -59,7 +59,7 @@ class foo__ieee_802_3(yang.adata.MNode):
         return foo__ieee_802_3.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     ieee_802_3: foo__ieee_802_3
 

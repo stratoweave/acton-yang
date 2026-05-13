@@ -517,7 +517,7 @@ NS_bar = 'http://example.com/bar'
 NS_foo = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__c1__li__c4(yang.adata.MNode):
     l5: ?str
 
@@ -543,7 +543,7 @@ class foo__c1__li__c4(yang.adata.MNode):
         return foo__c1__li__c4.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class foo__c1__li_entry(yang.adata.MNode):
     name: str
     val: ?str
@@ -574,7 +574,7 @@ class foo__c1__li_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__c1__li_entry.from_gdata(self.to_gdata())
 
-_breaker3 = None
+_breaker3: None = None
 class foo__c1__li(yang.adata.MNode):
     elements: list[foo__c1__li_entry]
     mut def __init__(self, elements: list[foo__c1__li_entry]=[]) -> None:
@@ -639,7 +639,7 @@ extension foo__c1__li(Indexed[str, foo__c1__li_entry]):
                 return
         raise KeyError(k)
 
-_breaker4 = None
+_breaker4: None = None
 class foo__c1(yang.adata.MNode):
     f_l1: ?str
     l3: ?u64
@@ -721,7 +721,7 @@ class foo__c1(yang.adata.MNode):
         return foo__c1.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker5: None = None
 class foo__pc1__foo(yang.adata.MNode):
     l1: list[bytes]
 
@@ -747,7 +747,7 @@ class foo__pc1__foo(yang.adata.MNode):
         return foo__pc1__foo.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker6: None = None
 class foo__pc1(yang.adata.MNode):
     foo: foo__pc1__foo
 
@@ -776,7 +776,7 @@ class foo__pc1(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc1.copy()')
 
 
-_breaker7 = None
+_breaker7: None = None
 class foo__pc2__foo(yang.adata.MNode):
     l_mandatory: str
 
@@ -802,7 +802,7 @@ class foo__pc2__foo(yang.adata.MNode):
         return foo__pc2__foo.from_gdata(self.to_gdata())
 
 
-_breaker8 = None
+_breaker8: None = None
 class foo__pc2(yang.adata.MNode):
     foo: foo__pc2__foo
 
@@ -831,7 +831,7 @@ class foo__pc2(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc2.copy()')
 
 
-_breaker9 = None
+_breaker9: None = None
 class foo__pc3__level1__level2__level3(yang.adata.MNode):
     l3: str
     l3_optional: ?str
@@ -861,7 +861,7 @@ class foo__pc3__level1__level2__level3(yang.adata.MNode):
         return foo__pc3__level1__level2__level3.from_gdata(self.to_gdata())
 
 
-_breaker10 = None
+_breaker10: None = None
 class foo__pc3__level1__level2(yang.adata.MNode):
     l2: str
     l2_optional: ?str
@@ -895,7 +895,7 @@ class foo__pc3__level1__level2(yang.adata.MNode):
         return foo__pc3__level1__level2.from_gdata(self.to_gdata())
 
 
-_breaker11 = None
+_breaker11: None = None
 class foo__pc3__level1(yang.adata.MNode):
     l1: str
     l1_optional: ?str
@@ -929,7 +929,7 @@ class foo__pc3__level1(yang.adata.MNode):
         return foo__pc3__level1.from_gdata(self.to_gdata())
 
 
-_breaker12 = None
+_breaker12: None = None
 class foo__pc3(yang.adata.MNode):
     level1: foo__pc3__level1
 
@@ -958,7 +958,7 @@ class foo__pc3(yang.adata.MNode):
         raise Exception('Unreachable in foo__pc3.copy()')
 
 
-_breaker13 = None
+_breaker13: None = None
 class foo__empty_presence(yang.adata.MNode):
 
     mut def __init__(self) -> None:
@@ -982,7 +982,7 @@ class foo__empty_presence(yang.adata.MNode):
         raise Exception('Unreachable in foo__empty_presence.copy()')
 
 
-_breaker14 = None
+_breaker14: None = None
 class foo__c_dot(yang.adata.MNode):
     l_dot1: ?str
     l_dot2: ?str
@@ -1012,7 +1012,7 @@ class foo__c_dot(yang.adata.MNode):
         return foo__c_dot.from_gdata(self.to_gdata())
 
 
-_breaker15 = None
+_breaker15: None = None
 class foo__cc__death_entry(yang.adata.MNode):
     name: str
 
@@ -1035,7 +1035,7 @@ class foo__cc__death_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__cc__death_entry.from_gdata(self.to_gdata())
 
-_breaker16 = None
+_breaker16: None = None
 class foo__cc__death(yang.adata.MNode):
     elements: list[foo__cc__death_entry]
     mut def __init__(self, elements: list[foo__cc__death_entry]=[]) -> None:
@@ -1098,7 +1098,7 @@ extension foo__cc__death(Indexed[str, foo__cc__death_entry]):
                 return
         raise KeyError(k)
 
-_breaker17 = None
+_breaker17: None = None
 class foo__cc(yang.adata.MNode):
     cake: ?str
     death: foo__cc__death
@@ -1128,7 +1128,7 @@ class foo__cc(yang.adata.MNode):
         return foo__cc.from_gdata(self.to_gdata())
 
 
-_breaker18 = None
+_breaker18: None = None
 class foo__f_conflict__f_inner(yang.adata.MNode):
 
     mut def __init__(self) -> None:
@@ -1152,7 +1152,7 @@ class foo__f_conflict__f_inner(yang.adata.MNode):
         raise Exception('Unreachable in foo__f_conflict__f_inner.copy()')
 
 
-_breaker19 = None
+_breaker19: None = None
 class foo__f_conflict__bar_inner(yang.adata.MNode):
 
     mut def __init__(self) -> None:
@@ -1176,7 +1176,7 @@ class foo__f_conflict__bar_inner(yang.adata.MNode):
         raise Exception('Unreachable in foo__f_conflict__bar_inner.copy()')
 
 
-_breaker20 = None
+_breaker20: None = None
 class foo__f_conflict(yang.adata.MNode):
     f_foo: ?str
     f_inner: ?foo__f_conflict__f_inner
@@ -1230,7 +1230,7 @@ class foo__f_conflict(yang.adata.MNode):
         return foo__f_conflict.from_gdata(self.to_gdata())
 
 
-_breaker21 = None
+_breaker21: None = None
 class foo__special_entry(yang.adata.MNode):
     yes: bool
 
@@ -1253,7 +1253,7 @@ class foo__special_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__special_entry.from_gdata(self.to_gdata())
 
-_breaker22 = None
+_breaker22: None = None
 class foo__special(yang.adata.MNode):
     elements: list[foo__special_entry]
     mut def __init__(self, elements: list[foo__special_entry]=[]) -> None:
@@ -1316,7 +1316,7 @@ extension foo__special(Indexed[bool, foo__special_entry]):
                 return
         raise KeyError(k)
 
-_breaker23 = None
+_breaker23: None = None
 class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
     key1: str
     key2: str
@@ -1347,7 +1347,7 @@ class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1__li2_entry.from_gdata(self.to_gdata())
 
-_breaker24 = None
+_breaker24: None = None
 class foo__nested__f_inner__li1__li2(yang.adata.MNode):
     elements: list[foo__nested__f_inner__li1__li2_entry]
     mut def __init__(self, elements: list[foo__nested__f_inner__li1__li2_entry]=[]) -> None:
@@ -1393,7 +1393,7 @@ extension foo__nested__f_inner__li1__li2(Iterable[foo__nested__f_inner__li1__li2
     def __iter__(self) -> Iterator[foo__nested__f_inner__li1__li2_entry]:
         return self.elements.__iter__()
 
-_breaker25 = None
+_breaker25: None = None
 class foo__nested__f_inner__li1_entry(yang.adata.MNode):
     name: str
     f_bar: ?str
@@ -1428,7 +1428,7 @@ class foo__nested__f_inner__li1_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1_entry.from_gdata(self.to_gdata())
 
-_breaker26 = None
+_breaker26: None = None
 class foo__nested__f_inner__li1(yang.adata.MNode):
     elements: list[foo__nested__f_inner__li1_entry]
     mut def __init__(self, elements: list[foo__nested__f_inner__li1_entry]=[]) -> None:
@@ -1495,7 +1495,7 @@ extension foo__nested__f_inner__li1(Indexed[str, foo__nested__f_inner__li1_entry
                 return
         raise KeyError(k)
 
-_breaker27 = None
+_breaker27: None = None
 class foo__nested__f_inner(yang.adata.MNode):
     foo: ?str
     li1: foo__nested__f_inner__li1
@@ -1525,7 +1525,7 @@ class foo__nested__f_inner(yang.adata.MNode):
         return foo__nested__f_inner.from_gdata(self.to_gdata())
 
 
-_breaker28 = None
+_breaker28: None = None
 class foo__nested__bar_inner(yang.adata.MNode):
     foo: ?str
 
@@ -1551,7 +1551,7 @@ class foo__nested__bar_inner(yang.adata.MNode):
         return foo__nested__bar_inner.from_gdata(self.to_gdata())
 
 
-_breaker29 = None
+_breaker29: None = None
 class foo__nested(yang.adata.MNode):
     f_inner: foo__nested__f_inner
     bar_inner: foo__nested__bar_inner
@@ -1581,7 +1581,7 @@ class foo__nested(yang.adata.MNode):
         return foo__nested.from_gdata(self.to_gdata())
 
 
-_breaker30 = None
+_breaker30: None = None
 class foo__li_union_entry(yang.adata.MNode):
     k1: str
     k2: value
@@ -1616,7 +1616,7 @@ class foo__li_union_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__li_union_entry.from_gdata(self.to_gdata())
 
-_breaker31 = None
+_breaker31: None = None
 class foo__li_union(yang.adata.MNode):
     elements: list[foo__li_union_entry]
     mut def __init__(self, elements: list[foo__li_union_entry]=[]) -> None:
@@ -1675,7 +1675,7 @@ extension foo__li_union(Iterable[foo__li_union_entry]):
     def __iter__(self) -> Iterator[foo__li_union_entry]:
         return self.elements.__iter__()
 
-_breaker32 = None
+_breaker32: None = None
 class foo__li_union_one_base_entry(yang.adata.MNode):
     k1: value
 
@@ -1698,7 +1698,7 @@ class foo__li_union_one_base_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__li_union_one_base_entry.from_gdata(self.to_gdata())
 
-_breaker33 = None
+_breaker33: None = None
 class foo__li_union_one_base(yang.adata.MNode):
     elements: list[foo__li_union_one_base_entry]
     mut def __init__(self, elements: list[foo__li_union_one_base_entry]=[]) -> None:
@@ -1745,7 +1745,7 @@ extension foo__li_union_one_base(Iterable[foo__li_union_one_base_entry]):
     def __iter__(self) -> Iterator[foo__li_union_one_base_entry]:
         return self.elements.__iter__()
 
-_breaker34 = None
+_breaker34: None = None
 class foo__state__c1(yang.adata.MNode):
     l1: ?str
     l2: ?str
@@ -1775,7 +1775,7 @@ class foo__state__c1(yang.adata.MNode):
         return foo__state__c1.from_gdata(self.to_gdata())
 
 
-_breaker35 = None
+_breaker35: None = None
 class foo__state(yang.adata.MNode):
     c1: foo__state__c1
 
@@ -1801,7 +1801,7 @@ class foo__state(yang.adata.MNode):
         return foo__state.from_gdata(self.to_gdata())
 
 
-_breaker36 = None
+_breaker36: None = None
 class foo__c2(yang.adata.MNode):
     l1: ?str
 
@@ -1827,7 +1827,7 @@ class foo__c2(yang.adata.MNode):
         return foo__c2.from_gdata(self.to_gdata())
 
 
-_breaker37 = None
+_breaker37: None = None
 class bar__test_idref(yang.adata.MNode):
     idref: list[Identityref]
 
@@ -1853,7 +1853,7 @@ class bar__test_idref(yang.adata.MNode):
         return bar__test_idref.from_gdata(self.to_gdata())
 
 
-_breaker38 = None
+_breaker38: None = None
 class bar__bar_conflict(yang.adata.MNode):
     foo: ?str
 
@@ -1879,7 +1879,7 @@ class bar__bar_conflict(yang.adata.MNode):
         return bar__bar_conflict.from_gdata(self.to_gdata())
 
 
-_breaker39 = None
+_breaker39: None = None
 class root(yang.adata.MNode):
     c1: foo__c1
     pc1: ?foo__pc1

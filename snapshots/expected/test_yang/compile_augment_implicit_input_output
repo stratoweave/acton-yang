@@ -48,7 +48,7 @@ SRC_DNODE = DRoot(
 NS_foo = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__c1(yang.adata.MNode):
 
     mut def __init__(self) -> None:
@@ -69,7 +69,7 @@ class foo__c1(yang.adata.MNode):
         return foo__c1.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     c1: foo__c1
 
@@ -95,7 +95,7 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class foo__r1__input__c3(yang.adata.MNode):
     l3: ?str
 
@@ -121,7 +121,7 @@ class foo__r1__input__c3(yang.adata.MNode):
         return foo__r1__input__c3.from_gdata(self.to_gdata())
 
 
-_breaker4 = None
+_breaker4: None = None
 class foo__r1__input(yang.adata.MNode):
     c3: foo__r1__input__c3
 
@@ -147,7 +147,7 @@ class foo__r1__input(yang.adata.MNode):
         return foo__r1__input.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker5: None = None
 class foo__r1__output(yang.adata.MNode):
     l4: ?str
 

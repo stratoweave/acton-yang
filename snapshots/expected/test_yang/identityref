@@ -72,7 +72,7 @@ NS_base = 'http://example.com/base'
 NS_foo = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class base__config(yang.adata.MNode):
     active_protocol: ?Identityref
 
@@ -98,7 +98,7 @@ class base__config(yang.adata.MNode):
         return base__config.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     config: base__config
 

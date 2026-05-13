@@ -38,7 +38,7 @@ NS_bar = 'http://example.com/bar'
 NS_foo = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__foo__bar(yang.adata.MNode):
     foo_l1: str
     bar_l1: str
@@ -75,7 +75,7 @@ class foo__foo__bar(yang.adata.MNode):
         raise Exception('Unreachable in foo__foo__bar.copy()')
 
 
-_breaker2 = None
+_breaker2: None = None
 class foo__foo(yang.adata.MNode):
     bar: ?foo__foo__bar
 
@@ -115,7 +115,7 @@ class foo__foo(yang.adata.MNode):
         raise Exception('Unreachable in foo__foo.copy()')
 
 
-_breaker3 = None
+_breaker3: None = None
 class root(yang.adata.MNode):
     foo: ?foo__foo
 

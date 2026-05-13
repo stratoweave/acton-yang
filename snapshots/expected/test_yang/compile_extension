@@ -41,7 +41,7 @@ NS_foo = 'http://example.com/foo'
 NS_some_ext = 'http://example.com/some-ext'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__c1__things_entry(yang.adata.MNode):
     name: str
     id: ?str
@@ -68,7 +68,7 @@ class foo__c1__things_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__c1__things_entry.from_gdata(self.to_gdata())
 
-_breaker2 = None
+_breaker2: None = None
 class foo__c1__things(yang.adata.MNode):
     elements: list[foo__c1__things_entry]
     mut def __init__(self, elements: list[foo__c1__things_entry]=[]) -> None:
@@ -133,7 +133,7 @@ extension foo__c1__things(Indexed[str, foo__c1__things_entry]):
                 return
         raise KeyError(k)
 
-_breaker3 = None
+_breaker3: None = None
 class foo__c1(yang.adata.MNode):
     things: foo__c1__things
 
@@ -159,7 +159,7 @@ class foo__c1(yang.adata.MNode):
         return foo__c1.from_gdata(self.to_gdata())
 
 
-_breaker4 = None
+_breaker4: None = None
 class root(yang.adata.MNode):
     c1: foo__c1
 

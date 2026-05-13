@@ -44,7 +44,7 @@ NS_base = 'http://example.com/base'
 NS_voice = 'http://example.com/voice'
 
 
-_breaker1 = None
+_breaker1: None = None
 class base__native__voice__service__voip__sip(yang.adata.MNode):
     bind: ?str
     port: u64
@@ -74,7 +74,7 @@ class base__native__voice__service__voip__sip(yang.adata.MNode):
         return base__native__voice__service__voip__sip.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class base__native__voice__service__voip(yang.adata.MNode):
     enabled: bool
     sip: base__native__voice__service__voip__sip
@@ -104,7 +104,7 @@ class base__native__voice__service__voip(yang.adata.MNode):
         return base__native__voice__service__voip.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class base__native__voice__service(yang.adata.MNode):
     voip: base__native__voice__service__voip
 
@@ -130,7 +130,7 @@ class base__native__voice__service(yang.adata.MNode):
         return base__native__voice__service.from_gdata(self.to_gdata())
 
 
-_breaker4 = None
+_breaker4: None = None
 class base__native__voice(yang.adata.MNode):
     service: base__native__voice__service
 
@@ -156,7 +156,7 @@ class base__native__voice(yang.adata.MNode):
         return base__native__voice.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker5: None = None
 class base__native(yang.adata.MNode):
     voice: base__native__voice
 
@@ -182,7 +182,7 @@ class base__native(yang.adata.MNode):
         return base__native.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker6: None = None
 class root(yang.adata.MNode):
     native: base__native
 

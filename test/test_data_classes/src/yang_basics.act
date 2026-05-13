@@ -144,7 +144,7 @@ def src_yang():
 NS_basics = 'http://example.com/basics'
 
 
-_breaker1 = None
+_breaker1: None = None
 class basics__c(yang.adata.MNode):
     l_str_def: str
     l_str_def_quoted: str
@@ -214,7 +214,7 @@ class basics__c(yang.adata.MNode):
         return basics__c.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class root(yang.adata.MNode):
     c: basics__c
 

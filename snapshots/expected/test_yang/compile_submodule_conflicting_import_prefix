@@ -41,7 +41,7 @@ NS_other = 'http://example.com/other'
 NS_parent = 'http://example.com/parent'
 
 
-_breaker1 = None
+_breaker1: None = None
 class parent__parent_container(yang.adata.MNode):
     parent_leaf: ?str
     augmented_leaf: ?str
@@ -71,7 +71,7 @@ class parent__parent_container(yang.adata.MNode):
         return parent__parent_container.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class parent__sub_container(yang.adata.MNode):
     sub_leaf: ?str
     another_leaf: ?str
@@ -101,7 +101,7 @@ class parent__sub_container(yang.adata.MNode):
         return parent__sub_container.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class root(yang.adata.MNode):
     parent_container: parent__parent_container
     sub_container: parent__sub_container

@@ -117,7 +117,7 @@ def src_yang():
 NS_foo = 'http://example.com/foo'
 
 
-_breaker1 = None
+_breaker1: None = None
 class foo__tc1(yang.adata.MNode):
     l1: str
     l2: ?str
@@ -147,7 +147,7 @@ class foo__tc1(yang.adata.MNode):
         return foo__tc1.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class foo__li__c1(yang.adata.MNode):
     l1: str
     l2: ?str
@@ -177,7 +177,7 @@ class foo__li__c1(yang.adata.MNode):
         return foo__li__c1.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class foo__li_entry(yang.adata.MNode):
     name: str
     c1: foo__li__c1
@@ -204,7 +204,7 @@ class foo__li_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return foo__li_entry.from_gdata(self.to_gdata())
 
-_breaker4 = None
+_breaker4: None = None
 class foo__li(yang.adata.MNode):
     elements: list[foo__li_entry]
     mut def __init__(self, elements: list[foo__li_entry]=[]) -> None:
@@ -268,7 +268,7 @@ extension foo__li(Indexed[str, foo__li_entry]):
                 return
         raise KeyError(k)
 
-_breaker5 = None
+_breaker5: None = None
 class root(yang.adata.MNode):
     tc1: foo__tc1
     li: foo__li

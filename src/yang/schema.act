@@ -588,11 +588,11 @@ class DNodeInner(DNode):
             # - the list entry class
             # Here we create the list entry class, the list itself comes later
             breaker_name, breaker_idx = next_breaker_name(breaker_idx)
-            res.append("{breaker_name} = None")
+            res.append("{breaker_name}: None = None")
             res.append("class {pname()}_entry(yang.adata.MNode):")
         else:
             breaker_name, breaker_idx = next_breaker_name(breaker_idx)
-            res.append("{breaker_name} = None")
+            res.append("{breaker_name}: None = None")
             res.append("class {pname()}(yang.adata.MNode):")
 
         for child in attr_children:
@@ -797,7 +797,7 @@ class DNodeInner(DNode):
             # - the list entry class
             # Here we create the list class, list entry class was created above
             breaker_name, breaker_idx = next_breaker_name(breaker_idx)
-            res.append("{breaker_name} = None")
+            res.append("{breaker_name}: None = None")
             res.append("class {pname()}(yang.adata.MNode):")
             res.append("    elements: list[{pname()}_entry]")
 

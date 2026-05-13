@@ -132,7 +132,7 @@ def src_yang():
 NS_filter_test = 'http://example.com/filter-test'
 
 
-_breaker1 = None
+_breaker1: None = None
 class filter_test__system_state__clock(yang.adata.MNode):
     current_datetime: ?str
     boot_datetime: ?str
@@ -162,7 +162,7 @@ class filter_test__system_state__clock(yang.adata.MNode):
         return filter_test__system_state__clock.from_gdata(self.to_gdata())
 
 
-_breaker2 = None
+_breaker2: None = None
 class filter_test__system_state(yang.adata.MNode):
     clock: filter_test__system_state__clock
 
@@ -188,7 +188,7 @@ class filter_test__system_state(yang.adata.MNode):
         return filter_test__system_state.from_gdata(self.to_gdata())
 
 
-_breaker3 = None
+_breaker3: None = None
 class filter_test__interfaces__interface__statistics(yang.adata.MNode):
     in_octets: ?u64
     out_octets: ?u64
@@ -218,7 +218,7 @@ class filter_test__interfaces__interface__statistics(yang.adata.MNode):
         return filter_test__interfaces__interface__statistics.from_gdata(self.to_gdata())
 
 
-_breaker4 = None
+_breaker4: None = None
 class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
     mtu: ?u64
 
@@ -244,7 +244,7 @@ class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
         return filter_test__interfaces__interface__ipv4.from_gdata(self.to_gdata())
 
 
-_breaker5 = None
+_breaker5: None = None
 class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
     mtu: ?u64
 
@@ -270,7 +270,7 @@ class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
         return filter_test__interfaces__interface__ipv6.from_gdata(self.to_gdata())
 
 
-_breaker6 = None
+_breaker6: None = None
 class filter_test__interfaces__interface_entry(yang.adata.MNode):
     name: str
     description: ?str
@@ -329,7 +329,7 @@ class filter_test__interfaces__interface_entry(yang.adata.MNode):
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface_entry.from_gdata(self.to_gdata())
 
-_breaker7 = None
+_breaker7: None = None
 class filter_test__interfaces__interface(yang.adata.MNode):
     elements: list[filter_test__interfaces__interface_entry]
     mut def __init__(self, elements: list[filter_test__interfaces__interface_entry]=[]) -> None:
@@ -404,7 +404,7 @@ extension filter_test__interfaces__interface(Indexed[str, filter_test__interface
                 return
         raise KeyError(k)
 
-_breaker8 = None
+_breaker8: None = None
 class filter_test__interfaces(yang.adata.MNode):
     interface: filter_test__interfaces__interface
 
@@ -430,7 +430,7 @@ class filter_test__interfaces(yang.adata.MNode):
         return filter_test__interfaces.from_gdata(self.to_gdata())
 
 
-_breaker9 = None
+_breaker9: None = None
 class root(yang.adata.MNode):
     system_state: filter_test__system_state
     interfaces: filter_test__interfaces
