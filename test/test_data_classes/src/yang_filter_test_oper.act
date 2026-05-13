@@ -455,6 +455,7 @@ actor rpc_root(tp: yang.gdata.TreeProvider):
 
 
 
+_breaker10: None = None
 class filter_test__system_state__clock_subs(SubscriptionNode):
     current_datetime: SubscriptionNode
     boot_datetime: SubscriptionNode
@@ -468,6 +469,7 @@ class filter_test__system_state__clock_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.current_datetime, self.boot_datetime]
         return direct
 
+_breaker11: None = None
 class filter_test__system_state_subs(SubscriptionNode):
     clock: filter_test__system_state__clock_subs
 
@@ -479,6 +481,7 @@ class filter_test__system_state_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.clock]
         return direct
 
+_breaker12: None = None
 class filter_test__interfaces__interface__statistics_subs(SubscriptionNode):
     in_octets: SubscriptionNode
     out_octets: SubscriptionNode
@@ -492,6 +495,7 @@ class filter_test__interfaces__interface__statistics_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.in_octets, self.out_octets]
         return direct
 
+_breaker13: None = None
 class filter_test__interfaces__interface__ipv4_subs(SubscriptionNode):
     mtu: SubscriptionNode
 
@@ -503,6 +507,7 @@ class filter_test__interfaces__interface__ipv4_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.mtu]
         return direct
 
+_breaker14: None = None
 class filter_test__interfaces__interface__ipv6_subs(SubscriptionNode):
     mtu: SubscriptionNode
 
@@ -514,6 +519,37 @@ class filter_test__interfaces__interface__ipv6_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.mtu]
         return direct
 
+_breaker15: None = None
+class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
+    name: SubscriptionNode
+    description: SubscriptionNode
+    type: SubscriptionNode
+    enabled: SubscriptionNode
+    admin_status: SubscriptionNode
+    oper_status: SubscriptionNode
+    last_change: SubscriptionNode
+    statistics: filter_test__interfaces__interface__statistics_subs
+    ipv4: filter_test__interfaces__interface__ipv4_subs
+    ipv6: filter_test__interfaces__interface__ipv6_subs
+
+    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
+        SubscriptionNode.__init__(self, path)
+        self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
+        self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
+        self.type = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'type'), parent=path))
+        self.enabled = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'enabled'), parent=path))
+        self.admin_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'admin-status'), parent=path))
+        self.oper_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'oper-status'), parent=path))
+        self.last_change = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'last-change'), parent=path))
+        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'statistics'), parent=path))
+        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv4'), parent=path))
+        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv6'), parent=path))
+
+    pure def _direct_children(self) -> list[SubscriptionNode]:
+        direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6]
+        return direct
+
+_breaker16: None = None
 class filter_test__interfaces__interface_subs(SubscriptionNode):
     name: SubscriptionNode
     description: SubscriptionNode
@@ -549,35 +585,7 @@ class filter_test__interfaces__interface_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6]
         return direct
 
-class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
-    name: SubscriptionNode
-    description: SubscriptionNode
-    type: SubscriptionNode
-    enabled: SubscriptionNode
-    admin_status: SubscriptionNode
-    oper_status: SubscriptionNode
-    last_change: SubscriptionNode
-    statistics: filter_test__interfaces__interface__statistics_subs
-    ipv4: filter_test__interfaces__interface__ipv4_subs
-    ipv6: filter_test__interfaces__interface__ipv6_subs
-
-    pure def __init__(self, path: ?SubscriptionPath=None) -> None:
-        SubscriptionNode.__init__(self, path)
-        self.name = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'name'), parent=path))
-        self.description = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'description'), parent=path))
-        self.type = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'type'), parent=path))
-        self.enabled = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'enabled'), parent=path))
-        self.admin_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'admin-status'), parent=path))
-        self.oper_status = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'oper-status'), parent=path))
-        self.last_change = SubscriptionNode(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'last-change'), parent=path))
-        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'statistics'), parent=path))
-        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv4'), parent=path))
-        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(yang.gdata.Id(NS_filter_test, 'ipv6'), parent=path))
-
-    pure def _direct_children(self) -> list[SubscriptionNode]:
-        direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6]
-        return direct
-
+_breaker17: None = None
 class filter_test__interfaces_subs(SubscriptionNode):
     interface: filter_test__interfaces__interface_subs
 
@@ -589,6 +597,7 @@ class filter_test__interfaces_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.interface]
         return direct
 
+_breaker18: None = None
 class root_subs(SubscriptionNode):
     system_state: filter_test__system_state_subs
     interfaces: filter_test__interfaces_subs
