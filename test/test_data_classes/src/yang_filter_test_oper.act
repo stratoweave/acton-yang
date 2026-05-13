@@ -602,7 +602,7 @@ class root_subs(SubscriptionNode):
         direct: list[SubscriptionNode] = [self.system_state, self.interfaces]
         return direct
 
-subs = root_subs()
+subs: root_subs = root_subs()
 
 actor DstAdapter(cb: action(?root, ?Exception) -> None):
     def on_update(n: ?yang.gdata.Node, err: ?Exception):

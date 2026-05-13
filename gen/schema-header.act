@@ -2090,7 +2090,7 @@ class DRoot(DNodeInner):
 
         res = []
         res.extend(emit_node([self]))
-        res.append("{root_const_name} = root_subs()")
+        res.append("{root_const_name}: root_subs = root_subs()")
         res.append("")
         return res
 
