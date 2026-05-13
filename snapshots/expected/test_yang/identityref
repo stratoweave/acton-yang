@@ -77,7 +77,6 @@ class base__config(yang.adata.MNode):
     active_protocol: ?Identityref
 
     mut def __init__(self, active_protocol: ?Identityref) -> None:
-        self._ns = 'http://example.com/base'
         self.active_protocol = active_protocol
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -103,7 +102,6 @@ class root(yang.adata.MNode):
     config: base__config
 
     mut def __init__(self, config: ?base__config=None) -> None:
-        self._ns = ''
         self.config = config if config is not None else base__config()
 
     pure def _get_attr(self, name: str) -> ?value:

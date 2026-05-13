@@ -123,7 +123,6 @@ class foo__tc1(yang.adata.MNode):
     l2: ?str
 
     mut def __init__(self, l1: str, l2: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l2 = l2
 
@@ -153,7 +152,6 @@ class foo__li__c1(yang.adata.MNode):
     l2: ?str
 
     mut def __init__(self, l1: str, l2: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
         self.l2 = l2
 
@@ -183,7 +181,6 @@ class foo__li_entry(yang.adata.MNode):
     c1: foo__li__c1
 
     mut def __init__(self, name: str, c1: foo__li__c1) -> None:
-        self._ns = 'http://example.com/foo'
         self.name = name
         self.c1 = c1
 
@@ -208,8 +205,6 @@ _breaker4: None = None
 class foo__li(yang.adata.MNode):
     elements: list[foo__li_entry]
     mut def __init__(self, elements: list[foo__li_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li'
         self.elements = elements
 
     pure def get(self, name: str) -> ?foo__li_entry:
@@ -274,7 +269,6 @@ class root(yang.adata.MNode):
     li: foo__li
 
     mut def __init__(self, tc1: foo__tc1, li: list[foo__li_entry]=[]) -> None:
-        self._ns = ''
         self.tc1 = tc1
         self.li = foo__li(elements=li)
 

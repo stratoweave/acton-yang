@@ -38,7 +38,6 @@ class foo__ieee_802_3(yang.adata.MNode):
     ieee_802_3: ?str
 
     mut def __init__(self, ieee_802_3: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.ieee_802_3 = ieee_802_3
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -64,7 +63,6 @@ class root(yang.adata.MNode):
     ieee_802_3: foo__ieee_802_3
 
     mut def __init__(self, ieee_802_3: ?foo__ieee_802_3=None) -> None:
-        self._ns = ''
         self.ieee_802_3 = ieee_802_3 if ieee_802_3 is not None else foo__ieee_802_3()
 
     pure def _get_attr(self, name: str) -> ?value:

@@ -40,7 +40,6 @@ class foo__foo__bar(yang.adata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -69,7 +68,6 @@ class foo__foo(yang.adata.MNode):
     bar: ?foo__foo__bar
 
     mut def __init__(self, bar: ?foo__foo__bar=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.bar = bar
 
     mut def create_bar(self, l1: ?str=None) -> foo__foo__bar:

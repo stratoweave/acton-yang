@@ -59,7 +59,6 @@ class bar__c1__li1_entry(yang.adata.MNode):
     l2: ?Identityref
 
     mut def __init__(self, l1: str, l2: ?Identityref) -> None:
-        self._ns = 'http://example.com/bar'
         self.l1 = l1
         self.l2 = l2
 
@@ -84,8 +83,6 @@ _breaker2: None = None
 class bar__c1__li1(yang.adata.MNode):
     elements: list[bar__c1__li1_entry]
     mut def __init__(self, elements: list[bar__c1__li1_entry]=[]) -> None:
-        self._ns = 'http://example.com/bar'
-        self._name = 'li1'
         self.elements = elements
 
     pure def get(self, l1: str) -> ?bar__c1__li1_entry:
@@ -150,7 +147,6 @@ class bar__c1(yang.adata.MNode):
     li1: bar__c1__li1
 
     mut def __init__(self, li1: list[bar__c1__li1_entry]=[]) -> None:
-        self._ns = 'http://example.com/bar'
         self.li1 = bar__c1__li1(elements=li1)
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -176,7 +172,6 @@ class root(yang.adata.MNode):
     c1: bar__c1
 
     mut def __init__(self, c1: ?bar__c1=None) -> None:
-        self._ns = ''
         self.c1 = c1 if c1 is not None else bar__c1()
 
     pure def _get_attr(self, name: str) -> ?value:

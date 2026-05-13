@@ -44,7 +44,6 @@ class foo__c1(yang.adata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -70,7 +69,6 @@ class foo__pc1__foo(yang.adata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -96,7 +94,6 @@ class foo__pc1(yang.adata.MNode):
     foo: foo__pc1__foo
 
     mut def __init__(self, foo: ?foo__pc1__foo=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.foo = foo if foo is not None else foo__pc1__foo()
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -126,7 +123,6 @@ class root(yang.adata.MNode):
     pc1: ?foo__pc1
 
     mut def __init__(self, c1: ?foo__c1=None, pc1: ?foo__pc1=None) -> None:
-        self._ns = ''
         self.c1 = c1 if c1 is not None else foo__c1()
         self.pc1 = pc1
 

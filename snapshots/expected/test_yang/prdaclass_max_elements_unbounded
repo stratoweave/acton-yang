@@ -40,7 +40,6 @@ class foo__li1_entry(yang.adata.MNode):
     l1: str
 
     mut def __init__(self, l1: str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -62,8 +61,6 @@ _breaker2: None = None
 class foo__li1(yang.adata.MNode):
     elements: list[foo__li1_entry]
     mut def __init__(self, elements: list[foo__li1_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'li1'
         self.elements = elements
 
     pure def get(self, l1: str) -> ?foo__li1_entry:
@@ -127,7 +124,6 @@ class root(yang.adata.MNode):
     ll1: list[str]
 
     mut def __init__(self, li1: list[foo__li1_entry]=[], ll1: ?list[str]=None) -> None:
-        self._ns = ''
         self.li1 = foo__li1(elements=li1)
         self.ll1 = ll1 if ll1 is not None else []
 

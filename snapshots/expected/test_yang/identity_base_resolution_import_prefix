@@ -70,7 +70,6 @@ _breaker1: None = None
 class root(yang.adata.MNode):
 
     mut def __init__(self) -> None:
-        self._ns = ''
         pass
 
     mut def to_gdata(self) -> yang.gdata.Node:

@@ -46,7 +46,6 @@ class base__c1__base_l1_entry(yang.adata.MNode):
     foo_k1: str
 
     mut def __init__(self, base_k1: str, foo_k1: str) -> None:
-        self._ns = 'http://example.com/base'
         self.base_k1 = base_k1
         self.foo_k1 = foo_k1
 
@@ -71,8 +70,6 @@ _breaker2: None = None
 class base__c1__base_l1(yang.adata.MNode):
     elements: list[base__c1__base_l1_entry]
     mut def __init__(self, elements: list[base__c1__base_l1_entry]=[]) -> None:
-        self._ns = 'http://example.com/base'
-        self._name = 'l1'
         self.elements = elements
 
     pure def get(self, base_k1: str) -> ?base__c1__base_l1_entry:
@@ -136,7 +133,6 @@ class base__c1__foo_l1_entry(yang.adata.MNode):
     k2: str
 
     mut def __init__(self, k2: str) -> None:
-        self._ns = 'http://example.com/foo'
         self.k2 = k2
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -158,8 +154,6 @@ _breaker4: None = None
 class base__c1__foo_l1(yang.adata.MNode):
     elements: list[base__c1__foo_l1_entry]
     mut def __init__(self, elements: list[base__c1__foo_l1_entry]=[]) -> None:
-        self._ns = 'http://example.com/foo'
-        self._name = 'l1'
         self.elements = elements
 
     pure def get(self, k2: str) -> ?base__c1__foo_l1_entry:
@@ -223,7 +217,6 @@ class base__c1(yang.adata.MNode):
     foo_l1: base__c1__foo_l1
 
     mut def __init__(self, base_l1: list[base__c1__base_l1_entry]=[], foo_l1: list[base__c1__foo_l1_entry]=[]) -> None:
-        self._ns = 'http://example.com/base'
         self.base_l1 = base__c1__base_l1(elements=base_l1)
         self.foo_l1 = base__c1__foo_l1(elements=foo_l1)
 
@@ -252,7 +245,6 @@ class root(yang.adata.MNode):
     c1: base__c1
 
     mut def __init__(self, c1: ?base__c1=None) -> None:
-        self._ns = ''
         self.c1 = c1 if c1 is not None else base__c1()
 
     pure def _get_attr(self, name: str) -> ?value:

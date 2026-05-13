@@ -48,7 +48,6 @@ class base_module__network_instances__network_instance__config(yang.adata.MNode)
     name: ?str
 
     mut def __init__(self, name: ?str) -> None:
-        self._ns = 'http://example.com/base'
         self.name = name
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -75,7 +74,6 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
     config: base_module__network_instances__network_instance__config
 
     mut def __init__(self, name: str, config: ?base_module__network_instances__network_instance__config=None) -> None:
-        self._ns = 'http://example.com/base'
         self.name = name
         self.config = config if config is not None else base_module__network_instances__network_instance__config()
 
@@ -100,8 +98,6 @@ _breaker3: None = None
 class base_module__network_instances__network_instance(yang.adata.MNode):
     elements: list[base_module__network_instances__network_instance_entry]
     mut def __init__(self, elements: list[base_module__network_instances__network_instance_entry]=[]) -> None:
-        self._ns = 'http://example.com/base'
-        self._name = 'network-instance'
         self.elements = elements
 
     pure def get(self, name: str) -> ?base_module__network_instances__network_instance_entry:
@@ -164,7 +160,6 @@ class base_module__network_instances(yang.adata.MNode):
     network_instance: base_module__network_instances__network_instance
 
     mut def __init__(self, network_instance: list[base_module__network_instances__network_instance_entry]=[]) -> None:
-        self._ns = 'http://example.com/base'
         self.network_instance = base_module__network_instances__network_instance(elements=network_instance)
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -190,7 +185,6 @@ class consumer_module__uses_typedef(yang.adata.MNode):
     ni: ?str
 
     mut def __init__(self, ni: ?str) -> None:
-        self._ns = 'http://example.com/consumer'
         self.ni = ni
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -217,7 +211,6 @@ class root(yang.adata.MNode):
     uses_typedef: consumer_module__uses_typedef
 
     mut def __init__(self, network_instances: ?base_module__network_instances=None, uses_typedef: ?consumer_module__uses_typedef=None) -> None:
-        self._ns = ''
         self.network_instances = network_instances if network_instances is not None else base_module__network_instances()
         self.uses_typedef = uses_typedef if uses_typedef is not None else consumer_module__uses_typedef()
 

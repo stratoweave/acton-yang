@@ -39,7 +39,6 @@ class acme_foo_bar__c1(yang.adata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.l1 = l1
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -65,7 +64,6 @@ class root(yang.adata.MNode):
     c1: acme_foo_bar__c1
 
     mut def __init__(self, c1: ?acme_foo_bar__c1=None) -> None:
-        self._ns = ''
         self.c1 = c1 if c1 is not None else acme_foo_bar__c1()
 
     pure def _get_attr(self, name: str) -> ?value:

@@ -36,7 +36,6 @@ class root(yang.adata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
-        self._ns = ''
         self.l1 = l1
 
     pure def _get_attr(self, name: str) -> ?value:

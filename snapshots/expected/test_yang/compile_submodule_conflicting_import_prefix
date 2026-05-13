@@ -47,7 +47,6 @@ class parent__parent_container(yang.adata.MNode):
     augmented_leaf: ?str
 
     mut def __init__(self, parent_leaf: ?str, augmented_leaf: ?str) -> None:
-        self._ns = 'http://example.com/parent'
         self.parent_leaf = parent_leaf
         self.augmented_leaf = augmented_leaf
 
@@ -77,7 +76,6 @@ class parent__sub_container(yang.adata.MNode):
     another_leaf: ?str
 
     mut def __init__(self, sub_leaf: ?str, another_leaf: ?str) -> None:
-        self._ns = 'http://example.com/parent'
         self.sub_leaf = sub_leaf
         self.another_leaf = another_leaf
 
@@ -107,7 +105,6 @@ class root(yang.adata.MNode):
     sub_container: parent__sub_container
 
     mut def __init__(self, parent_container: ?parent__parent_container=None, sub_container: ?parent__sub_container=None) -> None:
-        self._ns = ''
         self.parent_container = parent_container if parent_container is not None else parent__parent_container()
         self.sub_container = sub_container if sub_container is not None else parent__sub_container()
 

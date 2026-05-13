@@ -159,7 +159,6 @@ class basics__c(yang.adata.MNode):
     l_identityref_def: Identityref
 
     mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?value=None, l_union_def_int: ?value=None, l_union_def_float: ?value=None, l_union_def_bool: ?value=None, l_union_def_enumeration: ?value=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None) -> None:
-        self._ns = 'http://example.com/basics'
         self.l_str_def = l_str_def if l_str_def is not None else "foo"
         self.l_str_def_quoted = l_str_def_quoted if l_str_def_quoted is not None else "\"foo\""
         self.l_uint64_def = l_uint64_def if l_uint64_def is not None else u64(1234567890)
@@ -219,7 +218,6 @@ class root(yang.adata.MNode):
     c: basics__c
 
     mut def __init__(self, c: ?basics__c=None) -> None:
-        self._ns = ''
         self.c = c if c is not None else basics__c()
 
     pure def _get_attr(self, name: str) -> ?value:

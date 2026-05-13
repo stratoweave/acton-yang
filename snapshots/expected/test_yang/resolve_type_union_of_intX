@@ -45,7 +45,6 @@ class root(yang.adata.MNode):
     l4: ?value
 
     mut def __init__(self, l1: ?int, l2: ?u64, l3: ?value, l4: ?value) -> None:
-        self._ns = ''
         self.l1 = l1
         self.l2 = l2
         self.l3 = l3

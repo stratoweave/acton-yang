@@ -45,7 +45,6 @@ class foo__foo__bar(yang.adata.MNode):
     l2: str
 
     mut def __init__(self, foo_l1: str, bar_l1: str, l2: str) -> None:
-        self._ns = 'http://example.com/foo'
         self.foo_l1 = foo_l1
         self.bar_l1 = bar_l1
         self.l2 = l2
@@ -80,7 +79,6 @@ class foo__foo(yang.adata.MNode):
     bar: ?foo__foo__bar
 
     mut def __init__(self, bar: ?foo__foo__bar=None) -> None:
-        self._ns = 'http://example.com/foo'
         self.bar = bar
 
     mut def create_bar(self, foo_l1: str, bar_l1: str, l2: str) -> foo__foo__bar:
@@ -120,7 +118,6 @@ class root(yang.adata.MNode):
     foo: ?foo__foo
 
     mut def __init__(self, foo: ?foo__foo=None) -> None:
-        self._ns = ''
         self.foo = foo
 
     mut def create_foo(self) -> foo__foo:

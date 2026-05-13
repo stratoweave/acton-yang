@@ -42,7 +42,6 @@ class base__c1(yang.adata.MNode):
     foo_foo: ?str
 
     mut def __init__(self, bar_foo: ?str, foo_foo: ?str) -> None:
-        self._ns = 'http://example.com/base'
         self.bar_foo = bar_foo
         self.foo_foo = foo_foo
 

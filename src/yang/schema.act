@@ -647,8 +647,6 @@ class DNodeInner(DNode):
 
         init_args_str = ", ".join(["self"] + req_args + opt_args)
         res.append("    mut def __init__({init_args_str}) -> None:")
-        # Set namespace from us
-        res.append("        self._ns = '{self.namespace}'")
 
         for child in attr_children:
             if isinstance(child, DContainer):
@@ -805,9 +803,6 @@ class DNodeInner(DNode):
             init_args.append("elements: list[{pname()}_entry]=[]")
             init_args_str: str = ", ".join(init_args)
             res.append("    mut def __init__({init_args_str}) -> None:")
-            # Set namespace from us
-            res.append("        self._ns = '{self.namespace}'")
-            res.append("        self._name = {repr(self.name)}")
             res.append("        self.elements = elements")
             res.append("")
 

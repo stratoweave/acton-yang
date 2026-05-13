@@ -138,7 +138,6 @@ class filter_test__system_state__clock(yang.adata.MNode):
     boot_datetime: ?str
 
     mut def __init__(self, current_datetime: ?str, boot_datetime: ?str) -> None:
-        self._ns = 'http://example.com/filter-test'
         self.current_datetime = current_datetime
         self.boot_datetime = boot_datetime
 
@@ -167,7 +166,6 @@ class filter_test__system_state(yang.adata.MNode):
     clock: filter_test__system_state__clock
 
     mut def __init__(self, clock: ?filter_test__system_state__clock=None) -> None:
-        self._ns = 'http://example.com/filter-test'
         self.clock = clock if clock is not None else filter_test__system_state__clock()
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -194,7 +192,6 @@ class filter_test__interfaces__interface__statistics(yang.adata.MNode):
     out_octets: ?u64
 
     mut def __init__(self, in_octets: ?u64, out_octets: ?u64) -> None:
-        self._ns = 'http://example.com/filter-test'
         self.in_octets = in_octets
         self.out_octets = out_octets
 
@@ -223,7 +220,6 @@ class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
     mtu: ?u64
 
     mut def __init__(self, mtu: ?u64) -> None:
-        self._ns = 'http://example.com/filter-test'
         self.mtu = mtu
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -249,7 +245,6 @@ class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
     mtu: ?u64
 
     mut def __init__(self, mtu: ?u64) -> None:
-        self._ns = 'http://example.com/filter-test'
         self.mtu = mtu
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -284,7 +279,6 @@ class filter_test__interfaces__interface_entry(yang.adata.MNode):
     ipv6: filter_test__interfaces__interface__ipv6
 
     mut def __init__(self, name: str, description: ?str, type: ?str, enabled: ?bool, admin_status: ?str, oper_status: ?str, last_change: ?str, statistics: ?filter_test__interfaces__interface__statistics=None, ipv4: ?filter_test__interfaces__interface__ipv4=None, ipv6: ?filter_test__interfaces__interface__ipv6=None) -> None:
-        self._ns = 'http://example.com/filter-test'
         self.name = name
         self.description = description
         self.type = type
@@ -333,8 +327,6 @@ _breaker7: None = None
 class filter_test__interfaces__interface(yang.adata.MNode):
     elements: list[filter_test__interfaces__interface_entry]
     mut def __init__(self, elements: list[filter_test__interfaces__interface_entry]=[]) -> None:
-        self._ns = 'http://example.com/filter-test'
-        self._name = 'interface'
         self.elements = elements
 
     pure def get(self, name: str) -> ?filter_test__interfaces__interface_entry:
@@ -409,7 +401,6 @@ class filter_test__interfaces(yang.adata.MNode):
     interface: filter_test__interfaces__interface
 
     mut def __init__(self, interface: list[filter_test__interfaces__interface_entry]=[]) -> None:
-        self._ns = 'http://example.com/filter-test'
         self.interface = filter_test__interfaces__interface(elements=interface)
 
     pure def _get_attr(self, name: str) -> ?value:
@@ -436,7 +427,6 @@ class root(yang.adata.MNode):
     interfaces: filter_test__interfaces
 
     mut def __init__(self, system_state: ?filter_test__system_state=None, interfaces: ?filter_test__interfaces=None) -> None:
-        self._ns = ''
         self.system_state = system_state if system_state is not None else filter_test__system_state()
         self.interfaces = interfaces if interfaces is not None else filter_test__interfaces()
 

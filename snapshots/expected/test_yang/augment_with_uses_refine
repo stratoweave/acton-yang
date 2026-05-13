@@ -44,7 +44,6 @@ _breaker1: None = None
 class base__system_capabilities__per_node_capabilities_entry(yang.adata.MNode):
 
     mut def __init__(self) -> None:
-        self._ns = 'http://example.com/base'
         pass
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -62,8 +61,6 @@ _breaker2: None = None
 class base__system_capabilities__per_node_capabilities(yang.adata.MNode):
     elements: list[base__system_capabilities__per_node_capabilities_entry]
     mut def __init__(self, elements: list[base__system_capabilities__per_node_capabilities_entry]=[]) -> None:
-        self._ns = 'http://example.com/base'
-        self._name = 'per-node-capabilities'
         self.elements = elements
 
     mut def create(self) -> base__system_capabilities__per_node_capabilities_entry:
@@ -97,7 +94,6 @@ class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
     supported_excluded_change_type: list[str]
 
     mut def __init__(self, max_nodes: ?u64=None, supported_excluded_change_type: ?list[str]=None) -> None:
-        self._ns = 'http://example.com/augmenter'
         self.max_nodes = max_nodes if max_nodes is not None else u64(42)
         self.supported_excluded_change_type = supported_excluded_change_type if supported_excluded_change_type is not None else []
 
@@ -127,7 +123,6 @@ class base__system_capabilities(yang.adata.MNode):
     subscription_capabilities: base__system_capabilities__subscription_capabilities
 
     mut def __init__(self, per_node_capabilities: list[base__system_capabilities__per_node_capabilities_entry]=[], subscription_capabilities: ?base__system_capabilities__subscription_capabilities=None) -> None:
-        self._ns = 'http://example.com/base'
         self.per_node_capabilities = base__system_capabilities__per_node_capabilities(elements=per_node_capabilities)
         self.subscription_capabilities = subscription_capabilities if subscription_capabilities is not None else base__system_capabilities__subscription_capabilities()
 
@@ -156,7 +151,6 @@ class root(yang.adata.MNode):
     system_capabilities: base__system_capabilities
 
     mut def __init__(self, system_capabilities: ?base__system_capabilities=None) -> None:
-        self._ns = ''
         self.system_capabilities = system_capabilities if system_capabilities is not None else base__system_capabilities()
 
     pure def _get_attr(self, name: str) -> ?value:

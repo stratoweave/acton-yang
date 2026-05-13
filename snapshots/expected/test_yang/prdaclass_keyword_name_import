@@ -46,7 +46,6 @@ class foo__c1(yang.adata.MNode):
     with_: ?str
 
     mut def __init__(self, as_: ?str, for_: ?str, import_: ?str, in_: ?str, with_: ?str) -> None:
-        self._ns = 'http://example.com/foo'
         self.as_ = as_
         self.for_ = for_
         self.import_ = import_
