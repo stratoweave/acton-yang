@@ -1907,23 +1907,15 @@ class DRoot(DNodeInner):
         res.append("")
 
         if schema_yang is not None:
-# TODO: serialize list[str] of YANG models with repr(), use raw string to avoid interpolation?!
-# TODO: Why is the src_yang() function not found in from_xml, if it is
-# defined at the bottom of the module?!
-# After these two are addressed, then we can do away with these hacky workarounds
-#
-#"""def src_yang():
-#   return {repr(self.src)}
-#"""
             src_yang_names = []
             i = 0
             for s in schema_yang:
                 src_yang_name = "SRC_YANG_{i}"
                 src_yang_names.append(src_yang_name)
-                res.append('{src_yang_name} = r"""{s}"""')
+                res.append('{src_yang_name}: str = r"""{s}"""')
                 res.append("")
                 i += 1
-            res.append("def src_yang():")
+            res.append("pure def src_yang() -> list[str]:")
             res.append("    return [")
             for src_yang_name in src_yang_names:
                 res.append("        {src_yang_name},")

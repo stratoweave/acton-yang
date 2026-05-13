@@ -47,7 +47,7 @@ SRC_DNODE = DRoot(
     module_metadata={'http://example.com/yangrpc':('yangrpc', None)},
 )
 
-SRC_YANG_0 = r"""module yangrpc {
+SRC_YANG_0: str = r"""module yangrpc {
   yang-version "1.1";
   namespace "http://example.com/yangrpc";
   prefix "yrpc";
@@ -65,7 +65,7 @@ SRC_YANG_0 = r"""module yangrpc {
   rpc silent;
 }"""
 
-def src_yang():
+pure def src_yang() -> list[str]:
     return [
         SRC_YANG_0,
     ]

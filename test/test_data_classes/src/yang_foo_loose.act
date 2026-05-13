@@ -183,7 +183,7 @@ SRC_DNODE = DRoot(
     module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
 )
 
-SRC_YANG_0 = r"""module foo {
+SRC_YANG_0: str = r"""module foo {
     yang-version "1.1";
     namespace "http://example.com/foo";
     prefix "f";
@@ -425,7 +425,7 @@ SRC_YANG_0 = r"""module foo {
 
 }"""
 
-SRC_YANG_1 = r"""submodule qux {
+SRC_YANG_1: str = r"""submodule qux {
     yang-version "1.1";
     belongs-to foo {
         prefix "f";
@@ -444,7 +444,7 @@ SRC_YANG_1 = r"""submodule qux {
     }
 }"""
 
-SRC_YANG_2 = r"""module bar {
+SRC_YANG_2: str = r"""module bar {
     yang-version "1.1";
     namespace "http://example.com/bar";
     prefix "bar";
@@ -505,7 +505,7 @@ SRC_YANG_2 = r"""module bar {
     }
 }"""
 
-def src_yang():
+pure def src_yang() -> list[str]:
     return [
         SRC_YANG_0,
         SRC_YANG_1,
