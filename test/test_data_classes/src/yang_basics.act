@@ -176,7 +176,7 @@ class basics__c(yang.adata.MNode):
         else:
             raise ValueError('Invalid default value for identityref leaf c: {error}')
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l_str_def':
             return self.l_str_def
         if name == 'l_str_def_quoted':
@@ -209,7 +209,7 @@ class basics__c(yang.adata.MNode):
             return basics__c(l_str_def=n.get_opt_str(yang.gdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(yang.gdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(yang.gdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(yang.gdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_enumeration=n.get_opt_value(yang.gdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(yang.gdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(yang.gdata.Id(NS_basics, 'l_identityref_def')))
         return basics__c()
 
-    def copy(self) -> basics__c:
+    mut def copy(self) -> basics__c:
         """Create a deep copy of this adata object"""
         return basics__c.from_gdata(self.to_gdata())
 
@@ -222,7 +222,7 @@ class root(yang.adata.MNode):
         self._ns = ''
         self.c = c if c is not None else basics__c()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c':
             return self.c
 
@@ -235,7 +235,7 @@ class root(yang.adata.MNode):
             return root(c=basics__c.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_basics, 'c'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

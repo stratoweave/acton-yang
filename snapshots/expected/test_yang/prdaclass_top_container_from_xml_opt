@@ -47,7 +47,7 @@ class foo__c1(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.l1 = l1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -60,7 +60,7 @@ class foo__c1(yang.adata.MNode):
             return foo__c1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
         return foo__c1()
 
-    def copy(self) -> foo__c1:
+    mut def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 
@@ -73,7 +73,7 @@ class foo__pc1__foo(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.l1 = l1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -86,7 +86,7 @@ class foo__pc1__foo(yang.adata.MNode):
             return foo__pc1__foo(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
         return foo__pc1__foo()
 
-    def copy(self) -> foo__pc1__foo:
+    mut def copy(self) -> foo__pc1__foo:
         """Create a deep copy of this adata object"""
         return foo__pc1__foo.from_gdata(self.to_gdata())
 
@@ -99,7 +99,7 @@ class foo__pc1(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.foo = foo if foo is not None else foo__pc1__foo()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -112,7 +112,7 @@ class foo__pc1(yang.adata.MNode):
             return foo__pc1(foo=foo__pc1__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo'))))
         return None
 
-    def copy(self) -> foo__pc1:
+    mut def copy(self) -> foo__pc1:
         """Create a deep copy of this adata object"""
         ad = foo__pc1.from_gdata(self.to_gdata())
         if ad is not None:
@@ -138,7 +138,7 @@ class root(yang.adata.MNode):
         self.pc1 = res
         return res
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c1':
             return self.c1
         if name == 'pc1':
@@ -153,7 +153,7 @@ class root(yang.adata.MNode):
             return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc1'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

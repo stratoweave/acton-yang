@@ -730,7 +730,7 @@ class DNodeInner(DNode):
                 res.append("")
 
         if len(attr_children) > 0:
-            res.append("    def _get_attr(self, name: str) -> ?value:")
+            res.append("    pure def _get_attr(self, name: str) -> ?value:")
             for child in attr_children:
                 res.append("        if name == '{usname(child)}':")
                 if isinstance(child, DList):
@@ -776,9 +776,9 @@ class DNodeInner(DNode):
 
         # .copy() method
         if isinstance(self, DList):
-            res.append("    def copy(self) -> {pname()}_entry:")
+            res.append("    mut def copy(self) -> {pname()}_entry:")
         else:
-            res.append("    def copy(self) -> {pname()}:")
+            res.append("    mut def copy(self) -> {pname()}:")
         res.append('        """Create a deep copy of this adata object"""')
         if isinstance(self, DList):
             res.append("        return {pname()}_entry.from_gdata(self.to_gdata())")
@@ -849,7 +849,7 @@ class DNodeInner(DNode):
             if len(list_key_args) > 0:
                 # Keys come first in list_args_req(_sig)
                 get_args_sig = ", ".join(["self"] + list_args_req_sig[:len(list_key_args)])
-                res.append("    def get({get_args_sig}) -> ?{pname()}_entry:")
+                res.append("    pure def get({get_args_sig}) -> ?{pname()}_entry:")
                 res.append("        for e in self:")
                 for us_key in list_key_args:
                     key_dtype = list_key_types[us_key]
@@ -915,7 +915,7 @@ class DNodeInner(DNode):
             res.append("")
 
             # .copy() method for list wrapper
-            res.append("    def copy(self) -> {pname()}:")
+            res.append("    mut def copy(self) -> {pname()}:")
             res.append('        """Create a deep copy of this list object"""')
             res.append("        # Copy each element in the list")
             res.append("        copied_elements = []")

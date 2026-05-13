@@ -525,7 +525,7 @@ class foo__c1__li__c4(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.l5 = l5
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l5':
             return self.l5
 
@@ -538,7 +538,7 @@ class foo__c1__li__c4(yang.adata.MNode):
             return foo__c1__li__c4(l5=n.get_opt_str(yang.gdata.Id(NS_foo, 'l5')))
         return foo__c1__li__c4()
 
-    def copy(self) -> foo__c1__li__c4:
+    mut def copy(self) -> foo__c1__li__c4:
         """Create a deep copy of this adata object"""
         return foo__c1__li__c4.from_gdata(self.to_gdata())
 
@@ -555,7 +555,7 @@ class foo__c1__li_entry(yang.adata.MNode):
         self.val = val
         self.c4 = c4 if c4 is not None else foo__c1__li__c4()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'val':
@@ -570,7 +570,7 @@ class foo__c1__li_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__c1__li_entry:
         return foo__c1__li_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), val=n.get_opt_str(yang.gdata.Id(NS_foo, 'val')), c4=foo__c1__li__c4.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c4'))))
 
-    def copy(self) -> foo__c1__li_entry:
+    mut def copy(self) -> foo__c1__li_entry:
         """Create a deep copy of this adata object"""
         return foo__c1__li_entry.from_gdata(self.to_gdata())
 
@@ -582,7 +582,7 @@ class foo__c1__li(yang.adata.MNode):
         self._name = 'li'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__c1__li_entry:
+    pure def get(self, name: str) -> ?foo__c1__li_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -604,7 +604,7 @@ class foo__c1__li(yang.adata.MNode):
             return [foo__c1__li_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__c1__li:
+    mut def copy(self) -> foo__c1__li:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -675,7 +675,7 @@ class foo__c1(yang.adata.MNode):
         self.l2 = l2
         self.l_leafref = l_leafref
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'f_l1':
             return self.f_l1
         if name == 'l3':
@@ -716,7 +716,7 @@ class foo__c1(yang.adata.MNode):
             return foo__c1(f_l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l3=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l3')), l_empty=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty')), l_empty_delete=n.get_opt_empty(yang.gdata.Id(NS_foo, 'l_empty_delete')), l_decimal64=n.get_opt_Decimal(yang.gdata.Id(NS_foo, 'l_decimal64')), li=foo__c1__li.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li'))), ll_uint64=n.get_opt_u64s(yang.gdata.Id(NS_foo, 'll_uint64')), ll_str=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll_str')), l_identityref=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref')), ll_identityref=n.get_opt_Identityrefs(yang.gdata.Id(NS_foo, 'll_identityref')), l_identityref_noval=n.get_opt_Identityref(yang.gdata.Id(NS_foo, 'l_identityref_noval')), l4=n.get_opt_str(yang.gdata.Id(NS_foo, 'l4')), bar_l1=n.get_opt_str(yang.gdata.Id(NS_bar, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_bar, 'l2')), l_leafref=n.get_opt_str(yang.gdata.Id(NS_bar, 'l_leafref')))
         return foo__c1()
 
-    def copy(self) -> foo__c1:
+    mut def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 
@@ -729,7 +729,7 @@ class foo__pc1__foo(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.l1 = l1 if l1 is not None else []
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -742,7 +742,7 @@ class foo__pc1__foo(yang.adata.MNode):
             return foo__pc1__foo(l1=n.get_opt_bytess(yang.gdata.Id(NS_foo, 'l1')))
         return foo__pc1__foo()
 
-    def copy(self) -> foo__pc1__foo:
+    mut def copy(self) -> foo__pc1__foo:
         """Create a deep copy of this adata object"""
         return foo__pc1__foo.from_gdata(self.to_gdata())
 
@@ -755,7 +755,7 @@ class foo__pc1(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.foo = foo if foo is not None else foo__pc1__foo()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -768,7 +768,7 @@ class foo__pc1(yang.adata.MNode):
             return foo__pc1(foo=foo__pc1__foo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'foo'))))
         return None
 
-    def copy(self) -> foo__pc1:
+    mut def copy(self) -> foo__pc1:
         """Create a deep copy of this adata object"""
         ad = foo__pc1.from_gdata(self.to_gdata())
         if ad is not None:
@@ -784,7 +784,7 @@ class foo__pc2__foo(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.l_mandatory = l_mandatory
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l_mandatory':
             return self.l_mandatory
 
@@ -797,7 +797,7 @@ class foo__pc2__foo(yang.adata.MNode):
             return foo__pc2__foo(l_mandatory=n.get_str(yang.gdata.Id(NS_foo, 'l_mandatory')))
         raise ValueError('Missing required subtree foo__pc2__foo')
 
-    def copy(self) -> foo__pc2__foo:
+    mut def copy(self) -> foo__pc2__foo:
         """Create a deep copy of this adata object"""
         return foo__pc2__foo.from_gdata(self.to_gdata())
 
@@ -810,7 +810,7 @@ class foo__pc2(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.foo = foo
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -823,7 +823,7 @@ class foo__pc2(yang.adata.MNode):
             return foo__pc2(foo=foo__pc2__foo.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'foo'))))
         return None
 
-    def copy(self) -> foo__pc2:
+    mut def copy(self) -> foo__pc2:
         """Create a deep copy of this adata object"""
         ad = foo__pc2.from_gdata(self.to_gdata())
         if ad is not None:
@@ -841,7 +841,7 @@ class foo__pc3__level1__level2__level3(yang.adata.MNode):
         self.l3 = l3
         self.l3_optional = l3_optional
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l3':
             return self.l3
         if name == 'l3_optional':
@@ -856,7 +856,7 @@ class foo__pc3__level1__level2__level3(yang.adata.MNode):
             return foo__pc3__level1__level2__level3(l3=n.get_str(yang.gdata.Id(NS_foo, 'l3')), l3_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l3-optional')))
         raise ValueError('Missing required subtree foo__pc3__level1__level2__level3')
 
-    def copy(self) -> foo__pc3__level1__level2__level3:
+    mut def copy(self) -> foo__pc3__level1__level2__level3:
         """Create a deep copy of this adata object"""
         return foo__pc3__level1__level2__level3.from_gdata(self.to_gdata())
 
@@ -873,7 +873,7 @@ class foo__pc3__level1__level2(yang.adata.MNode):
         self.l2_optional = l2_optional
         self.level3 = level3
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l2':
             return self.l2
         if name == 'l2_optional':
@@ -890,7 +890,7 @@ class foo__pc3__level1__level2(yang.adata.MNode):
             return foo__pc3__level1__level2(l2=n.get_str(yang.gdata.Id(NS_foo, 'l2')), l2_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2-optional')), level3=foo__pc3__level1__level2__level3.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'level3'))))
         raise ValueError('Missing required subtree foo__pc3__level1__level2')
 
-    def copy(self) -> foo__pc3__level1__level2:
+    mut def copy(self) -> foo__pc3__level1__level2:
         """Create a deep copy of this adata object"""
         return foo__pc3__level1__level2.from_gdata(self.to_gdata())
 
@@ -907,7 +907,7 @@ class foo__pc3__level1(yang.adata.MNode):
         self.l1_optional = l1_optional
         self.level2 = level2
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l1_optional':
@@ -924,7 +924,7 @@ class foo__pc3__level1(yang.adata.MNode):
             return foo__pc3__level1(l1=n.get_str(yang.gdata.Id(NS_foo, 'l1')), l1_optional=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1-optional')), level2=foo__pc3__level1__level2.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'level2'))))
         raise ValueError('Missing required subtree foo__pc3__level1')
 
-    def copy(self) -> foo__pc3__level1:
+    mut def copy(self) -> foo__pc3__level1:
         """Create a deep copy of this adata object"""
         return foo__pc3__level1.from_gdata(self.to_gdata())
 
@@ -937,7 +937,7 @@ class foo__pc3(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.level1 = level1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'level1':
             return self.level1
 
@@ -950,7 +950,7 @@ class foo__pc3(yang.adata.MNode):
             return foo__pc3(level1=foo__pc3__level1.from_gdata(n.get_cnt(yang.gdata.Id(NS_foo, 'level1'))))
         return None
 
-    def copy(self) -> foo__pc3:
+    mut def copy(self) -> foo__pc3:
         """Create a deep copy of this adata object"""
         ad = foo__pc3.from_gdata(self.to_gdata())
         if ad is not None:
@@ -974,7 +974,7 @@ class foo__empty_presence(yang.adata.MNode):
             return foo__empty_presence()
         return None
 
-    def copy(self) -> foo__empty_presence:
+    mut def copy(self) -> foo__empty_presence:
         """Create a deep copy of this adata object"""
         ad = foo__empty_presence.from_gdata(self.to_gdata())
         if ad is not None:
@@ -992,7 +992,7 @@ class foo__c_dot(yang.adata.MNode):
         self.l_dot1 = l_dot1
         self.l_dot2 = l_dot2
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l_dot1':
             return self.l_dot1
         if name == 'l_dot2':
@@ -1007,7 +1007,7 @@ class foo__c_dot(yang.adata.MNode):
             return foo__c_dot(l_dot1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l.dot1')), l_dot2=n.get_opt_str(yang.gdata.Id(NS_bar, 'l.dot2')))
         return foo__c_dot()
 
-    def copy(self) -> foo__c_dot:
+    mut def copy(self) -> foo__c_dot:
         """Create a deep copy of this adata object"""
         return foo__c_dot.from_gdata(self.to_gdata())
 
@@ -1020,7 +1020,7 @@ class foo__cc__death_entry(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.name = name
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
 
@@ -1031,7 +1031,7 @@ class foo__cc__death_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__cc__death_entry:
         return foo__cc__death_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')))
 
-    def copy(self) -> foo__cc__death_entry:
+    mut def copy(self) -> foo__cc__death_entry:
         """Create a deep copy of this adata object"""
         return foo__cc__death_entry.from_gdata(self.to_gdata())
 
@@ -1043,7 +1043,7 @@ class foo__cc__death(yang.adata.MNode):
         self._name = 'death'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__cc__death_entry:
+    pure def get(self, name: str) -> ?foo__cc__death_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -1063,7 +1063,7 @@ class foo__cc__death(yang.adata.MNode):
             return [foo__cc__death_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__cc__death:
+    mut def copy(self) -> foo__cc__death:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1108,7 +1108,7 @@ class foo__cc(yang.adata.MNode):
         self.cake = cake
         self.death = foo__cc__death(elements=death)
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'cake':
             return self.cake
         if name == 'death':
@@ -1123,7 +1123,7 @@ class foo__cc(yang.adata.MNode):
             return foo__cc(cake=n.get_opt_str(yang.gdata.Id(NS_foo, 'cake')), death=foo__cc__death.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'death'))))
         return foo__cc()
 
-    def copy(self) -> foo__cc:
+    mut def copy(self) -> foo__cc:
         """Create a deep copy of this adata object"""
         return foo__cc.from_gdata(self.to_gdata())
 
@@ -1144,7 +1144,7 @@ class foo__f_conflict__f_inner(yang.adata.MNode):
             return foo__f_conflict__f_inner()
         return None
 
-    def copy(self) -> foo__f_conflict__f_inner:
+    mut def copy(self) -> foo__f_conflict__f_inner:
         """Create a deep copy of this adata object"""
         ad = foo__f_conflict__f_inner.from_gdata(self.to_gdata())
         if ad is not None:
@@ -1168,7 +1168,7 @@ class foo__f_conflict__bar_inner(yang.adata.MNode):
             return foo__f_conflict__bar_inner()
         return None
 
-    def copy(self) -> foo__f_conflict__bar_inner:
+    mut def copy(self) -> foo__f_conflict__bar_inner:
         """Create a deep copy of this adata object"""
         ad = foo__f_conflict__bar_inner.from_gdata(self.to_gdata())
         if ad is not None:
@@ -1206,7 +1206,7 @@ class foo__f_conflict(yang.adata.MNode):
         self.bar_inner = res
         return res
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'f_foo':
             return self.f_foo
         if name == 'f_inner':
@@ -1225,7 +1225,7 @@ class foo__f_conflict(yang.adata.MNode):
             return foo__f_conflict(f_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), f_inner=foo__f_conflict__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner'))), bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), bar_inner=foo__f_conflict__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner'))))
         return foo__f_conflict()
 
-    def copy(self) -> foo__f_conflict:
+    mut def copy(self) -> foo__f_conflict:
         """Create a deep copy of this adata object"""
         return foo__f_conflict.from_gdata(self.to_gdata())
 
@@ -1238,7 +1238,7 @@ class foo__special_entry(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.yes = yes
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'yes':
             return self.yes
 
@@ -1249,7 +1249,7 @@ class foo__special_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__special_entry:
         return foo__special_entry(yes=n.get_bool(yang.gdata.Id(NS_foo, 'yes')))
 
-    def copy(self) -> foo__special_entry:
+    mut def copy(self) -> foo__special_entry:
         """Create a deep copy of this adata object"""
         return foo__special_entry.from_gdata(self.to_gdata())
 
@@ -1261,7 +1261,7 @@ class foo__special(yang.adata.MNode):
         self._name = 'special'
         self.elements = elements
 
-    def get(self, yes: bool) -> ?foo__special_entry:
+    pure def get(self, yes: bool) -> ?foo__special_entry:
         for e in self:
             if e.yes != yes:
                 continue
@@ -1281,7 +1281,7 @@ class foo__special(yang.adata.MNode):
             return [foo__special_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__special:
+    mut def copy(self) -> foo__special:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1328,7 +1328,7 @@ class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
         self.key2 = key2
         self.baz = baz
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'key1':
             return self.key1
         if name == 'key2':
@@ -1343,7 +1343,7 @@ class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__nested__f_inner__li1__li2_entry:
         return foo__nested__f_inner__li1__li2_entry(key1=n.get_str(yang.gdata.Id(NS_foo, 'key1')), key2=n.get_str(yang.gdata.Id(NS_foo, 'key2')), baz=n.get_opt_str(yang.gdata.Id(NS_foo, 'baz')))
 
-    def copy(self) -> foo__nested__f_inner__li1__li2_entry:
+    mut def copy(self) -> foo__nested__f_inner__li1__li2_entry:
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1__li2_entry.from_gdata(self.to_gdata())
 
@@ -1355,7 +1355,7 @@ class foo__nested__f_inner__li1__li2(yang.adata.MNode):
         self._name = 'li2'
         self.elements = elements
 
-    def get(self, key1: str, key2: str) -> ?foo__nested__f_inner__li1__li2_entry:
+    pure def get(self, key1: str, key2: str) -> ?foo__nested__f_inner__li1__li2_entry:
         for e in self:
             if e.key1 != key1:
                 continue
@@ -1379,7 +1379,7 @@ class foo__nested__f_inner__li1__li2(yang.adata.MNode):
             return [foo__nested__f_inner__li1__li2_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__nested__f_inner__li1__li2:
+    mut def copy(self) -> foo__nested__f_inner__li1__li2:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1407,7 +1407,7 @@ class foo__nested__f_inner__li1_entry(yang.adata.MNode):
         self.li2 = foo__nested__f_inner__li1__li2(elements=li2)
         self.bar_bar = bar_bar
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'f_bar':
@@ -1424,7 +1424,7 @@ class foo__nested__f_inner__li1_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__nested__f_inner__li1_entry:
         return foo__nested__f_inner__li1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), f_bar=n.get_opt_str(yang.gdata.Id(NS_foo, 'bar')), li2=foo__nested__f_inner__li1__li2.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li2'))), bar_bar=n.get_opt_str(yang.gdata.Id(NS_bar, 'bar')))
 
-    def copy(self) -> foo__nested__f_inner__li1_entry:
+    mut def copy(self) -> foo__nested__f_inner__li1_entry:
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner__li1_entry.from_gdata(self.to_gdata())
 
@@ -1436,7 +1436,7 @@ class foo__nested__f_inner__li1(yang.adata.MNode):
         self._name = 'li1'
         self.elements = elements
 
-    def get(self, name: str) -> ?foo__nested__f_inner__li1_entry:
+    pure def get(self, name: str) -> ?foo__nested__f_inner__li1_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -1460,7 +1460,7 @@ class foo__nested__f_inner__li1(yang.adata.MNode):
             return [foo__nested__f_inner__li1_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__nested__f_inner__li1:
+    mut def copy(self) -> foo__nested__f_inner__li1:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1505,7 +1505,7 @@ class foo__nested__f_inner(yang.adata.MNode):
         self.foo = foo
         self.li1 = foo__nested__f_inner__li1(elements=li1)
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
         if name == 'li1':
@@ -1520,7 +1520,7 @@ class foo__nested__f_inner(yang.adata.MNode):
             return foo__nested__f_inner(foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')), li1=foo__nested__f_inner__li1.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li1'))))
         return foo__nested__f_inner()
 
-    def copy(self) -> foo__nested__f_inner:
+    mut def copy(self) -> foo__nested__f_inner:
         """Create a deep copy of this adata object"""
         return foo__nested__f_inner.from_gdata(self.to_gdata())
 
@@ -1533,7 +1533,7 @@ class foo__nested__bar_inner(yang.adata.MNode):
         self._ns = 'http://example.com/bar'
         self.foo = foo
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -1546,7 +1546,7 @@ class foo__nested__bar_inner(yang.adata.MNode):
             return foo__nested__bar_inner(foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')))
         return foo__nested__bar_inner()
 
-    def copy(self) -> foo__nested__bar_inner:
+    mut def copy(self) -> foo__nested__bar_inner:
         """Create a deep copy of this adata object"""
         return foo__nested__bar_inner.from_gdata(self.to_gdata())
 
@@ -1561,7 +1561,7 @@ class foo__nested(yang.adata.MNode):
         self.f_inner = f_inner if f_inner is not None else foo__nested__f_inner()
         self.bar_inner = bar_inner if bar_inner is not None else foo__nested__bar_inner()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'f_inner':
             return self.f_inner
         if name == 'bar_inner':
@@ -1576,7 +1576,7 @@ class foo__nested(yang.adata.MNode):
             return foo__nested(f_inner=foo__nested__f_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'inner'))), bar_inner=foo__nested__bar_inner.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'inner'))))
         return foo__nested()
 
-    def copy(self) -> foo__nested:
+    mut def copy(self) -> foo__nested:
         """Create a deep copy of this adata object"""
         return foo__nested.from_gdata(self.to_gdata())
 
@@ -1595,7 +1595,7 @@ class foo__li_union_entry(yang.adata.MNode):
         self.k3 = k3
         self.checker = checker
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'k1':
             return self.k1
         if name == 'k2':
@@ -1612,7 +1612,7 @@ class foo__li_union_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__li_union_entry:
         return foo__li_union_entry(k1=n.get_str(yang.gdata.Id(NS_foo, 'k1')), k2=n.get_value(yang.gdata.Id(NS_foo, 'k2')), k3=n.get_bytes(yang.gdata.Id(NS_foo, 'k3')), checker=n.get_opt_value(yang.gdata.Id(NS_foo, 'checker')))
 
-    def copy(self) -> foo__li_union_entry:
+    mut def copy(self) -> foo__li_union_entry:
         """Create a deep copy of this adata object"""
         return foo__li_union_entry.from_gdata(self.to_gdata())
 
@@ -1624,7 +1624,7 @@ class foo__li_union(yang.adata.MNode):
         self._name = 'li-union'
         self.elements = elements
 
-    def get(self, k1: str, k2: value, k3: bytes) -> ?foo__li_union_entry:
+    pure def get(self, k1: str, k2: value, k3: bytes) -> ?foo__li_union_entry:
         for e in self:
             if e.k1 != k1:
                 continue
@@ -1661,7 +1661,7 @@ class foo__li_union(yang.adata.MNode):
             return [foo__li_union_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__li_union:
+    mut def copy(self) -> foo__li_union:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1683,7 +1683,7 @@ class foo__li_union_one_base_entry(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.k1 = k1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'k1':
             return self.k1
 
@@ -1694,7 +1694,7 @@ class foo__li_union_one_base_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> foo__li_union_one_base_entry:
         return foo__li_union_one_base_entry(k1=n.get_value(yang.gdata.Id(NS_foo, 'k1')))
 
-    def copy(self) -> foo__li_union_one_base_entry:
+    mut def copy(self) -> foo__li_union_one_base_entry:
         """Create a deep copy of this adata object"""
         return foo__li_union_one_base_entry.from_gdata(self.to_gdata())
 
@@ -1706,7 +1706,7 @@ class foo__li_union_one_base(yang.adata.MNode):
         self._name = 'li-union-one-base'
         self.elements = elements
 
-    def get(self, k1: value) -> ?foo__li_union_one_base_entry:
+    pure def get(self, k1: value) -> ?foo__li_union_one_base_entry:
         for e in self:
             e_k1 = e.k1
             k1_match = False
@@ -1731,7 +1731,7 @@ class foo__li_union_one_base(yang.adata.MNode):
             return [foo__li_union_one_base_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> foo__li_union_one_base:
+    mut def copy(self) -> foo__li_union_one_base:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -1755,7 +1755,7 @@ class foo__state__c1(yang.adata.MNode):
         self.l1 = l1
         self.l2 = l2
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l2':
@@ -1770,7 +1770,7 @@ class foo__state__c1(yang.adata.MNode):
             return foo__state__c1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(yang.gdata.Id(NS_foo, 'l2')))
         return foo__state__c1()
 
-    def copy(self) -> foo__state__c1:
+    mut def copy(self) -> foo__state__c1:
         """Create a deep copy of this adata object"""
         return foo__state__c1.from_gdata(self.to_gdata())
 
@@ -1783,7 +1783,7 @@ class foo__state(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.c1 = c1 if c1 is not None else foo__state__c1()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c1':
             return self.c1
 
@@ -1796,7 +1796,7 @@ class foo__state(yang.adata.MNode):
             return foo__state(c1=foo__state__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
         return foo__state()
 
-    def copy(self) -> foo__state:
+    mut def copy(self) -> foo__state:
         """Create a deep copy of this adata object"""
         return foo__state.from_gdata(self.to_gdata())
 
@@ -1809,7 +1809,7 @@ class foo__c2(yang.adata.MNode):
         self._ns = 'http://example.com/foo'
         self.l1 = l1
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
 
@@ -1822,7 +1822,7 @@ class foo__c2(yang.adata.MNode):
             return foo__c2(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
         return foo__c2()
 
-    def copy(self) -> foo__c2:
+    mut def copy(self) -> foo__c2:
         """Create a deep copy of this adata object"""
         return foo__c2.from_gdata(self.to_gdata())
 
@@ -1835,7 +1835,7 @@ class bar__test_idref(yang.adata.MNode):
         self._ns = 'http://example.com/bar'
         self.idref = idref if idref is not None else []
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'idref':
             return self.idref
 
@@ -1848,7 +1848,7 @@ class bar__test_idref(yang.adata.MNode):
             return bar__test_idref(idref=n.get_opt_Identityrefs(yang.gdata.Id(NS_bar, 'idref')))
         return bar__test_idref()
 
-    def copy(self) -> bar__test_idref:
+    mut def copy(self) -> bar__test_idref:
         """Create a deep copy of this adata object"""
         return bar__test_idref.from_gdata(self.to_gdata())
 
@@ -1861,7 +1861,7 @@ class bar__bar_conflict(yang.adata.MNode):
         self._ns = 'http://example.com/bar'
         self.foo = foo
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'foo':
             return self.foo
 
@@ -1874,7 +1874,7 @@ class bar__bar_conflict(yang.adata.MNode):
             return bar__bar_conflict(foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')))
         return bar__bar_conflict()
 
-    def copy(self) -> bar__bar_conflict:
+    mut def copy(self) -> bar__bar_conflict:
         """Create a deep copy of this adata object"""
         return bar__bar_conflict.from_gdata(self.to_gdata())
 
@@ -1953,7 +1953,7 @@ class root(yang.adata.MNode):
         self.empty_presence = res
         return res
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'c1':
             return self.c1
         if name == 'pc1':
@@ -1998,7 +1998,7 @@ class root(yang.adata.MNode):
             return root(c1=foo__c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc1'))), pc2=foo__pc2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc2'))), pc3=foo__pc3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'pc3'))), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'empty-presence'))), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c.dot'))), cc=foo__cc.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'cc'))), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'conflict'))), special=foo__special.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'special'))), nested=foo__nested.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'nested'))), li_union=foo__li_union.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union'))), li_union_one_base=foo__li_union_one_base.from_gdata(n.get_opt_list(yang.gdata.Id(NS_foo, 'li-union-one-base'))), state=foo__state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'state'))), ll_empty=n.get_opt_strs(yang.gdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c2'))), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'test-idref'))), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'conflict'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

@@ -82,7 +82,7 @@ class root(yang.adata.MNode):
             return root()
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

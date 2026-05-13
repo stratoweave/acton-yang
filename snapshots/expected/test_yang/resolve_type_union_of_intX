@@ -51,7 +51,7 @@ class root(yang.adata.MNode):
         self.l3 = l3
         self.l4 = l4
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'l1':
             return self.l1
         if name == 'l2':
@@ -70,7 +70,7 @@ class root(yang.adata.MNode):
             return root(l1=n.get_opt_int(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l2')), l3=n.get_opt_value(yang.gdata.Id(NS_foo, 'l3')), l4=n.get_opt_value(yang.gdata.Id(NS_foo, 'l4')))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

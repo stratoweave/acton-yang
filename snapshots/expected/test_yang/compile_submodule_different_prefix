@@ -58,7 +58,7 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
         self._ns = 'http://example.com/main'
         self.sub_group_leaf = sub_group_leaf if sub_group_leaf is not None else "from-submodule"
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'sub_group_leaf':
             return self.sub_group_leaf
 
@@ -71,7 +71,7 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
             return main_module__main_container__sub_group_container(sub_group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-group-leaf')))
         return main_module__main_container__sub_group_container()
 
-    def copy(self) -> main_module__main_container__sub_group_container:
+    mut def copy(self) -> main_module__main_container__sub_group_container:
         """Create a deep copy of this adata object"""
         return main_module__main_container__sub_group_container.from_gdata(self.to_gdata())
 
@@ -88,7 +88,7 @@ class main_module__main_container__sub_list_entry(yang.adata.MNode):
         self.sub_value = sub_value
         self.ref_to_main = ref_to_main
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'sub_value':
@@ -103,7 +103,7 @@ class main_module__main_container__sub_list_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> main_module__main_container__sub_list_entry:
         return main_module__main_container__sub_list_entry(name=n.get_str(yang.gdata.Id(NS_main_module, 'name')), sub_value=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-value')), ref_to_main=n.get_opt_str(yang.gdata.Id(NS_main_module, 'ref-to-main')))
 
-    def copy(self) -> main_module__main_container__sub_list_entry:
+    mut def copy(self) -> main_module__main_container__sub_list_entry:
         """Create a deep copy of this adata object"""
         return main_module__main_container__sub_list_entry.from_gdata(self.to_gdata())
 
@@ -115,7 +115,7 @@ class main_module__main_container__sub_list(yang.adata.MNode):
         self._name = 'sub-list'
         self.elements = elements
 
-    def get(self, name: str) -> ?main_module__main_container__sub_list_entry:
+    pure def get(self, name: str) -> ?main_module__main_container__sub_list_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -139,7 +139,7 @@ class main_module__main_container__sub_list(yang.adata.MNode):
             return [main_module__main_container__sub_list_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> main_module__main_container__sub_list:
+    mut def copy(self) -> main_module__main_container__sub_list:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -184,7 +184,7 @@ class main_module__main_container__group_container(yang.adata.MNode):
         self.group_leaf = group_leaf if group_leaf is not None else "refined-default"
         self.augmented_in_group = augmented_in_group
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'group_leaf':
             return self.group_leaf
         if name == 'augmented_in_group':
@@ -199,7 +199,7 @@ class main_module__main_container__group_container(yang.adata.MNode):
             return main_module__main_container__group_container(group_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'group-leaf')), augmented_in_group=n.get_opt_str(yang.gdata.Id(NS_main_module, 'augmented-in-group')))
         return main_module__main_container__group_container()
 
-    def copy(self) -> main_module__main_container__group_container:
+    mut def copy(self) -> main_module__main_container__group_container:
         """Create a deep copy of this adata object"""
         return main_module__main_container__group_container.from_gdata(self.to_gdata())
 
@@ -220,7 +220,7 @@ class main_module__main_container(yang.adata.MNode):
         self.sub_list = main_module__main_container__sub_list(elements=sub_list)
         self.group_container = group_container if group_container is not None else main_module__main_container__group_container()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'main_leaf':
             return self.main_leaf
         if name == 'sub_group_container':
@@ -241,7 +241,7 @@ class main_module__main_container(yang.adata.MNode):
             return main_module__main_container(main_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'main-leaf')), sub_group_container=main_module__main_container__sub_group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'sub-group-container'))), sub_leaf=n.get_opt_str(yang.gdata.Id(NS_main_module, 'sub-leaf')), sub_list=main_module__main_container__sub_list.from_gdata(n.get_opt_list(yang.gdata.Id(NS_main_module, 'sub-list'))), group_container=main_module__main_container__group_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'group-container'))))
         return main_module__main_container()
 
-    def copy(self) -> main_module__main_container:
+    mut def copy(self) -> main_module__main_container:
         """Create a deep copy of this adata object"""
         return main_module__main_container.from_gdata(self.to_gdata())
 
@@ -254,7 +254,7 @@ class root(yang.adata.MNode):
         self._ns = ''
         self.main_container = main_container if main_container is not None else main_module__main_container()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'main_container':
             return self.main_container
 
@@ -267,7 +267,7 @@ class root(yang.adata.MNode):
             return root(main_container=main_module__main_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_main_module, 'main-container'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

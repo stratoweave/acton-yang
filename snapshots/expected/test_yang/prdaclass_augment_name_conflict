@@ -46,7 +46,7 @@ class base__c1(yang.adata.MNode):
         self.bar_foo = bar_foo
         self.foo_foo = foo_foo
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'bar_foo':
             return self.bar_foo
         if name == 'foo_foo':
@@ -61,7 +61,7 @@ class base__c1(yang.adata.MNode):
             return base__c1(bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), foo_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')))
         return base__c1()
 
-    def copy(self) -> base__c1:
+    mut def copy(self) -> base__c1:
         """Create a deep copy of this adata object"""
         return base__c1.from_gdata(self.to_gdata())
 

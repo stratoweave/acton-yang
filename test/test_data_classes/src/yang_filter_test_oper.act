@@ -142,7 +142,7 @@ class filter_test__system_state__clock(yang.adata.MNode):
         self.current_datetime = current_datetime
         self.boot_datetime = boot_datetime
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'current_datetime':
             return self.current_datetime
         if name == 'boot_datetime':
@@ -157,7 +157,7 @@ class filter_test__system_state__clock(yang.adata.MNode):
             return filter_test__system_state__clock(current_datetime=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'current-datetime')), boot_datetime=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'boot-datetime')))
         return filter_test__system_state__clock()
 
-    def copy(self) -> filter_test__system_state__clock:
+    mut def copy(self) -> filter_test__system_state__clock:
         """Create a deep copy of this adata object"""
         return filter_test__system_state__clock.from_gdata(self.to_gdata())
 
@@ -170,7 +170,7 @@ class filter_test__system_state(yang.adata.MNode):
         self._ns = 'http://example.com/filter-test'
         self.clock = clock if clock is not None else filter_test__system_state__clock()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'clock':
             return self.clock
 
@@ -183,7 +183,7 @@ class filter_test__system_state(yang.adata.MNode):
             return filter_test__system_state(clock=filter_test__system_state__clock.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'clock'))))
         return filter_test__system_state()
 
-    def copy(self) -> filter_test__system_state:
+    mut def copy(self) -> filter_test__system_state:
         """Create a deep copy of this adata object"""
         return filter_test__system_state.from_gdata(self.to_gdata())
 
@@ -198,7 +198,7 @@ class filter_test__interfaces__interface__statistics(yang.adata.MNode):
         self.in_octets = in_octets
         self.out_octets = out_octets
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'in_octets':
             return self.in_octets
         if name == 'out_octets':
@@ -213,7 +213,7 @@ class filter_test__interfaces__interface__statistics(yang.adata.MNode):
             return filter_test__interfaces__interface__statistics(in_octets=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'in-octets')), out_octets=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'out-octets')))
         return filter_test__interfaces__interface__statistics()
 
-    def copy(self) -> filter_test__interfaces__interface__statistics:
+    mut def copy(self) -> filter_test__interfaces__interface__statistics:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface__statistics.from_gdata(self.to_gdata())
 
@@ -226,7 +226,7 @@ class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
         self._ns = 'http://example.com/filter-test'
         self.mtu = mtu
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'mtu':
             return self.mtu
 
@@ -239,7 +239,7 @@ class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
             return filter_test__interfaces__interface__ipv4(mtu=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'mtu')))
         return filter_test__interfaces__interface__ipv4()
 
-    def copy(self) -> filter_test__interfaces__interface__ipv4:
+    mut def copy(self) -> filter_test__interfaces__interface__ipv4:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface__ipv4.from_gdata(self.to_gdata())
 
@@ -252,7 +252,7 @@ class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
         self._ns = 'http://example.com/filter-test'
         self.mtu = mtu
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'mtu':
             return self.mtu
 
@@ -265,7 +265,7 @@ class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
             return filter_test__interfaces__interface__ipv6(mtu=n.get_opt_u64(yang.gdata.Id(NS_filter_test, 'mtu')))
         return filter_test__interfaces__interface__ipv6()
 
-    def copy(self) -> filter_test__interfaces__interface__ipv6:
+    mut def copy(self) -> filter_test__interfaces__interface__ipv6:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface__ipv6.from_gdata(self.to_gdata())
 
@@ -296,7 +296,7 @@ class filter_test__interfaces__interface_entry(yang.adata.MNode):
         self.ipv4 = ipv4 if ipv4 is not None else filter_test__interfaces__interface__ipv4()
         self.ipv6 = ipv6 if ipv6 is not None else filter_test__interfaces__interface__ipv6()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'name':
             return self.name
         if name == 'description':
@@ -325,7 +325,7 @@ class filter_test__interfaces__interface_entry(yang.adata.MNode):
     mut def from_gdata(n: yang.gdata.Node) -> filter_test__interfaces__interface_entry:
         return filter_test__interfaces__interface_entry(name=n.get_str(yang.gdata.Id(NS_filter_test, 'name')), description=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'description')), type=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'type')), enabled=n.get_opt_bool(yang.gdata.Id(NS_filter_test, 'enabled')), admin_status=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'admin-status')), oper_status=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'oper-status')), last_change=n.get_opt_str(yang.gdata.Id(NS_filter_test, 'last-change')), statistics=filter_test__interfaces__interface__statistics.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'statistics'))), ipv4=filter_test__interfaces__interface__ipv4.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'ipv4'))), ipv6=filter_test__interfaces__interface__ipv6.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'ipv6'))))
 
-    def copy(self) -> filter_test__interfaces__interface_entry:
+    mut def copy(self) -> filter_test__interfaces__interface_entry:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces__interface_entry.from_gdata(self.to_gdata())
 
@@ -337,7 +337,7 @@ class filter_test__interfaces__interface(yang.adata.MNode):
         self._name = 'interface'
         self.elements = elements
 
-    def get(self, name: str) -> ?filter_test__interfaces__interface_entry:
+    pure def get(self, name: str) -> ?filter_test__interfaces__interface_entry:
         for e in self:
             if e.name != name:
                 continue
@@ -369,7 +369,7 @@ class filter_test__interfaces__interface(yang.adata.MNode):
             return [filter_test__interfaces__interface_entry.from_gdata(e) for e in n.elements]
         return []
 
-    def copy(self) -> filter_test__interfaces__interface:
+    mut def copy(self) -> filter_test__interfaces__interface:
         """Create a deep copy of this list object"""
         # Copy each element in the list
         copied_elements = []
@@ -412,7 +412,7 @@ class filter_test__interfaces(yang.adata.MNode):
         self._ns = 'http://example.com/filter-test'
         self.interface = filter_test__interfaces__interface(elements=interface)
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'interface':
             return iter(self.interface)
 
@@ -425,7 +425,7 @@ class filter_test__interfaces(yang.adata.MNode):
             return filter_test__interfaces(interface=filter_test__interfaces__interface.from_gdata(n.get_opt_list(yang.gdata.Id(NS_filter_test, 'interface'))))
         return filter_test__interfaces()
 
-    def copy(self) -> filter_test__interfaces:
+    mut def copy(self) -> filter_test__interfaces:
         """Create a deep copy of this adata object"""
         return filter_test__interfaces.from_gdata(self.to_gdata())
 
@@ -440,7 +440,7 @@ class root(yang.adata.MNode):
         self.system_state = system_state if system_state is not None else filter_test__system_state()
         self.interfaces = interfaces if interfaces is not None else filter_test__interfaces()
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'system_state':
             return self.system_state
         if name == 'interfaces':
@@ -455,7 +455,7 @@ class root(yang.adata.MNode):
             return root(system_state=filter_test__system_state.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'system-state'))), interfaces=filter_test__interfaces.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_filter_test, 'interfaces'))))
         return root()
 
-    def copy(self) -> root:
+    mut def copy(self) -> root:
         """Create a deep copy of this adata object"""
         return root.from_gdata(self.to_gdata())
 

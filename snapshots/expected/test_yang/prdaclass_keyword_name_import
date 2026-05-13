@@ -53,7 +53,7 @@ class foo__c1(yang.adata.MNode):
         self.in_ = in_
         self.with_ = with_
 
-    def _get_attr(self, name: str) -> ?value:
+    pure def _get_attr(self, name: str) -> ?value:
         if name == 'as_':
             return self.as_
         if name == 'for_':
@@ -74,7 +74,7 @@ class foo__c1(yang.adata.MNode):
             return foo__c1(as_=n.get_opt_str(yang.gdata.Id(NS_foo, 'as')), for_=n.get_opt_str(yang.gdata.Id(NS_foo, 'for')), import_=n.get_opt_str(yang.gdata.Id(NS_foo, 'import')), in_=n.get_opt_str(yang.gdata.Id(NS_foo, 'in')), with_=n.get_opt_str(yang.gdata.Id(NS_foo, 'with')))
         return foo__c1()
 
-    def copy(self) -> foo__c1:
+    mut def copy(self) -> foo__c1:
         """Create a deep copy of this adata object"""
         return foo__c1.from_gdata(self.to_gdata())
 
