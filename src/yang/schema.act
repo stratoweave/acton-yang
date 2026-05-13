@@ -1258,10 +1258,10 @@ class DIdentity(DNode):
         for identity in sorted_identities:
             var_name = base_var_map[identity.key()]
             base_refs = [base_var_map[base.key()] for base in identity.base]
-            result.append("{var_name} = DIdentity(module={repr(identity.module)}, namespace={repr(identity.namespace)}, prefix={repr(identity.prefix)}, name={repr(identity.name)}, base=[{', '.join(base_refs)}])")
+            result.append("{var_name}: DIdentity = DIdentity(module={repr(identity.module)}, namespace={repr(identity.namespace)}, prefix={repr(identity.prefix)}, name={repr(identity.name)}, base=[{', '.join(base_refs)}])")
 
         # Build the global _identities list
-        result.append("_identities = [")
+        result.append("_identities: list[DIdentity] = [")
         for identity in identities:
             # Reference the variable
             result.append("    {base_var_map[identity.key()]},")
@@ -1285,7 +1285,7 @@ class DIdentity(DNode):
 
         for identity in identities:
             var_name = safe_name("{identity.module}_{identity.name}", safe_kw=False)
-            result.append("{var_name} = Identityref({repr(identity.name)}, ns={repr(identity.namespace)}, mod={repr(identity.module)}, pfx={repr(identity.prefix)})")
+            result.append("{var_name}: Identityref = Identityref({repr(identity.name)}, ns={repr(identity.namespace)}, mod={repr(identity.module)}, pfx={repr(identity.prefix)})")
         result.append("")
         result.append("")
 

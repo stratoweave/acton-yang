@@ -16,12 +16,12 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_base_protocol_type = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type', base=[])
-_base_bar_sctp = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[_base_base_protocol_type])
-_base_bar_dccp = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[_base_base_protocol_type])
-_base_foo_tcp = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[_base_base_protocol_type])
-_base_foo_udp = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[_base_base_protocol_type])
-_identities = [
+_base_base_protocol_type: DIdentity = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type', base=[])
+_base_bar_sctp: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='sctp', base=[_base_base_protocol_type])
+_base_bar_dccp: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='dccp', base=[_base_base_protocol_type])
+_base_foo_tcp: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='tcp', base=[_base_base_protocol_type])
+_base_foo_udp: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='udp', base=[_base_base_protocol_type])
+_identities: list[DIdentity] = [
     _base_base_protocol_type,
     _base_bar_sctp,
     _base_bar_dccp,
@@ -31,11 +31,11 @@ _identities = [
 
 
 # Identityref constants
-base_protocol_type = Identityref('protocol-type', ns='http://example.com/base', mod='base', pfx='base')
-bar_sctp = Identityref('sctp', ns='http://example.com/bar', mod='bar', pfx='bar')
-bar_dccp = Identityref('dccp', ns='http://example.com/bar', mod='bar', pfx='bar')
-foo_tcp = Identityref('tcp', ns='http://example.com/foo', mod='foo', pfx='foo')
-foo_udp = Identityref('udp', ns='http://example.com/foo', mod='foo', pfx='foo')
+base_protocol_type: Identityref = Identityref('protocol-type', ns='http://example.com/base', mod='base', pfx='base')
+bar_sctp: Identityref = Identityref('sctp', ns='http://example.com/bar', mod='bar', pfx='bar')
+bar_dccp: Identityref = Identityref('dccp', ns='http://example.com/bar', mod='bar', pfx='bar')
+foo_tcp: Identityref = Identityref('tcp', ns='http://example.com/foo', mod='foo', pfx='foo')
+foo_udp: Identityref = Identityref('udp', ns='http://example.com/foo', mod='foo', pfx='foo')
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[

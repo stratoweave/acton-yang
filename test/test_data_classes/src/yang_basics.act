@@ -16,17 +16,17 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_basics_id1 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1', base=[])
-_base_basics_id2 = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[_base_basics_id1])
-_identities = [
+_base_basics_id1: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1', base=[])
+_base_basics_id2: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id2', base=[_base_basics_id1])
+_identities: list[DIdentity] = [
     _base_basics_id1,
     _base_basics_id2,
 ]
 
 
 # Identityref constants
-basics_id1 = Identityref('id1', ns='http://example.com/basics', mod='basics', pfx='b')
-basics_id2 = Identityref('id2', ns='http://example.com/basics', mod='basics', pfx='b')
+basics_id1: Identityref = Identityref('id1', ns='http://example.com/basics', mod='basics', pfx='b')
+basics_id2: Identityref = Identityref('id2', ns='http://example.com/basics', mod='basics', pfx='b')
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='basics', namespace='http://example.com/basics', prefix='b', name='c', config=True, presence=False, children=[

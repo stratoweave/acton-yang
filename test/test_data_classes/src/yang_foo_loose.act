@@ -16,10 +16,10 @@ from yang.type import Decimal, Ranges
 
 
 
-_base_foo_basey = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey', base=[])
-_base_foo_fooy = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey])
-_base_bar_bary = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='bary', base=[_base_foo_basey])
-_identities = [
+_base_foo_basey: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='basey', base=[])
+_base_foo_fooy: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='fooy', base=[_base_foo_basey])
+_base_bar_bary: DIdentity = DIdentity(module='bar', namespace='http://example.com/bar', prefix='bar', name='bary', base=[_base_foo_basey])
+_identities: list[DIdentity] = [
     _base_foo_fooy,
     _base_foo_basey,
     _base_bar_bary,
@@ -27,9 +27,9 @@ _identities = [
 
 
 # Identityref constants
-foo_fooy = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
-foo_basey = Identityref('basey', ns='http://example.com/foo', mod='foo', pfx='f')
-bar_bary = Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')
+foo_fooy: Identityref = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
+foo_basey: Identityref = Identityref('basey', ns='http://example.com/foo', mod='foo', pfx='f')
+bar_bary: Identityref = Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
