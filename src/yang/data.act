@@ -59,8 +59,15 @@ def format_schema_path(path: list[PathElement]) -> str:
             if not isinstance(prev, yang.schema.DRoot):
                 path_str = path_str + "/"
             if isinstance(prev, yang.schema.DNodeInner):
-                un = yang.schema.UniqueNamer(prev)
-                path_str = path_str + un.unique_name(elem.node.name, elem.node.prefix)
+                # TODO: replace with yang.schema.UniqueNamer(prev).unique_name(...) once
+                # the Acton compiler stops leaking function mut effect through to callers
+                # (which would make format_schema_path mut and break __str__'s purity).
+                names = [c.name for c in prev.children]
+                conflicts = {n for n in names if names.count(n) > 1}
+                name = elem.node.name
+                if name in conflicts:
+                    name = "{elem.node.prefix}:{name}"
+                path_str = path_str + name
                 keys_dict = elem.keys
                 if keys_dict is not None and len(keys_dict) > 0:
                     predicates = ["{k}='{(v if isinstance(v, str) else str(v)).replace("'", "\\'")}'" for k, v in keys_dict.items()]
