@@ -98,9 +98,9 @@ class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
         self.supported_excluded_change_type = supported_excluded_change_type if supported_excluded_change_type is not None else []
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'max_nodes':
+        if name == 'max-nodes:aug':
             return self.max_nodes
-        if name == 'supported_excluded_change_type':
+        if name == 'supported-excluded-change-type:aug':
             return self.supported_excluded_change_type
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -127,9 +127,9 @@ class base__system_capabilities(yang.adata.MNode):
         self.subscription_capabilities = subscription_capabilities if subscription_capabilities is not None else base__system_capabilities__subscription_capabilities()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'per_node_capabilities':
+        if name == 'per-node-capabilities:base':
             return iter(self.per_node_capabilities)
-        if name == 'subscription_capabilities':
+        if name == 'subscription-capabilities:aug':
             return self.subscription_capabilities
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -154,7 +154,7 @@ class root(yang.adata.MNode):
         self.system_capabilities = system_capabilities if system_capabilities is not None else base__system_capabilities()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'system_capabilities':
+        if name == 'system-capabilities:base':
             return self.system_capabilities
 
     mut def to_gdata(self) -> yang.gdata.Node:

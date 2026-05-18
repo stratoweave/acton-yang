@@ -78,7 +78,7 @@ class yangrpc__foo__input__woo(yang.adata.MNode):
         self.woo_b = woo_b
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'woo_b':
+        if name == 'woo_b:yrpc':
             return self.woo_b
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -105,9 +105,9 @@ class yangrpc__foo__input(yang.adata.MNode):
         self.woo = woo if woo is not None else yangrpc__foo__input__woo()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'a':
+        if name == 'a:yrpc':
             return self.a
-        if name == 'woo':
+        if name == 'woo:yrpc':
             return self.woo
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -132,7 +132,7 @@ class yangrpc__foo__output(yang.adata.MNode):
         self.outoo = outoo
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'outoo':
+        if name == 'outoo:yrpc':
             return self.outoo
 
     mut def to_gdata(self) -> yang.gdata.Node:

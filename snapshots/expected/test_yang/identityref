@@ -80,7 +80,7 @@ class base__config(yang.adata.MNode):
         self.active_protocol = active_protocol
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'active_protocol':
+        if name == 'active-protocol:base':
             return self.active_protocol
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -105,7 +105,7 @@ class root(yang.adata.MNode):
         self.config = config if config is not None else base__config()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'config':
+        if name == 'config:base':
             return self.config
 
     mut def to_gdata(self) -> yang.gdata.Node:

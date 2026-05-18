@@ -66,14 +66,14 @@ def _test_get_nc_op_pref_ancestor():
 
 
 extension xml.Node (YangData):
-    def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
+    def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
         child_node = yang.gdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
         if child_node is not None:
             op = _get_netconf_operation(child_node)
             return (op=op, val=child_node)
         return None
 
-    def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
+    def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
         elements = yang.gdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)
 
@@ -86,7 +86,7 @@ extension xml.Node (YangData):
 
         return [(op=_get_netconf_operation(e), key=extract_key(e), val=e) for e in elements]
 
-    mut def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> ?(op: str, t: str, val: ?value):
+    mut def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, t: str, val: ?value):
         new_path = path + [PathElement(schema)]
         maybe_node = yang.gdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
         if maybe_node is not None:
@@ -99,7 +99,7 @@ extension xml.Node (YangData):
         else:
             return None
 
-    def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> list[(op: str, t: str, val: ?value)]:
+    def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, t: str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: str, t: str, val: ?value)] = []
         children = yang.gdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)

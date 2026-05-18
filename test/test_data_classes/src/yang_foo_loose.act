@@ -525,7 +525,7 @@ class foo__c1__li__c4(yang.adata.MNode):
         self.l5 = l5
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l5':
+        if name == 'l5:f':
             return self.l5
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -554,11 +554,11 @@ class foo__c1__li_entry(yang.adata.MNode):
         self.c4 = c4 if c4 is not None else foo__c1__li__c4()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:f':
             return self.name
-        if name == 'val':
+        if name == 'val:f':
             return self.val
-        if name == 'c4':
+        if name == 'c4:f':
             return self.c4
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -671,35 +671,35 @@ class foo__c1(yang.adata.MNode):
         self.l_leafref = l_leafref
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f_l1':
+        if name == 'l1:f':
             return self.f_l1
-        if name == 'l3':
+        if name == 'l3:f':
             return self.l3
-        if name == 'l_empty':
+        if name == 'l_empty:f':
             return self.l_empty
-        if name == 'l_empty_delete':
+        if name == 'l_empty_delete:f':
             return self.l_empty_delete
-        if name == 'l_decimal64':
+        if name == 'l_decimal64:f':
             return self.l_decimal64
-        if name == 'li':
+        if name == 'li:f':
             return iter(self.li)
-        if name == 'll_uint64':
+        if name == 'll_uint64:f':
             return self.ll_uint64
-        if name == 'll_str':
+        if name == 'll_str:f':
             return self.ll_str
-        if name == 'l_identityref':
+        if name == 'l_identityref:f':
             return self.l_identityref
-        if name == 'll_identityref':
+        if name == 'll_identityref:f':
             return self.ll_identityref
-        if name == 'l_identityref_noval':
+        if name == 'l_identityref_noval:f':
             return self.l_identityref_noval
-        if name == 'l4':
+        if name == 'l4:f':
             return self.l4
-        if name == 'bar_l1':
+        if name == 'l1:bar':
             return self.bar_l1
-        if name == 'l2':
+        if name == 'l2:bar':
             return self.l2
-        if name == 'l_leafref':
+        if name == 'l_leafref:bar':
             return self.l_leafref
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -724,7 +724,7 @@ class foo__pc1__foo(yang.adata.MNode):
         self.l1 = l1 if l1 is not None else []
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l1':
+        if name == 'l1:f':
             return self.l1
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -749,7 +749,7 @@ class foo__pc1(yang.adata.MNode):
         self.foo = foo if foo is not None else foo__pc1__foo()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo':
+        if name == 'foo:f':
             return self.foo
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -777,7 +777,7 @@ class foo__pc2__foo(yang.adata.MNode):
         self.l_mandatory = l_mandatory
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l_mandatory':
+        if name == 'l_mandatory:f':
             return self.l_mandatory
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -802,7 +802,7 @@ class foo__pc2(yang.adata.MNode):
         self.foo = foo if foo is not None else foo__pc2__foo()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo':
+        if name == 'foo:f':
             return self.foo
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -832,9 +832,9 @@ class foo__pc3__level1__level2__level3(yang.adata.MNode):
         self.l3_optional = l3_optional
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l3':
+        if name == 'l3:f':
             return self.l3
-        if name == 'l3_optional':
+        if name == 'l3-optional:f':
             return self.l3_optional
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -863,11 +863,11 @@ class foo__pc3__level1__level2(yang.adata.MNode):
         self.level3 = level3 if level3 is not None else foo__pc3__level1__level2__level3()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l2':
+        if name == 'l2:f':
             return self.l2
-        if name == 'l2_optional':
+        if name == 'l2-optional:f':
             return self.l2_optional
-        if name == 'level3':
+        if name == 'level3:f':
             return self.level3
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -896,11 +896,11 @@ class foo__pc3__level1(yang.adata.MNode):
         self.level2 = level2 if level2 is not None else foo__pc3__level1__level2()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l1':
+        if name == 'l1:f':
             return self.l1
-        if name == 'l1_optional':
+        if name == 'l1-optional:f':
             return self.l1_optional
-        if name == 'level2':
+        if name == 'level2:f':
             return self.level2
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -925,7 +925,7 @@ class foo__pc3(yang.adata.MNode):
         self.level1 = level1 if level1 is not None else foo__pc3__level1()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'level1':
+        if name == 'level1:f':
             return self.level1
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -978,9 +978,9 @@ class foo__c_dot(yang.adata.MNode):
         self.l_dot2 = l_dot2
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l_dot1':
+        if name == 'l.dot1:f':
             return self.l_dot1
-        if name == 'l_dot2':
+        if name == 'l.dot2:bar':
             return self.l_dot2
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1005,7 +1005,7 @@ class foo__cc__death_entry(yang.adata.MNode):
         self.name = name
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:f':
             return self.name
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1090,9 +1090,9 @@ class foo__cc(yang.adata.MNode):
         self.death = foo__cc__death(elements=death)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'cake':
+        if name == 'cake:f':
             return self.cake
-        if name == 'death':
+        if name == 'death:f':
             return iter(self.death)
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1185,13 +1185,13 @@ class foo__f_conflict(yang.adata.MNode):
         return res
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f_foo':
+        if name == 'foo:f':
             return self.f_foo
-        if name == 'f_inner':
+        if name == 'inner:f':
             return self.f_inner
-        if name == 'bar_foo':
+        if name == 'foo:bar':
             return self.bar_foo
-        if name == 'bar_inner':
+        if name == 'inner:bar':
             return self.bar_inner
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1216,7 +1216,7 @@ class foo__special_entry(yang.adata.MNode):
         self.yes = yes
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'yes':
+        if name == 'yes:f':
             return self.yes
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1303,11 +1303,11 @@ class foo__nested__f_inner__li1__li2_entry(yang.adata.MNode):
         self.baz = baz
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'key1':
+        if name == 'key1:f':
             return self.key1
-        if name == 'key2':
+        if name == 'key2:f':
             return self.key2
-        if name == 'baz':
+        if name == 'baz:f':
             return self.baz
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1379,13 +1379,13 @@ class foo__nested__f_inner__li1_entry(yang.adata.MNode):
         self.bar_bar = bar_bar
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:f':
             return self.name
-        if name == 'f_bar':
+        if name == 'bar:f':
             return self.f_bar
-        if name == 'li2':
+        if name == 'li2:f':
             return iter(self.li2)
-        if name == 'bar_bar':
+        if name == 'bar:bar':
             return self.bar_bar
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1474,9 +1474,9 @@ class foo__nested__f_inner(yang.adata.MNode):
         self.li1 = foo__nested__f_inner__li1(elements=li1)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo':
+        if name == 'foo:f':
             return self.foo
-        if name == 'li1':
+        if name == 'li1:f':
             return iter(self.li1)
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1501,7 +1501,7 @@ class foo__nested__bar_inner(yang.adata.MNode):
         self.foo = foo
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo':
+        if name == 'foo:bar':
             return self.foo
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1528,9 +1528,9 @@ class foo__nested(yang.adata.MNode):
         self.bar_inner = bar_inner if bar_inner is not None else foo__nested__bar_inner()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f_inner':
+        if name == 'inner:f':
             return self.f_inner
-        if name == 'bar_inner':
+        if name == 'inner:bar':
             return self.bar_inner
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1561,13 +1561,13 @@ class foo__li_union_entry(yang.adata.MNode):
         self.checker = checker
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'k1':
+        if name == 'k1:f':
             return self.k1
-        if name == 'k2':
+        if name == 'k2:f':
             return self.k2
-        if name == 'k3':
+        if name == 'k3:f':
             return self.k3
-        if name == 'checker':
+        if name == 'checker:f':
             return self.checker
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1646,7 +1646,7 @@ class foo__li_union_one_base_entry(yang.adata.MNode):
         self.k1 = k1
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'k1':
+        if name == 'k1:f':
             return self.k1
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1715,9 +1715,9 @@ class foo__state__c1(yang.adata.MNode):
         self.l2 = l2
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l1':
+        if name == 'l1:f':
             return self.l1
-        if name == 'l2':
+        if name == 'l2:f':
             return self.l2
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1742,7 +1742,7 @@ class foo__state(yang.adata.MNode):
         self.c1 = c1 if c1 is not None else foo__state__c1()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'c1':
+        if name == 'c1:f':
             return self.c1
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1767,7 +1767,7 @@ class foo__c2(yang.adata.MNode):
         self.l1 = l1
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l1':
+        if name == 'l1:f':
             return self.l1
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1792,7 +1792,7 @@ class bar__test_idref(yang.adata.MNode):
         self.idref = idref if idref is not None else []
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'idref':
+        if name == 'idref:bar':
             return self.idref
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1817,7 +1817,7 @@ class bar__bar_conflict(yang.adata.MNode):
         self.foo = foo
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo':
+        if name == 'foo:bar':
             return self.foo
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -1906,39 +1906,39 @@ class root(yang.adata.MNode):
         return res
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'c1':
+        if name == 'c1:f':
             return self.c1
-        if name == 'pc1':
+        if name == 'pc1:f':
             return self.pc1
-        if name == 'pc2':
+        if name == 'pc2:f':
             return self.pc2
-        if name == 'pc3':
+        if name == 'pc3:f':
             return self.pc3
-        if name == 'empty_presence':
+        if name == 'empty-presence:f':
             return self.empty_presence
-        if name == 'c_dot':
+        if name == 'c.dot:f':
             return self.c_dot
-        if name == 'cc':
+        if name == 'cc:f':
             return self.cc
-        if name == 'f_conflict':
+        if name == 'conflict:f':
             return self.f_conflict
-        if name == 'special':
+        if name == 'special:f':
             return iter(self.special)
-        if name == 'nested':
+        if name == 'nested:f':
             return self.nested
-        if name == 'li_union':
+        if name == 'li-union:f':
             return iter(self.li_union)
-        if name == 'li_union_one_base':
+        if name == 'li-union-one-base:f':
             return iter(self.li_union_one_base)
-        if name == 'state':
+        if name == 'state:f':
             return self.state
-        if name == 'll_empty':
+        if name == 'll-empty:f':
             return self.ll_empty
-        if name == 'c2':
+        if name == 'c2:f':
             return self.c2
-        if name == 'test_idref':
+        if name == 'test-idref:bar':
             return self.test_idref
-        if name == 'bar_conflict':
+        if name == 'conflict:bar':
             return self.bar_conflict
 
     mut def to_gdata(self) -> yang.gdata.Node:

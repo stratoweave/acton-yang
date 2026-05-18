@@ -50,9 +50,9 @@ class parent__parent_container(yang.adata.MNode):
         self.augmented_leaf = augmented_leaf
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'parent_leaf':
+        if name == 'parent-leaf:parent':
             return self.parent_leaf
-        if name == 'augmented_leaf':
+        if name == 'augmented-leaf:parent':
             return self.augmented_leaf
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -79,9 +79,9 @@ class parent__sub_container(yang.adata.MNode):
         self.shared_leaf = shared_leaf if shared_leaf is not None else "from-shared"
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'sub_leaf':
+        if name == 'sub-leaf:parent':
             return self.sub_leaf
-        if name == 'shared_leaf':
+        if name == 'shared-leaf:parent':
             return self.shared_leaf
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -108,9 +108,9 @@ class root(yang.adata.MNode):
         self.sub_container = sub_container if sub_container is not None else parent__sub_container()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'parent_container':
+        if name == 'parent-container:parent':
             return self.parent_container
-        if name == 'sub_container':
+        if name == 'sub-container:parent':
             return self.sub_container
 
     mut def to_gdata(self) -> yang.gdata.Node:

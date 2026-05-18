@@ -48,7 +48,7 @@ class base_module__network_instances__network_instance__state(yang.adata.MNode):
         self.id = id
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'id':
+        if name == 'id:base':
             return self.id
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -77,11 +77,11 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
         self.ref = ref
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:base':
             return self.name
-        if name == 'state':
+        if name == 'state:base':
             return self.state
-        if name == 'ref':
+        if name == 'ref:aug':
             return self.ref
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -166,7 +166,7 @@ class base_module__network_instances(yang.adata.MNode):
         self.network_instance = base_module__network_instances__network_instance(elements=network_instance)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'network_instance':
+        if name == 'network-instance:base':
             return iter(self.network_instance)
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -191,7 +191,7 @@ class root(yang.adata.MNode):
         self.network_instances = network_instances if network_instances is not None else base_module__network_instances()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'network_instances':
+        if name == 'network-instances:base':
             return self.network_instances
 
     mut def to_gdata(self) -> yang.gdata.Node:

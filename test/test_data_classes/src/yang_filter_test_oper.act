@@ -142,9 +142,9 @@ class filter_test__system_state__clock(yang.adata.MNode):
         self.boot_datetime = boot_datetime
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'current_datetime':
+        if name == 'current-datetime:ft':
             return self.current_datetime
-        if name == 'boot_datetime':
+        if name == 'boot-datetime:ft':
             return self.boot_datetime
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -169,7 +169,7 @@ class filter_test__system_state(yang.adata.MNode):
         self.clock = clock if clock is not None else filter_test__system_state__clock()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'clock':
+        if name == 'clock:ft':
             return self.clock
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -196,9 +196,9 @@ class filter_test__interfaces__interface__statistics(yang.adata.MNode):
         self.out_octets = out_octets
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'in_octets':
+        if name == 'in-octets:ft':
             return self.in_octets
-        if name == 'out_octets':
+        if name == 'out-octets:ft':
             return self.out_octets
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -223,7 +223,7 @@ class filter_test__interfaces__interface__ipv4(yang.adata.MNode):
         self.mtu = mtu
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'mtu':
+        if name == 'mtu:ft':
             return self.mtu
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -248,7 +248,7 @@ class filter_test__interfaces__interface__ipv6(yang.adata.MNode):
         self.mtu = mtu
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'mtu':
+        if name == 'mtu:ft':
             return self.mtu
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -291,25 +291,25 @@ class filter_test__interfaces__interface_entry(yang.adata.MNode):
         self.ipv6 = ipv6 if ipv6 is not None else filter_test__interfaces__interface__ipv6()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:ft':
             return self.name
-        if name == 'description':
+        if name == 'description:ft':
             return self.description
-        if name == 'type':
+        if name == 'type:ft':
             return self.type
-        if name == 'enabled':
+        if name == 'enabled:ft':
             return self.enabled
-        if name == 'admin_status':
+        if name == 'admin-status:ft':
             return self.admin_status
-        if name == 'oper_status':
+        if name == 'oper-status:ft':
             return self.oper_status
-        if name == 'last_change':
+        if name == 'last-change:ft':
             return self.last_change
-        if name == 'statistics':
+        if name == 'statistics:ft':
             return self.statistics
-        if name == 'ipv4':
+        if name == 'ipv4:ft':
             return self.ipv4
-        if name == 'ipv6':
+        if name == 'ipv6:ft':
             return self.ipv6
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -404,7 +404,7 @@ class filter_test__interfaces(yang.adata.MNode):
         self.interface = filter_test__interfaces__interface(elements=interface)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'interface':
+        if name == 'interface:ft':
             return iter(self.interface)
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -431,9 +431,9 @@ class root(yang.adata.MNode):
         self.interfaces = interfaces if interfaces is not None else filter_test__interfaces()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'system_state':
+        if name == 'system-state:ft':
             return self.system_state
-        if name == 'interfaces':
+        if name == 'interfaces:ft':
             return self.interfaces
 
     mut def to_gdata(self) -> yang.gdata.Node:

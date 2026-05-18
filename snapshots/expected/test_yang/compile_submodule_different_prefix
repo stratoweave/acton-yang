@@ -58,7 +58,7 @@ class main_module__main_container__sub_group_container(yang.adata.MNode):
         self.sub_group_leaf = sub_group_leaf if sub_group_leaf is not None else "from-submodule"
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'sub_group_leaf':
+        if name == 'sub-group-leaf:main':
             return self.sub_group_leaf
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -87,11 +87,11 @@ class main_module__main_container__sub_list_entry(yang.adata.MNode):
         self.ref_to_main = ref_to_main
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:main':
             return self.name
-        if name == 'sub_value':
+        if name == 'sub-value:main':
             return self.sub_value
-        if name == 'ref_to_main':
+        if name == 'ref-to-main:main':
             return self.ref_to_main
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -180,9 +180,9 @@ class main_module__main_container__group_container(yang.adata.MNode):
         self.augmented_in_group = augmented_in_group
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'group_leaf':
+        if name == 'group-leaf:main':
             return self.group_leaf
-        if name == 'augmented_in_group':
+        if name == 'augmented-in-group:main':
             return self.augmented_in_group
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -215,15 +215,15 @@ class main_module__main_container(yang.adata.MNode):
         self.group_container = group_container if group_container is not None else main_module__main_container__group_container()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'main_leaf':
+        if name == 'main-leaf:main':
             return self.main_leaf
-        if name == 'sub_group_container':
+        if name == 'sub-group-container:main':
             return self.sub_group_container
-        if name == 'sub_leaf':
+        if name == 'sub-leaf:main':
             return self.sub_leaf
-        if name == 'sub_list':
+        if name == 'sub-list:main':
             return iter(self.sub_list)
-        if name == 'group_container':
+        if name == 'group-container:main':
             return self.group_container
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -248,7 +248,7 @@ class root(yang.adata.MNode):
         self.main_container = main_container if main_container is not None else main_module__main_container()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'main_container':
+        if name == 'main-container:main':
             return self.main_container
 
     mut def to_gdata(self) -> yang.gdata.Node:

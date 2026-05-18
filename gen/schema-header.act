@@ -730,7 +730,7 @@ class DNodeInner(DNode):
         if len(attr_children) > 0:
             res.append("    pure def _get_attr(self, name: str) -> ?value:")
             for child in attr_children:
-                res.append("        if name == '{usname(child)}':")
+                res.append("        if name == '{child.name}:{child.prefix}':")
                 if isinstance(child, DList):
                     res.append("            return iter(self.{usname(child)})")
                 else:

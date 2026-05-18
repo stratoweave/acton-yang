@@ -44,9 +44,9 @@ class foo__l1_entry(yang.adata.MNode):
         self.id = id
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:foo':
             return self.name
-        if name == 'id':
+        if name == 'id:foo':
             return self.id
 
     mut def to_gdata(self) -> yang.gdata.Node:

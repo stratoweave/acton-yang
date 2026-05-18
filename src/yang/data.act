@@ -110,14 +110,14 @@ protocol YangData:
     that can carry YANG-modeled data, like XML and JSON
     """
     # TODO: can value implement YangData? Yes, once Acton supports recursive protocol definitions ...
-    take_container: mut(yang.schema.DContainer, str, bool, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
-    take_list: mut(yang.schema.DList, str, bool, bool, list[PathElement]) -> list[(op: ?str, key: dict[str, value], val: value)]
+    take_container: mut(yang.schema.DContainer, str, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
+    take_list: mut(yang.schema.DList, str, bool, list[PathElement]) -> list[(op: ?str, key: dict[str, value], val: value)]
     # Return a typed tuple for leaves. The tuple carries the concrete type name
     # and the parsed value. Missing leaves return None.
-    take_leaf: mut(yang.schema.DRoot, yang.schema.DLeaf, str, bool, bool, list[PathElement]) -> ?(op: ?str, t: str, val: ?value)
+    take_leaf: mut(yang.schema.DRoot, yang.schema.DLeaf, str, bool, list[PathElement]) -> ?(op: ?str, t: str, val: ?value)
     # For leaf-lists, return a list of typed tuples (op, t, val).
     # For identityref items, val holds a PartialIdentityref.
-    take_leaflist: mut(yang.schema.DRoot, yang.schema.DLeafList, str, bool, bool, list[PathElement]) -> list[(op: ?str, t: str, val: ?value)]
+    take_leaflist: mut(yang.schema.DRoot, yang.schema.DLeafList, str, bool, list[PathElement]) -> list[(op: ?str, t: str, val: ?value)]
 
 
 def user_order(ordered_by):
@@ -201,10 +201,6 @@ def from_data_recursive[A(YangData)](root: yang.schema.DRoot, s: yang.schema.DNo
 
     children: dict[yang.gdata.Id, yang.gdata.Node] = {}
 
-    unique_namer = yang.schema.UniqueNamer(s)
-    def is_unique(n) -> bool:
-        return unique_namer.is_unique(n.name)
-
     for child in s.children:
         if skip_nonkeys and isinstance(s, yang.schema.DList) and child.name not in s.key:
             continue
@@ -224,7 +220,7 @@ def from_data_recursive[A(YangData)](root: yang.schema.DRoot, s: yang.schema.DNo
             mod = child.module
 
         if isinstance(child, yang.schema.DContainer):
-            opval = data.take_container(child, child.name, s.namespace != child.namespace, is_unique(child), spath)
+            opval = data.take_container(child, child.name, s.namespace != child.namespace, spath)
             if opval is not None:
                 val = type_narrower(opval.val)
                 cchild = from_data_recursive(root, child, val, type_narrower, loose, set_ns=s.namespace != child.namespace, root_path=root_path, spath=path_with_child())
@@ -253,7 +249,7 @@ def from_data_recursive[A(YangData)](root: yang.schema.DRoot, s: yang.schema.DNo
                         raise ValueError("Error reading {format_schema_path(path_with_child())}: Cannot find child node with name {child.name}")
 
         elif isinstance(child, yang.schema.DList):
-            list_val = data.take_list(child, child.name, s.namespace != child.namespace, is_unique(child), spath)
+            list_val = data.take_list(child, child.name, s.namespace != child.namespace, spath)
             list_elements = []
 
             for element in list_val:
@@ -275,7 +271,7 @@ def from_data_recursive[A(YangData)](root: yang.schema.DRoot, s: yang.schema.DNo
                 children[fqname(child)] = list_gdata
 
         elif isinstance(child, yang.schema.DLeafList):
-            leaflist_val = data.take_leaflist(root, child, child.name, s.namespace != child.namespace, is_unique(child), spath)
+            leaflist_val = data.take_leaflist(root, child, child.name, s.namespace != child.namespace, spath)
             if len(leaflist_val) > 0:
                 entries: list[yang.gdata.LeafListEntry] = []
                 for item in leaflist_val:
@@ -302,7 +298,7 @@ def from_data_recursive[A(YangData)](root: yang.schema.DRoot, s: yang.schema.DNo
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
 
         elif isinstance(child, yang.schema.DLeaf):
-            typed = data.take_leaf(root, child, child.name, s.namespace != child.namespace, is_unique(child), spath)
+            typed = data.take_leaf(root, child, child.name, s.namespace != child.namespace, spath)
             if typed is not None:
                 wleaf = None
                 if typed.op == OP_REMOVE:
