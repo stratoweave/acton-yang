@@ -388,7 +388,7 @@ class DNode(object):
 
         raise ValueError("Unable to get child from non-inner node")
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, ancestor_namers: list[UniqueNamer]=[]) -> (list[str], int):
         """Print the data class for this schema node
         """
         raise NotImplementedError('DNode pdc: {type(self)} - {get_path(spath)}')
@@ -511,8 +511,13 @@ class DNode(object):
 class DNodeInner(DNode):
     children: list[DNode]
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, ancestor_namers: list[UniqueNamer]=[]) -> (list[str], int):
         """Print the data class for this schema node
+
+        ancestor_namers contains UniqueNamer instances matching spath[:-1] -
+        the ancestors of self. self's own UniqueNamer is built locally and
+        combined with these to avoid rebuilding the same namers on every
+        get_path_name() call along the recursion.
         """
         def path_with_child(c):
             return spath + [c]
@@ -547,15 +552,16 @@ class DNodeInner(DNode):
         self.children = new_children
 
         unique_namer = UniqueNamer(self)
+        spath_namers = ancestor_namers + [unique_namer]
 
         def usname(n) -> str:
             return unique_namer.unique_safe_name(n.name, n.prefix)
 
         def pname(n: ?DNode=None):
             if n is not None:
-                return get_path_name(spath + [n])
+                return get_path_name(spath + [n], spath_namers)
             else:
-                return get_path_name(spath)
+                return get_path_name(spath, ancestor_namers)
 
         def us_list_key():
             """Convert list key names (DList.key) to their unique safe names
@@ -575,7 +581,7 @@ class DNodeInner(DNode):
         for child in self.children:
             if isinstance(child, DNodeLeaf):
                 continue
-            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, exclude_ext=exclude_ext, breaker_idx=breaker_idx)
+            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, exclude_ext=exclude_ext, breaker_idx=breaker_idx, ancestor_namers=spath_namers)
             res.extend(child_res)
 
         def excluded(n):
@@ -690,6 +696,7 @@ class DNodeInner(DNode):
             if isinstance(child, DContainer) and child.presence:
                 # We must generate unique safe names for this node children too
                 child_unique_namer = UniqueNamer(child)
+                child_spath_namers = spath_namers + [child_unique_namer]
 
                 pc_args_req = []
                 pc_args_req_sig = []
@@ -708,7 +715,7 @@ class DNodeInner(DNode):
                     elif isinstance(cchild, DContainer):
                         if not (loose or optional_subtree(cchild) or cchild.presence):
                             carg = child_unique_namer.unique_safe_name(cchild.name, cchild.prefix)
-                            ctype = get_path_name(spath + [child, cchild])
+                            ctype = get_path_name(spath + [child, cchild], child_spath_namers)
                             pc_args_req.append(carg)
                             pc_args_req_sig.append("{carg}: {ctype}")
                 pc_args_str = ", ".join(["self"] + pc_args_req_sig + pc_args_opt_sig)
@@ -963,8 +970,9 @@ class DNodeInner(DNode):
                 # Generate adata classes for DInput, DOutput, but override:
                 # - set_ns: from DRpc (=True)
                 # - include_state=True
+                rpc_namers = spath_namers + [UniqueNamer(rpc)]
                 for child in rpc.children:
-                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, exclude_ext=exclude_ext, breaker_idx=breaker_idx)
+                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, exclude_ext=exclude_ext, breaker_idx=breaker_idx, ancestor_namers=rpc_namers)
                     res.extend(child_class_src)
 
             # TODO: unique safe name for RPC function!
@@ -975,19 +983,20 @@ class DNodeInner(DNode):
             for rpc in self.rpcs:
                 input_node = rpc.input
                 output_node = rpc.output
+                rpc_namers = spath_namers + [UniqueNamer(rpc)]
 
                 # Build method signature based on input/output presence:
                 # - no input: in inp parameter in the wrapper signature
                 # - no output: no output adata parameter in the callback signature
                 if input_node is not None and output_node is not None:
                     # RPC with both input and output
-                    res.append("    def {safe_name(rpc.name)}(cb: action(?{get_path_name(spath + [rpc, output_node])}, ?Exception) -> None, inp: {'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node])}):")
+                    res.append("    def {safe_name(rpc.name)}(cb: action(?{get_path_name(spath + [rpc, output_node], rpc_namers)}, ?Exception) -> None, inp: {'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node], rpc_namers)}):")
                 elif input_node is not None and output_node is None:
                     # RPC with only input (no output)
-                    res.append("    def {safe_name(rpc.name)}(cb: action(?Exception) -> None, inp: {'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node])}):")
+                    res.append("    def {safe_name(rpc.name)}(cb: action(?Exception) -> None, inp: {'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node], rpc_namers)}):")
                 elif input_node is None and output_node is not None:
                     # RPC with only output (no input)
-                    res.append("    def {safe_name(rpc.name)}(cb: action(?{get_path_name(spath + [rpc, output_node])}, ?Exception) -> None):")
+                    res.append("    def {safe_name(rpc.name)}(cb: action(?{get_path_name(spath + [rpc, output_node], rpc_namers)}, ?Exception) -> None):")
                 else:
                     # RPC with neither input nor output
                     res.append("    def {safe_name(rpc.name)}(cb: action(?Exception) -> None):")
@@ -997,7 +1006,7 @@ class DNodeInner(DNode):
                     res.append("        def cb_wrap(res: ?xml.Node, err: ?Exception):")
                     res.append("            if res is not None:")
                     res.append('                gdata_res = yang.xml.from_xml(SRC_DNODE, res, {loose}, ["{rpc.module}:{rpc.name}", "output"])')
-                    res.append("                adata_res = {get_path_name(spath + [rpc, output_node])}.from_gdata(gdata_res)")
+                    res.append("                adata_res = {get_path_name(spath + [rpc, output_node], rpc_namers)}.from_gdata(gdata_res)")
                     res.append("                cb(adata_res, err)")
                     res.append("            else:")
                     res.append("                cb(None, err)")
@@ -1754,23 +1763,28 @@ class DRoot(DNodeInner):
         ]
 
     def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False) -> str:
-        def build_spath(spath: list[DNode]):
+        def build_spath(spath: list[DNode], namers: list[UniqueNamer]) -> (list[DNode], list[UniqueNamer]):
             if len(root_path) == len(spath) - 1:
-                return spath
+                return spath, namers
 
             next = root_path[len(spath) - 1]
             module, local_name = split_prefix_name(next)
-            child = spath[-1].get(local_name, module=module, allow_unqualified=False)
-            return build_spath(spath + [child])
+            parent = spath[-1]
+            child = parent.get(local_name, module=module, allow_unqualified=False)
+            if isinstance(parent, DNodeInner):
+                new_namers = namers + [UniqueNamer(parent)]
+                return build_spath(spath + [child], namers + [UniqueNamer(parent)])
+            raise Exception("unreachable")
 
-        # HACK: DNodeInner._prdaclass_rec mutates the children list - it removes
-        # config false nodes, and reorders list keys! Obviously this is very bad
-        # and we  should really do this elsewhere (get_dnode_children?), or add
-        # arguments to the parsers for oper data handling. Right now I just need
-        # the SRC_DNODE constant to have the same view of the schema as the
-        # adata code generator ...
-        spath = build_spath([self])
-        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, exclude_ext=exclude_ext)
+        # HACK: DNodeInner._prdaclass_rec mutates the children list - it
+        # removes config-false nodes (when not include_state), DRpc, DAnydata
+        # and DAnyxml children, and reorders list keys to the front!
+        # Obviously this is very bad and we should really do this elsewhere
+        # (get_dnode_children?), or add arguments to the parsers for oper
+        # data handling. Right now I just need the SRC_DNODE constant to
+        # have the same view of the schema as the adata code generator ...
+        spath, ancestor_namers = build_spath([self], [])
+        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, exclude_ext=exclude_ext, ancestor_namers=ancestor_namers)
 
         res = []
         res.append("import base64")
@@ -4302,6 +4316,7 @@ class UniqueNamer(object):
             else:
                 seen.add(child.name)
         self._name_conflicts = dups
+        self._node = node
 
     def unique_name(self, name, prefix):
         if name not in self._name_conflicts:
@@ -4316,7 +4331,7 @@ class UniqueNamer(object):
         return name not in self._name_conflicts
 
 
-def get_path_name(path: list[DNode]) -> str:
+def get_path_name(path: list[DNode], spath_namers: list[UniqueNamer]=[]) -> str:
     r"""Build the adata path name for a data node
 
     For example, for the following YANG model:
@@ -4351,11 +4366,15 @@ def get_path_name(path: list[DNode]) -> str:
     We do not rewrite the builtin keywords here (see safe_name()) because it is
     not necessary. An exception to this is if we are the top node without
     children - then the path is just our name.
+
+    spath_namers, when provided, supplies precomputed UniqueNamer instances
+    for path[:len(spath_namers)]. Positions beyond that are built on demand.
+    Misaligned namers are caught by an assertion in get_path_usnames.
     """
-    return "__".join(get_path_usnames(path))
+    return "__".join(get_path_usnames(path, spath_namers))
 
 
-def get_path_usnames(path: list[DNode]) -> list[str]:
+def get_path_usnames(path: list[DNode], spath_namers: list[UniqueNamer]=[]) -> list[str]:
     if len(path) == 1:
         return [safe_name(path[0].name, safe_kw=False)]
 
@@ -4366,7 +4385,11 @@ def get_path_usnames(path: list[DNode]) -> list[str]:
             if isinstance(prev, DRoot):
                 res.append(safe_name(node.module, safe_kw=False))
             if isinstance(prev, DNodeInner):
-                un = UniqueNamer(prev)
+                if i - 1 < len(spath_namers):
+                    un = spath_namers[i-1]
+                    assert un._node.name == prev.name and un._node.namespace == prev.namespace, "spath_namers[{i-1}] ({un._node.namespace}:{un._node.name}) does not match path[{i-1}] ({prev.namespace}:{prev.name})"
+                else:
+                    un = UniqueNamer(prev)
                 res.append(un.unique_safe_name(node.name, node.prefix, safe_kw=False))
         elif isinstance(node, DRoot):
             continue
@@ -4376,7 +4399,7 @@ def get_path_usnames(path: list[DNode]) -> list[str]:
     return res
 
 
-def get_path(path: list[DNode]) -> str:
+def get_path(path: list[DNode], spath_namers: list[UniqueNamer]=[]) -> str:
     r"""Get the path of a data node
 
     The path is the absolute path in the YANG model, e.g. for the following
@@ -4408,11 +4431,15 @@ def get_path(path: list[DNode]) -> str:
     Then the path for the baz leaves in the two modules is:
     - /foo:bar/foo:baz
     - /foo:bar/m2:baz
+
+    spath_namers, when provided, supplies precomputed UniqueNamer instances
+    for path[:len(spath_namers)]. Positions beyond that are built on demand.
+    Misaligned namers are caught by an assertion in get_path_unames.
     """
-    return "/".join(get_path_unames(path))
+    return "/".join(get_path_unames(path, spath_namers))
 
 
-def get_path_unames(path: list[DNode]) -> list[str]:
+def get_path_unames(path: list[DNode], spath_namers: list[UniqueNamer]=[]) -> list[str]:
     if len(path) == 1 and isinstance(path[0], DRoot):
         return ["/"]
 
@@ -4421,7 +4448,11 @@ def get_path_unames(path: list[DNode]) -> list[str]:
         if i > 0:
             prev = path[i-1]
             if isinstance(prev, DNodeInner):
-                un = UniqueNamer(prev)
+                if i - 1 < len(spath_namers):
+                    un = spath_namers[i-1]
+                    assert un._node.name == prev.name and un._node.namespace == prev.namespace, "spath_namers[{i-1}] ({un._node.namespace}:{un._node.name}) does not match path[{i-1}] ({prev.namespace}:{prev.name})"
+                else:
+                    un = UniqueNamer(prev)
                 res.append(un.unique_name(node.name, node.prefix))
         elif isinstance(node, DRoot):
             res.append("")
