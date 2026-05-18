@@ -46,9 +46,9 @@ class base__c1(yang.adata.MNode):
         self.foo_foo = foo_foo
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'bar_foo':
+        if name == 'foo:bar':
             return self.bar_foo
-        if name == 'foo_foo':
+        if name == 'foo:foo':
             return self.foo_foo
 
     mut def to_gdata(self) -> yang.gdata.Node:

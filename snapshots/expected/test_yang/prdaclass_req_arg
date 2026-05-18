@@ -45,7 +45,7 @@ class foo__l1__bar(yang.adata.MNode):
         self.hi = hi
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'hi':
+        if name == 'hi:foo':
             return self.hi
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -74,11 +74,11 @@ class foo__l1_entry(yang.adata.MNode):
         self.bar = bar if bar is not None else foo__l1__bar()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name':
+        if name == 'name:foo':
             return self.name
-        if name == 'id':
+        if name == 'id:foo':
             return self.id
-        if name == 'bar':
+        if name == 'bar:foo':
             return self.bar
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -163,7 +163,7 @@ class root(yang.adata.MNode):
         self.l1 = foo__l1(elements=l1)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l1':
+        if name == 'l1:foo':
             return iter(self.l1)
 
     mut def to_gdata(self) -> yang.gdata.Node:

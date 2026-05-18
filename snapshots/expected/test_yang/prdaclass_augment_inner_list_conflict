@@ -50,9 +50,9 @@ class base__c1__base_l1_entry(yang.adata.MNode):
         self.foo_k1 = foo_k1
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base_k1':
+        if name == 'k1:base':
             return self.base_k1
-        if name == 'foo_k1':
+        if name == 'k1:foo':
             return self.foo_k1
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -136,7 +136,7 @@ class base__c1__foo_l1_entry(yang.adata.MNode):
         self.k2 = k2
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'k2':
+        if name == 'k2:foo':
             return self.k2
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -221,9 +221,9 @@ class base__c1(yang.adata.MNode):
         self.foo_l1 = base__c1__foo_l1(elements=foo_l1)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base_l1':
+        if name == 'l1:base':
             return iter(self.base_l1)
-        if name == 'foo_l1':
+        if name == 'l1:foo':
             return iter(self.foo_l1)
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -248,7 +248,7 @@ class root(yang.adata.MNode):
         self.c1 = c1 if c1 is not None else base__c1()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'c1':
+        if name == 'c1:base':
             return self.c1
 
     mut def to_gdata(self) -> yang.gdata.Node:

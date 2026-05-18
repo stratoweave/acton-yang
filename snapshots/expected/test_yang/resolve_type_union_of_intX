@@ -51,13 +51,13 @@ class root(yang.adata.MNode):
         self.l4 = l4
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l1':
+        if name == 'l1:foo':
             return self.l1
-        if name == 'l2':
+        if name == 'l2:foo':
             return self.l2
-        if name == 'l3':
+        if name == 'l3:foo':
             return self.l3
-        if name == 'l4':
+        if name == 'l4:foo':
             return self.l4
 
     mut def to_gdata(self) -> yang.gdata.Node:

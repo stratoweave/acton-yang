@@ -16,29 +16,26 @@ class MNode(object):
         raise NotImplementedError()
 
     def _get_attr(self, name: str) -> ?value:
-        raise NotImplementedError("_get_attrs")
+        raise NotImplementedError("_get_attr")
 
 
 extension MNode (YangData):
-    def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
-        usname = yang.schema.safe_name(name if is_unique else "{schema.prefix}_{name}")
-        maybe_cnt = self._get_attr(usname)
+    def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
+        maybe_cnt = self._get_attr("{name}:{schema.prefix}")
         if maybe_cnt is not None:
             return (op=None, val=maybe_cnt)
 
-    def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
+    def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
-        usname = yang.schema.safe_name(name if is_unique else "{schema.prefix}_{name}")
-        maybe_list = self._get_attr(usname)
+        maybe_list = self._get_attr("{name}:{schema.prefix}")
         if maybe_list is not None and isinstance(maybe_list, Iterator):
-            key_values = lambda element_data: {k: unwrap_key(k, element_data._get_attr(yang.schema.safe_name(k)), new_path) for k in schema.key}
+            key_values = lambda element_data: {k: unwrap_key(k, element_data._get_attr("{k}:{schema.prefix}"), new_path) for k in schema.key}
             return [(op=None, key=key_values(e), val=e) for e in maybe_list]
         return [] # ??
 
-    def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
+    def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
         new_path = path + [PathElement(schema)]
-        usname = yang.schema.safe_name(name if is_unique else "{schema.prefix}_{name}")
-        maybe_attr = self._get_attr(usname)
+        maybe_attr = self._get_attr("{name}:{schema.prefix}")
         if maybe_attr is not None:
             schema_type = schema.type_
             tv = try_validate_mnode_value(maybe_attr, schema_type, new_path)
@@ -48,11 +45,10 @@ extension MNode (YangData):
                 return (op=None, t=tv.t, val=tv.val)
             raise YangValidationError(path, schema_type, maybe_attr)
 
-    def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, is_unique: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
+    def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: ?str, t: str, val: ?value)] = []
-        usname = yang.schema.safe_name(name if is_unique else "{schema.prefix}_{name}")
-        children = self._get_attr(usname)
+        children = self._get_attr("{name}:{schema.prefix}")
         if isinstance(children, list):
             schema_type = schema.type_
             for child in children:

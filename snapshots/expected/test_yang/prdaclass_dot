@@ -41,7 +41,7 @@ class foo__ieee_802_3(yang.adata.MNode):
         self.ieee_802_3 = ieee_802_3
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ieee_802_3':
+        if name == 'ieee-802.3:foo':
             return self.ieee_802_3
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -66,7 +66,7 @@ class root(yang.adata.MNode):
         self.ieee_802_3 = ieee_802_3 if ieee_802_3 is not None else foo__ieee_802_3()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ieee_802_3':
+        if name == 'ieee-802.3:foo':
             return self.ieee_802_3
 
     mut def to_gdata(self) -> yang.gdata.Node:

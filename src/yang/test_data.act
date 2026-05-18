@@ -247,11 +247,11 @@ class _test_leafref_c(yang.adata.MNode):
         self.refs = refs
 
     def _get_attr(self, name: str) -> ?value:
-        if name == "n":
+        if name == "n:y1":
             return self.n
-        if name == "ref":
+        if name == "ref:y1":
             return self.ref
-        if name == "refs":
+        if name == "refs:y1":
             return self.refs
         return None
 
@@ -270,7 +270,7 @@ class _test_leafref_root(yang.adata.MNode):
         self.c = c
 
     def _get_attr(self, name: str) -> ?value:
-        if name == "c":
+        if name == "c:y1":
             return self.c
         return None
 

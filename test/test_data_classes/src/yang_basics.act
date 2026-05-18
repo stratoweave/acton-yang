@@ -176,27 +176,27 @@ class basics__c(yang.adata.MNode):
             raise ValueError('Invalid default value for identityref leaf c: {error}')
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'l_str_def':
+        if name == 'l_str_def:b':
             return self.l_str_def
-        if name == 'l_str_def_quoted':
+        if name == 'l_str_def_quoted:b':
             return self.l_str_def_quoted
-        if name == 'l_uint64_def':
+        if name == 'l_uint64_def:b':
             return self.l_uint64_def
-        if name == 'l_decimal64_def':
+        if name == 'l_decimal64_def:b':
             return self.l_decimal64_def
-        if name == 'l_union_def_str':
+        if name == 'l_union_def_str:b':
             return self.l_union_def_str
-        if name == 'l_union_def_int':
+        if name == 'l_union_def_int:b':
             return self.l_union_def_int
-        if name == 'l_union_def_float':
+        if name == 'l_union_def_float:b':
             return self.l_union_def_float
-        if name == 'l_union_def_bool':
+        if name == 'l_union_def_bool:b':
             return self.l_union_def_bool
-        if name == 'l_union_def_enumeration':
+        if name == 'l_union_def_enumeration:b':
             return self.l_union_def_enumeration
-        if name == 'l_binary_def':
+        if name == 'l_binary_def:b':
             return self.l_binary_def
-        if name == 'l_identityref_def':
+        if name == 'l_identityref_def:b':
             return self.l_identityref_def
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -221,7 +221,7 @@ class root(yang.adata.MNode):
         self.c = c if c is not None else basics__c()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'c':
+        if name == 'c:b':
             return self.c
 
     mut def to_gdata(self) -> yang.gdata.Node:
