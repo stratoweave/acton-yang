@@ -46,7 +46,7 @@ class base__c1(yang.adata.MNode):
         self.foo_foo = foo_foo
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:bar':
+        if name == 'bar:foo':
             return self.bar_foo
         if name == 'foo:foo':
             return self.foo_foo

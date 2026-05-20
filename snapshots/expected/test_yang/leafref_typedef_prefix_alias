@@ -51,7 +51,7 @@ class base_module__network_instances__network_instance__config(yang.adata.MNode)
         self.name = name
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name:base-pfx':
+        if name == 'base-pfx:name':
             return self.name
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -78,9 +78,9 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
         self.config = config if config is not None else base_module__network_instances__network_instance__config()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'name:base-pfx':
+        if name == 'base-pfx:name':
             return self.name
-        if name == 'config:base-pfx':
+        if name == 'base-pfx:config':
             return self.config
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -163,7 +163,7 @@ class base_module__network_instances(yang.adata.MNode):
         self.network_instance = base_module__network_instances__network_instance(elements=network_instance)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'network-instance:base-pfx':
+        if name == 'base-pfx:network-instance':
             return iter(self.network_instance)
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -188,7 +188,7 @@ class consumer_module__uses_typedef(yang.adata.MNode):
         self.ni = ni
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ni:consumer':
+        if name == 'consumer:ni':
             return self.ni
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -215,9 +215,9 @@ class root(yang.adata.MNode):
         self.uses_typedef = uses_typedef if uses_typedef is not None else consumer_module__uses_typedef()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'network-instances:base-pfx':
+        if name == 'base-pfx:network-instances':
             return self.network_instances
-        if name == 'uses-typedef:consumer':
+        if name == 'consumer:uses-typedef':
             return self.uses_typedef
 
     mut def to_gdata(self) -> yang.gdata.Node:

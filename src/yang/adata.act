@@ -21,21 +21,21 @@ class MNode(object):
 
 extension MNode (YangData):
     def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
-        maybe_cnt = self._get_attr("{name}:{schema.prefix}")
+        maybe_cnt = self._get_attr("{schema.prefix}:{name}")
         if maybe_cnt is not None:
             return (op=None, val=maybe_cnt)
 
     def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
-        maybe_list = self._get_attr("{name}:{schema.prefix}")
+        maybe_list = self._get_attr("{schema.prefix}:{name}")
         if maybe_list is not None and isinstance(maybe_list, Iterator):
-            key_values = lambda element_data: {k: unwrap_key(k, element_data._get_attr("{k}:{schema.prefix}"), new_path) for k in schema.key}
+            key_values = lambda element_data: {k: unwrap_key(k, element_data._get_attr("{schema.prefix}:{k}"), new_path) for k in schema.key}
             return [(op=None, key=key_values(e), val=e) for e in maybe_list]
         return [] # ??
 
     def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
         new_path = path + [PathElement(schema)]
-        maybe_attr = self._get_attr("{name}:{schema.prefix}")
+        maybe_attr = self._get_attr("{schema.prefix}:{name}")
         if maybe_attr is not None:
             schema_type = schema.type_
             tv = try_validate_mnode_value(maybe_attr, schema_type, new_path)
@@ -48,7 +48,7 @@ extension MNode (YangData):
     def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: ?str, t: str, val: ?value)] = []
-        children = self._get_attr("{name}:{schema.prefix}")
+        children = self._get_attr("{schema.prefix}:{name}")
         if isinstance(children, list):
             schema_type = schema.type_
             for child in children:

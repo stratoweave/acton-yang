@@ -53,15 +53,15 @@ class foo__c1(yang.adata.MNode):
         self.with_ = with_
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'as:foo':
+        if name == 'foo:as':
             return self.as_
-        if name == 'for:foo':
+        if name == 'foo:for':
             return self.for_
-        if name == 'import:foo':
+        if name == 'foo:import':
             return self.import_
-        if name == 'in:foo':
+        if name == 'foo:in':
             return self.in_
-        if name == 'with:foo':
+        if name == 'foo:with':
             return self.with_
 
     mut def to_gdata(self) -> yang.gdata.Node:

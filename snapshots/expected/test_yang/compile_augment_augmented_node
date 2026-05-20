@@ -54,9 +54,9 @@ class base__native__voice__service__voip__sip(yang.adata.MNode):
         self.port = port if port is not None else u64(5060)
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'bind:voice':
+        if name == 'voice:bind':
             return self.bind
-        if name == 'port:voice':
+        if name == 'voice:port':
             return self.port
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -83,9 +83,9 @@ class base__native__voice__service__voip(yang.adata.MNode):
         self.sip = sip if sip is not None else base__native__voice__service__voip__sip()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'enabled:voice':
+        if name == 'voice:enabled':
             return self.enabled
-        if name == 'sip:voice':
+        if name == 'voice:sip':
             return self.sip
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -110,7 +110,7 @@ class base__native__voice__service(yang.adata.MNode):
         self.voip = voip if voip is not None else base__native__voice__service__voip()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'voip:voice':
+        if name == 'voice:voip':
             return self.voip
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -135,7 +135,7 @@ class base__native__voice(yang.adata.MNode):
         self.service = service if service is not None else base__native__voice__service()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'service:voice':
+        if name == 'voice:service':
             return self.service
 
     mut def to_gdata(self) -> yang.gdata.Node:
@@ -185,7 +185,7 @@ class root(yang.adata.MNode):
         self.native = native if native is not None else base__native()
 
     pure def _get_attr(self, name: str) -> ?value:
-        if name == 'native:base':
+        if name == 'base:native':
             return self.native
 
     mut def to_gdata(self) -> yang.gdata.Node:
