@@ -388,7 +388,7 @@ class DNode(object):
 
         raise ValueError("Unable to get child from non-inner node")
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
         """Print the data class for this schema node
         """
         raise NotImplementedError('DNode pdc: {type(self)} - {get_path(spath)}')
@@ -511,7 +511,7 @@ class DNode(object):
 class DNodeInner(DNode):
     children: list[DNode]
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
         """Print the data class for this schema node
         """
         def path_with_child(c):
@@ -551,11 +551,20 @@ class DNodeInner(DNode):
         def usname(n) -> str:
             return unique_namer.unique_safe_name(n.name, n.prefix)
 
-        def pname(n: ?DNode=None):
+        # Avoid rebuilding UniqueNamer for every ancestor in path
+        # pname_cache is threaded through _prdaclass_rec
+        def pname(n: ?DNode=None) -> str:
             if n is not None:
-                return get_path_name(spath + [n])
+                path = spath + [n]
             else:
-                return get_path_name(spath)
+                path = spath
+            key = "/".join(["{n.prefix}:{n.name}" for n in path])
+            cached = pname_cache.get(key)
+            if cached is not None:
+                return cached
+            val = get_path_name(path)
+            pname_cache[key] = val
+            return val
 
         def us_list_key():
             """Convert list key names (DList.key) to their unique safe names
@@ -575,7 +584,7 @@ class DNodeInner(DNode):
         for child in self.children:
             if isinstance(child, DNodeLeaf):
                 continue
-            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, exclude_ext=exclude_ext, breaker_idx=breaker_idx)
+            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
             res.extend(child_res)
 
         def excluded(n):
@@ -964,7 +973,7 @@ class DNodeInner(DNode):
                 # - set_ns: from DRpc (=True)
                 # - include_state=True
                 for child in rpc.children:
-                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, exclude_ext=exclude_ext, breaker_idx=breaker_idx)
+                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
                     res.extend(child_class_src)
 
             # TODO: unique safe name for RPC function!
@@ -1770,7 +1779,8 @@ class DRoot(DNodeInner):
         # the SRC_DNODE constant to have the same view of the schema as the
         # adata code generator ...
         spath = build_spath([self])
-        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, exclude_ext=exclude_ext)
+        pname_cache: dict[str, str] = {}
+        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, exclude_ext=exclude_ext, pname_cache=pname_cache)
 
         res = []
         res.append("import base64")
@@ -1958,11 +1968,22 @@ class DRoot(DNodeInner):
                 res.append(node)
             return res
 
+        # Avoid rebuilding UniqueNamer for every ancestor in path
+        _path_name_cache: dict[str, str] = {}
+        def cached_path_name(spath: list[DNodeInner]) -> str:
+            key = "/".join(["{n.prefix}:{n.name}" for n in spath])
+            cached = _path_name_cache.get(key)
+            if cached is not None:
+                return cached
+            val = get_path_name(dnode_path(spath))
+            _path_name_cache[key] = val
+            return val
+
         def subs_path_name(spath: list[DNodeInner]) -> str:
-            return "{get_path_name(dnode_path(spath))}_subs"
+            return "{cached_path_name(spath)}_subs"
 
         def subs_entry_path_name(spath: list[DNodeInner]) -> str:
-            return "{get_path_name(dnode_path(spath))}_entry_subs"
+            return "{cached_path_name(spath)}_entry_subs"
 
         def inner_children(node: DNodeInner) -> list[DNodeInner]:
             res: list[DNodeInner] = []
