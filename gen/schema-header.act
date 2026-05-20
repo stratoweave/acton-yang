@@ -134,13 +134,13 @@ _builtin_types = {
     "union"
 }
 
-# These are reserved keywords in the acton language, so we must avoidgenerating
+# These are reserved keywords in the acton language, so we must avoid generating
 # identifiers with these names.
 _reserved_keywords = {
     "False","None","NotImplemented","Self","True","action","actor","after","and","as",
     "assert","async","await","break","class","continue","def","del","elif","else",
     "except","extension","finally","for","from","if","import","in","is","isinstance",
-    "lambda","mut","not","or","pass","proc","protocol","pure","raise","return","try",
+    "lambda","mut","not","or","pass","proc","protocol","pure","raise","return","self","try",
     "var","while","with","yield","_"
     }
 
