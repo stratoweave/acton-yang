@@ -2,6 +2,7 @@ Container({
   Id('http://example.com/foo', 'c1'): Container({
     Id('http://example.com/foo', 'l1'): Leaf('foo-foo'),
     Id('http://example.com/foo', 'l3'): Leaf(u64(18446744073709551615)),
+    Id('http://example.com/foo', 'l_empty'): Leaf(Present()),
     Id('http://example.com/foo', 'l_decimal64'): Leaf(Decimal(bigint("314"), bigint("-2"))),
     Id('http://example.com/foo', 'li'): List([Id('http://example.com/foo', 'name')], user_order=True, elements=[
       Container({
@@ -14,6 +15,8 @@ Container({
     ]),
     Id('http://example.com/foo', 'll_uint64'): LeafList([LeafListEntryMerge(u64(4)), LeafListEntryMerge(u64(42))]),
     Id('http://example.com/foo', 'll_str'): LeafList([LeafListEntryMerge('kava'), LeafListEntryMerge('čaj')]),
+    Id('http://example.com/foo', 'l_identityref'): Leaf(Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')),
+    Id('http://example.com/foo', 'll_identityref'): LeafList([LeafListEntryMerge(Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar'))]),
     Id('http://example.com/foo', 'l4'): Leaf('foo-qux'),
     Id('http://example.com/bar', 'l1'): Leaf('foo-bar', ns='http://example.com/bar', module='bar'),
     Id('http://example.com/bar', 'l2'): Leaf('bar', ns='http://example.com/bar', module='bar'),
@@ -30,6 +33,20 @@ Container({
       Id('http://example.com/foo', 'l_empty_mandatory'): Leaf(Present())
     })
   }, presence=True, ns='http://example.com/foo', module='foo'),
+  Id('http://example.com/foo', 'pc3'): Container({
+    Id('http://example.com/foo', 'level1'): Container({
+      Id('http://example.com/foo', 'l1'): Leaf('l1-foo'),
+      Id('http://example.com/foo', 'l1-optional'): Leaf('l1-optional'),
+      Id('http://example.com/foo', 'level2'): Container({
+        Id('http://example.com/foo', 'l2'): Leaf('l2-bar'),
+        Id('http://example.com/foo', 'l2-optional'): Leaf('l2-optional'),
+        Id('http://example.com/foo', 'level3'): Container({
+          Id('http://example.com/foo', 'l3'): Leaf('l3-baz'),
+          Id('http://example.com/foo', 'l3-optional'): Leaf('l3-optional')
+        })
+      })
+    })
+  }, presence=True, ns='http://example.com/foo', module='foo'),
   Id('http://example.com/foo', 'c.dot'): Container({
     Id('http://example.com/foo', 'l.dot1'): Leaf('who put that here?!')
   }, ns='http://example.com/foo', module='foo'),
@@ -43,6 +60,9 @@ Container({
     Id('http://example.com/bar', 'inner'): Container(presence=True, ns='http://example.com/bar', module='bar')
   }, ns='http://example.com/foo', module='foo'),
   Id('http://example.com/foo', 'special'): List([Id('http://example.com/foo', 'yes')], ns='http://example.com/foo', module='foo', elements=[
+    Container({
+      Id('http://example.com/foo', 'yes'): Leaf(False)
+    }),
     Container({
       Id('http://example.com/foo', 'yes'): Leaf(True)
     })
@@ -88,6 +108,9 @@ Container({
   Id('http://example.com/foo', 'c2'): Container({
     Id('http://example.com/foo', 'l1'): Leaf('foo-qux')
   }, ns='http://example.com/foo', module='foo'),
+  Id('http://example.com/bar', 'test-idref'): Container({
+    Id('http://example.com/bar', 'idref'): LeafList([LeafListEntryMerge(Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')), LeafListEntryMerge(Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f'))])
+  }, ns='http://example.com/bar', module='bar'),
   Id('http://example.com/bar', 'conflict'): Container({
     Id('http://example.com/bar', 'foo'): Leaf('foo-bar')
   }, ns='http://example.com/bar', module='bar')

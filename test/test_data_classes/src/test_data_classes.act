@@ -655,12 +655,11 @@ def _test_empty_presence():
     return xml_out_text
 
 # JSON
-
-# TODO: "l_empty": [null],
 json_full = {
     "foo:c1": {
         "l1": "foo-foo",
         "l3": "18446744073709551615",
+        "l_empty": [None],
         "l_decimal64": "3.14",
         "li": [
             {
@@ -673,6 +672,8 @@ json_full = {
         ],
         "ll_uint64": ["4", "42"],
         "ll_str": ["kava", "čaj"],
+        "l_identityref": "foo:fooy",
+        "ll_identityref": ["bar:bary"],
         "l4": "foo-qux",
         "bar:l1": "foo-bar",
         "bar:l2": "bar",
@@ -689,6 +690,20 @@ json_full = {
             "l_empty_mandatory": [None]
         }
     },
+    "foo:pc3": {
+        "level1": {
+            "l1": "l1-foo",
+            "l1-optional": "l1-optional",
+            "level2": {
+                "l2": "l2-bar",
+                "l2-optional": "l2-optional",
+                "level3": {
+                    "l3": "l3-baz",
+                    "l3-optional": "l3-optional"
+                }
+            }
+        }
+    },
     "foo:c.dot": {
         "l.dot1": "who put that here?!"
     },
@@ -702,6 +717,9 @@ json_full = {
         "bar:inner": {}
     },
     "foo:special": [
+        {
+            "yes": False
+        },
         {
             "yes": True
         }
@@ -747,6 +765,9 @@ json_full = {
     "foo:c2": {
         "l1": "foo-qux"
     },
+    "bar:test-idref": {
+        "idref": ["bar:bary", "foo:fooy"]
+    },
     "bar:conflict":
     {
         "foo": "foo-bar"
@@ -766,10 +787,10 @@ def _test_foo_from_json_full():
          "l1": "foo-foo",
 -        "l3": "18446744073709551615",
 +        "l3": 18446744073709551615,
-         "l_decimal64": "3.14",
-         "li": [
-             {
-@@ -13,8 +13,8 @@
+         "l_empty": [
+             null
+         ],
+@@ -16,8 +16,8 @@
              }
          ],
          "ll_uint64": [
