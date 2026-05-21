@@ -183,6 +183,10 @@ ys_foo = r"""module foo {
                 type string;
                 mandatory true;
             }
+            leaf l_empty_mandatory {
+                type empty;
+                mandatory true;
+            }
         }
     }
     container pc3 {

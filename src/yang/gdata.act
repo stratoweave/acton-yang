@@ -968,6 +968,12 @@ class Node(value):
             if isinstance(childval, bool):
                 return childval
 
+    def get_empty(self, name) -> bool:
+        child = self.get_opt_empty(name)
+        if child is not None:
+            return child
+        return False
+
     def get_opt_empty(self, name) -> ?bool:
         child = self.get_opt_leaf_or_absent(name)
         if isinstance(child, Leaf):

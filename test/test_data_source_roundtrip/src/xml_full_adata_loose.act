@@ -39,6 +39,7 @@ def adata():
     
     # Container: /pc2/foo
     pc2.foo.l_mandatory = 'baz'
+    pc2.foo.l_empty_mandatory = True
     
     # P-container: /pc3
     pc3 = ad.create_pc3()
