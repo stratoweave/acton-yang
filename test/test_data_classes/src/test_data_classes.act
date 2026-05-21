@@ -116,6 +116,7 @@ xml_text_full = """<data>
 <pc2 xmlns="http://example.com/foo">
   <foo>
     <l_mandatory>baz</l_mandatory>
+    <l_empty_mandatory/>
   </foo>
 </pc2>
 <pc3 xmlns="http://example.com/foo">
@@ -208,9 +209,10 @@ actor _test_gdata_source_roundtrip_xml_full(t: testing.EnvT):
 
 def _test_adata_foo_pc2():
     ad = yang_foo_root()
-    foo = yang_foo.foo__pc2__foo("baz")
+    foo = yang_foo.foo__pc2__foo("baz", True)
     pc2 = ad.create_pc2(foo)
     testing.assertEqual(pc2.foo.l_mandatory, "baz")
+    testing.assertEqual(pc2.foo.l_empty_mandatory, True)
     return ad.to_gdata().prsrc()
 
 def _test_loose_required_container():
@@ -683,7 +685,8 @@ json_full = {
     },
     "foo:pc2": {
         "foo": {
-            "l_mandatory": "baz"
+            "l_mandatory": "baz",
+            "l_empty_mandatory": [None]
         }
     },
     "foo:c.dot": {

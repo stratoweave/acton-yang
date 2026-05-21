@@ -4,16 +4,17 @@
  from yang.identityref import Identityref
  from yang.type import Decimal
  
-@@ -35,22 +35,24 @@
+@@ -35,22 +35,25 @@
      pc1.foo.l1 = [b'Hello Acton \xf0\x9f\xab\xa1']
      
      # P-container: /pc2
--    pc2_foo = foo__pc2__foo('baz')
+-    pc2_foo = foo__pc2__foo('baz', True)
 -    pc2 = ad.create_pc2(pc2_foo)
 +    pc2 = ad.create_pc2()
 +    
 +    # Container: /pc2/foo
 +    pc2.foo.l_mandatory = 'baz'
++    pc2.foo.l_empty_mandatory = True
      
      # P-container: /pc3
 -    pc3_level1_level2_level3 = foo__pc3__level1__level2__level3('l3-baz')

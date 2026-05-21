@@ -1,7 +1,8 @@
 Container({
   Id('http://example.com/foo', 'pc2'): Container({
     Id('http://example.com/foo', 'foo'): Container({
-      Id('http://example.com/foo', 'l_mandatory'): Leaf('baz')
+      Id('http://example.com/foo', 'l_mandatory'): Leaf('baz'),
+      Id('http://example.com/foo', 'l_empty_mandatory'): Leaf(Present())
     })
   }, presence=True, ns='http://example.com/foo', module='foo')
 })

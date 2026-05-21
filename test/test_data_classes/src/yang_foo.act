@@ -64,7 +64,8 @@ SRC_DNODE_CHILD_1: DContainer = DContainer(module='foo', namespace='http://examp
 
 SRC_DNODE_CHILD_2: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc2', config=True, presence=True, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, presence=False, children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_mandatory', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_mandatory', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_empty_mandatory', config=True, mandatory=True, type_=DTypeEmpty(name='empty', description=None, reference=None, exts=[], builtin_type='empty', default=None))
     ])
 ])
 
@@ -268,6 +269,10 @@ SRC_YANG_0: str = r"""module foo {
         container foo {
             leaf l_mandatory {
                 type string;
+                mandatory true;
+            }
+            leaf l_empty_mandatory {
+                type empty;
                 mandatory true;
             }
         }
@@ -772,13 +777,17 @@ class foo__pc1(yang.adata.MNode):
 _breaker7: None = None
 class foo__pc2__foo(yang.adata.MNode):
     l_mandatory: str
+    l_empty_mandatory: bool
 
-    mut def __init__(self, l_mandatory: str) -> None:
+    mut def __init__(self, l_mandatory: str, l_empty_mandatory: bool) -> None:
         self.l_mandatory = l_mandatory
+        self.l_empty_mandatory = l_empty_mandatory
 
     pure def _get_attr(self, name: str) -> ?value:
         if name == 'f:l_mandatory':
             return self.l_mandatory
+        if name == 'f:l_empty_mandatory':
+            return self.l_empty_mandatory
 
     mut def to_gdata(self) -> yang.gdata.Node:
         return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:pc2', 'foo'])
@@ -786,7 +795,7 @@ class foo__pc2__foo(yang.adata.MNode):
     @staticmethod
     mut def from_gdata(n: ?yang.gdata.Node) -> foo__pc2__foo:
         if n is not None:
-            return foo__pc2__foo(l_mandatory=n.get_str(yang.gdata.Id(NS_foo, 'l_mandatory')))
+            return foo__pc2__foo(l_mandatory=n.get_str(yang.gdata.Id(NS_foo, 'l_mandatory')), l_empty_mandatory=n.get_empty(yang.gdata.Id(NS_foo, 'l_empty_mandatory')))
         raise ValueError('Missing required subtree foo__pc2__foo')
 
     mut def copy(self) -> foo__pc2__foo:
@@ -1996,7 +2005,8 @@ mut def src_schema() -> dict[str, SchemaNode]:
     ]),
     Container('pc2', presence='p', children=[
         Container('foo', children=[
-            Leaf('l_mandatory', type_=Type('string'), mandatory=True)
+            Leaf('l_mandatory', type_=Type('string'), mandatory=True),
+            Leaf('l_empty_mandatory', type_=Type('empty'), mandatory=True)
         ])
     ]),
     Container('pc3', presence='p', children=[
