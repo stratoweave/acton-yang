@@ -1,14 +1,14 @@
 """Base classes for YANG-modeled data classes (MData)
 """
 
-import yang.schema
-import yang.gdata
-from yang.data import from_data, YangData, PathElement, YangValidationError
-from yang.data import coerce_integer_value, unwrap_key
-from yang.data import OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE
+import schema as yschema
+import gdata as ygdata
+from data import from_data, YangData, PathElement, YangValidationError
+from data import coerce_integer_value, unwrap_key
+from data import OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE
 
 class MNode(object):
-    mut def to_gdata(self) -> yang.gdata.Node:
+    mut def to_gdata(self) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
     mut def copy(self) -> Self:
@@ -20,12 +20,12 @@ class MNode(object):
 
 
 extension MNode (YangData):
-    def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
+    def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         maybe_cnt = self._get_attr("{schema.prefix}:{name}")
         if maybe_cnt is not None:
             return (op=None, val=maybe_cnt)
 
-    def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
+    def take_list(self, schema: yschema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
         maybe_list = self._get_attr("{schema.prefix}:{name}")
         if maybe_list is not None and isinstance(maybe_list, Iterator):
@@ -33,7 +33,7 @@ extension MNode (YangData):
             return [(op=None, key=key_values(e), val=e) for e in maybe_list]
         return [] # ??
 
-    def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
+    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
         new_path = path + [PathElement(schema)]
         maybe_attr = self._get_attr("{schema.prefix}:{name}")
         if maybe_attr is not None:
@@ -41,11 +41,11 @@ extension MNode (YangData):
             tv = try_validate_mnode_value(maybe_attr, schema_type, new_path)
             if tv is not None:
                 if tv.t == "empty":
-                    return (op=None if tv.val else OP_REMOVE, t=tv.t, val=yang.gdata.Present() if tv.val else None)
+                    return (op=None if tv.val else OP_REMOVE, t=tv.t, val=ygdata.Present() if tv.val else None)
                 return (op=None, t=tv.t, val=tv.val)
             raise YangValidationError(path, schema_type, maybe_attr)
 
-    def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
+    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: ?str, t: str, val: ?value)] = []
         children = self._get_attr("{schema.prefix}:{name}")
@@ -60,17 +60,17 @@ extension MNode (YangData):
         return values
 
 
-def try_validate_mnode_value(val: value, schema_type: yang.schema.DType, path: list[PathElement]) -> ?(t: str, val: value):
-    if isinstance(schema_type, yang.schema.DTypeUnion):
+def try_validate_mnode_value(val: value, schema_type: yschema.DType, path: list[PathElement]) -> ?(t: str, val: value):
+    if isinstance(schema_type, yschema.DTypeUnion):
         for alt_type in schema_type.types:
             tv = try_validate_mnode_value(val, alt_type, path)
             if tv is not None:
                 return tv
-    elif isinstance(schema_type, yang.schema.DTypeLeafref):
+    elif isinstance(schema_type, yschema.DTypeLeafref):
         target_type = schema_type.target_type
         if target_type is not None:
             return try_validate_mnode_value(val, target_type, path)
-    elif isinstance(schema_type, yang.schema.DTypeInteger):
+    elif isinstance(schema_type, yschema.DTypeInteger):
         intval = coerce_integer_value(val, schema_type, path)
         if intval is not None and schema_type.validate_value(intval):
             return (t=schema_type.builtin_type, val=intval)
@@ -80,7 +80,7 @@ def try_validate_mnode_value(val: value, schema_type: yang.schema.DType, path: l
     return None
 
 
-def from_adata(root: yang.schema.DRoot, data: MNode, loose: bool=False, root_path: list[str]=[]) -> yang.gdata.Container:
+def from_adata(root: yschema.DRoot, data: MNode, loose: bool=False, root_path: list[str]=[]) -> ygdata.Container:
     def type_narrower(v):
         if isinstance(v, MNode):
             return v

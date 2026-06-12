@@ -1,4 +1,4 @@
-import yang.schema
+import schema as yschema
 
 PATTERN_MAP = {
     r"[a-zA-Z0-9_.-]+": r"[a-zA-Z0-9_\.-]+", # Cisco-XR 24.1.1 # Assuming literal '.' rather than wildcard that would make other group members redundant
@@ -18,11 +18,11 @@ PATTERN_MAP = {
     r"[a-zA-Z0-9-_,]+": r"[a-zA-Z0-9\-_,]+", # Cisco IOS XE 17.18.02 # Unescaped '-'
 }
 
-mut def repair_patterns(node: yang.schema.SchemaNode) -> None:
+mut def repair_patterns(node: yschema.SchemaNode) -> None:
     """Repair known invalid string patterns
     """
 
-    def repair_type(t: yang.schema.Type):
+    def repair_type(t: yschema.Type):
         for pattern in t.pattern:
             pattern_str = pattern.value
             try:
@@ -37,14 +37,14 @@ mut def repair_patterns(node: yang.schema.SchemaNode) -> None:
             repair_type(alt_type)
 
     # For types, replace known broken pattern expressions
-    if isinstance(node, yang.schema.Leaf):
+    if isinstance(node, yschema.Leaf):
         repair_type(node.type_)
-    elif isinstance(node, yang.schema.LeafList):
+    elif isinstance(node, yschema.LeafList):
         repair_type(node.type_)
-    elif isinstance(node, yang.schema.Typedef):
+    elif isinstance(node, yschema.Typedef):
         repair_type(node.type_)
 
     # Recursively process children if this is an inner node
-    if isinstance(node, yang.schema.SchemaNodeInner):
+    if isinstance(node, yschema.SchemaNodeInner):
         for child in node.children:
             repair_patterns(child)

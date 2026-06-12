@@ -1,9 +1,9 @@
-import yang
-import yang.schema
-import yang.xpath as xpath
+import lib as yang
+import schema as yschema
+import xpath as xpath
 
 
-def resolve_filter_paths(root: yang.schema.DNode, filter_paths: list[str]) -> list[str]:
+def resolve_filter_paths(root: yschema.DNode, filter_paths: list[str]) -> list[str]:
     """Resolve absolute XPath filter paths to schema path strings.
 
     Rules:
@@ -20,7 +20,7 @@ def resolve_filter_paths(root: yang.schema.DNode, filter_paths: list[str]) -> li
             if not isinstance(location_path, xpath.AbsoluteLocationPath):
                 raise ValueError("Filter path must be an absolute XPath location path: {path}")
             try:
-                n: yang.schema.DNode = root
+                n: yschema.DNode = root
                 node_path = [root]
                 for step in location_path.steps:
                     if isinstance(step, xpath.NodeTestStep):
@@ -33,7 +33,7 @@ def resolve_filter_paths(root: yang.schema.DNode, filter_paths: list[str]) -> li
                         node_path.append(n)
                     else:
                         raise ValueError("Filter path must use node tests only: {path}")
-                res.append(yang.schema.get_path(node_path))
+                res.append(yschema.get_path(node_path))
             except ValueError as ex:
                 raise ValueError("Filter path not resolved: {path}: {ex.error_message}")
         else:

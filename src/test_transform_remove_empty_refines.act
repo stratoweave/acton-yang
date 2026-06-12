@@ -1,7 +1,7 @@
 from transform_remove_empty_refines import remove_empty_refines
 import testing
-import yang
-import yang.schema
+import lib as yang
+import schema as yschema
 
 
 test_yang = r"""module test_refines {
@@ -50,9 +50,9 @@ def _test_remove_empty_refines():
     # Get the Uses node in main container
     main_uses = None
     main_container = n.get("main")
-    if isinstance(main_container, yang.schema.SchemaNodeInner):
+    if isinstance(main_container, yschema.SchemaNodeInner):
         for child in main_container.children:
-            if isinstance(child, yang.schema.Uses):
+            if isinstance(child, yschema.Uses):
                 main_uses = child
                 break
 

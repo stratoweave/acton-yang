@@ -1,16 +1,16 @@
 import base64
 import testing
-import xml
+import std.xml as xml
 
-import yang
-import yang.data
-from yang.identityref import Identityref, PartialIdentityref
-from yang.type import Decimal
-from yang.data import from_data, YangData, PathElement, YangValidationError
-from yang.data import coerce_integer_value, unwrap_key
-from yang.data import OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE
-import yang.gdata
-import yang.schema
+import lib as yang
+import data as ydata
+from identityref import Identityref, PartialIdentityref
+from type import Decimal
+from data import from_data, YangData, PathElement, YangValidationError
+from data import coerce_integer_value, unwrap_key
+from data import OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE
+import gdata as ygdata
+import schema as yschema
 
 
 NETCONF_OPS = {OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE}
@@ -66,29 +66,29 @@ def _test_get_nc_op_pref_ancestor():
 
 
 extension xml.Node (YangData):
-    def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
-        child_node = yang.gdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
+    def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
+        child_node = ygdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
         if child_node is not None:
             op = _get_netconf_operation(child_node)
             return (op=op, val=child_node)
         return None
 
-    def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
+    def take_list(self, schema: yschema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
-        elements = yang.gdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)
+        elements = ygdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)
 
         def extract_key(element_data):
             key_values = {}
             for key_name in schema.key:
-                key_node = unwrap_key(key_name, yang.gdata.get_xml_opt_child(element_data, key_name), new_path)
+                key_node = unwrap_key(key_name, ygdata.get_xml_opt_child(element_data, key_name), new_path)
                 key_values[key_name] = unwrap_key(key_name, key_node.text, new_path)
             return key_values
 
         return [(op=_get_netconf_operation(e), key=extract_key(e), val=e) for e in elements]
 
-    mut def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, t: str, val: ?value):
+    mut def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, t: str, val: ?value):
         new_path = path + [PathElement(schema)]
-        maybe_node = yang.gdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
+        maybe_node = ygdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
         if maybe_node is not None:
             op = _get_netconf_operation(maybe_node)
             tv = try_parse_xml_value(maybe_node.text, schema, schema.type_, new_path, maybe_node.nsdefs, root)
@@ -99,10 +99,10 @@ extension xml.Node (YangData):
         else:
             return None
 
-    def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, t: str, val: ?value)]:
+    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, t: str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: str, t: str, val: ?value)] = []
-        children = yang.gdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)
+        children = ygdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)
         for child in children:
             if isinstance(child, xml.Node):
                 op = _get_netconf_operation(child)
@@ -116,7 +116,7 @@ extension xml.Node (YangData):
         return values
 
 
-def try_parse_xml_value(text_value: ?str, schema_node: yang.schema.DNodeLeaf, schema_type: yang.schema.DType, path: list[PathElement], nsdefs: list[(?str, str)], root: yang.schema.DRoot) -> ?(t: str, val: value):
+def try_parse_xml_value(text_value: ?str, schema_node: yschema.DNodeLeaf, schema_type: yschema.DType, path: list[PathElement], nsdefs: list[(?str, str)], root: yschema.DRoot) -> ?(t: str, val: value):
     """Parse a textual value according to the provided schema type.
 
     Returns:
@@ -131,7 +131,7 @@ def try_parse_xml_value(text_value: ?str, schema_node: yang.schema.DNodeLeaf, sc
     """
     type_name = schema_type.builtin_type
 
-    if isinstance(schema_type, yang.schema.DTypeUnion):
+    if isinstance(schema_type, yschema.DTypeUnion):
         for alt_type in schema_type.types:
             try:
                 return try_parse_xml_value(text_value, schema_node, alt_type, path, nsdefs, root)
@@ -140,43 +140,43 @@ def try_parse_xml_value(text_value: ?str, schema_node: yang.schema.DNodeLeaf, sc
         if text_value is not None:
             raise YangValidationError(path, schema_type, text_value)
         return None
-    elif isinstance(schema_type, yang.schema.DTypeEmpty):
+    elif isinstance(schema_type, yschema.DTypeEmpty):
         if text_value is not None and len(text_value) != 0:
             raise YangValidationError(path, schema_type, text_value)
-        return (t=type_name, val=yang.gdata.Present())
+        return (t=type_name, val=ygdata.Present())
 
     if text_value is not None:
         val: ?value = None
-        if isinstance(schema_type, yang.schema.DTypeString):
+        if isinstance(schema_type, yschema.DTypeString):
             val = text_value
-        elif isinstance(schema_type, yang.schema.DTypeInteger):
+        elif isinstance(schema_type, yschema.DTypeInteger):
             val = coerce_integer_value(text_value, schema_type, path)
-        elif isinstance(schema_type, yang.schema.DTypeEnum):
+        elif isinstance(schema_type, yschema.DTypeEnum):
             val = text_value
-        elif isinstance(schema_type, yang.schema.DTypeDecimal64):
+        elif isinstance(schema_type, yschema.DTypeDecimal64):
             val = Decimal.try_parse(text_value)
-        elif isinstance(schema_type, yang.schema.DTypeBoolean):
+        elif isinstance(schema_type, yschema.DTypeBoolean):
             if text_value == "true":
                 val = True
             elif text_value == "false":
                 val = False
-        elif isinstance(schema_type, yang.schema.DTypeBinary):
+        elif isinstance(schema_type, yschema.DTypeBinary):
             try:
                 val = base64.decode(text_value.encode())
             except ValueError:
                 pass
-        elif isinstance(schema_type, yang.schema.DTypeIdentityref):
+        elif isinstance(schema_type, yschema.DTypeIdentityref):
             partial = Identityref.from_xml(text_value, nsdefs)
-            res = yang.schema.complete_identityref(partial, root.identities, schema_node.module)
+            res = yschema.complete_identityref(partial, root.identities, schema_node.module)
             val = res.0
-        elif isinstance(schema_type, yang.schema.DTypeLeafref):
+        elif isinstance(schema_type, yschema.DTypeLeafref):
             target_type = schema_type.target_type
             if target_type is not None:
                 return try_parse_xml_value(text_value, schema_node, target_type, path, nsdefs, root)
             raise YangValidationError(path, schema_type, text_value)
-        elif isinstance(schema_type, yang.schema.DTypeInstanceIdentifier):
+        elif isinstance(schema_type, yschema.DTypeInstanceIdentifier):
             val = text_value
-        elif isinstance(schema_type, yang.schema.DTypeBits):
+        elif isinstance(schema_type, yschema.DTypeBits):
             bits_val = set(None)
             for bit in text_value.split(" "):
                 if bit in schema_type.name_to_pos:
@@ -193,7 +193,7 @@ def try_parse_xml_value(text_value: ?str, schema_node: yang.schema.DNodeLeaf, sc
     return None
 
 
-def from_xml(root: yang.schema.DRoot, data: xml.Node, loose: bool=False, root_path: list[str]=[]) -> yang.gdata.Container:
+def from_xml(root: yschema.DRoot, data: xml.Node, loose: bool=False, root_path: list[str]=[]) -> ygdata.Container:
     def type_narrower(v):
         if isinstance(v, xml.Node):
             return v
@@ -219,29 +219,29 @@ def _filter_is_wrapper(n: xml.Node) -> bool:
     return ns is None or ns == NETCONF_NS
 
 
-def _filter_value_match(root: yang.schema.DRoot, schema_leaf: yang.schema.DNodeLeaf, xml_leaf: xml.Node, spath: list[PathElement]) -> ?value:
+def _filter_value_match(root: yschema.DRoot, schema_leaf: yschema.DNodeLeaf, xml_leaf: xml.Node, spath: list[PathElement]) -> ?value:
     """Parse a leaf/leaf-list text value into a filter value match."""
     text = xml_leaf.text
     if text is None or text == "":
         return None
     text_val = expect(text, "filter value")
     if "*" in text_val:
-        return yang.gdata.VWildcard(text_val)
+        return ygdata.VWildcard(text_val)
     tv = try_parse_xml_value(text_val, schema_leaf, schema_leaf.type_, spath, xml_leaf.nsdefs, root)
     if tv is not None:
         return tv.val
     return None
 
 
-def _filter_schema_child(s: yang.schema.DNodeInner, n: xml.Node) -> yang.schema.DNode:
+def _filter_schema_child(s: yschema.DNodeInner, n: xml.Node) -> yschema.DNode:
     """Resolve the schema child that matches the XML node name/namespace."""
     ns = xml_node_ns(n)
     return s.get(n.tag, namespace=ns, allow_unqualified=True)
 
 
-def _filter_parse_children(root: yang.schema.DRoot, s: yang.schema.DNodeInner, data: xml.Node, spath: list[PathElement]) -> list[yang.gdata.FNode]:
+def _filter_parse_children(root: yschema.DRoot, s: yschema.DNodeInner, data: xml.Node, spath: list[PathElement]) -> list[ygdata.FNode]:
     """Parse XML element children into filter nodes using schema context."""
-    res: list[yang.gdata.FNode] = []
+    res: list[ygdata.FNode] = []
     for child in data.children:
         if not isinstance(child, xml.Node):
             continue
@@ -250,50 +250,50 @@ def _filter_parse_children(root: yang.schema.DRoot, s: yang.schema.DNodeInner, d
     return res
 
 
-def _filter_parse_node(root: yang.schema.DRoot, s: yang.schema.DNode, data: xml.Node, spath: list[PathElement]) -> yang.gdata.FNode:
+def _filter_parse_node(root: yschema.DRoot, s: yschema.DNode, data: xml.Node, spath: list[PathElement]) -> ygdata.FNode:
     """Parse a single XML element into a filter node based on schema type."""
-    name_id = yang.gdata.Id(s.namespace, s.name)
-    if isinstance(s, yang.schema.DContainer) or isinstance(s, yang.schema.DList):
+    name_id = ygdata.Id(s.namespace, s.name)
+    if isinstance(s, yschema.DContainer) or isinstance(s, yschema.DList):
         s_inner = _unwrap_dnode_inner(s, spath)
         children = _filter_parse_children(root, s_inner, data, spath)
-        return yang.gdata.FNode(name_id, children=children)
-    if isinstance(s, yang.schema.DLeaf):
+        return ygdata.FNode(name_id, children=children)
+    if isinstance(s, yschema.DLeaf):
         vm = _filter_value_match(root, s, data, spath)
-        return yang.gdata.FNode(name_id, value_match=vm)
-    if isinstance(s, yang.schema.DLeafList):
+        return ygdata.FNode(name_id, value_match=vm)
+    if isinstance(s, yschema.DLeafList):
         vm = _filter_value_match(root, s, data, spath)
-        return yang.gdata.FNode(name_id, value_match=vm)
-    raise ValueError("Unsupported schema node in filter at {yang.data.format_schema_path(spath)}: {type(s)}")
+        return ygdata.FNode(name_id, value_match=vm)
+    raise ValueError("Unsupported schema node in filter at {ydata.format_schema_path(spath)}: {type(s)}")
 
 
-def _unwrap_dnode_leaf(s: yang.schema.DNode, spath: list[PathElement]) -> yang.schema.DNodeLeaf:
-    if isinstance(s, yang.schema.DLeaf):
+def _unwrap_dnode_leaf(s: yschema.DNode, spath: list[PathElement]) -> yschema.DNodeLeaf:
+    if isinstance(s, yschema.DLeaf):
         return s
-    if isinstance(s, yang.schema.DLeafList):
+    if isinstance(s, yschema.DLeafList):
         return s
-    raise ValueError("Expected leaf node at {yang.data.format_schema_path(spath)}: {type(s)}")
+    raise ValueError("Expected leaf node at {ydata.format_schema_path(spath)}: {type(s)}")
 
 
-def _unwrap_dnode_inner(s: yang.schema.DNode, spath: list[PathElement]) -> yang.schema.DNodeInner:
-    if isinstance(s, yang.schema.DNodeInner):
-        inner: yang.schema.DNodeInner = s
+def _unwrap_dnode_inner(s: yschema.DNode, spath: list[PathElement]) -> yschema.DNodeInner:
+    if isinstance(s, yschema.DNodeInner):
+        inner: yschema.DNodeInner = s
         return inner
-    raise ValueError("Expected inner node at {yang.data.format_schema_path(spath)}: {type(s)}")
+    raise ValueError("Expected inner node at {ydata.format_schema_path(spath)}: {type(s)}")
 
 
-def from_filter_xml(root: yang.schema.DRoot, data: xml.Node, root_path: list[str]=[]) -> yang.gdata.FNode:
+def from_filter_xml(root: yschema.DRoot, data: xml.Node, root_path: list[str]=[]) -> ygdata.FNode:
     """Parse a NETCONF subtree filter XML node into a filter tree."""
-    s: yang.schema.DNodeInner = root
+    s: yschema.DNodeInner = root
     spath = [PathElement(root)]
     while root_path != [] and len(spath) - 1 < len(root_path):
         next = root_path[len(spath) - 1]
-        local_name, module = yang.data.parse_qualified_name(next)
+        local_name, module = ydata.parse_qualified_name(next)
         child = s.get(local_name, module=module, allow_unqualified=False)
-        if isinstance(child, yang.schema.DNodeInner):
+        if isinstance(child, yschema.DNodeInner):
             s = child
             spath = spath + [PathElement(child)]
         else:
-            raise ValueError("Node at {yang.data.format_schema_path(spath + [PathElement(child)])} is not inner: {type(child)}")
+            raise ValueError("Node at {ydata.format_schema_path(spath + [PathElement(child)])} is not inner: {type(child)}")
 
     xml_children: list[xml.Node] = []
     if _filter_is_wrapper(data):
@@ -303,20 +303,20 @@ def from_filter_xml(root: yang.schema.DRoot, data: xml.Node, root_path: list[str
     else:
         xml_children = [data]
 
-    children: list[yang.gdata.FNode] = []
+    children: list[ygdata.FNode] = []
     for child in xml_children:
         schema_child = _filter_schema_child(s, child)
         children.append(_filter_parse_node(root, schema_child, child, spath + [PathElement(schema_child)]))
 
-    return yang.gdata.FNode(None, None, children)
+    return ygdata.FNode(None, None, children)
 
 
-def from_filter_xmlstr(root: yang.schema.DRoot, data: str, root_path: list[str]=[]) -> yang.gdata.FNode:
+def from_filter_xmlstr(root: yschema.DRoot, data: str, root_path: list[str]=[]) -> ygdata.FNode:
     """Parse a NETCONF subtree filter XML string into a filter tree."""
     return from_filter_xml(root, xml.decode(data), root_path)
 
 
-def _filter_test_schema() -> yang.schema.DRoot:
+def _filter_test_schema() -> yschema.DRoot:
     """Return a small schema used by filter XML parsing tests."""
     ys = r"""
 module acme {
@@ -424,10 +424,10 @@ def _test_from_filter_xml_container_select():
     root = _filter_test_schema()
     xml_in = xml.decode('<foo xmlns="http://example.com/acme"><l1>1</l1><l2/></foo>')
     res = from_filter_xml(root, xml_in)
-    exp = yang.gdata.FNode(None, None, [
-        yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "foo"), children=[
-            yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "l1"), value_match=u64(1)),
-            yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "l2")),
+    exp = ygdata.FNode(None, None, [
+        ygdata.FNode(ygdata.Id("http://example.com/acme", "foo"), children=[
+            ygdata.FNode(ygdata.Id("http://example.com/acme", "l1"), value_match=u64(1)),
+            ygdata.FNode(ygdata.Id("http://example.com/acme", "l2")),
         ]),
     ])
     testing.assertEqual(res.prsrc(deterministic=True), exp.prsrc(deterministic=True))
@@ -438,11 +438,11 @@ def _test_from_filter_xml_list_select_leaf():
     root = _filter_test_schema()
     xml_in = xml.decode('<foo xmlns="http://example.com/acme"><l><name>a</name><v/></l></foo>')
     res = from_filter_xml(root, xml_in)
-    exp = yang.gdata.FNode(None, None, [
-        yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "foo"), children=[
-            yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "l"), children=[
-                yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "name"), value_match="a"),
-                yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "v")),
+    exp = ygdata.FNode(None, None, [
+        ygdata.FNode(ygdata.Id("http://example.com/acme", "foo"), children=[
+            ygdata.FNode(ygdata.Id("http://example.com/acme", "l"), children=[
+                ygdata.FNode(ygdata.Id("http://example.com/acme", "name"), value_match="a"),
+                ygdata.FNode(ygdata.Id("http://example.com/acme", "v")),
             ]),
         ]),
     ])
@@ -454,10 +454,10 @@ def _test_from_filter_xml_leaflist_values():
     root = _filter_test_schema()
     xml_in = xml.decode('<foo xmlns="http://example.com/acme"><ll>2</ll><ll>3</ll></foo>')
     res = from_filter_xml(root, xml_in)
-    exp = yang.gdata.FNode(None, None, [
-        yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "foo"), children=[
-            yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "ll"), value_match=u64(2)),
-            yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "ll"), value_match=u64(3)),
+    exp = ygdata.FNode(None, None, [
+        ygdata.FNode(ygdata.Id("http://example.com/acme", "foo"), children=[
+            ygdata.FNode(ygdata.Id("http://example.com/acme", "ll"), value_match=u64(2)),
+            ygdata.FNode(ygdata.Id("http://example.com/acme", "ll"), value_match=u64(3)),
         ]),
     ])
     testing.assertEqual(res.prsrc(deterministic=True), exp.prsrc(deterministic=True))
@@ -468,9 +468,9 @@ def _test_from_filter_xml_wrapper():
     root = _filter_test_schema()
     xml_in = xml.decode('<filter xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"><foo xmlns="http://example.com/acme"><l2/></foo></filter>')
     res = from_filter_xml(root, xml_in)
-    exp = yang.gdata.FNode(None, None, [
-        yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "foo"), children=[
-            yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "l2")),
+    exp = ygdata.FNode(None, None, [
+        ygdata.FNode(ygdata.Id("http://example.com/acme", "foo"), children=[
+            ygdata.FNode(ygdata.Id("http://example.com/acme", "l2")),
         ]),
     ])
     testing.assertEqual(res.prsrc(deterministic=True), exp.prsrc(deterministic=True))
@@ -481,10 +481,10 @@ def _test_from_filter_xml_wildcard():
     root = _filter_test_schema()
     xml_in = xml.decode('<foo xmlns="http://example.com/acme"><l><name>a*</name></l></foo>')
     res = from_filter_xml(root, xml_in)
-    exp = yang.gdata.FNode(None, None, [
-        yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "foo"), children=[
-            yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "l"), children=[
-                yang.gdata.FNode(yang.gdata.Id("http://example.com/acme", "name"), value_match=yang.gdata.VWildcard("a*")),
+    exp = ygdata.FNode(None, None, [
+        ygdata.FNode(ygdata.Id("http://example.com/acme", "foo"), children=[
+            ygdata.FNode(ygdata.Id("http://example.com/acme", "l"), children=[
+                ygdata.FNode(ygdata.Id("http://example.com/acme", "name"), value_match=ygdata.VWildcard("a*")),
             ]),
         ]),
     ])
@@ -506,15 +506,15 @@ def _test_filter_roundtrip_gdata():
     """Round-trip gdata -> XML -> gdata preserves filter structure."""
     root = _filter_test_schema()
     ns = "http://example.com/acme"
-    g1 = yang.gdata.FNode(None, None, [
-        yang.gdata.FNode(yang.gdata.Id(ns, "foo"), children=[
-            yang.gdata.FNode(yang.gdata.Id(ns, "l1"), value_match=u64(1)),
-            yang.gdata.FNode(yang.gdata.Id(ns, "l2")),
-            yang.gdata.FNode(yang.gdata.Id(ns, "empty")),
-            yang.gdata.FNode(yang.gdata.Id(ns, "ll"), value_match=u64(2)),
-            yang.gdata.FNode(yang.gdata.Id(ns, "l"), children=[
-                yang.gdata.FNode(yang.gdata.Id(ns, "name"), value_match="a"),
-                yang.gdata.FNode(yang.gdata.Id(ns, "v")),
+    g1 = ygdata.FNode(None, None, [
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l1"), value_match=u64(1)),
+            ygdata.FNode(ygdata.Id(ns, "l2")),
+            ygdata.FNode(ygdata.Id(ns, "empty")),
+            ygdata.FNode(ygdata.Id(ns, "ll"), value_match=u64(2)),
+            ygdata.FNode(ygdata.Id(ns, "l"), children=[
+                ygdata.FNode(ygdata.Id(ns, "name"), value_match="a"),
+                ygdata.FNode(ygdata.Id(ns, "v")),
             ]),
         ]),
     ])

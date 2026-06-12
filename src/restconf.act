@@ -15,34 +15,34 @@ mandatory ones.
 
 import testing
 import uri
-import xml
+import std.xml as xml
 
-import yang
-import yang.data
-import yang.gdata
-import yang.schema
-from yang.data import from_data_recursive, YangData, PathElement, YangValidationError, format_schema_path
-from yang.data import fqname, fq_list_keys, parse_qualified_name, user_order
-from yang.data import OP_MERGE, OP_REPLACE, OP_REMOVE
-from yang.json import try_parse_json_value
-from yang.xml import xml_node_ns, NETCONF_NS, NETCONF_OPS
+import lib as yang
+import data as ydata
+import gdata as ygdata
+import schema as yschema
+from data import from_data_recursive, YangData, PathElement, YangValidationError, format_schema_path
+from data import fqname, fq_list_keys, parse_qualified_name, user_order
+from data import OP_MERGE, OP_REPLACE, OP_REMOVE
+from json import try_parse_json_value
+from xml import xml_node_ns, NETCONF_NS, NETCONF_OPS
 
 
-def _resolve_path_key_leaf(list_node: yang.schema.DList, key_name: str, path: list[PathElement]) -> yang.schema.DNodeLeaf:
+def _resolve_path_key_leaf(list_node: yschema.DList, key_name: str, path: list[PathElement]) -> yschema.DNodeLeaf:
     key_node = list_node.get(key_name, allow_unqualified=False)
-    if isinstance(key_node, yang.schema.DNodeLeaf):
+    if isinstance(key_node, yschema.DNodeLeaf):
         return key_node
     raise ValueError("Invalid list key schema at {format_schema_path(path)}: {key_name}")
 
 
-def _coerce_path_key_value(root: yang.schema.DRoot, key_leaf: yang.schema.DNodeLeaf, raw_value: ?value, path: list[PathElement]) -> value:
+def _coerce_path_key_value(root: yschema.DRoot, key_leaf: yschema.DNodeLeaf, raw_value: ?value, path: list[PathElement]) -> value:
     typed_value = try_parse_json_value(raw_value, key_leaf, key_leaf.type_, path, root)
     if typed_value is not None:
         return typed_value.val
     raise YangValidationError(path, key_leaf.type_, raw_value)
 
 
-def resolve_path(root: yang.schema.DRoot, path: list[str]) -> list[PathElement]:
+def resolve_path(root: yschema.DRoot, path: list[str]) -> list[PathElement]:
     """Resolve a RESTCONF path against a schema, returning traversed nodes.
 
     Each path segment is either a node name (optionally "module:name") or
@@ -60,14 +60,14 @@ def resolve_path(root: yang.schema.DRoot, path: list[str]) -> list[PathElement]:
         schema node.
     """
     result = [PathElement(root)]
-    s: yang.schema.DNodeInner = root
+    s: yschema.DNodeInner = root
     i = 0
     while i < len(path):
         point = path[i]
         local_name, module = parse_qualified_name(point)
         child = s.get(local_name, module=module, allow_unqualified=False)
 
-        if isinstance(child, yang.schema.DList):
+        if isinstance(child, yschema.DList):
             # Next segment is comma-separated key values
             i += 1
             if i < len(path):
@@ -86,7 +86,7 @@ def resolve_path(root: yang.schema.DRoot, path: list[str]) -> list[PathElement]:
                 # A keyed list node in the path must always be followed by its key tuple.
                 raise ValueError("Missing list key values at {format_schema_path(result + [PathElement(child)])}")
             s = child
-        elif isinstance(child, yang.schema.DNodeInner):
+        elif isinstance(child, yschema.DNodeInner):
             result.append(PathElement(child))
             s = child
         else:
@@ -101,7 +101,7 @@ def resolve_path(root: yang.schema.DRoot, path: list[str]) -> list[PathElement]:
     return result
 
 
-def _from_unwrapped_body[A(YangData)](root: yang.schema.DRoot, data: ?A, type_narrower: (?value) -> A, path_elements: list[PathElement], op: str=OP_MERGE, loose: bool=False) -> yang.gdata.Container:
+def _from_unwrapped_body[A(YangData)](root: yschema.DRoot, data: ?A, type_narrower: (?value) -> A, path_elements: list[PathElement], op: str=OP_MERGE, loose: bool=False) -> ygdata.Container:
     """Build a sparse gdata tree with `data` applied at the terminal (path_elements[-1]).
 
     `data` must already be unwrapped by the format-specific front-end (e.g. the
@@ -124,23 +124,23 @@ def _from_unwrapped_body[A(YangData)](root: yang.schema.DRoot, data: ?A, type_na
     last = path_elements[n - 1]
     last_node = last.node
 
-    if isinstance(last_node, yang.schema.DNodeInner) and (isinstance(last_node, yang.schema.DRoot) or isinstance(last_node, yang.schema.DContainer)):
+    if isinstance(last_node, yschema.DNodeInner) and (isinstance(last_node, yschema.DRoot) or isinstance(last_node, yschema.DContainer)):
         if op == OP_MERGE:
             if data is None:
                 raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
             inner = from_data_recursive(root, last_node, data!, type_narrower, loose=loose, set_ns=_set_ns(n - 1), spath=path_elements)
-        elif op == OP_REPLACE and isinstance(last_node, yang.schema.DContainer):
+        elif op == OP_REPLACE and isinstance(last_node, yschema.DContainer):
             if data is None:
                 raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
             parsed = from_data_recursive(root, last_node, data!, type_narrower, loose=loose, set_ns=_set_ns(n - 1), spath=path_elements)
             maybe_ns = _set_ns(n - 1) and last_node.namespace != ""
-            inner = yang.gdata.Replace(parsed.children, presence=parsed.presence, ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+            inner = ygdata.Replace(parsed.children, presence=parsed.presence, ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
         elif op == OP_REMOVE:
-            inner = yang.gdata.Absent()
+            inner = ygdata.Absent()
         else:
             raise ValueError("Invalid operation at {format_schema_path(path_elements)}: {op}")
 
-    elif isinstance(last_node, yang.schema.DList):
+    elif isinstance(last_node, yschema.DList):
         keys = last.keys
         if keys is not None:
             maybe_ns = _set_ns(n - 1) and last_node.namespace != ""
@@ -150,8 +150,8 @@ def _from_unwrapped_body[A(YangData)](root: yang.schema.DRoot, data: ?A, type_na
                 for key_name in last_node.key:
                     key_val = keys.get(key_name)
                     if key_val is not None:
-                        element_children[yang.gdata.Id(last_node.namespace, key_name)] = yang.gdata.Leaf(key_val)
-                inner = yang.gdata.List(fq_list_keys(last_node), [yang.gdata.Absent(element_children)], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+                        element_children[ygdata.Id(last_node.namespace, key_name)] = ygdata.Leaf(key_val)
+                inner = ygdata.List(fq_list_keys(last_node), [ygdata.Absent(element_children)], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
             elif op == OP_MERGE or op == OP_REPLACE:
                 if data is None:
                     raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
@@ -159,15 +159,15 @@ def _from_unwrapped_body[A(YangData)](root: yang.schema.DRoot, data: ?A, type_na
                 # List keys in the body MUST equal the URL path keys.
                 for key_name in last_node.key:
                     url_key_val = keys.get(key_name)
-                    body_leaf = element_gdata.children.get(yang.gdata.Id(last_node.namespace, key_name))
-                    if isinstance(body_leaf, yang.gdata.Leaf) and url_key_val is not None:
-                        if not yang.gdata.vals_equal(body_leaf.val, url_key_val):
+                    body_leaf = element_gdata.children.get(ygdata.Id(last_node.namespace, key_name))
+                    if isinstance(body_leaf, ygdata.Leaf) and url_key_val is not None:
+                        if not ygdata.vals_equal(body_leaf.val, url_key_val):
                             raise ValueError("Key value mismatch between path and payload at {format_schema_path(path_elements)}: key {key_name}")
                 if op == OP_REPLACE:
-                    wrapped: yang.gdata.Node = yang.gdata.Replace(element_gdata.children)
+                    wrapped: ygdata.Node = ygdata.Replace(element_gdata.children)
                 else:
                     wrapped = element_gdata
-                inner = yang.gdata.List(fq_list_keys(last_node), [wrapped], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+                inner = ygdata.List(fq_list_keys(last_node), [wrapped], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
             else:
                 raise ValueError("Invalid operation at {format_schema_path(path_elements)}: {op}")
         else:
@@ -183,31 +183,31 @@ def _from_unwrapped_body[A(YangData)](root: yang.schema.DRoot, data: ?A, type_na
         child_node = path_elements[i + 1].node
         maybe_ns = _set_ns(i) and s.namespace != ""
 
-        if isinstance(s, yang.schema.DNodeInner) and (isinstance(s, yang.schema.DRoot) or isinstance(s, yang.schema.DContainer)):
-            inner = yang.gdata.Container({fqname(child_node): inner}, ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
+        if isinstance(s, yschema.DNodeInner) and (isinstance(s, yschema.DRoot) or isinstance(s, yschema.DContainer)):
+            inner = ygdata.Container({fqname(child_node): inner}, ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
 
-        elif isinstance(s, yang.schema.DList):
+        elif isinstance(s, yschema.DList):
             ancestor_keys = path_elements[i].keys
             if ancestor_keys is not None:
-                element_children: dict[yang.gdata.Id, yang.gdata.Node] = {}
+                element_children: dict[ygdata.Id, ygdata.Node] = {}
                 for key_name in s.key:
                     key_val = ancestor_keys.get(key_name)
                     if key_val is not None:
-                        element_children[yang.gdata.Id(s.namespace, key_name)] = yang.gdata.Leaf(key_val)
+                        element_children[ygdata.Id(s.namespace, key_name)] = ygdata.Leaf(key_val)
                 element_children[fqname(child_node)] = inner
-                inner = yang.gdata.List(fq_list_keys(s), [yang.gdata.Container(element_children)], user_order(s.ordered_by), ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
+                inner = ygdata.List(fq_list_keys(s), [ygdata.Container(element_children)], user_order(s.ordered_by), ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
             else:
                 raise ValueError("Invalid path invariant at {format_schema_path(path_elements[:i+1])}: ancestor list is missing key values")
         else:
             raise ValueError("Unknown schema node type at {format_schema_path(path_elements[:i+1])}: {type(s)}")
 
-    if isinstance(inner, yang.gdata.Container):
+    if isinstance(inner, ygdata.Container):
         return inner
     else:
         raise ValueError("Internal error: expected Container at root level")
 
 
-def from_json_path(root: yang.schema.DRoot, data: ?dict[str, ?value]=None, path: list[str]=[], op: str=OP_MERGE, loose: bool=False) -> yang.gdata.Container:
+def from_json_path(root: yschema.DRoot, data: ?dict[str, ?value]=None, path: list[str]=[], op: str=OP_MERGE, loose: bool=False) -> ygdata.Container:
     """Parse a RESTCONF JSON body at the given URL path into a sparse gdata tree.
 
     The body's top level is a single {"mod:name": ...} member matching the
@@ -241,12 +241,12 @@ def from_json_path(root: yang.schema.DRoot, data: ?dict[str, ?value]=None, path:
             # top-level member — RESTCONF bodies are the subtree rooted at the
             # terminal and must not carry sibling keys. DRoot (empty path) has no
             # outer envelope — the body IS root's children.
-            if not isinstance(last_node, yang.schema.DRoot):
+            if not isinstance(last_node, yschema.DRoot):
                 expected_key = f"{last_node.module}:{last_node.name}"
                 if len(data) != 1 or expected_key not in data:
                     raise ValueError("Expected single top-level key '{expected_key}' at {format_schema_path(path_elements)}")
                 outer_val = data[expected_key]
-                if isinstance(last_node, yang.schema.DList):
+                if isinstance(last_node, yschema.DList):
                     if isinstance(outer_val, list):
                         if len(outer_val) != 1:
                             raise ValueError("Expected list array of length 1 at {format_schema_path(path_elements)}")
@@ -308,7 +308,7 @@ def _reject_netconf_ops_xml(node: xml.Node):
     walk(node, [])
 
 
-def from_xml_path(root: yang.schema.DRoot, data: ?xml.Node=None, path: list[str]=[], op: str=OP_MERGE, loose: bool=False) -> yang.gdata.Container:
+def from_xml_path(root: yschema.DRoot, data: ?xml.Node=None, path: list[str]=[], op: str=OP_MERGE, loose: bool=False) -> ygdata.Container:
     """Parse a RESTCONF XML body at the given URL path into a sparse gdata tree.
 
     The body is a single element whose tag and namespace match the path
@@ -342,7 +342,7 @@ def from_xml_path(root: yang.schema.DRoot, data: ?xml.Node=None, path: list[str]
             # a single `xml.Node` by construction, so the parser can't hand us
             # siblings here. DRoot (empty path) has no outer element wrapper —
             # parse directly.
-            if not isinstance(last_node, yang.schema.DRoot):
+            if not isinstance(last_node, yschema.DRoot):
                 if data.tag != last_node.name:
                     raise ValueError("Expected element tag '{last_node.name}' at {format_schema_path(path_elements)}, got '{data.tag}'")
                 actual_ns = xml_node_ns(data)

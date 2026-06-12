@@ -1,10 +1,10 @@
 import testing
 
-import yang
-import yang.schema
-import yang.parser
+import lib as yang
+import schema as yschema
+import parser as yparser
 
-mut def rewrite_unions(node: yang.schema.SchemaNode) -> None:
+mut def rewrite_unions(node: yschema.SchemaNode) -> None:
     """Rewrite stupid union types to sane types
 
     This modifies the schema in place.
@@ -21,7 +21,7 @@ mut def rewrite_unions(node: yang.schema.SchemaNode) -> None:
     If we don't care about apply-template and want reasonable types in our YANG
     model, we can just rewrite such leaf types. This function does that.
     """
-    def rewrite_type(tn: yang.schema.Type) -> yang.schema.Type:
+    def rewrite_type(tn: yschema.Type) -> yschema.Type:
         """Rewrite a type node, if it's a union of two, where one type is a
         string with the pattern "<.*>|^.*$"
         """
@@ -47,11 +47,11 @@ mut def rewrite_unions(node: yang.schema.SchemaNode) -> None:
         return tn
 
 
-    if isinstance(node, yang.schema.Leaf):
+    if isinstance(node, yschema.Leaf):
         node.type_ = rewrite_type(node.type_)
-    elif isinstance(node, yang.schema.LeafList):
+    elif isinstance(node, yschema.LeafList):
         node.type_ = rewrite_type(node.type_)
-    elif isinstance(node, yang.schema.SchemaNodeInner):
+    elif isinstance(node, yschema.SchemaNodeInner):
         for child in node.children:
             rewrite_unions(child)
 
@@ -117,15 +117,15 @@ test_yang = r"""module test_yang {
 
 
 def _test_rewrite_unions():
-    y = yang.parser.parse(test_yang)
-    n = yang.schema.stmt_to_snode(y)
+    y = yparser.parse(test_yang)
+    n = yschema.stmt_to_snode(y)
     rewrite_unions(n)
     l1 = n.get("c1").get("l1")
     l2 = n.get("c1").get("l2")
     l3 = n.get("c1").get("l3")
     l4 = n.get("c1").get("l4")
     l5 = n.get("c1").get("l5")
-    if isinstance(l1, yang.schema.Leaf) and isinstance(l2, yang.schema.Leaf) and isinstance(l3, yang.schema.Leaf) and isinstance(l4, yang.schema.LeafList) and isinstance(l5, yang.schema.Leaf):
+    if isinstance(l1, yschema.Leaf) and isinstance(l2, yschema.Leaf) and isinstance(l3, yschema.Leaf) and isinstance(l4, yschema.LeafList) and isinstance(l5, yschema.Leaf):
         testing.assertEqual(l1.type_.name, "string")
         testing.assertEqual(l2.type_.name, "uint32")
         testing.assertEqual(l3.type_.name, "uint32")

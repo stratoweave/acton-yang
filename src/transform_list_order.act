@@ -1,12 +1,12 @@
 import testing
 
-import yang
-import yang.schema
-import yang.parser
+import lib as yang
+import schema as yschema
+import parser as yparser
 from transform_utils import resolve_filter_paths
 
 
-mut def remove_list_user_order(node: yang.schema.DNode, filter_paths=[]) -> None:
+mut def remove_list_user_order(node: yschema.DNode, filter_paths=[]) -> None:
     """Remove "ordered-by user" from target (leaf-)list nodes in the schema tree.
 
     This modifies the schema in place.
@@ -24,25 +24,25 @@ mut def remove_list_user_order(node: yang.schema.DNode, filter_paths=[]) -> None
     """
     resolved_filter_paths = resolve_filter_paths(node, filter_paths) if filter_paths else []
 
-    def is_interesting(path_parts: list[yang.schema.DNode]) -> bool:
+    def is_interesting(path_parts: list[yschema.DNode]) -> bool:
         if not resolved_filter_paths:
             return True
-        if yang.schema.get_path(path_parts) in resolved_filter_paths:
+        if yschema.get_path(path_parts) in resolved_filter_paths:
             return True
         return False
 
-    def remove_list_user_order_filtered(node: yang.schema.DNode, path=[]) -> None:
+    def remove_list_user_order_filtered(node: yschema.DNode, path=[]) -> None:
         """Remove "ordered-by user" from target (leaf-)list nodes in the schema tree."""
         new_path = path + [node]
-        if isinstance(node, yang.schema.DList):
+        if isinstance(node, yschema.DList):
             if is_interesting(new_path) and node.ordered_by == "user":
-                print('Removing "ordered-by user" from {yang.schema.get_path(new_path)}', err=True)
+                print('Removing "ordered-by user" from {yschema.get_path(new_path)}', err=True)
                 node.ordered_by = "system"
-        elif isinstance(node, yang.schema.DLeafList):
+        elif isinstance(node, yschema.DLeafList):
             if is_interesting(new_path) and node.ordered_by == "user":
-                print('Removing "ordered-by user" from {yang.schema.get_path(new_path)}', err=True)
+                print('Removing "ordered-by user" from {yschema.get_path(new_path)}', err=True)
                 node.ordered_by = "system"
-        if isinstance(node, yang.schema.DNodeInner):
+        if isinstance(node, yschema.DNodeInner):
             for child in node.children:
                 remove_list_user_order_filtered(child, new_path)
 
@@ -103,7 +103,7 @@ def _test_remove_list_user_order():
     l3 = root.get("l3")
     # rpc_in = root.get("rpc1").get("input").get("l1")
     # rpc_out = root.get("rpc1").get("output").get("l1")
-    if isinstance(l1, yang.schema.DList) and isinstance(l2, yang.schema.DLeafList) and isinstance(l3, yang.schema.DList):
+    if isinstance(l1, yschema.DList) and isinstance(l2, yschema.DLeafList) and isinstance(l3, yschema.DList):
         testing.assertEqual(l1.ordered_by, "system")
         testing.assertEqual(l2.ordered_by, "system")
         testing.assertEqual(l3.ordered_by, "system")
@@ -118,7 +118,7 @@ def _test_remove_list_user_order_filtered():
     l3 = root.get("l3")
     # rpc_in = root.get("rpc1").get("input").get("l1")
     # rpc_out = root.get("rpc1").get("output").get("l1")
-    if isinstance(l1, yang.schema.DList) and isinstance(l2, yang.schema.DLeafList) and isinstance(l3, yang.schema.DList):
+    if isinstance(l1, yschema.DList) and isinstance(l2, yschema.DLeafList) and isinstance(l3, yschema.DList):
         testing.assertEqual(l1.ordered_by, "system")
         testing.assertEqual(l2.ordered_by, "user")
         testing.assertEqual(l3.ordered_by, "system")

@@ -1,7 +1,7 @@
-import yang.schema
+import schema as yschema
 
 
-mut def create_explicit_cases(node: yang.schema.SchemaNode) -> None:
+mut def create_explicit_cases(node: yschema.SchemaNode) -> None:
     """Create explicit Case nodes for all direct data node children of Choice nodes.
 
     In YANG, a choice statement can have either explicit case statements or
@@ -21,13 +21,13 @@ mut def create_explicit_cases(node: yang.schema.SchemaNode) -> None:
     the same as the wrapped node's name.
     """
 
-    if isinstance(node, yang.schema.Choice):
+    if isinstance(node, yschema.Choice):
         new_children = []
         for child in node.children:
-            if not isinstance(child, yang.schema.Case):
+            if not isinstance(child, yschema.Case):
                 name = child._get_arg()
                 if name is not None:
-                    implicit_case = yang.schema.Case(
+                    implicit_case = yschema.Case(
                         name=name,
                         children=[child],  # The data node becomes child of the case
                         parent=node,
@@ -45,7 +45,7 @@ mut def create_explicit_cases(node: yang.schema.SchemaNode) -> None:
 
         node.children = new_children
 
-    if isinstance(node, yang.schema.SchemaNodeInner):
+    if isinstance(node, yschema.SchemaNodeInner):
         for child in node.children:
             create_explicit_cases(child)
 

@@ -1,19 +1,19 @@
 import testing
-import xml
+import std.xml as xml
 
-import yang
-import yang.adata
-import yang.gdata
+import lib as yang
+import adata as yadata
+import gdata as ygdata
 
-from yang.data import YangValidationError, format_schema_path
-from yang.xml import from_xml
-from yang.json import from_json
-from yang.restconf import from_json_path, from_xml_path, resolve_path
-from yang.identityref import Identityref, PartialIdentityref
-from yang.type import Decimal, Ranges
+from data import YangValidationError, format_schema_path
+from xml import from_xml
+from json import from_json
+from restconf import from_json_path, from_xml_path, resolve_path
+from identityref import Identityref, PartialIdentityref
+from type import Decimal, Ranges
 
 
-def _unwrap_node(n: ?yang.gdata.Node) -> yang.gdata.Node:
+def _unwrap_node(n: ?ygdata.Node) -> ygdata.Node:
     if n is not None:
         return n
     raise ValueError("Expected non-empty node")
@@ -71,7 +71,7 @@ def _test_remove_list_roundtrip():
     gd_b = from_xml(s, xml.decode(xml_b))
 
     # Compute diff: expect Absent list element for key B
-    d = _unwrap_node(yang.gdata.diff(gd_a, gd_b))
+    d = _unwrap_node(ygdata.diff(gd_a, gd_b))
 
     # Serialize diff to XML (NETCONF ops), then parse back
     # We could do d.to_xml() -> list[xml.Node] here and then convert that to
@@ -85,7 +85,7 @@ def _test_remove_list_roundtrip():
     testing.assertEqual(d.prsrc(deterministic=True), gd_ops.prsrc(deterministic=True))
 
     # Verify that applying the parsed ops to A yields B
-    patched = yang.gdata.patch(gd_a, gd_ops)
+    patched = ygdata.patch(gd_a, gd_ops)
     pnode = _unwrap_node(patched)
     testing.assertEqual(pnode.prsrc(deterministic=True), gd_b.prsrc(deterministic=True))
 
@@ -235,7 +235,7 @@ def _test_y1_json():
     return gd.prsrc()
 
 
-class _test_leafref_c(yang.adata.MNode):
+class _test_leafref_c(yadata.MNode):
     n: ?u64
     ref: ?u64
     refs: ?list[u64]
@@ -255,14 +255,14 @@ class _test_leafref_c(yang.adata.MNode):
             return self.refs
         return None
 
-    mut def to_gdata(self) -> yang.gdata.Node:
+    mut def to_gdata(self) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
     def copy(self):
         return _test_leafref_c(self.n, self.ref, self.refs)
 
 
-class _test_leafref_root(yang.adata.MNode):
+class _test_leafref_root(yadata.MNode):
     c: ?_test_leafref_c
 
     mut def __init__(self, c: ?_test_leafref_c):
@@ -274,7 +274,7 @@ class _test_leafref_root(yang.adata.MNode):
             return self.c
         return None
 
-    mut def to_gdata(self) -> yang.gdata.Node:
+    mut def to_gdata(self) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
     def copy(self):
@@ -333,7 +333,7 @@ def _test_leafref_target_type_json():
 def _test_leafref_target_type_adata():
     s = yang.compile([_leafref_uint_schema()])
     ad = _test_leafref_root(_test_leafref_c(7, 7, [7, 8]))
-    gd = yang.adata.from_adata(s, ad)
+    gd = yadata.from_adata(s, ad)
     return gd.prsrc()
 
 
@@ -548,10 +548,10 @@ def _test_json_path_basic():
 
     # Test navigating to a leaf in a nested container
     gd = from_json_path(s, {"y1:c2": {"l2": "test value"}}, ["y1:c1", "c2"])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "c2"): yang.gdata.Container({
-                yang.gdata.Id("urn:example:y1", "l2"): yang.gdata.Leaf("test value")
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "c2"): ygdata.Container({
+                ygdata.Id("urn:example:y1", "l2"): ygdata.Leaf("test value")
             })
         }, ns='urn:example:y1', module='y1')
     })
@@ -579,11 +579,11 @@ def _test_json_path_from_root():
     s = yang.compile([y1])
 
     gd = from_json_path(s, {"y1:c1": {"l1": "hello", "c2": {"l2": "world"}}}, [])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "l1"): yang.gdata.Leaf("hello"),
-            yang.gdata.Id("urn:example:y1", "c2"): yang.gdata.Container({
-                yang.gdata.Id("urn:example:y1", "l2"): yang.gdata.Leaf("world")
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "l1"): ygdata.Leaf("hello"),
+            ygdata.Id("urn:example:y1", "c2"): ygdata.Container({
+                ygdata.Id("urn:example:y1", "l2"): ygdata.Leaf("world")
             })
         }, ns='urn:example:y1', module='y1')
     })
@@ -619,9 +619,9 @@ def _test_json_path_qualified_names():
 
     # Test navigating with qualified name
     gd = from_json_path(s, {"mod1:c1": {"mod2:l2": "augmented value"}}, ["mod1:c1"])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:mod1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:mod2", "l2"): yang.gdata.Leaf("augmented value", ns="urn:example:mod2", module="mod2")
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:mod1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:mod2", "l2"): ygdata.Leaf("augmented value", ns="urn:example:mod2", module="mod2")
         }, ns="urn:example:mod1", module="mod1")
     })
     testing.assertEqual(gd.prsrc(), expected.prsrc())
@@ -656,12 +656,12 @@ def _test_json_path_list():
     # Test navigating to a specific list element
     gd = from_json_path(s, {"y1:l1": [{"name": "test", "value": "data"}]}, ["y1:c1", "l1", "test"])
     # Should create a list with single element
-    expected = yang.gdata.Container({
-      yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "l1"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "name")], elements=[
-          yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "name"): yang.gdata.Leaf('test'),
-            yang.gdata.Id("urn:example:y1", "value"): yang.gdata.Leaf('data')
+    expected = ygdata.Container({
+      ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+        ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+          ygdata.Container({
+            ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test'),
+            ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('data')
           })
         ])
       }, ns='urn:example:y1', module='y1')
@@ -693,11 +693,11 @@ def _test_json_path_remove():
     # Test remove operation on a list element
     gd = from_json_path(s, path=["y1:c1", "l1", "test"], op="remove")
     # Should contain an Absent node with the key
-    expected = yang.gdata.Container({
-      yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "l1"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "name")], elements=[
-          yang.gdata.Absent({
-            yang.gdata.Id("urn:example:y1", "name"): yang.gdata.Leaf('test')
+    expected = ygdata.Container({
+      ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+        ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+          ygdata.Absent({
+            ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test')
           })
         ])
       }, ns='urn:example:y1', module='y1')
@@ -780,15 +780,15 @@ def _test_json_path_nested_lists():
 
     # Test navigating to a nested list element
     gd = from_json_path(s, {"y1:inner": [{"inner-key": "key2", "value": "test-value"}]}, ["y1:c1", "outer", "key1", "inner", "key2"])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "outer"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "outer-key")], elements=[
-                yang.gdata.Container({
-                    yang.gdata.Id("urn:example:y1", "outer-key"): yang.gdata.Leaf('key1'),
-                    yang.gdata.Id("urn:example:y1", "inner"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "inner-key")], elements=[
-                        yang.gdata.Container({
-                            yang.gdata.Id("urn:example:y1", "inner-key"): yang.gdata.Leaf('key2'),
-                            yang.gdata.Id("urn:example:y1", "value"): yang.gdata.Leaf('test-value')
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], elements=[
+                ygdata.Container({
+                    ygdata.Id("urn:example:y1", "outer-key"): ygdata.Leaf('key1'),
+                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], elements=[
+                        ygdata.Container({
+                            ygdata.Id("urn:example:y1", "inner-key"): ygdata.Leaf('key2'),
+                            ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('test-value')
                         })
                     ])
                 })
@@ -799,18 +799,18 @@ def _test_json_path_nested_lists():
 
     # Test navigating to a deeply nested list element (3 levels)
     gd2 = from_json_path(s, {"y1:deep": [{"deep-key": "key3", "data": 42}]}, ["y1:c1", "outer", "key1", "inner", "key2", "deep", "key3"])
-    expected2 = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "outer"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "outer-key")], elements=[
-                yang.gdata.Container({
-                    yang.gdata.Id("urn:example:y1", "outer-key"): yang.gdata.Leaf('key1'),
-                    yang.gdata.Id("urn:example:y1", "inner"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "inner-key")], elements=[
-                        yang.gdata.Container({
-                            yang.gdata.Id("urn:example:y1", "inner-key"): yang.gdata.Leaf('key2'),
-                            yang.gdata.Id("urn:example:y1", "deep"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "deep-key")], elements=[
-                                yang.gdata.Container({
-                                    yang.gdata.Id("urn:example:y1", "deep-key"): yang.gdata.Leaf('key3'),
-                                    yang.gdata.Id("urn:example:y1", "data"): yang.gdata.Leaf(int(42))
+    expected2 = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], elements=[
+                ygdata.Container({
+                    ygdata.Id("urn:example:y1", "outer-key"): ygdata.Leaf('key1'),
+                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], elements=[
+                        ygdata.Container({
+                            ygdata.Id("urn:example:y1", "inner-key"): ygdata.Leaf('key2'),
+                            ygdata.Id("urn:example:y1", "deep"): ygdata.List([ygdata.Id("urn:example:y1", "deep-key")], elements=[
+                                ygdata.Container({
+                                    ygdata.Id("urn:example:y1", "deep-key"): ygdata.Leaf('key3'),
+                                    ygdata.Id("urn:example:y1", "data"): ygdata.Leaf(int(42))
                                 })
                             ])
                         })
@@ -843,12 +843,12 @@ def _test_json_path_coerces_list_keys_to_schema_types():
     s = yang.compile([y1])
 
     gd = from_json_path(s, {"y1:item": [{"id": 42, "value": "typed"}]}, ["y1:c1", "item", "42"])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "item"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "id")], elements=[
-                yang.gdata.Container({
-                    yang.gdata.Id("urn:example:y1", "id"): yang.gdata.Leaf(u64(42)),
-                    yang.gdata.Id("urn:example:y1", "value"): yang.gdata.Leaf("typed")
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "item"): ygdata.List([ygdata.Id("urn:example:y1", "id")], elements=[
+                ygdata.Container({
+                    ygdata.Id("urn:example:y1", "id"): ygdata.Leaf(u64(42)),
+                    ygdata.Id("urn:example:y1", "value"): ygdata.Leaf("typed")
                 })
             ])
         }, ns='urn:example:y1', module='y1')
@@ -1082,10 +1082,10 @@ def _test_netconf_leaflist_merge_and_remove():
 
     s = yang.compile([y])
     gd = from_xml(s, xml.decode(xml_in))
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y", "ll"): yang.gdata.LeafList(
-                [yang.gdata.LeafListEntryMerge('keep'), yang.gdata.LeafListEntryRemove('drop')]
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y", "ll"): ygdata.LeafList(
+                [ygdata.LeafListEntryMerge('keep'), ygdata.LeafListEntryRemove('drop')]
             )
         }, ns='urn:example:y', module='y')
     })
@@ -1112,10 +1112,10 @@ def _test_netconf_leaflist_all_delete():
 
     s = yang.compile([y])
     gd = from_xml(s, xml.decode(xml_in))
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y", "ll"): yang.gdata.LeafList(
-                [yang.gdata.LeafListEntryDelete('drop')]
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y", "ll"): ygdata.LeafList(
+                [ygdata.LeafListEntryDelete('drop')]
             )
         }, ns='urn:example:y', module='y')
     })
@@ -1142,10 +1142,10 @@ def _test_netconf_leaflist_all_remove():
 
     s = yang.compile([y])
     gd = from_xml(s, xml.decode(xml_in))
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y", "ll"): yang.gdata.LeafList(
-                [yang.gdata.LeafListEntryRemove('gone')]
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y", "ll"): ygdata.LeafList(
+                [ygdata.LeafListEntryRemove('gone')]
             )
         }, ns='urn:example:y', module='y')
     })
@@ -1220,7 +1220,7 @@ def _test_union_binary_xml():
 </data>"""
     s = yang.compile([y])
     gd = from_xml(s, xml.decode(xml_in))
-    testing.assertEqual(gd.get_bytes(yang.gdata.Id("urn:example:y", "u")), "hi".encode())
+    testing.assertEqual(gd.get_bytes(ygdata.Id("urn:example:y", "u")), "hi".encode())
     return gd.prsrc()
 
 def _test_union_binary_json():
@@ -1237,7 +1237,7 @@ def _test_union_binary_json():
     s = yang.compile([y])
     jd = {"y:u": "aGk="}
     gd = from_json(s, jd)
-    testing.assertEqual(gd.get_bytes(yang.gdata.Id("urn:example:y", "u")), "hi".encode())
+    testing.assertEqual(gd.get_bytes(ygdata.Id("urn:example:y", "u")), "hi".encode())
     return gd.prsrc()
 
 def _test_netconf_create_container():
@@ -1291,14 +1291,14 @@ def _test_netconf_delete_container():
 
     # Test remove operation on nested list element
     gd3 = from_json_path(s, path=["y1:c1", "outer", "key1", "inner", "key2"], op="remove")
-    expected3 = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "outer"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "outer-key")], elements=[
-                yang.gdata.Container({
-                    yang.gdata.Id("urn:example:y1", "outer-key"): yang.gdata.Leaf('key1'),
-                    yang.gdata.Id("urn:example:y1", "inner"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "inner-key")], elements=[
-                        yang.gdata.Absent({
-                            yang.gdata.Id("urn:example:y1", "inner-key"): yang.gdata.Leaf('key2')
+    expected3 = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], elements=[
+                ygdata.Container({
+                    ygdata.Id("urn:example:y1", "outer-key"): ygdata.Leaf('key1'),
+                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], elements=[
+                        ygdata.Absent({
+                            ygdata.Id("urn:example:y1", "inner-key"): ygdata.Leaf('key2')
                         })
                     ])
                 })
@@ -1336,14 +1336,14 @@ def _test_json_path_container_list_container():
 
     # Test navigating through container -> list -> container and setting data
     gd = from_json_path(s, {"y1:bottom": {"data": "test", "value": 42}}, ["y1:top", "middle", "item1", "bottom"])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "top"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "middle"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "name")], elements=[
-                yang.gdata.Container({
-                    yang.gdata.Id("urn:example:y1", "name"): yang.gdata.Leaf('item1'),
-                    yang.gdata.Id("urn:example:y1", "bottom"): yang.gdata.Container({
-                        yang.gdata.Id("urn:example:y1", "data"): yang.gdata.Leaf('test'),
-                        yang.gdata.Id("urn:example:y1", "value"): yang.gdata.Leaf(int(42))
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "top"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "middle"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+                ygdata.Container({
+                    ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('item1'),
+                    ygdata.Id("urn:example:y1", "bottom"): ygdata.Container({
+                        ygdata.Id("urn:example:y1", "data"): ygdata.Leaf('test'),
+                        ygdata.Id("urn:example:y1", "value"): ygdata.Leaf(int(42))
                     })
                 })
             ])
@@ -1353,12 +1353,12 @@ def _test_json_path_container_list_container():
 
     # Test remove operation on the inner container
     gd2 = from_json_path(s, path=["y1:top", "middle", "item1", "bottom"], op="remove")
-    expected2 = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "top"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "middle"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "name")], elements=[
-                yang.gdata.Container({
-                    yang.gdata.Id("urn:example:y1", "name"): yang.gdata.Leaf('item1'),
-                    yang.gdata.Id("urn:example:y1", "bottom"): yang.gdata.Absent()
+    expected2 = ygdata.Container({
+        ygdata.Id("urn:example:y1", "top"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "middle"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+                ygdata.Container({
+                    ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('item1'),
+                    ygdata.Id("urn:example:y1", "bottom"): ygdata.Absent()
                 })
             ])
         }, ns='urn:example:y1', module='y1')
@@ -1510,8 +1510,8 @@ def _test_identityref():
     # A valid value is derived from one of the bases in the union
     xml_in = xml.decode("""<data><le2 xmlns="urn:cesent:mod1">id8</le2></data>""")
     gd = from_xml(s, xml_in)
-    exp = yang.gdata.Container({
-        yang.gdata.Id("urn:cesent:mod1", "le2"): yang.gdata.Leaf(Identityref('id8', ns='urn:cesent:mod1', mod='mod1', pfx='aa'), ns='urn:cesent:mod1', module='mod1')
+    exp = ygdata.Container({
+        ygdata.Id("urn:cesent:mod1", "le2"): ygdata.Leaf(Identityref('id8', ns='urn:cesent:mod1', mod='mod1', pfx='aa'), ns='urn:cesent:mod1', module='mod1')
     })
     testing.assertEqual(exp.prsrc(), gd.prsrc())
 
@@ -1541,10 +1541,10 @@ def _test_xml_path_basic():
     s = yang.compile([y1])
     body = xml.decode('<c2 xmlns="urn:example:y1"><l2>test value</l2></c2>')
     gd = from_xml_path(s, body, ["y1:c1", "c2"])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "c2"): yang.gdata.Container({
-                yang.gdata.Id("urn:example:y1", "l2"): yang.gdata.Leaf("test value")
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "c2"): ygdata.Container({
+                ygdata.Id("urn:example:y1", "l2"): ygdata.Leaf("test value")
             })
         }, ns='urn:example:y1', module='y1')
     })
@@ -1569,12 +1569,12 @@ def _test_xml_path_list():
     s = yang.compile([y1])
     body = xml.decode('<l1 xmlns="urn:example:y1"><name>test</name><value>data</value></l1>')
     gd = from_xml_path(s, body, ["y1:c1", "l1", "test"])
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "l1"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "name")], elements=[
-                yang.gdata.Container({
-                    yang.gdata.Id("urn:example:y1", "name"): yang.gdata.Leaf('test'),
-                    yang.gdata.Id("urn:example:y1", "value"): yang.gdata.Leaf('data')
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+                ygdata.Container({
+                    ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test'),
+                    ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('data')
                 })
             ])
         }, ns='urn:example:y1', module='y1')
@@ -1599,11 +1599,11 @@ def _test_xml_path_remove_list_element():
 
     s = yang.compile([y1])
     gd = from_xml_path(s, path=["y1:c1", "l1", "test"], op="remove")
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "l1"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "name")], elements=[
-                yang.gdata.Absent({
-                    yang.gdata.Id("urn:example:y1", "name"): yang.gdata.Leaf('test')
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+                ygdata.Absent({
+                    ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test')
                 })
             ])
         }, ns='urn:example:y1', module='y1')
@@ -1627,10 +1627,10 @@ def _test_xml_path_replace_container():
     s = yang.compile([y1])
     body = xml.decode('<c2 xmlns="urn:example:y1"><l2>v</l2></c2>')
     gd = from_xml_path(s, body, ["y1:c1", "c2"], "replace")
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "c2"): yang.gdata.Replace({
-                yang.gdata.Id("urn:example:y1", "l2"): yang.gdata.Leaf("v")
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "c2"): ygdata.Replace({
+                ygdata.Id("urn:example:y1", "l2"): ygdata.Leaf("v")
             })
         }, ns='urn:example:y1', module='y1')
     })
@@ -1690,10 +1690,10 @@ def _test_json_path_replace_container():
 
     s = yang.compile([y1])
     gd = from_json_path(s, {"y1:c2": {"l2": "v"}}, ["y1:c1", "c2"], "replace")
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "c2"): yang.gdata.Replace({
-                yang.gdata.Id("urn:example:y1", "l2"): yang.gdata.Leaf("v")
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "c2"): ygdata.Replace({
+                ygdata.Id("urn:example:y1", "l2"): ygdata.Leaf("v")
             })
         }, ns='urn:example:y1', module='y1')
     })
@@ -1717,12 +1717,12 @@ def _test_json_path_replace_list_element():
 
     s = yang.compile([y1])
     gd = from_json_path(s, {"y1:l1": [{"name": "test", "value": "data"}]}, ["y1:c1", "l1", "test"], "replace")
-    expected = yang.gdata.Container({
-        yang.gdata.Id("urn:example:y1", "c1"): yang.gdata.Container({
-            yang.gdata.Id("urn:example:y1", "l1"): yang.gdata.List([yang.gdata.Id("urn:example:y1", "name")], elements=[
-                yang.gdata.Replace({
-                    yang.gdata.Id("urn:example:y1", "name"): yang.gdata.Leaf('test'),
-                    yang.gdata.Id("urn:example:y1", "value"): yang.gdata.Leaf('data')
+    expected = ygdata.Container({
+        ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
+            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+                ygdata.Replace({
+                    ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test'),
+                    ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('data')
                 })
             ])
         }, ns='urn:example:y1', module='y1')

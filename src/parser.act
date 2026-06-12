@@ -1,6 +1,6 @@
 import testing
 
-import yang.schema
+import schema as yschema
 
 class EOF(Exception):
     def __init__(self):
@@ -237,7 +237,7 @@ def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, s
 
 # Parser functions
 
-def parse_statement(state: TokenizerState, parent: ?yang.schema.Statement) -> yang.schema.Statement:
+def parse_statement(state: TokenizerState, parent: ?yschema.Statement) -> yschema.Statement:
     """Parse a single statement using mutable state"""
     # Get keyword
     identifier, prefix = parse_keyword(state)
@@ -259,7 +259,7 @@ def parse_statement(state: TokenizerState, parent: ?yang.schema.Statement) -> ya
         state.is_1_1 = True
         state.strict_quoting = True
 
-    stmt = yang.schema.Statement(identifier, arg, prefix)
+    stmt = yschema.Statement(identifier, arg, prefix)
 
     # Check for substatements
     tok = peek_char(state)
@@ -282,7 +282,7 @@ def parse_statement(state: TokenizerState, parent: ?yang.schema.Statement) -> ya
 
     return stmt
 
-def parse(text: str, strict_quoting: bool=True) -> yang.schema.Statement:
+def parse(text: str, strict_quoting: bool=True) -> yschema.Statement:
     """Main entry point for parsing YANG text"""
     state = TokenizerState(text, strict_quoting=strict_quoting)
     try:
@@ -355,14 +355,14 @@ class YangParser(object):
     """Compatibility wrapper around functional parser"""
     tokenizer: YangTokenizer
     pos: Position
-    top: yang.schema.Statement
+    top: yschema.Statement
     last_line: int
 
     def __init__(self, text: str, ref=None, strict_quoting: bool=True):
         self.pos = Position(ref)
         self.last_line = 0
         self.tokenizer = YangTokenizer(text, self.pos, strict_quoting=strict_quoting)
-        self.top = yang.schema.Statement("", None)  # Initialize with dummy value
+        self.top = yschema.Statement("", None)  # Initialize with dummy value
 
         try:
             self.top = self._parse_statement(None)

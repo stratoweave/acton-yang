@@ -4,9 +4,9 @@ import fs
 import time
 import testing
 
-import yang
-import yang.parser
-import yang.schema
+import lib as yang
+import parser as yparser
+import schema as yschema
 import transform_unions
 import transform_explicit_cases
 
@@ -37,10 +37,10 @@ proc def cmd_transform(env, file_cap, args):
         print("Error reading file {infile}: {e}", err=True)
         env.exit(1)
     else:
-        y = yang.parser.parse(yang_content)
+        y = yparser.parse(yang_content)
 
         if len(transforms) > 0:
-            n = yang.schema.stmt_to_snode(y)
+            n = yschema.stmt_to_snode(y)
             for transform in transforms:
                 if transform == "unions":
                     print("Applying transform '{transform}' to {infile}", err=True)

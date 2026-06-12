@@ -1,4 +1,4 @@
-name = "acton_yang"
-fingerprint = 0x1292d3dcddba7a43
+name = "yang"
+fingerprint = 0x56ce23cf970feda5
 dependencies = {}
 zig_dependencies = {}

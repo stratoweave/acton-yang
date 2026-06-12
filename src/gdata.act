@@ -6,11 +6,11 @@ tree, and can be used to serialize and deserialize YANG data.
 
 import base64
 import testing
-import json
-import xml
+import std.json as json
+import std.xml as xml
 
-from yang.identityref import Identityref, PartialIdentityref
-from yang.type import Decimal
+from identityref import Identityref, PartialIdentityref
+from type import Decimal
 
 # kinds of things?
 # - container

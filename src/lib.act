@@ -1,9 +1,9 @@
 import file
 import hash.wyhash as wyhash
-import json
+import std.json as json
 
-import yang.parser
-import yang.schema
+import parser as yparser
+import schema as yschema
 import transform_explicit_cases
 import transform_remove_empty_refines
 import transform_repair_patterns
@@ -66,16 +66,16 @@ extension NameRevMap[T](Collection[(str, (?str, T))]):
         return len(self.items)
 
 
-def parse_statements(yang_sources: list[str], strict_quoting: bool=False) -> list[yang.schema.Statement]:
+def parse_statements(yang_sources: list[str], strict_quoting: bool=False) -> list[yschema.Statement]:
     """Parse a list of YANG source strings into Statement trees
 
     This function takes YANG module source code as strings and parses them into
     Statement tree representations. Each YANG source is parsed independently.
     """
-    return [yang.parser.parse(src, strict_quoting) for src in yang_sources]
+    return [yparser.parse(src, strict_quoting) for src in yang_sources]
 
 
-def parse_modules(yang_sources: Iterable[yang.schema.Statement]) -> NameRevMap[yang.schema.Module]:
+def parse_modules(yang_sources: Iterable[yschema.Statement]) -> NameRevMap[yschema.Module]:
     """Parse and merge the YANG Statement trees into Module nodes
 
     This function takes a (iterable of) Statement trees and converts them into a
@@ -84,11 +84,11 @@ def parse_modules(yang_sources: Iterable[yang.schema.Statement]) -> NameRevMap[y
 
     Returns a name-and-revision map of Module nodes.
     """
-    modules: NameRevMap[yang.schema.Module] = NameRevMap()
-    submodules: NameRevMap[yang.schema.Submodule] = NameRevMap()
+    modules: NameRevMap[yschema.Module] = NameRevMap()
+    submodules: NameRevMap[yschema.Submodule] = NameRevMap()
 
     for yang_source in yang_sources:
-        yang_module = yang.schema.stmt_to_snode(yang_source)
+        yang_module = yschema.stmt_to_snode(yang_source)
         # Normalize schema: wrap standalone data nodes in "choice" with explicit "case"
         transform_explicit_cases.create_explicit_cases(yang_module)
         # Remove empty (no statements in block) refinements from the schema tree.
@@ -101,10 +101,10 @@ def parse_modules(yang_sources: Iterable[yang.schema.Statement]) -> NameRevMap[y
         transform_remove_empty_refines.remove_empty_refines(yang_module)
         # Repair known broken yang model string patterns
         transform_repair_patterns.repair_patterns(yang_module)
-        if isinstance(yang_module, yang.schema.Module):
+        if isinstance(yang_module, yschema.Module):
             modrev = yang_module.get_modrev()
             modules.add(modrev.modname, modrev.rev, yang_module)
-        elif isinstance(yang_module, yang.schema.Submodule):
+        elif isinstance(yang_module, yschema.Submodule):
             modrev = yang_module.get_modrev()
             submodules.add(modrev.modname, modrev.rev, yang_module)
 
@@ -146,7 +146,7 @@ def parse_modules(yang_sources: Iterable[yang.schema.Statement]) -> NameRevMap[y
 
                         combined_import_prefixes.add(sub_import.module, sub_import.revision_date, prefix_to_use)
 
-                        new_import = yang.schema.Import(sub_import.module,
+                        new_import = yschema.Import(sub_import.module,
                                                         description=sub_import.description,
                                                         prefix=prefix_to_use,
                                                         reference=sub_import.reference,
@@ -186,7 +186,7 @@ def parse_modules(yang_sources: Iterable[yang.schema.Statement]) -> NameRevMap[y
 
                     # Apply all prefix remappings to augment paths and content
                     for old_pfx, new_pfx in prefix_remaps.items():
-                        aug.target_node = yang.schema.remap_path_prefix(aug.target_node, old_pfx, new_pfx)
+                        aug.target_node = yschema.remap_path_prefix(aug.target_node, old_pfx, new_pfx)
                         aug.remap_prefix_references(old_pfx, new_pfx)
 
                 m.augment.extend(submod.augment)
@@ -197,7 +197,7 @@ def parse_modules(yang_sources: Iterable[yang.schema.Statement]) -> NameRevMap[y
                 for dev in submod.deviation:
                     remapped_dev = dev
                     for old_pfx, new_pfx in prefix_remaps.items():
-                        remapped_dev = yang.schema.remap_path_prefix(remapped_dev, old_pfx, new_pfx)
+                        remapped_dev = yschema.remap_path_prefix(remapped_dev, old_pfx, new_pfx)
                     m.deviation.append(remapped_dev)
 
                 # Update extension nodes
@@ -247,7 +247,7 @@ def parse_modules(yang_sources: Iterable[yang.schema.Statement]) -> NameRevMap[y
     return modules
 
 
-def compile_modules(modules: NameRevMap[yang.schema.Module]) -> list[yang.schema.Module]:
+def compile_modules(modules: NameRevMap[yschema.Module]) -> list[yschema.Module]:
     """Compile a list of YANG modules
 
     This function compiles the list of input Module nodes. Compiling a module
@@ -259,8 +259,8 @@ def compile_modules(modules: NameRevMap[yang.schema.Module]) -> list[yang.schema
     Typedef, ...) still present.
     """
     # Compile in dependency by import depth-first search
-    ctx = yang.schema.Context()
-    build_stack: list[(yang.schema.Module, list[yang.schema.Import])] = []
+    ctx = yschema.Context()
+    build_stack: list[(yschema.Module, list[yschema.Import])] = []
     while True:
         if len(build_stack) > 0:
             m, unresolved_imports = build_stack.pop()
@@ -280,7 +280,7 @@ def compile_modules(modules: NameRevMap[yang.schema.Module]) -> list[yang.schema
                 except Exception as ex:
                     raise ValueError("{m.name} - Compile - Failed: {ex.error_message}")
                 else:
-                    if isinstance(mc, yang.schema.Module):
+                    if isinstance(mc, yschema.Module):
                         ctx.add_module(mc)
                     else:
                         raise ValueError(m.name + " - Compile - Failed: not a module")
@@ -290,7 +290,7 @@ def compile_modules(modules: NameRevMap[yang.schema.Module]) -> list[yang.schema
         else:
             break
 
-    no_rev_modules: list[yang.schema.Module] = []
+    no_rev_modules: list[yschema.Module] = []
     for mod_rev, m in ctx.modules.items():
         mod_rev_rev = mod_rev.rev
         if mod_rev_rev is None:
@@ -298,31 +298,31 @@ def compile_modules(modules: NameRevMap[yang.schema.Module]) -> list[yang.schema
         m.resolve_compiled_schema_path_dependencies()
     return no_rev_modules
 
-def compile_to_dmodules(modules: list[yang.schema.Module]) -> list[yang.schema.DModule]:
+def compile_to_dmodules(modules: list[yschema.Module]) -> list[yschema.DModule]:
     """Compile a list of Module to DModule nodes
 
     This is an intermediate step in compiling the schema, as what we usually do
     is then combine those DModule objects into a single DRoot object.
     """
-    dmodules: list[yang.schema.DModule] = []
-    context = yang.schema.DTypeContext()
+    dmodules: list[yschema.DModule] = []
+    context = yschema.DTypeContext()
     for m in modules:
         dm = m.to_dnode(context)
-        if isinstance(dm, yang.schema.DModule):
+        if isinstance(dm, yschema.DModule):
             dmodules.append(dm)
     return dmodules
 
 
-def compile_to_droot(dmodules: list[yang.schema.DModule], allow_failure: ?list[str]=None) -> yang.schema.DRoot:
+def compile_to_droot(dmodules: list[yschema.DModule], allow_failure: ?list[str]=None) -> yschema.DRoot:
     """Compile a list of DModules into a DRoot object
 
     This function is the final step in compiling the schema. It takes a list of
     DModules and combines them into a single DRoot object.
     """
-    return yang.schema.DRoot.from_modules(dmodules, allow_failure)
+    return yschema.DRoot.from_modules(dmodules, allow_failure)
 
 
-def _load_cached_statement(fc: file.FileCap, cache_file: str) -> ?yang.schema.Statement:
+def _load_cached_statement(fc: file.FileCap, cache_file: str) -> ?yschema.Statement:
     """Try to load cached Statement from JSON file"""
     rfc = file.ReadFileCap(fc)
 
@@ -344,12 +344,12 @@ def _load_cached_statement(fc: file.FileCap, cache_file: str) -> ?yang.schema.St
 
         if json_data is not None:
             try:
-                return yang.schema.Statement.from_dict(json_data)
+                return yschema.Statement.from_dict(json_data)
             except Exception:
                 return None
 
 
-def _save_statement_to_cache(fc: file.FileCap, cache_file: str, stmt: yang.schema.Statement):
+def _save_statement_to_cache(fc: file.FileCap, cache_file: str, stmt: yschema.Statement):
     """Save Statement to cache as JSON"""
     wfc = file.WriteFileCap(fc)
     json_content = json.encode(stmt.to_dict(), pretty=True)
@@ -358,7 +358,7 @@ def _save_statement_to_cache(fc: file.FileCap, cache_file: str, stmt: yang.schem
     wf.close()
 
 
-def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.FileCap, allow_failure: ?list[str]=None) -> yang.schema.DRoot:
+def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.FileCap, allow_failure: ?list[str]=None) -> yschema.DRoot:
     """Parse and compile a set of YANG modules and submodules into a derived schema tree, but with Statement caching.
 
     This function is equivalent to the compile function, except that it caches
@@ -369,7 +369,7 @@ def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.Fi
     cache_dir = [fs.homedir(), ".cache", "ayang"]
     fs.mkdir(file.join_path(cache_dir))
 
-    statements: list[yang.schema.Statement] = []
+    statements: list[yschema.Statement] = []
 
     for src in yang_sources:
         content_hash = str(wyhash.hash(0, src.encode()))
@@ -381,18 +381,18 @@ def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.Fi
         if stmt is not None:
             statements.append(stmt)
         else:
-            new_stmt = yang.parser.parse(src, strict_quoting)
+            new_stmt = yparser.parse(src, strict_quoting)
             _save_statement_to_cache(fc, cache_path, new_stmt)
             statements.append(new_stmt)
 
     return compile_to_droot(compile_to_dmodules(compile_modules(parse_modules(statements))), allow_failure)
 
 
-def compile_from_stmt(yang_statements: list[yang.schema.Statement]):
+def compile_from_stmt(yang_statements: list[yschema.Statement]):
     return compile_to_droot(compile_to_dmodules(compile_modules(parse_modules(yang_statements))))
 
 
-def compile(yang_sources: list[str], strict_quoting=True, allow_failure: ?list[str]=None) -> yang.schema.DRoot:
+def compile(yang_sources: list[str], strict_quoting=True, allow_failure: ?list[str]=None) -> yschema.DRoot:
     """Parse and compile a set of YANG modules and submodules into a derived schema tree
 
     The derived schema tree combines all processed modules and submodules into
@@ -411,7 +411,7 @@ def compile(yang_sources: list[str], strict_quoting=True, allow_failure: ?list[s
     )
 
 
-def schema_from_src(src: str) -> yang.schema.SchemaNode:
+def schema_from_src(src: str) -> yschema.SchemaNode:
     """Parse a single YANG schema from source code into the SchemaNode representation
     """
-    return yang.schema.stmt_to_snode(yang.parser.parse(src))
+    return yschema.stmt_to_snode(yparser.parse(src))

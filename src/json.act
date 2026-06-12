@@ -1,15 +1,15 @@
 import base64
 
-from yang.identityref import Identityref, PartialIdentityref
-from yang.type import Decimal
-from yang.data import from_data, YangData, PathElement, YangValidationError
-from yang.data import unwrap_key, coerce_integer_value
-import yang.gdata
-import yang.schema
+from identityref import Identityref, PartialIdentityref
+from type import Decimal
+from data import from_data, YangData, PathElement, YangValidationError
+from data import unwrap_key, coerce_integer_value
+import gdata as ygdata
+import schema as yschema
 
 
 extension dict[A(Hashable), B] (YangData):
-    def take_container(self, schema: yang.schema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
+    def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             maybe = None
             # For cross-namespace children, only accept module-qualified keys
@@ -21,7 +21,7 @@ extension dict[A(Hashable), B] (YangData):
                 return (op=None, val=maybe)
         return None
 
-    def take_list(self, schema: yang.schema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
+    def take_list(self, schema: yschema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             lv = None
@@ -40,7 +40,7 @@ extension dict[A(Hashable), B] (YangData):
                 return [(op=None, key=key_values(le), val=le) for le in lv]
         return []
 
-    def take_leaf(self, root: yang.schema.DRoot, schema: yang.schema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
+    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
         new_path = path + [PathElement(schema)]
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             leaf_value = None
@@ -57,7 +57,7 @@ extension dict[A(Hashable), B] (YangData):
         else:
             return None
 
-    def take_leaflist(self, root: yang.schema.DRoot, schema: yang.schema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
+    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
         values: list[(op: ?str, t: str, val: ?value)] = []
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             leaflist_data = None
@@ -74,7 +74,7 @@ extension dict[A(Hashable), B] (YangData):
         return values
 
 
-def try_parse_json_value(leaf_value: ?value, schema_node: yang.schema.DNodeLeaf, schema_type: yang.schema.DType, path: list[PathElement], root: yang.schema.DRoot) -> ?(t: str, val: value):
+def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, schema_type: yschema.DType, path: list[PathElement], root: yschema.DRoot) -> ?(t: str, val: value):
     """Parse a textual value according to the provided schema type.
 
     Returns:
@@ -89,7 +89,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yang.schema.DNodeLeaf,
     """
     type_name = schema_type.builtin_type
 
-    if isinstance(schema_type, yang.schema.DTypeUnion):
+    if isinstance(schema_type, yschema.DTypeUnion):
         for alt_type in schema_type.types:
             try:
                 return try_parse_json_value(leaf_value, schema_node, alt_type, path, root)
@@ -98,24 +98,24 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yang.schema.DNodeLeaf,
         if leaf_value is not None:
             raise YangValidationError(path, schema_type, leaf_value)
         return None
-    elif isinstance(schema_type, yang.schema.DTypeEmpty):
+    elif isinstance(schema_type, yschema.DTypeEmpty):
         # Empty leaf JSON encoding: [null]
         if isinstance(leaf_value, list) and len(leaf_value) == 1 and leaf_value[0] is None:
-            return (t=type_name, val=yang.gdata.Present())
+            return (t=type_name, val=ygdata.Present())
         raise YangValidationError(path, schema_type, leaf_value)
 
     if leaf_value is not None:
         val: ?value = None
-        if isinstance(schema_type, yang.schema.DTypeString):
+        if isinstance(schema_type, yschema.DTypeString):
             val = leaf_value
-        elif isinstance(schema_type, yang.schema.DTypeInteger):
+        elif isinstance(schema_type, yschema.DTypeInteger):
             if isinstance(leaf_value, atom):
                 val = coerce_integer_value(leaf_value, schema_type, path)
             else:
                 raise YangValidationError(path, schema_type, leaf_value)
-        elif isinstance(schema_type, yang.schema.DTypeEnum):
+        elif isinstance(schema_type, yschema.DTypeEnum):
             val = leaf_value
-        elif isinstance(schema_type, yang.schema.DTypeDecimal64):
+        elif isinstance(schema_type, yschema.DTypeDecimal64):
             if isinstance(leaf_value, str):
                 val = Decimal.try_parse(leaf_value)
             elif isinstance(leaf_value, float):
@@ -123,7 +123,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yang.schema.DNodeLeaf,
                 val = Decimal.try_parse(str(leaf_value))
             else:
                 val = leaf_value
-        elif isinstance(schema_type, yang.schema.DTypeBoolean):
+        elif isinstance(schema_type, yschema.DTypeBoolean):
             if isinstance(leaf_value, str):
                 if leaf_value == "true":
                     val = True
@@ -131,7 +131,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yang.schema.DNodeLeaf,
                     val = False
             else:
                 val = leaf_value
-        elif isinstance(schema_type, yang.schema.DTypeBinary):
+        elif isinstance(schema_type, yschema.DTypeBinary):
             if isinstance(leaf_value, str):
                 try:
                     val = base64.decode(leaf_value.encode())
@@ -139,21 +139,21 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yang.schema.DNodeLeaf,
                     pass
             else:
                 val = leaf_value
-        elif isinstance(schema_type, yang.schema.DTypeIdentityref):
+        elif isinstance(schema_type, yschema.DTypeIdentityref):
             if isinstance(leaf_value, str):
                 partial = Identityref.from_json(leaf_value)
-                res = yang.schema.complete_identityref(partial, root.identities, schema_node.module)
+                res = yschema.complete_identityref(partial, root.identities, schema_node.module)
                 val = res.0
             else:
                 val = leaf_value
-        elif isinstance(schema_type, yang.schema.DTypeLeafref):
+        elif isinstance(schema_type, yschema.DTypeLeafref):
             target_type = schema_type.target_type
             if target_type is not None:
                 return try_parse_json_value(leaf_value, schema_node, target_type, path, root)
             raise YangValidationError(path, schema_type, leaf_value)
-        elif isinstance(schema_type, yang.schema.DTypeInstanceIdentifier):
+        elif isinstance(schema_type, yschema.DTypeInstanceIdentifier):
             val = leaf_value
-        elif isinstance(schema_type, yang.schema.DTypeBits):
+        elif isinstance(schema_type, yschema.DTypeBits):
             if isinstance(leaf_value, str):
                 bits_val = set(None)
                 for bit in leaf_value.split(" "):
@@ -173,7 +173,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yang.schema.DNodeLeaf,
     return None
 
 
-def from_json(root: yang.schema.DRoot, data: dict[str, ?value], loose: bool=False, root_path: list[str]=[]) -> yang.gdata.Container:
+def from_json(root: yschema.DRoot, data: dict[str, ?value], loose: bool=False, root_path: list[str]=[]) -> ygdata.Container:
     def type_narrower(v):
         if isinstance(v, dict):
             return v

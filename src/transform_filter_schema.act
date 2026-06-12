@@ -1,13 +1,13 @@
 import testing
 
-import yang
-import yang.schema
-import yang.parser
+import lib as yang
+import schema as yschema
+import parser as yparser
 from transform_utils import resolve_filter_paths
 
 
 
-mut def filter_schema(node: yang.schema.DNode, filter_paths: list[str]) -> None:
+mut def filter_schema(node: yschema.DNode, filter_paths: list[str]) -> None:
     """Filter a compiled schema tree to only include nodes in the filter_paths list.
 
     This modifies the schema in place, removing any nodes whose paths are not
@@ -42,19 +42,19 @@ mut def filter_schema(node: yang.schema.DNode, filter_paths: list[str]) -> None:
         # Direct match or ancestor of filtered path
         return path in resolved_filter_paths or any([fp.startswith(path + "/") for fp in resolved_filter_paths])
 
-    def filter_node_recursive(node: yang.schema.DNode, path: list[yang.schema.DNode]) -> bool:
+    def filter_node_recursive(node: yschema.DNode, path: list[yschema.DNode]) -> bool:
         """Recursively filter the schema tree.
         Returns True if this node should be kept.
         """
         new_path = path + [node]
-        node_path = yang.schema.get_path(new_path)
+        node_path = yschema.get_path(new_path)
 
         if not should_keep_node(node_path):
             return False
 
         # Filter children if this is an inner node
-        if isinstance(node, yang.schema.DNodeInner):
-            is_presence = isinstance(node, yang.schema.DContainer) and node.presence
+        if isinstance(node, yschema.DNodeInner):
+            is_presence = isinstance(node, yschema.DContainer) and node.presence
             is_listed = node_path in resolved_filter_paths
             has_listed_children = any([fp.startswith(node_path + "/") for fp in resolved_filter_paths])
 
@@ -69,7 +69,7 @@ mut def filter_schema(node: yang.schema.DNode, filter_paths: list[str]) -> None:
         return True
 
     # Handle root node specially - always keep it
-    if isinstance(node, yang.schema.DRoot):
+    if isinstance(node, yschema.DRoot):
         node.children = [
             child for child in node.children
             if filter_node_recursive(child, [node])
@@ -132,9 +132,9 @@ test_yang = r"""module test_filter {
 
 
 # Test helper functions
-def _assert_children(node: yang.schema.DNode, expected_names: list[str], msg: str=""):
+def _assert_children(node: yschema.DNode, expected_names: list[str], msg: str=""):
     """Assert that a node has exactly the expected children."""
-    if isinstance(node, yang.schema.DNodeInner):
+    if isinstance(node, yschema.DNodeInner):
         actual_names = [child.name for child in node.children]
         testing.assertEqual(len(actual_names), len(expected_names),
                             f"{msg}: expected {len(expected_names)} children, got {len(actual_names)}")
@@ -143,16 +143,16 @@ def _assert_children(node: yang.schema.DNode, expected_names: list[str], msg: st
     else:
         testing.error("node is not DNodeInner")
 
-def _assert_no_children(node: yang.schema.DNode, excluded_names: list[str], msg: str=""):
+def _assert_no_children(node: yschema.DNode, excluded_names: list[str], msg: str=""):
     """Assert that a node doesn't have the specified children."""
-    if isinstance(node, yang.schema.DNodeInner):
+    if isinstance(node, yschema.DNodeInner):
         actual_names = [child.name for child in node.children]
         for name in excluded_names:
             testing.assertNotIn(name, actual_names, f"{msg}: {name} should not be present")
     else:
         testing.error("node is not DNodeInner")
 
-def _compile_and_filter(yang_src: str, filter_paths: list[str]) -> yang.schema.DRoot:
+def _compile_and_filter(yang_src: str, filter_paths: list[str]) -> yschema.DRoot:
     """Compile YANG source and apply filter."""
     root = yang.compile([yang_src])
     filter_schema(root, filter_paths)
@@ -200,11 +200,11 @@ def _test_filter_specific_children():
 
 
 def _test_filter_get_path_output():
-    """Test filtering with paths produced by yang.schema.get_path"""
+    """Test filtering with paths produced by yschema.get_path"""
     root0 = yang.compile([test_yang])
     c1 = root0.get("c1")
     l1 = c1.get("l1")
-    path = yang.schema.get_path([root0, c1, l1])
+    path = yschema.get_path([root0, c1, l1])
 
     root = _compile_and_filter(test_yang, [path])
 
@@ -290,7 +290,7 @@ def _test_presence_container_only():
 
     pc = root.get("presence_container")
     testing.assertNotNone(pc, "presence_container should be present")
-    if isinstance(pc, yang.schema.DContainer):
+    if isinstance(pc, yschema.DContainer):
         testing.assertEqual(len(pc.children), 0, "presence_container should have no children")
 
     # Other containers should not be present

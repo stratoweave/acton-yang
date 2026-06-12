@@ -1,6 +1,6 @@
 from transform_explicit_cases import create_explicit_cases
 import testing
-import yang
+import lib as yang
 
 def _test_transform_explicit_cases():
     test_yang = r"""module test_explicit_cases {
