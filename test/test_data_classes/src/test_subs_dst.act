@@ -1,5 +1,5 @@
 import testing
-import xml
+import std.xml as xml
 import yang.gdata as gdata
 import yang_filter_test_oper as ft_oper
 

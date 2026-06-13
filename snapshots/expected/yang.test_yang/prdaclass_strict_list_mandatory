@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -35,7 +35,7 @@ NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
-class foo__l1_entry(yang.adata.MNode):
+class foo__l1_entry(yadata.MNode):
     name: str
     id: str
 
@@ -49,19 +49,19 @@ class foo__l1_entry(yang.adata.MNode):
         if name == 'foo:id':
             return self.id
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> foo__l1_entry:
-        return foo__l1_entry(name=n.get_str(yang.gdata.Id(NS_foo, 'name')), id=n.get_str(yang.gdata.Id(NS_foo, 'id')))
+    mut def from_gdata(n: ygdata.Node) -> foo__l1_entry:
+        return foo__l1_entry(name=n.get_str(ygdata.Id(NS_foo, 'name')), id=n.get_str(ygdata.Id(NS_foo, 'id')))
 
     mut def copy(self) -> foo__l1_entry:
         """Create a deep copy of this adata object"""
         return foo__l1_entry.from_gdata(self.to_gdata())
 
 _breaker2: None = None
-class foo__l1(yang.adata.MNode):
+class foo__l1(yadata.MNode):
     elements: list[foo__l1_entry]
     mut def __init__(self, elements: list[foo__l1_entry]=[]) -> None:
         self.elements = elements
@@ -82,7 +82,7 @@ class foo__l1(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[foo__l1_entry]:
+    mut def from_gdata(n: ?ygdata.List) -> list[foo__l1_entry]:
         if n is not None:
             return [foo__l1_entry.from_gdata(e) for e in n.elements]
         return []

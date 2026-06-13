@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -45,7 +45,7 @@ NS_voice: str = 'http://example.com/voice'
 
 
 _breaker1: None = None
-class base__native__voice__service__voip__sip(yang.adata.MNode):
+class base__native__voice__service__voip__sip(yadata.MNode):
     bind: ?str
     port: u64
 
@@ -59,13 +59,13 @@ class base__native__voice__service__voip__sip(yang.adata.MNode):
         if name == 'voice:port':
             return self.port
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip', 'sip'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip', 'sip'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__native__voice__service__voip__sip:
+    mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service__voip__sip:
         if n is not None:
-            return base__native__voice__service__voip__sip(bind=n.get_opt_str(yang.gdata.Id(NS_voice, 'bind')), port=n.get_opt_u64(yang.gdata.Id(NS_voice, 'port')))
+            return base__native__voice__service__voip__sip(bind=n.get_opt_str(ygdata.Id(NS_voice, 'bind')), port=n.get_opt_u64(ygdata.Id(NS_voice, 'port')))
         return base__native__voice__service__voip__sip()
 
     mut def copy(self) -> base__native__voice__service__voip__sip:
@@ -74,7 +74,7 @@ class base__native__voice__service__voip__sip(yang.adata.MNode):
 
 
 _breaker2: None = None
-class base__native__voice__service__voip(yang.adata.MNode):
+class base__native__voice__service__voip(yadata.MNode):
     enabled: bool
     sip: base__native__voice__service__voip__sip
 
@@ -88,13 +88,13 @@ class base__native__voice__service__voip(yang.adata.MNode):
         if name == 'voice:sip':
             return self.sip
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__native__voice__service__voip:
+    mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service__voip:
         if n is not None:
-            return base__native__voice__service__voip(enabled=n.get_opt_bool(yang.gdata.Id(NS_voice, 'enabled')), sip=base__native__voice__service__voip__sip.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'sip'))))
+            return base__native__voice__service__voip(enabled=n.get_opt_bool(ygdata.Id(NS_voice, 'enabled')), sip=base__native__voice__service__voip__sip.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'sip'))))
         return base__native__voice__service__voip()
 
     mut def copy(self) -> base__native__voice__service__voip:
@@ -103,7 +103,7 @@ class base__native__voice__service__voip(yang.adata.MNode):
 
 
 _breaker3: None = None
-class base__native__voice__service(yang.adata.MNode):
+class base__native__voice__service(yadata.MNode):
     voip: base__native__voice__service__voip
 
     mut def __init__(self, voip: ?base__native__voice__service__voip=None) -> None:
@@ -113,13 +113,13 @@ class base__native__voice__service(yang.adata.MNode):
         if name == 'voice:voip':
             return self.voip
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__native__voice__service:
+    mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service:
         if n is not None:
-            return base__native__voice__service(voip=base__native__voice__service__voip.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'voip'))))
+            return base__native__voice__service(voip=base__native__voice__service__voip.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'voip'))))
         return base__native__voice__service()
 
     mut def copy(self) -> base__native__voice__service:
@@ -128,7 +128,7 @@ class base__native__voice__service(yang.adata.MNode):
 
 
 _breaker4: None = None
-class base__native__voice(yang.adata.MNode):
+class base__native__voice(yadata.MNode):
     service: base__native__voice__service
 
     mut def __init__(self, service: ?base__native__voice__service=None) -> None:
@@ -138,13 +138,13 @@ class base__native__voice(yang.adata.MNode):
         if name == 'voice:service':
             return self.service
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__native__voice:
+    mut def from_gdata(n: ?ygdata.Node) -> base__native__voice:
         if n is not None:
-            return base__native__voice(service=base__native__voice__service.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'service'))))
+            return base__native__voice(service=base__native__voice__service.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'service'))))
         return base__native__voice()
 
     mut def copy(self) -> base__native__voice:
@@ -153,7 +153,7 @@ class base__native__voice(yang.adata.MNode):
 
 
 _breaker5: None = None
-class base__native(yang.adata.MNode):
+class base__native(yadata.MNode):
     voice: base__native__voice
 
     mut def __init__(self, voice: ?base__native__voice=None) -> None:
@@ -163,13 +163,13 @@ class base__native(yang.adata.MNode):
         if name == 'voice:voice':
             return self.voice
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__native:
+    mut def from_gdata(n: ?ygdata.Node) -> base__native:
         if n is not None:
-            return base__native(voice=base__native__voice.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_voice, 'voice'))))
+            return base__native(voice=base__native__voice.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'voice'))))
         return base__native()
 
     mut def copy(self) -> base__native:
@@ -178,7 +178,7 @@ class base__native(yang.adata.MNode):
 
 
 _breaker6: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     native: base__native
 
     mut def __init__(self, native: ?base__native=None) -> None:
@@ -188,13 +188,13 @@ class root(yang.adata.MNode):
         if name == 'base:native':
             return self.native
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(native=base__native.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base, 'native'))))
+            return root(native=base__native.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base, 'native'))))
         return root()
 
     mut def copy(self) -> root:
@@ -202,6 +202,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 

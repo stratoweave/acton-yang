@@ -1,4 +1,4 @@
-from yang_foo import *
+from ayang_test_data_classes.yang_foo import *
 from yang.identityref import Identityref
 from yang.type import Decimal
 

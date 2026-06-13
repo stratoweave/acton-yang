@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -42,7 +42,7 @@ NS_parent: str = 'http://example.com/parent'
 
 
 _breaker1: None = None
-class parent__parent_container(yang.adata.MNode):
+class parent__parent_container(yadata.MNode):
     parent_leaf: ?str
     augmented_leaf: ?str
 
@@ -56,13 +56,13 @@ class parent__parent_container(yang.adata.MNode):
         if name == 'parent:augmented-leaf':
             return self.augmented_leaf
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:parent-container'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:parent-container'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> parent__parent_container:
+    mut def from_gdata(n: ?ygdata.Node) -> parent__parent_container:
         if n is not None:
-            return parent__parent_container(parent_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'parent-leaf')), augmented_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'augmented-leaf')))
+            return parent__parent_container(parent_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'parent-leaf')), augmented_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'augmented-leaf')))
         return parent__parent_container()
 
     mut def copy(self) -> parent__parent_container:
@@ -71,7 +71,7 @@ class parent__parent_container(yang.adata.MNode):
 
 
 _breaker2: None = None
-class parent__sub_container(yang.adata.MNode):
+class parent__sub_container(yadata.MNode):
     sub_leaf: ?str
     another_leaf: ?str
 
@@ -85,13 +85,13 @@ class parent__sub_container(yang.adata.MNode):
         if name == 'parent:another-leaf':
             return self.another_leaf
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:sub-container'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:sub-container'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> parent__sub_container:
+    mut def from_gdata(n: ?ygdata.Node) -> parent__sub_container:
         if n is not None:
-            return parent__sub_container(sub_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'sub-leaf')), another_leaf=n.get_opt_str(yang.gdata.Id(NS_parent, 'another-leaf')))
+            return parent__sub_container(sub_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'sub-leaf')), another_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'another-leaf')))
         return parent__sub_container()
 
     mut def copy(self) -> parent__sub_container:
@@ -100,7 +100,7 @@ class parent__sub_container(yang.adata.MNode):
 
 
 _breaker3: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     parent_container: parent__parent_container
     sub_container: parent__sub_container
 
@@ -114,13 +114,13 @@ class root(yang.adata.MNode):
         if name == 'parent:sub-container':
             return self.sub_container
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(parent_container=parent__parent_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_parent, 'parent-container'))), sub_container=parent__sub_container.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_parent, 'sub-container'))))
+            return root(parent_container=parent__parent_container.from_gdata(n.get_opt_cnt(ygdata.Id(NS_parent, 'parent-container'))), sub_container=parent__sub_container.from_gdata(n.get_opt_cnt(ygdata.Id(NS_parent, 'sub-container'))))
         return root()
 
     mut def copy(self) -> root:
@@ -128,6 +128,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 

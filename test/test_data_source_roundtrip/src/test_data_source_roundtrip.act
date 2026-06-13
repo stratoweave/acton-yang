@@ -1,13 +1,13 @@
 import diff
 import file
 import testing
-import xml
+import std.xml as xml
 
-import yang.gdata
-import yang.xml
+import yang.gdata as ygdata
+import yang.xml as yxml
 
-import yang_foo
-import test_data_classes
+import ayang_test_data_classes.yang_foo as yang_foo
+import ayang_test_data_classes.test_data_classes as test_data_classes
 
 import xml_full_gdata
 import xml_full_adata
@@ -20,7 +20,7 @@ def _test_xml_full():
 
 def _test_gdata_full():
     xml_in = xml.decode(test_data_classes.xml_text_full)
-    gd = yang.xml.from_xml(yang_foo.SRC_DNODE, xml_in)
+    gd = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
     testing.assertEqual(gd, xml_full_gdata.xml_full)
 
 def _test_adata_full():

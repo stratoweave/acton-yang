@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -75,16 +75,16 @@ NS_yangrpc: str = 'http://example.com/yangrpc'
 
 
 _breaker1: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
 
     mut def __init__(self) -> None:
         pass
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
             return root()
         return root()
@@ -95,7 +95,7 @@ class root(yang.adata.MNode):
 
 
 _breaker2: None = None
-class yangrpc__foo__input__woo(yang.adata.MNode):
+class yangrpc__foo__input__woo(yadata.MNode):
     woo_b: ?int
 
     mut def __init__(self, woo_b: ?int) -> None:
@@ -105,13 +105,13 @@ class yangrpc__foo__input__woo(yang.adata.MNode):
         if name == 'yrpc:woo_b':
             return self.woo_b
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input', 'woo'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input', 'woo'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> yangrpc__foo__input__woo:
+    mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__input__woo:
         if n is not None:
-            return yangrpc__foo__input__woo(woo_b=n.get_opt_int(yang.gdata.Id(NS_yangrpc, 'woo_b')))
+            return yangrpc__foo__input__woo(woo_b=n.get_opt_int(ygdata.Id(NS_yangrpc, 'woo_b')))
         return yangrpc__foo__input__woo()
 
     mut def copy(self) -> yangrpc__foo__input__woo:
@@ -120,7 +120,7 @@ class yangrpc__foo__input__woo(yang.adata.MNode):
 
 
 _breaker3: None = None
-class yangrpc__foo__input(yang.adata.MNode):
+class yangrpc__foo__input(yadata.MNode):
     a: ?str
     woo: yangrpc__foo__input__woo
 
@@ -134,13 +134,13 @@ class yangrpc__foo__input(yang.adata.MNode):
         if name == 'yrpc:woo':
             return self.woo
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> yangrpc__foo__input:
+    mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__input:
         if n is not None:
-            return yangrpc__foo__input(a=n.get_opt_str(yang.gdata.Id(NS_yangrpc, 'a')), woo=yangrpc__foo__input__woo.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_yangrpc, 'woo'))))
+            return yangrpc__foo__input(a=n.get_opt_str(ygdata.Id(NS_yangrpc, 'a')), woo=yangrpc__foo__input__woo.from_gdata(n.get_opt_cnt(ygdata.Id(NS_yangrpc, 'woo'))))
         return yangrpc__foo__input()
 
     mut def copy(self) -> yangrpc__foo__input:
@@ -149,7 +149,7 @@ class yangrpc__foo__input(yang.adata.MNode):
 
 
 _breaker4: None = None
-class yangrpc__foo__output(yang.adata.MNode):
+class yangrpc__foo__output(yadata.MNode):
     outoo: ?str
 
     mut def __init__(self, outoo: ?str) -> None:
@@ -159,13 +159,13 @@ class yangrpc__foo__output(yang.adata.MNode):
         if name == 'yrpc:outoo':
             return self.outoo
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'output'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'output'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> yangrpc__foo__output:
+    mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__output:
         if n is not None:
-            return yangrpc__foo__output(outoo=n.get_opt_str(yang.gdata.Id(NS_yangrpc, 'outoo')))
+            return yangrpc__foo__output(outoo=n.get_opt_str(ygdata.Id(NS_yangrpc, 'outoo')))
         return yangrpc__foo__output()
 
     mut def copy(self) -> yangrpc__foo__output:
@@ -173,11 +173,11 @@ class yangrpc__foo__output(yang.adata.MNode):
         return yangrpc__foo__output.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     def foo(cb: action(?yangrpc__foo__output, ?Exception) -> None, inp: ?yangrpc__foo__input):
         def cb_wrap(res: ?xml.Node, err: ?Exception):
             if res is not None:
-                gdata_res = yang.xml.from_xml(SRC_DNODE, res, False, ["yangrpc:foo", "output"])
+                gdata_res = yxml.from_xml(SRC_DNODE, res, False, ["yangrpc:foo", "output"])
                 adata_res = yangrpc__foo__output.from_gdata(gdata_res)
                 cb(adata_res, err)
             else:
@@ -185,7 +185,7 @@ actor rpc_root(tp: yang.gdata.TreeProvider):
 
         rpc_xml = xml.Node('foo', nsdefs=[(None, 'http://example.com/yangrpc')])
         if inp is not None:
-            gdata_inp = yang.adata.from_adata(SRC_DNODE, inp, False, ["yangrpc:foo", "input"])
+            gdata_inp = yadata.from_adata(SRC_DNODE, inp, False, ["yangrpc:foo", "input"])
             rpc_xml.children.extend(gdata_inp.to_xml())
         tp.rpc_xml(cb_wrap, rpc_xml)
 

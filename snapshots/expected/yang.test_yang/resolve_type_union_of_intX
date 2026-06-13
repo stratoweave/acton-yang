@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -38,7 +38,7 @@ NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     l1: ?int
     l2: ?u64
     l3: ?value
@@ -60,13 +60,13 @@ class root(yang.adata.MNode):
         if name == 'foo:l4':
             return self.l4
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(l1=n.get_opt_int(yang.gdata.Id(NS_foo, 'l1')), l2=n.get_opt_u64(yang.gdata.Id(NS_foo, 'l2')), l3=n.get_opt_value(yang.gdata.Id(NS_foo, 'l3')), l4=n.get_opt_value(yang.gdata.Id(NS_foo, 'l4')))
+            return root(l1=n.get_opt_int(ygdata.Id(NS_foo, 'l1')), l2=n.get_opt_u64(ygdata.Id(NS_foo, 'l2')), l3=n.get_opt_value(ygdata.Id(NS_foo, 'l3')), l4=n.get_opt_value(ygdata.Id(NS_foo, 'l4')))
         return root()
 
     mut def copy(self) -> root:
@@ -74,6 +74,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 

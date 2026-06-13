@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -37,7 +37,7 @@ NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
-class base__c1(yang.adata.MNode):
+class base__c1(yadata.MNode):
     bar_foo: ?str
     foo_foo: ?str
 
@@ -51,13 +51,13 @@ class base__c1(yang.adata.MNode):
         if name == 'foo:foo':
             return self.foo_foo
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:c1'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:c1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__c1:
+    mut def from_gdata(n: ?ygdata.Node) -> base__c1:
         if n is not None:
-            return base__c1(bar_foo=n.get_opt_str(yang.gdata.Id(NS_bar, 'foo')), foo_foo=n.get_opt_str(yang.gdata.Id(NS_foo, 'foo')))
+            return base__c1(bar_foo=n.get_opt_str(ygdata.Id(NS_bar, 'foo')), foo_foo=n.get_opt_str(ygdata.Id(NS_foo, 'foo')))
         return base__c1()
 
     mut def copy(self) -> base__c1:

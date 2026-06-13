@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -41,16 +41,16 @@ NS_base: str = 'http://example.com/base'
 
 
 _breaker1: None = None
-class base__system_capabilities__per_node_capabilities_entry(yang.adata.MNode):
+class base__system_capabilities__per_node_capabilities_entry(yadata.MNode):
 
     mut def __init__(self) -> None:
         pass
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities', 'per-node-capabilities'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities', 'per-node-capabilities'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> base__system_capabilities__per_node_capabilities_entry:
+    mut def from_gdata(n: ygdata.Node) -> base__system_capabilities__per_node_capabilities_entry:
         return base__system_capabilities__per_node_capabilities_entry()
 
     mut def copy(self) -> base__system_capabilities__per_node_capabilities_entry:
@@ -58,7 +58,7 @@ class base__system_capabilities__per_node_capabilities_entry(yang.adata.MNode):
         return base__system_capabilities__per_node_capabilities_entry.from_gdata(self.to_gdata())
 
 _breaker2: None = None
-class base__system_capabilities__per_node_capabilities(yang.adata.MNode):
+class base__system_capabilities__per_node_capabilities(yadata.MNode):
     elements: list[base__system_capabilities__per_node_capabilities_entry]
     mut def __init__(self, elements: list[base__system_capabilities__per_node_capabilities_entry]=[]) -> None:
         self.elements = elements
@@ -69,7 +69,7 @@ class base__system_capabilities__per_node_capabilities(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[base__system_capabilities__per_node_capabilities_entry]:
+    mut def from_gdata(n: ?ygdata.List) -> list[base__system_capabilities__per_node_capabilities_entry]:
         if n is not None:
             return [base__system_capabilities__per_node_capabilities_entry.from_gdata(e) for e in n.elements]
         return []
@@ -89,7 +89,7 @@ extension base__system_capabilities__per_node_capabilities(Iterable[base__system
         return self.elements.__iter__()
 
 _breaker3: None = None
-class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
+class base__system_capabilities__subscription_capabilities(yadata.MNode):
     max_nodes: u64
     supported_excluded_change_type: list[str]
 
@@ -103,13 +103,13 @@ class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
         if name == 'aug:supported-excluded-change-type':
             return self.supported_excluded_change_type
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities', 'augmenter:subscription-capabilities'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities', 'augmenter:subscription-capabilities'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__system_capabilities__subscription_capabilities:
+    mut def from_gdata(n: ?ygdata.Node) -> base__system_capabilities__subscription_capabilities:
         if n is not None:
-            return base__system_capabilities__subscription_capabilities(max_nodes=n.get_opt_u64(yang.gdata.Id(NS_augmenter, 'max-nodes')), supported_excluded_change_type=n.get_opt_strs(yang.gdata.Id(NS_augmenter, 'supported-excluded-change-type')))
+            return base__system_capabilities__subscription_capabilities(max_nodes=n.get_opt_u64(ygdata.Id(NS_augmenter, 'max-nodes')), supported_excluded_change_type=n.get_opt_strs(ygdata.Id(NS_augmenter, 'supported-excluded-change-type')))
         return base__system_capabilities__subscription_capabilities()
 
     mut def copy(self) -> base__system_capabilities__subscription_capabilities:
@@ -118,7 +118,7 @@ class base__system_capabilities__subscription_capabilities(yang.adata.MNode):
 
 
 _breaker4: None = None
-class base__system_capabilities(yang.adata.MNode):
+class base__system_capabilities(yadata.MNode):
     per_node_capabilities: base__system_capabilities__per_node_capabilities
     subscription_capabilities: base__system_capabilities__subscription_capabilities
 
@@ -132,13 +132,13 @@ class base__system_capabilities(yang.adata.MNode):
         if name == 'aug:subscription-capabilities':
             return self.subscription_capabilities
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__system_capabilities:
+    mut def from_gdata(n: ?ygdata.Node) -> base__system_capabilities:
         if n is not None:
-            return base__system_capabilities(per_node_capabilities=base__system_capabilities__per_node_capabilities.from_gdata(n.get_opt_list(yang.gdata.Id(NS_base, 'per-node-capabilities'))), subscription_capabilities=base__system_capabilities__subscription_capabilities.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_augmenter, 'subscription-capabilities'))))
+            return base__system_capabilities(per_node_capabilities=base__system_capabilities__per_node_capabilities.from_gdata(n.get_opt_list(ygdata.Id(NS_base, 'per-node-capabilities'))), subscription_capabilities=base__system_capabilities__subscription_capabilities.from_gdata(n.get_opt_cnt(ygdata.Id(NS_augmenter, 'subscription-capabilities'))))
         return base__system_capabilities()
 
     mut def copy(self) -> base__system_capabilities:
@@ -147,7 +147,7 @@ class base__system_capabilities(yang.adata.MNode):
 
 
 _breaker5: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     system_capabilities: base__system_capabilities
 
     mut def __init__(self, system_capabilities: ?base__system_capabilities=None) -> None:
@@ -157,13 +157,13 @@ class root(yang.adata.MNode):
         if name == 'base:system-capabilities':
             return self.system_capabilities
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(system_capabilities=base__system_capabilities.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base, 'system-capabilities'))))
+            return root(system_capabilities=base__system_capabilities.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base, 'system-capabilities'))))
         return root()
 
     mut def copy(self) -> root:
@@ -171,6 +171,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 

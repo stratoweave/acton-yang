@@ -4,14 +4,14 @@ import yang
 # TODO: yang.adata is a transitive dependency from yang_one, yang_foo. We import
 # it explicitly as a workaround, remove when compiler is fixed
 import yang.adata
-import yang.schema
+import yang.schema as yschema
 import yang_one
 import yang_foo
 
-def _module_name(sn: yang.schema.SchemaNode) -> str:
-    if isinstance(sn, yang.schema.Module):
+def _module_name(sn: yschema.SchemaNode) -> str:
+    if isinstance(sn, yschema.Module):
         return sn.name
-    elif isinstance(sn, yang.schema.Submodule):
+    elif isinstance(sn, yschema.Submodule):
         return sn.name
     else:
         raise ValueError("Expected Module or Submodule, got %s" % type(sn))

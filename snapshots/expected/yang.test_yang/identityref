@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -73,7 +73,7 @@ NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
-class base__config(yang.adata.MNode):
+class base__config(yadata.MNode):
     active_protocol: ?Identityref
 
     mut def __init__(self, active_protocol: ?Identityref) -> None:
@@ -83,13 +83,13 @@ class base__config(yang.adata.MNode):
         if name == 'base:active-protocol':
             return self.active_protocol
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:config'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:config'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base__config:
+    mut def from_gdata(n: ?ygdata.Node) -> base__config:
         if n is not None:
-            return base__config(active_protocol=n.get_opt_Identityref(yang.gdata.Id(NS_base, 'active-protocol')))
+            return base__config(active_protocol=n.get_opt_Identityref(ygdata.Id(NS_base, 'active-protocol')))
         return base__config()
 
     mut def copy(self) -> base__config:
@@ -98,7 +98,7 @@ class base__config(yang.adata.MNode):
 
 
 _breaker2: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     config: base__config
 
     mut def __init__(self, config: ?base__config=None) -> None:
@@ -108,13 +108,13 @@ class root(yang.adata.MNode):
         if name == 'base:config':
             return self.config
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(config=base__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base, 'config'))))
+            return root(config=base__config.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base, 'config'))))
         return root()
 
     mut def copy(self) -> root:
@@ -122,6 +122,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 

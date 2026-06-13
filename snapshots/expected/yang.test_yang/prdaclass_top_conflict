@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -39,7 +39,7 @@ NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
-class bar__bar_c1(yang.adata.MNode):
+class bar__bar_c1(yadata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
@@ -49,13 +49,13 @@ class bar__bar_c1(yang.adata.MNode):
         if name == 'bar:l1':
             return self.l1
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['bar:c1'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['bar:c1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> bar__bar_c1:
+    mut def from_gdata(n: ?ygdata.Node) -> bar__bar_c1:
         if n is not None:
-            return bar__bar_c1(l1=n.get_opt_str(yang.gdata.Id(NS_bar, 'l1')))
+            return bar__bar_c1(l1=n.get_opt_str(ygdata.Id(NS_bar, 'l1')))
         return bar__bar_c1()
 
     mut def copy(self) -> bar__bar_c1:
@@ -64,7 +64,7 @@ class bar__bar_c1(yang.adata.MNode):
 
 
 _breaker2: None = None
-class foo__foo_c1(yang.adata.MNode):
+class foo__foo_c1(yadata.MNode):
     l1: ?str
 
     mut def __init__(self, l1: ?str) -> None:
@@ -74,13 +74,13 @@ class foo__foo_c1(yang.adata.MNode):
         if name == 'foo:l1':
             return self.l1
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__foo_c1:
+    mut def from_gdata(n: ?ygdata.Node) -> foo__foo_c1:
         if n is not None:
-            return foo__foo_c1(l1=n.get_opt_str(yang.gdata.Id(NS_foo, 'l1')))
+            return foo__foo_c1(l1=n.get_opt_str(ygdata.Id(NS_foo, 'l1')))
         return foo__foo_c1()
 
     mut def copy(self) -> foo__foo_c1:
@@ -89,7 +89,7 @@ class foo__foo_c1(yang.adata.MNode):
 
 
 _breaker3: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     bar_c1: bar__bar_c1
     foo_c1: foo__foo_c1
 
@@ -103,13 +103,13 @@ class root(yang.adata.MNode):
         if name == 'foo:c1':
             return self.foo_c1
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(bar_c1=bar__bar_c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_bar, 'c1'))), foo_c1=foo__foo_c1.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'c1'))))
+            return root(bar_c1=bar__bar_c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'c1'))), foo_c1=foo__foo_c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c1'))))
         return root()
 
     mut def copy(self) -> root:
@@ -117,6 +117,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 

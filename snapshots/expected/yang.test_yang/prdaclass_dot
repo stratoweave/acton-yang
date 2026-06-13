@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -34,7 +34,7 @@ NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
-class foo__ieee_802_3(yang.adata.MNode):
+class foo__ieee_802_3(yadata.MNode):
     ieee_802_3: ?str
 
     mut def __init__(self, ieee_802_3: ?str) -> None:
@@ -44,13 +44,13 @@ class foo__ieee_802_3(yang.adata.MNode):
         if name == 'foo:ieee-802.3':
             return self.ieee_802_3
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:ieee-802.3'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:ieee-802.3'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__ieee_802_3:
+    mut def from_gdata(n: ?ygdata.Node) -> foo__ieee_802_3:
         if n is not None:
-            return foo__ieee_802_3(ieee_802_3=n.get_opt_str(yang.gdata.Id(NS_foo, 'ieee-802.3')))
+            return foo__ieee_802_3(ieee_802_3=n.get_opt_str(ygdata.Id(NS_foo, 'ieee-802.3')))
         return foo__ieee_802_3()
 
     mut def copy(self) -> foo__ieee_802_3:
@@ -59,7 +59,7 @@ class foo__ieee_802_3(yang.adata.MNode):
 
 
 _breaker2: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     ieee_802_3: foo__ieee_802_3
 
     mut def __init__(self, ieee_802_3: ?foo__ieee_802_3=None) -> None:
@@ -69,13 +69,13 @@ class root(yang.adata.MNode):
         if name == 'foo:ieee-802.3':
             return self.ieee_802_3
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(ieee_802_3=foo__ieee_802_3.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_foo, 'ieee-802.3'))))
+            return root(ieee_802_3=foo__ieee_802_3.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'ieee-802.3'))))
         return root()
 
     mut def copy(self) -> root:
@@ -83,6 +83,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 

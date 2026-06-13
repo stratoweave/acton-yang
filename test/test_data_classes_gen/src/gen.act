@@ -2,9 +2,9 @@
 import file
 
 import yang
-import yang.schema
+import yang.schema as yschema
 
-def compile_root(yangs: list[str]) -> yang.schema.DRoot:
+def compile_root(yangs: list[str]) -> yschema.DRoot:
     modules = yang.compile_modules(yang.parse_modules(yang.parse_statements(yangs)))
     return yang.compile_to_droot(yang.compile_to_dmodules(modules))
 
@@ -17,9 +17,9 @@ def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose
     src += "    res = {{}}\n"
     for y in yangs:
         ys = yang.schema_from_src(y)
-        if isinstance(ys, yang.schema.Module):
+        if isinstance(ys, yschema.Module):
             src += '    res["{ys.name}"] = {ys.prsrc()}\n'
-        elif isinstance(ys, yang.schema.Submodule):
+        elif isinstance(ys, yschema.Submodule):
             src += '    res["{ys.name}"] = {ys.prsrc()}\n'
         else:
             raise ValueError("Expected Module or Submodule, got {type(ys)}")
@@ -39,9 +39,9 @@ def yang_to_oper_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str) 
     src += "    res = {{}}\n"
     for y in yangs:
         ys = yang.schema_from_src(y)
-        if isinstance(ys, yang.schema.Module):
+        if isinstance(ys, yschema.Module):
             src += '    res["{ys.name}"] = {ys.prsrc()}\n'
-        elif isinstance(ys, yang.schema.Submodule):
+        elif isinstance(ys, yschema.Submodule):
             src += '    res["{ys.name}"] = {ys.prsrc()}\n'
         else:
             raise ValueError("Expected Module or Submodule, got {type(ys)}")

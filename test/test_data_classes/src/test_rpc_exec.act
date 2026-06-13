@@ -1,11 +1,11 @@
 import testing
-import xml
-import yang.adata
-import yang.gdata
+import std.xml as xml
+import yang.adata as yadata
+import yang.gdata as ygdata
 import yangrpc
 
 
-class MockTreeProviderSuccess(yang.gdata.TreeProvider):
+class MockTreeProviderSuccess(ygdata.TreeProvider):
     """Mock TreeProvider that returns a successful RPC response"""
     def __init__(self):
         pass
@@ -17,20 +17,20 @@ class MockTreeProviderSuccess(yang.gdata.TreeProvider):
         ])
         cb(xml_response, None)
 
-    proc def rpc(self, cb: action(?yang.gdata.Node, ?Exception) -> None, rpc: yang.gdata.Node):
-        output_gdata = yang.gdata.Container({
-            yang.gdata.Id("http://example.com/yangrpc", "outoo"): yang.gdata.Leaf("string", "Hello from RPC!")
+    proc def rpc(self, cb: action(?ygdata.Node, ?Exception) -> None, rpc: ygdata.Node):
+        output_gdata = ygdata.Container({
+            ygdata.Id("http://example.com/yangrpc", "outoo"): ygdata.Leaf("string", "Hello from RPC!")
         }, ns="http://example.com/yangrpc", module="yangrpc")
         cb(output_gdata, None)
 
-    proc def declare_subscriptions(self, owner_id: str, cb: action(?yang.gdata.Node, ?Exception) -> None, want: set[yang.gdata.SubscriptionSpec]):
+    proc def declare_subscriptions(self, owner_id: str, cb: action(?ygdata.Node, ?Exception) -> None, want: set[ygdata.SubscriptionSpec]):
         pass
 
     proc def remove_subscriptions(self, owner_id: str):
         pass
 
 
-class MockTreeProviderError(yang.gdata.TreeProvider):
+class MockTreeProviderError(ygdata.TreeProvider):
     """Mock TreeProvider that returns an error"""
     def __init__(self):
         pass
@@ -39,17 +39,17 @@ class MockTreeProviderError(yang.gdata.TreeProvider):
         # Return an error
         cb(None, ValueError("RPC execution failed"))
 
-    proc def rpc(self, cb: action(?yang.gdata.Node, ?Exception) -> None, rpc: yang.gdata.Node):
+    proc def rpc(self, cb: action(?ygdata.Node, ?Exception) -> None, rpc: ygdata.Node):
         cb(None, ValueError("RPC execution failed"))
 
-    proc def declare_subscriptions(self, owner_id: str, cb: action(?yang.gdata.Node, ?Exception) -> None, want: set[yang.gdata.SubscriptionSpec]):
+    proc def declare_subscriptions(self, owner_id: str, cb: action(?ygdata.Node, ?Exception) -> None, want: set[ygdata.SubscriptionSpec]):
         pass
 
     proc def remove_subscriptions(self, owner_id: str):
         pass
 
 
-class MockTreeProviderEmpty(yang.gdata.TreeProvider):
+class MockTreeProviderEmpty(ygdata.TreeProvider):
     """Mock TreeProvider that returns empty output"""
     def __init__(self):
         pass
@@ -61,11 +61,11 @@ class MockTreeProviderEmpty(yang.gdata.TreeProvider):
         ])
         cb(xml_response, None)
 
-    proc def rpc(self, cb: action(?yang.gdata.Node, ?Exception) -> None, rpc: yang.gdata.Node):
-        output_gdata = yang.gdata.Container({}, ns="http://example.com/yangrpc", module="yangrpc")
+    proc def rpc(self, cb: action(?ygdata.Node, ?Exception) -> None, rpc: ygdata.Node):
+        output_gdata = ygdata.Container({}, ns="http://example.com/yangrpc", module="yangrpc")
         cb(output_gdata, None)
 
-    proc def declare_subscriptions(self, owner_id: str, cb: action(?yang.gdata.Node, ?Exception) -> None, want: set[yang.gdata.SubscriptionSpec]):
+    proc def declare_subscriptions(self, owner_id: str, cb: action(?ygdata.Node, ?Exception) -> None, want: set[ygdata.SubscriptionSpec]):
         pass
 
     proc def remove_subscriptions(self, owner_id: str):
@@ -181,13 +181,13 @@ def _test_rpc_input_serialization():
     gdata = foo_input.to_gdata()
 
     # Verify structure
-    testing.assertTrue(isinstance(gdata, yang.gdata.Container), "Should be a Container")
-    testing.assertEqual(gdata.get_str(yang.gdata.Id("http://example.com/yangrpc", "a")), "test_string", "Leaf 'a' should have correct value")
+    testing.assertTrue(isinstance(gdata, ygdata.Container), "Should be a Container")
+    testing.assertEqual(gdata.get_str(ygdata.Id("http://example.com/yangrpc", "a")), "test_string", "Leaf 'a' should have correct value")
 
     # Check nested container
-    woo_gdata = gdata.get_cnt(yang.gdata.Id("http://example.com/yangrpc", "woo"))
+    woo_gdata = gdata.get_cnt(ygdata.Id("http://example.com/yangrpc", "woo"))
     testing.assertNotNone(woo_gdata, "Container 'woo' should exist")
-    testing.assertEqual(woo_gdata.get_int(yang.gdata.Id("http://example.com/yangrpc", "woo_b")), 123, "Leaf 'woo_b' should have correct value")
+    testing.assertEqual(woo_gdata.get_int(ygdata.Id("http://example.com/yangrpc", "woo_b")), 123, "Leaf 'woo_b' should have correct value")
 
     # Convert to XML string
     xml_str = gdata.to_xmlstr()
@@ -199,8 +199,8 @@ def _test_rpc_input_serialization():
 def _test_rpc_output_deserialization():
     """Test that RPC output data is properly deserialized from gdata"""
     # Create a gdata representation of output
-    output_gdata = yang.gdata.Container({
-        yang.gdata.Id("http://example.com/yangrpc", "outoo"): yang.gdata.Leaf("Test output value")
+    output_gdata = ygdata.Container({
+        ygdata.Id("http://example.com/yangrpc", "outoo"): ygdata.Leaf("Test output value")
     }, ns="http://example.com/yangrpc", module="yangrpc")
 
     # Convert to adata
@@ -210,7 +210,7 @@ def _test_rpc_output_deserialization():
     testing.assertEqual(output_adata.outoo, "Test output value", "Output should have correct value")
 
     # Test with None value
-    empty_gdata = yang.gdata.Container({}, ns="http://example.com/yangrpc", module="yangrpc")
+    empty_gdata = ygdata.Container({}, ns="http://example.com/yangrpc", module="yangrpc")
     empty_output = yangrpc.yangrpc__foo__output.from_gdata(empty_gdata)
     testing.assertEqual(empty_output.outoo, None, "Empty output should have None value")
 

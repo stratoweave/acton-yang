@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -38,7 +38,7 @@ NS_foo: str = 'http://example.com/foo'
 
 
 _breaker1: None = None
-class foo__c1(yang.adata.MNode):
+class foo__c1(yadata.MNode):
     as_: ?str
     for_: ?str
     import_: ?str
@@ -64,13 +64,13 @@ class foo__c1(yang.adata.MNode):
         if name == 'foo:with':
             return self.with_
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> foo__c1:
+    mut def from_gdata(n: ?ygdata.Node) -> foo__c1:
         if n is not None:
-            return foo__c1(as_=n.get_opt_str(yang.gdata.Id(NS_foo, 'as')), for_=n.get_opt_str(yang.gdata.Id(NS_foo, 'for')), import_=n.get_opt_str(yang.gdata.Id(NS_foo, 'import')), in_=n.get_opt_str(yang.gdata.Id(NS_foo, 'in')), with_=n.get_opt_str(yang.gdata.Id(NS_foo, 'with')))
+            return foo__c1(as_=n.get_opt_str(ygdata.Id(NS_foo, 'as')), for_=n.get_opt_str(ygdata.Id(NS_foo, 'for')), import_=n.get_opt_str(ygdata.Id(NS_foo, 'import')), in_=n.get_opt_str(ygdata.Id(NS_foo, 'in')), with_=n.get_opt_str(ygdata.Id(NS_foo, 'with')))
         return foo__c1()
 
     mut def copy(self) -> foo__c1:

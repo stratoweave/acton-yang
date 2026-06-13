@@ -1,11 +1,11 @@
 import base64
 import json
-import xml
+import std.xml as xml
 import yang
-import yang.adata
-import yang.gdata
-import yang.xml
-import yang.xpath
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
 from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
@@ -29,7 +29,7 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='base-module', namespace='http
 ])
 
 SRC_DNODE_CHILD_1: DContainer = DContainer(module='consumer-module', namespace='http://example.com/consumer', prefix='consumer', name='uses-typedef', config=True, presence=False, children=[
-    DLeaf(module='consumer-module', namespace='http://example.com/consumer', prefix='consumer', name='ni', config=True, mandatory=False, type_=DTypeLeafref(name='base-pfx:network-instance-ref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yang.xpath.AbsoluteLocationPath([yang.xpath.NodeTestStep('base-pfx', 'network-instances', []), yang.xpath.NodeTestStep('base-pfx', 'network-instance', []), yang.xpath.NodeTestStep('base-pfx', 'config', []), yang.xpath.NodeTestStep('base-pfx', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+    DLeaf(module='consumer-module', namespace='http://example.com/consumer', prefix='consumer', name='ni', config=True, mandatory=False, type_=DTypeLeafref(name='base-pfx:network-instance-ref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('base-pfx', 'network-instances', []), yxpath.NodeTestStep('base-pfx', 'network-instance', []), yxpath.NodeTestStep('base-pfx', 'config', []), yxpath.NodeTestStep('base-pfx', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
 ])
 
 SRC_DNODE: DRoot = DRoot(
@@ -44,7 +44,7 @@ NS_consumer_module: str = 'http://example.com/consumer'
 
 
 _breaker1: None = None
-class base_module__network_instances__network_instance__config(yang.adata.MNode):
+class base_module__network_instances__network_instance__config(yadata.MNode):
     name: ?str
 
     mut def __init__(self, name: ?str) -> None:
@@ -54,13 +54,13 @@ class base_module__network_instances__network_instance__config(yang.adata.MNode)
         if name == 'base-pfx:name':
             return self.name
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance', 'config'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance', 'config'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base_module__network_instances__network_instance__config:
+    mut def from_gdata(n: ?ygdata.Node) -> base_module__network_instances__network_instance__config:
         if n is not None:
-            return base_module__network_instances__network_instance__config(name=n.get_opt_str(yang.gdata.Id(NS_base_module, 'name')))
+            return base_module__network_instances__network_instance__config(name=n.get_opt_str(ygdata.Id(NS_base_module, 'name')))
         return base_module__network_instances__network_instance__config()
 
     mut def copy(self) -> base_module__network_instances__network_instance__config:
@@ -69,7 +69,7 @@ class base_module__network_instances__network_instance__config(yang.adata.MNode)
 
 
 _breaker2: None = None
-class base_module__network_instances__network_instance_entry(yang.adata.MNode):
+class base_module__network_instances__network_instance_entry(yadata.MNode):
     name: str
     config: base_module__network_instances__network_instance__config
 
@@ -83,19 +83,19 @@ class base_module__network_instances__network_instance_entry(yang.adata.MNode):
         if name == 'base-pfx:config':
             return self.config
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance'])
 
     @staticmethod
-    mut def from_gdata(n: yang.gdata.Node) -> base_module__network_instances__network_instance_entry:
-        return base_module__network_instances__network_instance_entry(name=n.get_str(yang.gdata.Id(NS_base_module, 'name')), config=base_module__network_instances__network_instance__config.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base_module, 'config'))))
+    mut def from_gdata(n: ygdata.Node) -> base_module__network_instances__network_instance_entry:
+        return base_module__network_instances__network_instance_entry(name=n.get_str(ygdata.Id(NS_base_module, 'name')), config=base_module__network_instances__network_instance__config.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base_module, 'config'))))
 
     mut def copy(self) -> base_module__network_instances__network_instance_entry:
         """Create a deep copy of this adata object"""
         return base_module__network_instances__network_instance_entry.from_gdata(self.to_gdata())
 
 _breaker3: None = None
-class base_module__network_instances__network_instance(yang.adata.MNode):
+class base_module__network_instances__network_instance(yadata.MNode):
     elements: list[base_module__network_instances__network_instance_entry]
     mut def __init__(self, elements: list[base_module__network_instances__network_instance_entry]=[]) -> None:
         self.elements = elements
@@ -115,7 +115,7 @@ class base_module__network_instances__network_instance(yang.adata.MNode):
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.List) -> list[base_module__network_instances__network_instance_entry]:
+    mut def from_gdata(n: ?ygdata.List) -> list[base_module__network_instances__network_instance_entry]:
         if n is not None:
             return [base_module__network_instances__network_instance_entry.from_gdata(e) for e in n.elements]
         return []
@@ -156,7 +156,7 @@ extension base_module__network_instances__network_instance(Indexed[str, base_mod
         raise KeyError(k)
 
 _breaker4: None = None
-class base_module__network_instances(yang.adata.MNode):
+class base_module__network_instances(yadata.MNode):
     network_instance: base_module__network_instances__network_instance
 
     mut def __init__(self, network_instance: list[base_module__network_instances__network_instance_entry]=[]) -> None:
@@ -166,13 +166,13 @@ class base_module__network_instances(yang.adata.MNode):
         if name == 'base-pfx:network-instance':
             return iter(self.network_instance)
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> base_module__network_instances:
+    mut def from_gdata(n: ?ygdata.Node) -> base_module__network_instances:
         if n is not None:
-            return base_module__network_instances(network_instance=base_module__network_instances__network_instance.from_gdata(n.get_opt_list(yang.gdata.Id(NS_base_module, 'network-instance'))))
+            return base_module__network_instances(network_instance=base_module__network_instances__network_instance.from_gdata(n.get_opt_list(ygdata.Id(NS_base_module, 'network-instance'))))
         return base_module__network_instances()
 
     mut def copy(self) -> base_module__network_instances:
@@ -181,7 +181,7 @@ class base_module__network_instances(yang.adata.MNode):
 
 
 _breaker5: None = None
-class consumer_module__uses_typedef(yang.adata.MNode):
+class consumer_module__uses_typedef(yadata.MNode):
     ni: ?str
 
     mut def __init__(self, ni: ?str) -> None:
@@ -191,13 +191,13 @@ class consumer_module__uses_typedef(yang.adata.MNode):
         if name == 'consumer:ni':
             return self.ni
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False, root_path=['consumer-module:uses-typedef'])
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['consumer-module:uses-typedef'])
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> consumer_module__uses_typedef:
+    mut def from_gdata(n: ?ygdata.Node) -> consumer_module__uses_typedef:
         if n is not None:
-            return consumer_module__uses_typedef(ni=n.get_opt_str(yang.gdata.Id(NS_consumer_module, 'ni')))
+            return consumer_module__uses_typedef(ni=n.get_opt_str(ygdata.Id(NS_consumer_module, 'ni')))
         return consumer_module__uses_typedef()
 
     mut def copy(self) -> consumer_module__uses_typedef:
@@ -206,7 +206,7 @@ class consumer_module__uses_typedef(yang.adata.MNode):
 
 
 _breaker6: None = None
-class root(yang.adata.MNode):
+class root(yadata.MNode):
     network_instances: base_module__network_instances
     uses_typedef: consumer_module__uses_typedef
 
@@ -220,13 +220,13 @@ class root(yang.adata.MNode):
         if name == 'consumer:uses-typedef':
             return self.uses_typedef
 
-    mut def to_gdata(self) -> yang.gdata.Node:
-        return yang.adata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
 
     @staticmethod
-    mut def from_gdata(n: ?yang.gdata.Node) -> root:
+    mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(network_instances=base_module__network_instances.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_base_module, 'network-instances'))), uses_typedef=consumer_module__uses_typedef.from_gdata(n.get_opt_cnt(yang.gdata.Id(NS_consumer_module, 'uses-typedef'))))
+            return root(network_instances=base_module__network_instances.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base_module, 'network-instances'))), uses_typedef=consumer_module__uses_typedef.from_gdata(n.get_opt_cnt(ygdata.Id(NS_consumer_module, 'uses-typedef'))))
         return root()
 
     mut def copy(self) -> root:
@@ -234,6 +234,6 @@ class root(yang.adata.MNode):
         return root.from_gdata(self.to_gdata())
 
 
-actor rpc_root(tp: yang.gdata.TreeProvider):
+actor rpc_root(tp: ygdata.TreeProvider):
     pass
 
