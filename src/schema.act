@@ -90,11 +90,11 @@
 
 import base64
 import re
-import yang.xpath as xpath
-from yang.identityref import Identityref, PartialIdentityref
-from yang.pattern import YangPattern
-from yang.type import Decimal, Ranges, RangesBuilder
-from yang.type import SIGNED_INT_TYPES, UNSIGNED_INT_TYPES
+import xpath
+from identityref import Identityref, PartialIdentityref
+from pattern import YangPattern
+from type import Decimal, Ranges, RangesBuilder
+from type import SIGNED_INT_TYPES, UNSIGNED_INT_TYPES
 
 RECURSION_LIMIT = 512
 
