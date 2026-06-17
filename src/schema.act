@@ -1782,7 +1782,6 @@ class DRoot(DNodeInner):
         res.append("import base64")
         res.append("import json")
         res.append("import std.xml as xml")
-        res.append("import yang")
         res.append("import yang.adata as yadata")
         res.append("import yang.gdata as ygdata")
         res.append("import yang.xml as yxml")
