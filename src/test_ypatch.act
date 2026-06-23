@@ -1,0 +1,246 @@
+"""Unit tests for the RFC 8072 yang-patch <-> gdata translation (ypatch).
+
+The producer tests (_test_diff_*) run diff_to_edits on hand-built gdata diff
+trees, covering the instance-path + operation + value-rendering mapping without a
+schema. The structured round-trip checks Patch.to_xml / Patch.from_xml. The
+schema-aware round-trips read XML data, run it through
+diff -> edits -> XML -> edits -> gdata.patch, and print the result back to XML.
+"""
+
+import testing
+import std.xml as xml
+
+import gdata
+import identityref
+import schema as yschema
+import ypatch
+import lib as yang
+from xml import from_xml
+
+
+NS = "http://example.com/netinfra"
+
+
+def _netinfra(dt: ?str, extra_router: bool) -> gdata.Container:
+    """A netinfra tree; rtr1's state/current-datetime is dt (when not None); when
+    extra_router, a second router rtr2 (key only) is present."""
+    routers: list[gdata.Node] = []
+    rtr1_children: dict[gdata.Id, gdata.Node] = {gdata.Id(NS, "name"): gdata.Leaf("rtr1")}
+    if dt is not None:
+        rtr1_children[gdata.Id(NS, "state")] = gdata.Container({
+            gdata.Id(NS, "current-datetime"): gdata.Leaf(dt)})
+    routers.append(gdata.Container(rtr1_children))
+    if extra_router:
+        routers.append(gdata.Container({gdata.Id(NS, "name"): gdata.Leaf("rtr2")}))
+    router_list = gdata.List([gdata.Id(NS, "name")], routers)
+    netinfra = gdata.Container({gdata.Id(NS, "router"): router_list})
+    return gdata.Container({gdata.Id(NS, "netinfra"): netinfra})
+
+
+def _targets(edits: list[ypatch.Edit]) -> list[str]:
+    return [e.target for e in edits]
+
+
+def _expect_one(edits: list[ypatch.Edit], op: str, target: str, text: ?str) -> None:
+    if len(edits) != 1:
+        testing.error("expected 1 edit, got {len(edits)}: {_targets(edits)}")
+        return
+    e = edits[0]
+    if e.operation != op:
+        testing.error("expected op {op}, got {e.operation}")
+    if e.target != target:
+        testing.error("unexpected target: {e.target} (want {target})")
+    v = e.value
+    if text is None:
+        if v is not None:
+            testing.error("expected no value, got one")
+    else:
+        if v is not None:
+            if v.text != text:
+                testing.error("unexpected value text: {v.text} (want {text})")
+        else:
+            testing.error("expected value with text {text}, got none")
+
+
+def _expect_none(edits: list[ypatch.Edit]) -> None:
+    if len(edits) != 0:
+        testing.error("expected 0 edits, got {len(edits)}: {_targets(edits)}")
+
+
+def _test_diff_leaf_change():
+    """A changed leaf -> a single merge edit at its api-path target."""
+    edits = ypatch.diff_to_edits(gdata.diff(_netinfra("a", False), _netinfra("b", False)))
+    _expect_one(edits, ypatch.OP_MERGE,
+        "/netinfra/router=rtr1/state/current-datetime", "b")
+
+
+def _test_diff_subtree_removed():
+    """A removed subtree -> a single remove edit (no value)."""
+    edits = ypatch.diff_to_edits(gdata.diff(_netinfra("a", False), _netinfra(None, False)))
+    _expect_one(edits, ypatch.OP_REMOVE, "/netinfra/router=rtr1/state", None)
+
+
+def _test_diff_list_entry_added():
+    """A new list entry carrying only its key -> one merge at the keyed entry
+    target (with the entry element as value), so it is created on replay."""
+    edits = ypatch.diff_to_edits(gdata.diff(_netinfra("a", False), _netinfra("a", True)))
+    testing.assertEqual(len(edits), 1, "expected 1 entry-creation edit")
+    e = edits[0]
+    testing.assertEqual(e.operation, ypatch.OP_MERGE, "key-only entry -> merge")
+    testing.assertEqual(e.target, "/netinfra/router=rtr2", "entry target")
+    v = e.value
+    if v is not None:
+        testing.assertEqual(v.tag, "router", "value is the router entry element")
+    else:
+        testing.error("expected an entry value element")
+
+
+def _test_diff_identical():
+    """No change -> no edits (diff is None)."""
+    edits = ypatch.diff_to_edits(gdata.diff(_netinfra("a", False), _netinfra("a", False)))
+    _expect_none(edits)
+
+
+def _test_diff_leaflist():
+    """Leaf-list delta -> remove + merge edits with =value selectors."""
+    old = gdata.Container({gdata.Id(NS, "c"): gdata.Container({
+        gdata.Id(NS, "ll"): gdata.LeafList([gdata.LeafListEntryMerge("a"), gdata.LeafListEntryMerge("b")])})})
+    new = gdata.Container({gdata.Id(NS, "c"): gdata.Container({
+        gdata.Id(NS, "ll"): gdata.LeafList([gdata.LeafListEntryMerge("a"), gdata.LeafListEntryMerge("c")])})})
+    edits = ypatch.diff_to_edits(gdata.diff(old, new))
+    testing.assertEqual(len(edits), 2, "expected 2 leaf-list edits")
+    by_target: dict[str, ypatch.Edit] = {}
+    for e in edits:
+        by_target[e.target] = e
+    rm = by_target.get("/c/ll=b")
+    mg = by_target.get("/c/ll=c")
+    if rm is not None:
+        testing.assertEqual(rm.operation, ypatch.OP_REMOVE, "ll=b should be remove")
+    else:
+        testing.error("missing remove edit /c/ll=b: {_targets(edits)}")
+    if mg is not None:
+        testing.assertEqual(mg.operation, ypatch.OP_MERGE, "ll=c should be merge")
+    else:
+        testing.error("missing merge edit /c/ll=c: {_targets(edits)}")
+
+
+def _test_value_identityref():
+    """An identityref leaf value keeps its module:value text AND the prefix->ns
+    binding (the bug the hand-built prototype value element dropped)."""
+    idref = identityref.Identityref("fast-ethernet", "urn:example:if-types", "if-types", "ift")
+    old = gdata.Container({gdata.Id(NS, "iftype"): gdata.Leaf("x", ns=NS)})
+    new = gdata.Container({gdata.Id(NS, "iftype"): gdata.Leaf(idref, ns=NS)})
+    edits = ypatch.diff_to_edits(gdata.diff(old, new))
+    testing.assertEqual(len(edits), 1, "expected 1 identityref edit")
+    v = edits[0].value
+    if v is not None:
+        testing.assertEqual(v.text, "if-types:fast-ethernet", "identityref value text")
+        found = False
+        for (pfx, ns_uri) in v.nsdefs:
+            if ns_uri == "urn:example:if-types":
+                found = True
+        testing.assertTrue(found, "identityref namespace must be declared on the value element")
+    else:
+        testing.error("expected a value element")
+
+
+def _test_patch_roundtrip_xml():
+    """Patch -> to_xml -> from_xml preserves edit operation/target/value."""
+    edits = ypatch.diff_to_edits(gdata.diff(_netinfra("a", False), _netinfra("b", False)))
+    p = ypatch.Patch("7", edits)
+    rp = ypatch.Patch.from_xml(p.to_xml())
+    testing.assertEqual(rp.patch_id, "7", "patch-id round-trips")
+    testing.assertEqual(len(rp.edits), len(edits), "edit count round-trips")
+    a = edits[0]
+    b = rp.edits[0]
+    testing.assertEqual(b.operation, a.operation, "operation round-trips")
+    testing.assertEqual(b.target, a.target, "target round-trips")
+    av = a.value
+    bv = b.value
+    if av is not None:
+        if bv is not None:
+            testing.assertEqual(bv.text, av.text, "value text round-trips")
+        else:
+            testing.error("value lost in round-trip")
+    else:
+        testing.error("expected a value on the source edit")
+
+
+_roundtrip_schema = r"""module netinfra {
+  namespace "http://example.com/netinfra";
+  prefix ni;
+  container netinfra {
+    list router {
+      key name;
+      leaf name { type string; }
+      container state {
+        leaf current-datetime { type string; }
+      }
+    }
+  }
+}
+"""
+
+
+def _roundtrip(s: yschema.DRoot, old_xml: str, new_xml: str, msg: str) -> None:
+    # Parse old/new XML data to gdata, run a full diff -> edits -> wire XML ->
+    # edits -> gdata.patch cycle, then print the patched result back to XML and
+    # compare it to the new data printed the same way.
+    old = from_xml(s, xml.decode(old_xml))
+    new = from_xml(s, xml.decode(new_xml))
+    edits = ypatch.diff_to_edits(gdata.diff(old, new))
+    reparsed = ypatch.Patch.from_xml(ypatch.Patch("0", edits).to_xml())
+    result = gdata.patch(old, ypatch.edits_to_gdata(s, reparsed.edits))
+    if result is not None:
+        testing.assertEqual(result.to_xmlstr(deterministic=True), new.to_xmlstr(deterministic=True), msg)
+    else:
+        testing.error("patch produced None: {msg}")
+
+
+def _test_roundtrip_leaf_change():
+    """A changed leaf: the merge edit targets the leaf, and the full round-trip
+    reprints the new data."""
+    s = yang.compile([_roundtrip_schema])
+    old = r"""<data><netinfra xmlns="http://example.com/netinfra">
+  <router><name>rtr1</name><state><current-datetime>a</current-datetime></state></router>
+</netinfra></data>"""
+    new = r"""<data><netinfra xmlns="http://example.com/netinfra">
+  <router><name>rtr1</name><state><current-datetime>b</current-datetime></state></router>
+</netinfra></data>"""
+    edits = ypatch.diff_to_edits(gdata.diff(from_xml(s, xml.decode(old)), from_xml(s, xml.decode(new))))
+    _expect_one(edits, ypatch.OP_MERGE,
+        "/netinfra:netinfra/router=rtr1/state/current-datetime", "b")
+    _roundtrip(s, old, new, "leaf change must round-trip")
+
+
+def _test_roundtrip_list_entry_added():
+    """One router -> two routers (the new one key-only) round-trips and re-creates
+    the keyed entry — a key-only addition must not silently vanish."""
+    s = yang.compile([_roundtrip_schema])
+    old = r"""<data><netinfra xmlns="http://example.com/netinfra">
+  <router><name>rtr1</name><state><current-datetime>a</current-datetime></state></router>
+</netinfra></data>"""
+    new = r"""<data><netinfra xmlns="http://example.com/netinfra">
+  <router><name>rtr1</name><state><current-datetime>a</current-datetime></state></router>
+  <router><name>rtr2</name></router>
+</netinfra></data>"""
+    _roundtrip(s, old, new, "patch must create the key-only rtr2 entry")
+
+
+_leaflist_schema = r"""module llmod {
+  namespace "http://example.com/llmod";
+  prefix ll;
+  container c {
+    leaf-list tags { type string; }
+  }
+}
+"""
+
+
+def _test_roundtrip_leaflist():
+    """Leaf-list add/remove round-trips through the schema-aware parse (the
+    leaf-list =value selector the producer emits)."""
+    s = yang.compile([_leaflist_schema])
+    old = r"""<data><c xmlns="http://example.com/llmod"><tags>a</tags><tags>b</tags></c></data>"""
+    new = r"""<data><c xmlns="http://example.com/llmod"><tags>a</tags><tags>c</tags></c></data>"""
+    _roundtrip(s, old, new, "leaf-list edits must round-trip")

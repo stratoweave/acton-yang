@@ -1,0 +1,432 @@
+"""RFC 8072 YANG Patch <-> gdata.
+
+yang-patch is the RESTCONF/YANG wire serialization of a gdata patch tree — the same
+Node universe that gdata.diff produces and gdata.patch consumes. This module
+renders a gdata.diff result into yang-patch edits (the producer, e.g. for an
+on-change push-change-update) and parses yang-patch XML back, both into a
+structured form and into a gdata patch tree.
+
+Framing: diff is the declarative subset, yang-patch is the superset. diff only ever
+means merge (set this value, via a verbatim node) or remove (make absent, via
+Absent or LeafListEntryRemove); it emits no create/delete/replace and, today, no
+ordered-by-user position. yang-patch additionally has create/delete/replace and
+insert/move with point/where. So diff_to_edits emits only merge/remove edits from a
+diff; Patch.from_xml parses the full range into a structured Patch/Edit; and
+edits_to_gdata rebuilds a gdata patch tree from edits (appliable via gdata.patch).
+
+Targets are RFC 8040 (section 3.5.3) RESTCONF data-resource paths, e.g.
+/ietf-interfaces:interfaces/interface=eth0/ietf-ip:ipv4/address=192.0.2.1 — list
+keys appended with = (percent-encoded, in key order, comma-separated for composite
+keys), and a node module:name-prefixed only where its module differs from its
+parent. gdata carries Node.module exactly at those namespace boundaries, so
+emitting the prefix when module is set yields the RFC rule.
+
+Leaf value content is rendered through gdata's own to_xml (by wrapping the leaf in a
+synthetic parent container), not hand-built: to_xml cannot render a bare Leaf (a
+leaf is named by the key its parent holds it under), and hand-building drops the
+xmlns declarations that _nsq adds for namespaced and identityref-valued leaves. The
+value element is also forced to declare its own namespace (from leaf.ns or the path
+Id.q) so it is self-contained anydata and the schema-aware lift can re-parse it.
+
+Scope: this is the XML media type only (RFC 8072 also defines a JSON one), and it
+pairs the diff producer with a diff-shaped inverse (edits_to_gdata), not a general
+RFC 8072 server apply engine — targets are datastore-rooted and edits are folded,
+not applied as an ordered all-or-nothing sequence. See edits_to_gdata for the
+operations it reconstructs vs rejects.
+"""
+
+import std.xml as xml
+import uri
+
+import gdata
+import restconf
+import schema as yschema
+from restconf import resolve_path
+from data import fqname, fq_list_keys, user_order, PathElement
+from xml import try_parse_xml_value
+
+
+NS_YANG_PATCH = "urn:ietf:params:xml:ns:yang:ietf-yang-patch"
+
+# RFC 8072 yang-patch operations (the edit/operation enum, §2.5).
+OP_CREATE = "create"
+OP_DELETE = "delete"
+OP_INSERT = "insert"
+OP_MERGE = "merge"
+OP_MOVE = "move"
+OP_REPLACE = "replace"
+OP_REMOVE = "remove"
+
+# yang-patch insert/move position (the where enum, §2.4).
+WHERE_BEFORE = "before"
+WHERE_AFTER = "after"
+WHERE_FIRST = "first"
+WHERE_LAST = "last"
+
+
+class Edit(object):
+    """One RFC 8072 yang-patch edit.
+
+    target is a RESTCONF data-resource path. value is the value element's single
+    child element (the target node) for create/merge/replace/insert, and None for
+    delete/move/remove. point and where carry ordered-by-user position for
+    insert/move.
+    """
+    edit_id: str
+    operation: str
+    target: str
+    value: ?xml.Node
+    point: ?str
+    where: ?str
+
+    def __init__(self, edit_id: str, operation: str, target: str,
+                 value: ?xml.Node=None, point: ?str=None, where: ?str=None):
+        self.edit_id = edit_id
+        self.operation = operation
+        self.target = target
+        self.value = value
+        self.point = point
+        self.where = where
+
+    def to_xml(self) -> xml.Node:
+        children: list[xml.Node] = [
+            xml.Node("edit-id", text=self.edit_id),
+            xml.Node("operation", text=self.operation),
+            xml.Node("target", text=self.target),
+        ]
+        p = self.point
+        if p is not None:
+            children.append(xml.Node("point", text=p))
+        w = self.where
+        if w is not None:
+            children.append(xml.Node("where", text=w))
+        v = self.value
+        if v is not None:
+            children.append(xml.Node("value", children=[v]))
+        return xml.Node("edit", children=children)
+
+    @staticmethod
+    def from_xml(node: xml.Node) -> Edit:
+        if node.tag != "edit":
+            raise ValueError("ypatch.Edit.from_xml: expected <edit>, got <{node.tag}>")
+        # edit-id, operation and target are mandatory (RFC 8072 §2.5); one() raises
+        # if a mandatory child is missing or duplicated.
+        return Edit(node.one("edit-id", None).text!,
+                    node.one("operation", None).text!,
+                    node.one("target", None).text!,
+                    node.opt("value", None)?.children?[0],
+                    node.opt("point", None)?.text,
+                    node.opt("where", None)?.text)
+
+
+class Patch(object):
+    """An RFC 8072 yang-patch: an ordered, all-or-nothing list of edits."""
+    patch_id: str
+    edits: list[Edit]
+    comment: ?str
+
+    def __init__(self, patch_id: str, edits: list[Edit], comment: ?str=None):
+        self.patch_id = patch_id
+        self.edits = edits
+        self.comment = comment
+
+    def to_xml(self) -> xml.Node:
+        children: list[xml.Node] = [xml.Node("patch-id", text=self.patch_id)]
+        c = self.comment
+        if c is not None:
+            children.append(xml.Node("comment", text=c))
+        for e in self.edits:
+            children.append(e.to_xml())
+        return xml.Node("yang-patch", nsdefs=[(None, NS_YANG_PATCH)], children=children)
+
+    @staticmethod
+    def from_xml(node: xml.Node) -> Patch:
+        if node.tag != "yang-patch":
+            raise ValueError("ypatch.Patch.from_xml: expected <yang-patch>, got <{node.tag}>")
+        edits = [Edit.from_xml(c) for c in node.many("edit", None)]
+        return Patch(node.one("patch-id", None).text!, edits, node.opt("comment", None)?.text)
+
+
+# ----------------------------------------------------------------------------
+# Producer: gdata.diff result -> yang-patch edits
+# ----------------------------------------------------------------------------
+
+def diff_to_edits(d: ?gdata.Node) -> list[Edit]:
+    """Convert a gdata.diff(old, new) result into yang-patch edits.
+
+    Emits merge edits for changed/added leaves and leaf-list entries, and remove
+    edits for removed nodes, list entries, and leaf-list entries — the declarative
+    subset that diff ever expresses. A key-only added list entry (no non-key data)
+    becomes a single merge at the keyed entry target, so the entry is created on
+    replay. Edit ids are assigned positionally; wrap the result in a Patch to
+    assign the protocol patch-id.
+    """
+    acc: list[(op: str, target: str, value: ?xml.Node)] = []
+
+    def seg(module: ?str, name: str) -> str:
+        # module:name only where the module differs from the parent. gdata sets
+        # Node.module exactly at namespace boundaries, so "module present" already
+        # means "namespace changed from parent" — the RFC 8040 §3.5.3.1 prefix rule.
+        if module is not None:
+            return module + ":" + name
+        return name
+
+    def pct(s: str) -> str:
+        # Percent-encode a single key / leaf-list value for a RESTCONF api-path
+        # segment. safe="" encodes the reserved chars (',' '/' ':' '=' ...); the
+        # commas joining a composite key's values stay literal (added afterwards).
+        return uri.quote(s, safe="")
+
+    def key_pred(elem: gdata.Node, keys: list[gdata.Id]) -> str:
+        # RESTCONF api-path key selector: =v1,v2 (values only, in key order).
+        vals: list[str] = []
+        for kn in keys:
+            leaf = elem.get_leaf(kn)
+            vals.append(pct(gdata.yang_str(leaf.val)))
+        return "=" + ",".join(vals)
+
+    def value_elem(name: gdata.Id, leaf: gdata.Leaf) -> ?xml.Node:
+        # Render a leaf as a self-contained <value> child via gdata's own to_xml: a
+        # bare Leaf has no element name (it is named by its parent's key), so wrap it
+        # in a synthetic parent container and let the leaf branch of _to_xml_rec emit
+        # it with the right namespace + any identityref module namespace. Force the
+        # element's own namespace (leaf.ns, falling back to the path Id.q) so the
+        # fragment is self-contained anydata.
+        ns = leaf.ns
+        if ns is None and name.q != "":
+            ns = name.q
+        wleaf = gdata.Leaf(leaf.val, ns=ns, module=leaf.module)
+        frags = gdata.Container({name: wleaf}).to_xml(deterministic=True)
+        if len(frags) > 0:
+            return frags[0]
+        return None
+
+    def entry_value_elem(name: gdata.Id, node: gdata.List, elem: gdata.Node) -> ?xml.Node:
+        # Render a keyed list entry (its key leaves only) as the value of an
+        # entry-level merge, e.g. <router><name>rtr2</name></router>.
+        keychildren: dict[gdata.Id, gdata.Node] = {}
+        for kn in node.keys:
+            keychildren[kn] = elem.get_leaf(kn)
+        ns = node.ns
+        if ns is None and name.q != "":
+            ns = name.q
+        entry = gdata.Container(keychildren, ns=ns, module=node.module)
+        frags = gdata.Container({name: entry}).to_xml(deterministic=True)
+        if len(frags) > 0:
+            return frags[0]
+        return None
+
+    def walk_node(name: gdata.Id, node: gdata.Node, target: str) -> None:
+        if isinstance(node, gdata.Absent):
+            acc.append((op=OP_REMOVE, target=target, value=None))
+        elif isinstance(node, gdata.Leaf):
+            acc.append((op=OP_MERGE, target=target, value=value_elem(name, node)))
+        elif isinstance(node, gdata.LeafList):
+            for ent in node.entries:
+                sel = target + "=" + pct(gdata.yang_str(ent.val))
+                if isinstance(ent, gdata.LeafListEntryRemove):
+                    acc.append((op=OP_REMOVE, target=sel, value=None))
+                elif isinstance(ent, gdata.LeafListEntryMerge):
+                    ev = value_elem(name, gdata.Leaf(ent.val, ns=node.ns, module=node.module))
+                    acc.append((op=OP_MERGE, target=sel, value=ev))
+        elif isinstance(node, gdata.List):
+            for elem in node.elements:
+                sel = target + key_pred(elem, node.keys)
+                if isinstance(elem, gdata.Absent):
+                    acc.append((op=OP_REMOVE, target=sel, value=None))
+                else:
+                    before = len(acc)
+                    walk_children(elem, sel, set(node.keys))
+                    if len(acc) == before:
+                        # Key-only entry: no non-key changes, so emit an entry merge at
+                        # the keyed target. Without it the entry would never be created
+                        # on replay — its key only rides in the selector.
+                        acc.append((op=OP_MERGE, target=sel, value=entry_value_elem(name, node, elem)))
+        elif isinstance(node, gdata.Container):
+            walk_children(node, target, set())
+
+    def walk_children(node: gdata.Node, target: str, skip_keys: set[gdata.Id]) -> None:
+        # skip_keys: an enclosing list entry's key leaves — their values are already
+        # in the =k selector, so don't also emit redundant merges for them.
+        for k, child in node.children.items():
+            if k not in skip_keys:
+                walk_node(k, child, target + "/" + seg(child.module, k.name))
+
+    if d is not None:
+        walk_children(d, "", set())
+    edits: list[Edit] = []
+    i = 0
+    for e in acc:
+        i += 1
+        edits.append(Edit("edit" + str(i), e.op, e.target, e.value))
+    return edits
+
+
+def diff_to_patch(d: ?gdata.Node, patch_id: str) -> Patch:
+    """Convenience: diff_to_edits wrapped in a Patch with patch_id."""
+    return Patch(patch_id, diff_to_edits(d))
+
+
+# ----------------------------------------------------------------------------
+# Reverse: yang-patch edits -> gdata patch tree (schema-aware)
+# ----------------------------------------------------------------------------
+
+def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
+    """Build the gdata patch subtree for one edit (rooted at the datastore root).
+
+    Container / list-entry terminals reuse restconf.from_xml_path; leaf and
+    leaf-list terminals are built here, since from_xml_path only handles inner
+    nodes (and a leaf-list value selector isn't a RESTCONF key).
+    """
+    def target_segments(target: str) -> list[str]:
+        # Split a RESTCONF api-path into resolve_path segments: a list-key selector
+        # "list=k1,k2" becomes two segments ["list", "k1,k2"] (resolve_path consumes
+        # the key tuple as the following segment and percent-decodes each value). Key
+        # values never contain a literal '=' (it is percent-encoded), so splitting on
+        # '=' is unambiguous.
+        segs: list[str] = []
+        for raw in target.split("/"):
+            if raw == "":
+                continue
+            parts = raw.split("=")
+            if len(parts) >= 2:
+                segs.append(parts[0])
+                segs.append("=".join(parts[1:]))
+            else:
+                segs.append(raw)
+        return segs
+
+    def restconf_op(operation: str) -> str:
+        # Map a yang-patch operation onto the declarative RESTCONF op understood by
+        # restconf.from_xml_path. create folds to merge and delete to remove (the
+        # idempotent semantics we want here, by design); replace stays replace.
+        # insert/move (ordered-by-user position) and unknown operations are rejected
+        # rather than silently changed.
+        if operation == OP_MERGE or operation == OP_CREATE:
+            return OP_MERGE
+        if operation == OP_REMOVE or operation == OP_DELETE:
+            return OP_REMOVE
+        if operation == OP_REPLACE:
+            return OP_REPLACE
+        raise ValueError("ypatch.edit_to_gdata: unsupported operation '{operation}' — insert/move and ordered-by-user position are not reconstructed yet")
+
+    def node_ns(pe: list[PathElement], i: int) -> bool:
+        # True when the node at pe[i] introduces its namespace (root, or a module
+        # boundary vs its parent) — mirrors restconf's set_ns rule.
+        if i == 0:
+            return True
+        return pe[i - 1].node.namespace != pe[i].node.namespace
+
+    def wrap_to_root(pe: list[PathElement], inner: gdata.Node) -> gdata.Node:
+        # Wrap a terminal node inside-out from its parent back to the datastore root,
+        # rebuilding ancestor containers and list entries (keys from resolve_path).
+        n = len(pe)
+        for i in range(n - 2, -1, -1):
+            s = pe[i].node
+            child_node = pe[i + 1].node
+            maybe_ns = node_ns(pe, i) and s.namespace != ""
+            sns = s.namespace if maybe_ns else None
+            smod = s.module if maybe_ns else None
+            if isinstance(s, yschema.DList):
+                element_children: dict[gdata.Id, gdata.Node] = {}
+                ek = pe[i].keys
+                if ek is not None:
+                    for key_name in s.key:
+                        kv = ek.get(key_name)
+                        if kv is not None:
+                            element_children[gdata.Id(s.namespace, key_name)] = gdata.Leaf(kv)
+                element_children[fqname(child_node)] = inner
+                inner = gdata.List(fq_list_keys(s), [gdata.Container(element_children)],
+                                   user_order(s.ordered_by), ns=sns, module=smod)
+            else:
+                inner = gdata.Container({fqname(child_node): inner}, ns=sns, module=smod)
+        return inner
+
+    def resolve_leaflist(segs: list[str]) -> ?list[PathElement]:
+        # A leaf-list value target (.../ll=val) isn't a RESTCONF list key, so
+        # resolve_path can't consume the trailing value. Detect it by resolving the
+        # path without that value and checking the terminal is a leaf-list.
+        if len(segs) < 2:
+            return None
+        try:
+            pe = resolve_path(root, segs[:-1])
+        except ValueError:
+            return None
+        if isinstance(pe[-1].node, yschema.DLeafList):
+            return pe
+        return None
+
+    def leaflist_to_gdata(pe: list[PathElement], raw_value: str, rop: str) -> gdata.Node:
+        n = len(pe)
+        llnode = pe[n - 1].node
+        if isinstance(llnode, yschema.DLeafList):
+            parsed = try_parse_xml_value(uri.unquote(raw_value), llnode, llnode.type_, pe, [], root)
+            if parsed is not None:
+                if rop == OP_REMOVE:
+                    entry: gdata.LeafListEntry = gdata.LeafListEntryRemove(parsed.val)
+                else:
+                    entry = gdata.LeafListEntryMerge(parsed.val)
+                maybe_ns = node_ns(pe, n - 1) and llnode.namespace != ""
+                inner: gdata.Node = gdata.LeafList([entry], user_order(llnode.ordered_by),
+                                                   ns=llnode.namespace if maybe_ns else None,
+                                                   module=llnode.module if maybe_ns else None)
+                return wrap_to_root(pe, inner)
+            raise ValueError("ypatch.edit_to_gdata: cannot parse leaf-list value for {e.target}")
+        raise ValueError("ypatch.edit_to_gdata: expected leaf-list at {e.target}")
+
+    segs = target_segments(e.target)
+    rop = restconf_op(e.operation)
+
+    llpe = resolve_leaflist(segs)
+    if llpe is not None:
+        return leaflist_to_gdata(llpe, segs[-1], rop)
+
+    pe = resolve_path(root, segs)
+    n = len(pe)
+    terminal = pe[n - 1].node
+
+    if isinstance(terminal, yschema.DLeaf):
+        maybe_ns = node_ns(pe, n - 1) and terminal.namespace != ""
+        lns = terminal.namespace if maybe_ns else None
+        lmod = terminal.module if maybe_ns else None
+        inner: gdata.Node = gdata.Absent()
+        if rop != OP_REMOVE:
+            v = e.value!   # merge/create/replace require a value (RFC 8072 §2.5)
+            parsed = try_parse_xml_value(v.text, terminal, terminal.type_, pe, v.nsdefs, root)
+            if parsed is not None:
+                inner = gdata.Leaf(parsed.val, ns=lns, module=lmod)
+            else:
+                raise ValueError("ypatch.edit_to_gdata: cannot parse value for {e.target}")
+        return wrap_to_root(pe, inner)
+
+    # Container / list-entry terminal: restconf handles the body + wrapping.
+    return restconf.from_xml_path(root, e.value, segs, rop)
+
+
+def edits_to_gdata(root: yschema.DRoot, edits: list[Edit]) -> ?gdata.Node:
+    """Build a gdata patch tree from yang-patch edits (appliable via gdata.patch).
+
+    Schema-aware: a RESTCONF target carries key values only, so the schema supplies
+    the key names and the leaf value types. Each edit is resolved against root, its
+    value parsed/typed into a sparse gdata subtree, and the per-edit subtrees merged
+    into one tree. create folds to merge and delete to remove (the declarative
+    semantics we want); replace, leaf merges/removes, list-entry and leaf-list
+    edits are reconstructed faithfully. insert/move (and any unknown operation) are
+    rejected by edit_to_gdata.
+
+    Scope: this is the inverse of diff_to_edits for a datastore-rooted, declarative
+    patch — not a general RFC 8072 server apply engine. Targets resolve from the
+    datastore root (no separate request-target base), and edits are folded with
+    gdata.merge, which assumes independent edits rather than an ordered same-target
+    sequence (gdata.merge raises on conflicting leaf values rather than ordering
+    them). For an ordered, all-or-nothing apply, drive gdata.patch per edit instead.
+    """
+    result: ?gdata.Node = None
+    for e in edits:
+        tree = edit_to_gdata(root, e)
+        prev = result
+        if prev is not None:
+            result = gdata.merge(prev, tree)
+        else:
+            result = tree
+    return result
