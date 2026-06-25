@@ -16,6 +16,69 @@ import schema as yschema
 NETCONF_OPS = {OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE}
 NETCONF_NS = "urn:ietf:params:xml:ns:netconf:base:1.0"
 
+
+# Child navigation on xml.Node. one/opt/many select children by tag, optionally
+# namespace-qualified. Namespace resolution is best-effort from local
+# declarations (the child's own nsdefs, then the parent's) — enough for the
+# common cases, not a full in-scope resolver. TODO: move to std.xml.
+protocol XmlNav:
+    one: (str, ?str) -> xml.Node
+    many: (str, ?str) -> list[xml.Node]
+    opt: (str, ?str) -> ?xml.Node
+
+
+def find_ns(nsdefs: list[(?str, str)], prefix: ?str) -> ?str:
+    for p, uri in nsdefs:
+        if p == prefix:
+            return uri
+    return None
+
+
+def child_namespace(parent: xml.Node, child: xml.Node) -> ?str:
+    ns = find_ns(child.nsdefs, child.prefix)
+    if ns is not None:
+        return ns
+    return find_ns(parent.nsdefs, child.prefix)
+
+
+def child_matches(parent: xml.Node, child: xml.Node, tag: str, ns: ?str) -> bool:
+    if child.tag != tag:
+        return False
+    if ns is None:
+        return True
+    cns = child_namespace(parent, child)
+    return cns is not None and cns == ns
+
+
+def matching_children(parent: xml.Node, tag: str, ns: ?str) -> list[xml.Node]:
+    return [c for c in parent.children if child_matches(parent, c, tag, ns)]
+
+
+extension xml.Node(XmlNav):
+    def one(self, tag: str, ns: ?str=None) -> xml.Node:
+        matches = matching_children(self, tag, ns)
+        count = len(matches)
+        if count == 1:
+            return matches[0]
+        if ns is None:
+            raise ValueError("Expected one child <{tag}> under <{self.tag}>, got {count}")
+        raise ValueError("Expected one child <{tag}> in ns <{ns}> under <{self.tag}>, got {count}")
+
+    def opt(self, tag: str, ns: ?str=None) -> ?xml.Node:
+        matches = matching_children(self, tag, ns)
+        count = len(matches)
+        if count == 1:
+            return matches[0]
+        if count == 0:
+            return None
+        if ns is None:
+            raise ValueError("Expected at most one child <{tag}> under <{self.tag}>, got {count}")
+        raise ValueError("Expected at most one child <{tag}> in ns <{ns}> under <{self.tag}>, got {count}")
+
+    def many(self, tag: str, ns: ?str=None) -> list[xml.Node]:
+        return matching_children(self, tag, ns)
+
+
 def expect[T](a: ?T, ctx: str) -> T:
     if a is not None:
         return a
