@@ -21,12 +21,12 @@ keys), and a node module:name-prefixed only where its module differs from its
 parent. gdata carries Node.module exactly at those namespace boundaries, so
 emitting the prefix when module is set yields the RFC rule.
 
-Leaf value content is rendered through gdata's own to_xml (by wrapping the leaf in a
-synthetic parent container), not hand-built: to_xml cannot render a bare Leaf (a
-leaf is named by the key its parent holds it under), and hand-building drops the
-xmlns declarations that _nsq adds for namespaced and identityref-valued leaves. The
-value element is also forced to declare its own namespace (from leaf.ns or the path
-Id.q) so it is self-contained anydata and the schema-aware lift can re-parse it.
+Leaf value content is rendered through gdata.leaf_xml, not hand-built: a bare Leaf
+has no element name of its own (it is named by the key its parent holds it under),
+and hand-building would drop the xmlns declarations gdata adds for namespaced and
+identityref-valued leaves. The value element is also forced to declare its own
+namespace (from leaf.ns or the path Id.q) so it is self-contained anydata and
+edits_to_gdata can re-parse it.
 
 Scope: this is the XML media type only (RFC 8072 also defines a JSON one), and it
 pairs the diff producer with a diff-shaped inverse (edits_to_gdata), not a general
@@ -185,21 +185,14 @@ def diff_to_edits(d: ?gdata.Node) -> list[Edit]:
             vals.append(pct(gdata.yang_str(leaf.val)))
         return "=" + ",".join(vals)
 
-    def value_elem(name: gdata.Id, leaf: gdata.Leaf) -> ?xml.Node:
-        # Render a leaf as a self-contained <value> child via gdata's own to_xml: a
-        # bare Leaf has no element name (it is named by its parent's key), so wrap it
-        # in a synthetic parent container and let the leaf branch of _to_xml_rec emit
-        # it with the right namespace + any identityref module namespace. Force the
-        # element's own namespace (leaf.ns, falling back to the path Id.q) so the
-        # fragment is self-contained anydata.
+    def value_elem(name: gdata.Id, leaf: gdata.Leaf) -> xml.Node:
+        # Force the element's own namespace (leaf.ns, falling back to the path Id.q)
+        # so the <value> fragment is self-contained anydata even when the leaf
+        # inherited its namespace from an ancestor in the source tree.
         ns = leaf.ns
         if ns is None and name.q != "":
             ns = name.q
-        wleaf = gdata.Leaf(leaf.val, ns=ns, module=leaf.module)
-        frags = gdata.Container({name: wleaf}).to_xml(deterministic=True)
-        if len(frags) > 0:
-            return frags[0]
-        return None
+        return gdata.leaf_xml(name.name, ns, leaf.val)
 
     def entry_value_elem(name: gdata.Id, node: gdata.List, elem: gdata.Node) -> ?xml.Node:
         # Render a keyed list entry (its key leaves only) as the value of an

@@ -290,6 +290,19 @@ def yang_str(v) -> str:
     return s
 
 
+def leaf_xml(name: str, ns: ?str, val: value) -> xml.Node:
+    # Render a single leaf as an <name>value</name> element. Shared by Node.to_xml's
+    # child loop and by external callers (e.g. yangpatch) that need a leaf element
+    # without a container to hang it under. Present is an empty element; a real
+    # value gets text plus any identityref namespace; Absent (an unset empty leaf)
+    # gets the netconf remove operation marker.
+    if isinstance(val, Present):
+        return xml.Node(name, nsdefs=_nsq(ns))
+    if val is not None and not isinstance(val, Absent):
+        return xml.Node(name, nsdefs=_nsq(ns, val), text=yang_str(val))
+    return xml.Node(name, nsdefs=_nsq(ns) + remove_op.nsdefs, attributes=remove_op.attrs)
+
+
 def json_val(v: value) -> ?value:
     if isinstance(v, bytes):
         return base64.encode(v).decode()
@@ -823,14 +836,7 @@ class Node(value):
                             attrs = (nsdefs=[], attrs=[])
                         children.append(xml.Node(local_name, nsdefs=_nsq(child.ns) + attrs.nsdefs, attributes=attrs.attrs, children=elem._to_xml_rec(child.keys, skip_nonkeys, deterministic=deterministic)))
                 elif isinstance(child, Leaf):
-                    v = child.val
-                    if isinstance(v, Present):
-                        children.append(xml.Node(local_name, nsdefs=_nsq(child.ns)))
-                    elif v is not None and not isinstance(v, Absent):
-                        # Absent - value for unset empty leaf
-                        children.append(xml.Node(local_name, nsdefs=_nsq(child.ns, child.val), text=yang_str(v)))
-                    else:
-                        children.append(xml.Node(local_name, nsdefs=_nsq(child.ns) + remove_op.nsdefs, attributes=remove_op.attrs))
+                    children.append(leaf_xml(local_name, child.ns, child.val))
                 elif isinstance(child, CreateLeaf):
                     v = child.val
                     if isinstance(v, Present):
