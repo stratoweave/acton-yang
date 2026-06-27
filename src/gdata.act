@@ -1949,6 +1949,16 @@ def vals_equal(a: value, b: value) -> bool:
         return a == b
     if isinstance(a, Present) and isinstance(b, Present):
         return True
+    if isinstance(a, set) and isinstance(b, set):
+        # YANG bits values are decoded into a set of bit names. Assign to a
+        # correctly-typed local so set operations use the str element witness:
+        # isinstance-narrowing a `value` back to a parameterized type otherwise
+        # picks an arbitrary element type (actonlang/acton#2969).
+        # TODO(acton#2969): drop the set[str] annotation once value-narrowing
+        # unboxes set elements, leaving `return a == b`.
+        sa: set[str] = a
+        sb: set[str] = b
+        return sa == sb
     if type(a) != type(b):
         # It is valid to compare values of different type, which happens if
         # leaves are of type union and value a and b happen to be of different
@@ -1976,6 +1986,17 @@ def vals_less_than(a: value, b: value) -> bool:
         return a < b
     if isinstance(a, Present) and isinstance(b, Present):
         return False
+    if isinstance(a, set) and isinstance(b, set):
+        # YANG bits values are decoded into a set of bit names. Assign to a
+        # correctly-typed local (actonlang/acton#2969) so iteration unboxes the
+        # bit names, then order lexicographically by the sorted names. Equal sets
+        # have equal sorted lists, so they are never less-than each other
+        # (consistent with vals_equal).
+        # TODO(acton#2969): drop the set[str] annotation once value-narrowing
+        # unboxes set elements, leaving `return sorted(list(a)) < sorted(list(b))`.
+        sa: set[str] = a
+        sb: set[str] = b
+        return sorted(list(sa)) < sorted(list(sb))
     raise ValueError("Unsupported value type or mismatch in lt comparison: {type(a)}, {type(b)}")
 
 
