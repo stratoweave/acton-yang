@@ -1764,3 +1764,91 @@ def _test_json_path_rejects_wrong_top_key():
         testing.error("Expected exception on wrong top-level key")
     except ValueError:
         pass
+
+
+def _test_bits_leaf_comparison():
+    """Regression: comparing gdata trees containing a YANG bits leaf must not crash.
+
+    A YANG bits leaf decodes into a set of bit names. The value-comparison
+    helpers (vals_equal / vals_less_than), reached via Node.__eq__ and leaf-list
+    entry sorting, must handle set values instead of raising "Unsupported value
+    type". A downstream consumer that diffs subscription trees (merged !=
+    last_merged) hit this when a monitored subtree contained a bits leaf.
+    """
+    ybits = r"""module ybits {
+  namespace "urn:example:ybits";
+  prefix ybits;
+  container c {
+    leaf flags {
+      type bits {
+        bit a;
+        bit b;
+        bit c;
+      }
+    }
+    leaf-list flaglist {
+      type bits {
+        bit a;
+        bit b;
+        bit c;
+      }
+    }
+  }
+}"""
+    xml_ab = r"""<data>
+<c xmlns="urn:example:ybits"><flags>a b</flags></c>
+</data>"""
+    xml_ac = r"""<data>
+<c xmlns="urn:example:ybits"><flags>a c</flags></c>
+</data>"""
+
+    s = yang.compile([ybits])
+    gd_ab1 = from_xml(s, xml.decode(xml_ab))
+    gd_ab2 = from_xml(s, xml.decode(xml_ab))
+    gd_ac = from_xml(s, xml.decode(xml_ac))
+
+    # Equal bits leaves compare equal (== True, != False)
+    testing.assertTrue(gd_ab1 == gd_ab2, "equal bits leaves should compare equal")
+    testing.assertFalse(gd_ab1 != gd_ab2, "equal bits leaves should not be unequal")
+
+    # Different bits leaves compare unequal
+    testing.assertTrue(gd_ab1 != gd_ac, "different bits leaves should compare unequal")
+    testing.assertFalse(gd_ab1 == gd_ac, "different bits leaves should not compare equal")
+
+    # vals_less_than over set values must be a deterministic total order and not
+    # raise: equal sets are never less-than, and unequal sets order in exactly
+    # one direction (consistent with vals_equal).
+    s_ab = set(["a", "b"])
+    s_ab2 = set(["a", "b"])
+    s_ac = set(["a", "c"])
+    testing.assertFalse(ygdata.vals_less_than(s_ab, s_ab2), "equal sets must not be less-than")
+    testing.assertFalse(ygdata.vals_less_than(s_ab2, s_ab), "equal sets must not be less-than")
+    testing.assertTrue(ygdata.vals_equal(s_ab, s_ab2), "equal sets must be vals_equal")
+    testing.assertFalse(ygdata.vals_equal(s_ab, s_ac), "different sets must not be vals_equal")
+    lt_fwd = ygdata.vals_less_than(s_ab, s_ac)
+    lt_rev = ygdata.vals_less_than(s_ac, s_ab)
+    testing.assertTrue(
+        lt_fwd != lt_rev,
+        "unequal sets must order in exactly one direction")
+
+    # The ordering must be canonical: sets with the same elements built in a
+    # different insertion order compare equal and are never less-than each other.
+    s_ba = set(["b", "a"])
+    testing.assertTrue(ygdata.vals_equal(s_ab, s_ba), "set order must not affect equality")
+    testing.assertFalse(ygdata.vals_less_than(s_ab, s_ba), "equal sets must not be less-than")
+    testing.assertFalse(ygdata.vals_less_than(s_ba, s_ab), "equal sets must not be less-than")
+
+    # Deterministically serialising a bits leaf-list sorts its entries, which
+    # exercises vals_less_than over set values; it must not raise and must be
+    # stable across calls.
+    gd_list = from_xml(s, xml.decode(r"""<data>
+<c xmlns="urn:example:ybits">
+  <flaglist>b c</flaglist>
+  <flaglist>a</flaglist>
+  <flaglist>a b</flaglist>
+</c>
+</data>"""))
+    out1 = gd_list.prsrc(deterministic=True)
+    out2 = gd_list.prsrc(deterministic=True)
+    testing.assertEqual(out1, out2, "deterministic serialisation of a bits leaf-list must be stable")
+    testing.assertTrue(len(out1) > 0, "deterministic serialisation must produce output")
