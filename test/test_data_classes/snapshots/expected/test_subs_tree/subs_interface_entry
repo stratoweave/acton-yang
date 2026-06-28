@@ -1,4 +1,4 @@
-SubscriptionSpec(period=1000000000, filt=FNode(Id('http://example.com/filter-test', 'interfaces'), [FNode(Id('http://example.com/filter-test', 'interface'), [FNode(Id('http://example.com/filter-test', 'name'), 'eth0')])]))
+SubscriptionSpec(period=1000000000, on_change=False, filt=FNode(Id('http://example.com/filter-test', 'interfaces'), [FNode(Id('http://example.com/filter-test', 'interface'), [FNode(Id('http://example.com/filter-test', 'name'), 'eth0')])]))
 
 NETCONF XML subtree filter:
 <interfaces xmlns="http://example.com/filter-test">
