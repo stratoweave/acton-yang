@@ -1,4 +1,4 @@
-SubscriptionSpec(period=50000000, filt=FNode(Id('http://example.com/filter-test', 'system-state'), [FNode(Id('http://example.com/filter-test', 'clock'), [FNode(Id('http://example.com/filter-test', 'current-datetime')), FNode(Id('http://example.com/filter-test', 'boot-datetime'))])]))
+SubscriptionSpec(period=50000000, on_change=False, filt=FNode(Id('http://example.com/filter-test', 'system-state'), [FNode(Id('http://example.com/filter-test', 'clock'), [FNode(Id('http://example.com/filter-test', 'current-datetime')), FNode(Id('http://example.com/filter-test', 'boot-datetime'))])]))
 
 NETCONF XML subtree filter:
 <system-state xmlns="http://example.com/filter-test">

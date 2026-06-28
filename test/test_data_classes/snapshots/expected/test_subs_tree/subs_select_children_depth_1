@@ -1,4 +1,4 @@
-SubscriptionSpec(period=1000000000, filt=FNode(Id('http://example.com/filter-test', 'interfaces'), [FNode(Id('http://example.com/filter-test', 'interface'), [FNode(Id('http://example.com/filter-test', 'name'), 'eth0'), FNode(Id('http://example.com/filter-test', 'statistics'), [FNode(Id('http://example.com/filter-test', 'in-octets')), FNode(Id('http://example.com/filter-test', 'out-octets'))]), FNode(Id('http://example.com/filter-test', 'ipv4'), [FNode(Id('http://example.com/filter-test', 'mtu'))])])]))
+SubscriptionSpec(period=1000000000, on_change=False, filt=FNode(Id('http://example.com/filter-test', 'interfaces'), [FNode(Id('http://example.com/filter-test', 'interface'), [FNode(Id('http://example.com/filter-test', 'name'), 'eth0'), FNode(Id('http://example.com/filter-test', 'statistics'), [FNode(Id('http://example.com/filter-test', 'in-octets')), FNode(Id('http://example.com/filter-test', 'out-octets'))]), FNode(Id('http://example.com/filter-test', 'ipv4'), [FNode(Id('http://example.com/filter-test', 'mtu'))])])]))
 
 NETCONF XML subtree filter:
 <interfaces xmlns="http://example.com/filter-test">
