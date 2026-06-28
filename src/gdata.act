@@ -3162,22 +3162,28 @@ def _normalize_period(period: ?value) -> ?u64:
     return None
 
 class SubscriptionSpec(value):
-    """Declarative subscription specification."""
+    """Declarative subscription specification.
+
+    A spec is periodic (period set) or on-change (on_change=True) — distinct delivery
+    modes, so two specs with the same filter but different modes compare and hash
+    unequal."""
     filt: ?FNode
     period: ?u64 # normalized to nanoseconds; 0 means as fast as possible
+    on_change: bool # on-change delivery (RFC 8641) instead of periodic
 
-    def __init__(self, filt: ?FNode, period: ?value=None):
+    def __init__(self, filt: ?FNode, period: ?value=None, on_change: bool=False):
         # TODO: Accept a real union type here once Acton supports it. Today
         # value is the only way to express "float seconds or integer
         # nanoseconds" in one parameter.
         self.filt = filt
         self.period = _normalize_period(period)
+        self.on_change = on_change
 
     def __str__(self) -> str:
         filt = self.filt
         filt_str = filt.prsrc(deterministic=True) if filt is not None else "None"
         period_str = str(self.period) if self.period is not None else "None"
-        return "SubscriptionSpec(period={period_str}, filt={filt_str})"
+        return "SubscriptionSpec(period={period_str}, on_change={self.on_change}, filt={filt_str})"
 
     def __repr__(self) -> str:
         return str(self)
@@ -3185,6 +3191,8 @@ class SubscriptionSpec(value):
 
 extension SubscriptionSpec(Hashable):
     def __eq__(self, other: SubscriptionSpec) -> bool:
+        if self.on_change != other.on_change:
+            return False
         if self.period != other.period:
             return False
         if self.filt is None:
@@ -3194,6 +3202,7 @@ extension SubscriptionSpec(Hashable):
         return self.filt == other.filt
 
     def hash(self, hasher):
+        ("onchange" if self.on_change else "periodic").hash(hasher)
         period = self.period
         if period is not None:
             "some".hash(hasher)
@@ -5635,6 +5644,14 @@ def _test_subscription_spec_period_int_nanoseconds():
 def _test_subscription_spec_default_on_change():
     spec = SubscriptionSpec(None)
     testing.assertEqual(spec.period, None)
+    testing.assertEqual(spec.on_change, False)
+    # Mode is part of identity: a periodic and an on-change spec with the same
+    # filter must not collide in a subscription set/dict.
+    periodic = SubscriptionSpec(None, period=0.05)
+    onchange = SubscriptionSpec(None, on_change=True)
+    testing.assertEqual(periodic == onchange, False)
+    testing.assertEqual(onchange == SubscriptionSpec(None, on_change=True), True)
+    testing.assertEqual(len({periodic, onchange}), 2)
 
 
 def _test_serialization_roundtrip_leaflist():
