@@ -22,6 +22,15 @@ test:
 	acton test
 	$(MAKE) test-daclass
 	$(MAKE) test-data-source-roundtrip
+	$(MAKE) test-device-mode
+
+.PHONY: test-device-mode-gen
+test-device-mode-gen:
+	cd test/test_device_mode && ../../out/bin/ayangc compile --infile yang -s adata -m device -o src/m.act
+
+.PHONY: test-device-mode
+test-device-mode: test-device-mode-gen
+	cd test/test_device_mode && acton test
 
 .PHONY: test-daclass-gen
 test-daclass-gen:
@@ -46,6 +55,8 @@ test-accept:
 	cd test/test_data_classes_gen && acton build && out/bin/gen
 	cd test/test_data_classes && acton test --accept
 	cd test/test_data_source_roundtrip && acton test --accept
+	$(MAKE) test-device-mode-gen
+	cd test/test_device_mode && acton test --accept
 
 test-yang-compile-accept:
 	cd test/test_yang_compile && acton test --max-time 600000 --min-iter 1 --max-iter 1 --release=fast --accept

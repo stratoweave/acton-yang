@@ -384,7 +384,7 @@ class DNode(object):
 
         raise ValueError("Unable to get child from non-inner node")
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, device=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
         """Print the data class for this schema node
         """
         raise NotImplementedError('DNode pdc: {type(self)} - {get_path(spath)}')
@@ -507,7 +507,7 @@ class DNode(object):
 class DNodeInner(DNode):
     children: list[DNode]
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, device=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
         """Print the data class for this schema node
         """
         def path_with_child(c):
@@ -580,7 +580,7 @@ class DNodeInner(DNode):
         for child in self.children:
             if isinstance(child, DNodeLeaf):
                 continue
-            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
+            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, device=device, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
             res.extend(child_res)
 
         def excluded(n):
@@ -732,71 +732,72 @@ class DNodeInner(DNode):
                 res.append("        return res")
                 res.append("")
 
-        if len(attr_children) > 0:
-            res.append("    pure def _get_attr(self, name: str) -> ?value:")
-            for child in attr_children:
-                res.append("        if name == '{child.prefix}:{child.name}':")
-                if isinstance(child, DList):
-                    res.append("            return iter(self.{usname(child)})")
-                else:
-                    res.append("            return self.{usname(child)}")
+        if not device:
+            if len(attr_children) > 0:
+                res.append("    pure def _get_attr(self, name: str) -> ?value:")
+                for child in attr_children:
+                    res.append("        if name == '{child.prefix}:{child.name}':")
+                    if isinstance(child, DList):
+                        res.append("            return iter(self.{usname(child)})")
+                    else:
+                        res.append("            return self.{usname(child)}")
+                res.append("")
+
+            # .to_gdata()
+            res.append("    mut def to_gdata(self) -> ygdata.Node:")
+            if isinstance(self, DRoot):
+                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose})")
+            else:
+                root_path = ["{'{node.module}:' if prev.module != node.module else ''}{node.name}" if node is not None else None for prev, node in zip(spath, spath[1:] + [None])]
+                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose}, root_path={repr(root_path[:-1])})")
             res.append("")
 
-        # .to_gdata()
-        res.append("    mut def to_gdata(self) -> ygdata.Node:")
-        if isinstance(self, DRoot):
-            res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose})")
-        else:
-            root_path = ["{'{node.module}:' if prev.module != node.module else ''}{node.name}" if node is not None else None for prev, node in zip(spath, spath[1:] + [None])]
-            res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose}, root_path={repr(root_path[:-1])})")
-        res.append("")
+            # .from_gdata()
+            # TODO: should .from_gdata() not take a specific data node instead, like Container instead of ygdata.Node?
+            from_gdata_args_list = []
+            for child in attr_children:
+                if isinstance(child, DNodeLeaf):
+                    from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, list_keys(self), loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
+                else:
+                    from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, list_keys(self), loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}')))")
+            from_gdata_args = ", ".join(from_gdata_args_list)
+            res.append("    @staticmethod")
+            if isinstance(self, DList):
+                res.append("    mut def from_gdata(n: ygdata.Node) -> {pname()}_entry:")
+                res.append("        return {pname()}_entry({from_gdata_args})")
+            else:
+                opt_cnt = True if isinstance(self, DContainer) and self.presence else False
+                res.append("    mut def from_gdata(n: ?ygdata.Node) -> {'?' if opt_cnt else ''}{pname()}:")
+                res.append("        if n is not None:")
+                res.append("            return {pname()}({from_gdata_args})")
+                if opt_cnt:
+                    res.append("        return None")
+                elif loose or optional_subtree(self):
+                    res.append("        return {pname()}()")
+                else:
+                    res.append("        raise ValueError('Missing required subtree {pname()}')")
+            res.append("")
 
-        # .from_gdata()
-        # TODO: should .from_gdata() not take a specific data node instead, like Container instead of ygdata.Node?
-        from_gdata_args_list = []
-        for child in attr_children:
-            if isinstance(child, DNodeLeaf):
-                from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, list_keys(self), loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
+            # .copy() method
+            if isinstance(self, DList):
+                res.append("    mut def copy(self) -> {pname()}_entry:")
             else:
-                from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, list_keys(self), loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}')))")
-        from_gdata_args = ", ".join(from_gdata_args_list)
-        res.append("    @staticmethod")
-        if isinstance(self, DList):
-            res.append("    mut def from_gdata(n: ygdata.Node) -> {pname()}_entry:")
-            res.append("        return {pname()}_entry({from_gdata_args})")
-        else:
-            opt_cnt = True if isinstance(self, DContainer) and self.presence else False
-            res.append("    mut def from_gdata(n: ?ygdata.Node) -> {'?' if opt_cnt else ''}{pname()}:")
-            res.append("        if n is not None:")
-            res.append("            return {pname()}({from_gdata_args})")
-            if opt_cnt:
-                res.append("        return None")
-            elif loose or optional_subtree(self):
-                res.append("        return {pname()}()")
+                res.append("    mut def copy(self) -> {pname()}:")
+            res.append('        """Create a deep copy of this adata object"""')
+            if isinstance(self, DList):
+                res.append("        return {pname()}_entry.from_gdata(self.to_gdata())")
             else:
-                res.append("        raise ValueError('Missing required subtree {pname()}')")
-        res.append("")
-
-        # .copy() method
-        if isinstance(self, DList):
-            res.append("    mut def copy(self) -> {pname()}_entry:")
-        else:
-            res.append("    mut def copy(self) -> {pname()}:")
-        res.append('        """Create a deep copy of this adata object"""')
-        if isinstance(self, DList):
-            res.append("        return {pname()}_entry.from_gdata(self.to_gdata())")
-        else:
-            opt_cnt = True if isinstance(self, DContainer) and self.presence else False
-            # AdataPContainer.from_gdata(n) -> ?AdataPContainer, return type is optional.
-            # But since we're copying an instance, the output of .copy() is non-optional.
-            if opt_cnt:
-                res.append("        ad = {pname()}.from_gdata(self.to_gdata())")
-                res.append("        if ad is not None:")
-                res.append("            return ad")
-                res.append("        raise Exception('Unreachable in {pname()}.copy()')")
-            else:
-                res.append("        return {pname()}.from_gdata(self.to_gdata())")
-        res.append("")
+                opt_cnt = True if isinstance(self, DContainer) and self.presence else False
+                # AdataPContainer.from_gdata(n) -> ?AdataPContainer, return type is optional.
+                # But since we're copying an instance, the output of .copy() is non-optional.
+                if opt_cnt:
+                    res.append("        ad = {pname()}.from_gdata(self.to_gdata())")
+                    res.append("        if ad is not None:")
+                    res.append("            return ad")
+                    res.append("        raise Exception('Unreachable in {pname()}.copy()')")
+                else:
+                    res.append("        return {pname()}.from_gdata(self.to_gdata())")
+            res.append("")
 
         if isinstance(self, DList):
             # List has special handling as it actually results in two classes:
@@ -900,31 +901,33 @@ class DNodeInner(DNode):
             res.append("        return res")
             res.append("")
 
-#            # .from_gdata()
-#            # TODO: should .from_gdata() not take a specific data node instead, like Container instead of ygdata.Node?
-            res.append("    @staticmethod")
-            res.append("    mut def from_gdata(n: ?ygdata.List) -> list[{pname()}_entry]:")
-            res.append("        if n is not None:")
-            res.append("            return [{pname()}_entry.from_gdata(e) for e in n.elements]")
-            res.append("        return []")
-            #res.append("        return list(map(lambda x: %s_entry.from_gdata(x), n.elements))" % pname())
-            # TODO: trying to use list(map(lambda)) here results in an error,
-            # why? Above code that iterates over n.elements works fine... Error is:
-            # ERROR: Error when compiling y_cfs module: Type error
-            # mut must be a subclass of pure
-            res.append("")
+            # list wrapper from_gdata/copy use the entry's, also dropped in device mode
+            if not device:
+#                # .from_gdata()
+#                # TODO: should .from_gdata() not take a specific data node instead, like Container instead of ygdata.Node?
+                res.append("    @staticmethod")
+                res.append("    mut def from_gdata(n: ?ygdata.List) -> list[{pname()}_entry]:")
+                res.append("        if n is not None:")
+                res.append("            return [{pname()}_entry.from_gdata(e) for e in n.elements]")
+                res.append("        return []")
+                #res.append("        return list(map(lambda x: %s_entry.from_gdata(x), n.elements))" % pname())
+                # TODO: trying to use list(map(lambda)) here results in an error,
+                # why? Above code that iterates over n.elements works fine... Error is:
+                # ERROR: Error when compiling y_cfs module: Type error
+                # mut must be a subclass of pure
+                res.append("")
 
-            # .copy() method for list wrapper
-            res.append("    mut def copy(self) -> {pname()}:")
-            res.append('        """Create a deep copy of this list object"""')
-            res.append("        # Copy each element in the list")
-            res.append("        copied_elements = []")
-            res.append("        for e in self:")
-            res.append("            ce = e.copy()")
-            res.append("            if ce is not None:")
-            res.append("                copied_elements.append(ce)")
-            res.append("        return {pname()}(elements=copied_elements)")
-            res.append("")
+                # .copy() method for list wrapper
+                res.append("    mut def copy(self) -> {pname()}:")
+                res.append('        """Create a deep copy of this list object"""')
+                res.append("        # Copy each element in the list")
+                res.append("        copied_elements = []")
+                res.append("        for e in self:")
+                res.append("            ce = e.copy()")
+                res.append("            if ce is not None:")
+                res.append("                copied_elements.append(ce)")
+                res.append("        return {pname()}(elements=copied_elements)")
+                res.append("")
             # Generate Iterable extension for the list class
             res.append("extension {pname()}(Iterable[{pname()}_entry]):")
             res.append("    def __iter__(self) -> Iterator[{pname()}_entry]:")
@@ -969,7 +972,8 @@ class DNodeInner(DNode):
                 # - set_ns: from DRpc (=True)
                 # - include_state=True
                 for child in rpc.children:
-                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
+                    # rpc subtrees keep serialization (device=False) so rpc_root compiles
+                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, device=False, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
                     res.extend(child_class_src)
 
             # TODO: unique safe name for RPC function!
@@ -1758,7 +1762,7 @@ class DRoot(DNodeInner):
             ("module_metadata", self.module_metadata),
         ]
 
-    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False) -> str:
+    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, device=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False) -> str:
         def build_spath(spath: list[DNode]):
             if len(root_path) == len(spath) - 1:
                 return spath
@@ -1776,7 +1780,7 @@ class DRoot(DNodeInner):
         # adata code generator ...
         spath = build_spath([self])
         pname_cache: dict[str, str] = {}
-        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, exclude_ext=exclude_ext, pname_cache=pname_cache)
+        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, device=device, exclude_ext=exclude_ext, pname_cache=pname_cache)
 
         res = []
         res.append("import base64")

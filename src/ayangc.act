@@ -82,6 +82,13 @@ proc def cmd_compile(env, file_cap, args):
     """
     infiles = args.get_strlist("infile")
     loose = args.get_bool("loose")
+    mode = args.get_str("mode")
+    device = False
+    if mode == "device":
+        device = True
+    elif mode != "full":
+        print("Error: invalid --mode '{mode}', expected 'full' or 'device'", err=True)
+        env.exit(1)
     exclude_patterns = args.get_strlist("exclude")
     stage = args.get_str("stage")
     outfile = args.get_str("output")
@@ -180,7 +187,7 @@ proc def cmd_compile(env, file_cap, args):
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
             sw.reset()
-            stage_output = root.prdaclass(loose=loose)
+            stage_output = root.prdaclass(loose=loose, device=device)
             t2 = sw.elapsed()
             print("Generated adata in {t2.to_float()}s", err=True)
         else:
@@ -239,6 +246,7 @@ actor main(env):
     compile_cmd = p.add_cmd("compile", "compile YANG modules together", _cmd_compile)
     compile_cmd.add_option("infile", "strlist", "+", [], "input YANG file(s) or directory(s)")
     compile_cmd.add_bool("loose", "generate loose validation mode classes", short="l")
+    compile_cmd.add_option("mode", "str", default="full", help="adata generation mode: 'full' (default) or 'device' (drop from_gdata/to_gdata/copy/_get_attr for a structure-only on-device class shape)", short="m")
     compile_cmd.add_option("exclude", "strlist", "*", [], "glob pattern(s) to exclude files", short="e")
     compile_cmd.add_option("stage", "str", default="", help="compile stage (adata, dnode-src, schema-tree, dnode-tree, statement, default full compile only)", short="s")
     compile_cmd.add_option("output", "str", default="", help="write stage output to file (use '-' for stdout)", short="o")
