@@ -1,0 +1,7 @@
+name = "ayang_test_device_mode"
+fingerprint = 0xfde1bcea1d5fbeef
+dependencies = {    "yang": (
+        path="../../"
+    )
+}
+zig_dependencies = {}
