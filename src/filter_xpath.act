@@ -1,0 +1,641 @@
+"""Schema-backed XPath conversion for FNode filters."""
+
+import testing
+
+import gdata as ygdata
+import lib as yang
+import schema as yschema
+import xpath
+from data import PathElement, format_schema_path
+from json import try_parse_json_value
+
+
+def path_step_name(n: yschema.DNode) -> str:
+    if n.prefix != "":
+        return "{n.prefix}:{n.name}"
+    return n.name
+
+
+def require_inner(n: yschema.DNode, spath: list[PathElement]) -> yschema.DNodeInner:
+    if isinstance(n, yschema.DNodeInner):
+        return n
+    raise ValueError("Expected inner node at {format_schema_path(spath)}: {type(n)}")
+
+
+def require_leaf(n: yschema.DNode, spath: list[PathElement]) -> yschema.DNodeLeaf:
+    if isinstance(n, yschema.DNodeLeaf):
+        return n
+    raise ValueError("Expected leaf or leaf-list node at {format_schema_path(spath)}: {type(n)}")
+
+
+def child_schema(parent: yschema.DNodeInner, child: ygdata.FNode) -> yschema.DNode:
+    name = child.name
+    if name is not None:
+        if name.q != "":
+            return parent.get(name.name, namespace=name.q, allow_unqualified=True)
+        return parent.get(name.name, allow_unqualified=True)
+    raise ValueError("FNode child is missing a name")
+
+
+def parse_predicate_text(text: str) -> (self_match: bool, prefix: ?str, name: str, val: str):
+    p = xpath.Parser(text)
+
+    def skip_ws() -> None:
+        while p.try_get_char_if(lambda c: c in " \t\r\n") is not None:
+            pass
+
+    def read_literal() -> str:
+        quote = p.try_get_char_in("'\"")
+        if quote is None:
+            raise ValueError("Expected quoted XPath predicate value at position {p.i} in pattern {p.input}")
+        q = quote!
+        begin = p.i
+        while True:
+            c = p.try_get_char()
+            if c is None:
+                raise ValueError("Missing XPath predicate value closing quote at position {p.i} in pattern {p.input}")
+            if c! == q:
+                return p.get_slice_substr(begin, p.i - 1)
+        raise ValueError("Missing XPath predicate value closing quote at position {p.i} in pattern {p.input}")
+
+    skip_ws()
+    self_match = False
+    prefix: ?str = None
+    name = ""
+    if p.try_get_char_in(".") is not None:
+        self_match = True
+    else:
+        n1 = xpath.try_parse_ncname(p)
+        if n1 is None:
+            raise ValueError("Expected XPath predicate child name at position {p.i} in pattern {p.input}")
+        if p.try_get_char_in(":") is not None:
+            n2 = xpath.try_parse_ncname(p)
+            if n2 is None:
+                raise ValueError("Expected XPath predicate child local name at position {p.i} in pattern {p.input}")
+            prefix = n1!
+            name = n2!
+        else:
+            name = n1!
+
+    skip_ws()
+    if p.try_get_char_in("=") is None:
+        raise ValueError("Expected XPath predicate equality at position {p.i} in pattern {p.input}")
+    skip_ws()
+    val = read_literal()
+    skip_ws()
+    if p.i != p.input_len:
+        raise ValueError("Unexpected trailing predicate input at position {p.i} in pattern {p.input}")
+    return (self_match=self_match, prefix=prefix, name=name, val=val)
+
+
+def parse_filter_value(root: yschema.DRoot, schema_leaf: yschema.DNodeLeaf, raw_value: str, spath: list[PathElement]) -> value:
+    if "*" in raw_value:
+        return ygdata.VWildcard(raw_value)
+    parsed = try_parse_json_value(raw_value, schema_leaf, schema_leaf.type_, spath, root)
+    if parsed is not None:
+        return parsed.val
+    raise ValueError("Unable to parse XPath predicate value at {format_schema_path(spath)}: {raw_value}")
+
+
+def fnode_for_step(root: yschema.DRoot, schema_node: yschema.DNode, step: xpath.NodeTestStep, spath: list[PathElement]) -> ygdata.FNode:
+    children: list[ygdata.FNode] = []
+    predicate_names: set[ygdata.Id] = set()
+    value_match: ?value = None
+    for pred in step.predicates:
+        parsed = parse_predicate_text(pred.predicate)
+        if parsed.self_match:
+            if value_match is not None:
+                raise ValueError("Multiple self value predicates at {format_schema_path(spath)}")
+            leaf = require_leaf(schema_node, spath)
+            value_match = parse_filter_value(root, leaf, parsed.val, spath)
+        else:
+            parent = require_inner(schema_node, spath)
+            pred_schema = parent.get(parsed.name, prefix=parsed.prefix, allow_unqualified=True)
+            pred_spath = spath + [PathElement(pred_schema)]
+            if isinstance(pred_schema, yschema.DLeaf):
+                pred_leaf = pred_schema
+            else:
+                raise ValueError("XPath child predicates require leaf nodes at {format_schema_path(pred_spath)}: {type(pred_schema)}")
+            pred_name = ygdata.Id(pred_leaf.namespace, pred_leaf.name)
+            if pred_name in predicate_names:
+                raise ValueError("Duplicate XPath child predicate at {format_schema_path(pred_spath)}")
+            predicate_names.add(pred_name)
+            children.append(ygdata.FNode(
+                pred_name,
+                value_match=parse_filter_value(root, pred_leaf, parsed.val, pred_spath)
+            ))
+    return ygdata.FNode(
+        ygdata.Id(schema_node.namespace, schema_node.name),
+        value_match=value_match,
+        children=children,
+    )
+
+
+def from_xpath(root: yschema.DRoot, path: str) -> ygdata.FNode:
+    location_path = xpath.parse_location_path(path)
+    if not isinstance(location_path, xpath.AbsoluteLocationPath):
+        raise ValueError("Filter XPath must be an absolute location path: {path}")
+
+    current: yschema.DNode = root
+    spath = [PathElement(root)]
+    segments: list[ygdata.FNode] = []
+    for step in location_path.steps:
+        if isinstance(step, xpath.NodeTestStep):
+            node_step = step
+        else:
+            raise ValueError("Filter XPath must use node-test steps only: {path}")
+
+        parent = require_inner(current, spath)
+        schema_node = parent.get(node_step.name, prefix=node_step.prefix, allow_unqualified=True)
+        spath = spath + [PathElement(schema_node)]
+        segments.append(fnode_for_step(root, schema_node, node_step, spath))
+        current = schema_node
+
+    child: ?ygdata.FNode = None
+    for segment in reversed(segments):
+        children = [c for c in segment.children]
+        if child is not None:
+            children.append(child)
+        child = ygdata.FNode(segment.name, value_match=segment.value_match, children=children)
+
+    if child is not None:
+        return ygdata.FNode(children=[child])
+    return ygdata.FNode()
+
+
+def schema_filter_child_parts(parent: yschema.DNodeInner, fnode: ygdata.FNode) -> (predicates: list[ygdata.FNode], selections: list[ygdata.FNode]):
+    predicates: list[ygdata.FNode] = []
+    selections: list[ygdata.FNode] = []
+    for child in fnode.children:
+        schema = child_schema(parent, child)
+        if child.value_match is not None and isinstance(schema, yschema.DLeaf) and len(child.children) == 0:
+            predicates.append(child)
+        else:
+            selections.append(child)
+    return (predicates=predicates, selections=selections)
+
+
+def schema_filter_child_list_eq(parent: yschema.DNodeInner, a: list[ygdata.FNode], b: list[ygdata.FNode], spath: list[PathElement]) -> bool:
+    if len(a) != len(b):
+        return False
+    used = [False for _ in range(len(b))]
+    for child in a:
+        found = False
+        for i in range(len(b)):
+            if not used[i] and schema_filter_merge_eq(parent, child, b[i], spath):
+                used[i] = True
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+
+def schema_filter_merge_eq(parent: yschema.DNodeInner, a: ygdata.FNode, b: ygdata.FNode, spath: list[PathElement]) -> bool:
+    if a.name != b.name or not ygdata.value_match_eq(a.value_match, b.value_match):
+        return False
+    if len(a.children) == 0 and len(b.children) == 0:
+        return True
+    schema = child_schema(parent, a)
+    child_parent = require_inner(schema, spath + [PathElement(schema)])
+    parts_a = schema_filter_child_parts(child_parent, a)
+    parts_b = schema_filter_child_parts(child_parent, b)
+    return schema_filter_child_list_eq(child_parent, parts_a.predicates, parts_b.predicates, spath + [PathElement(schema)])
+
+
+def schema_filter_merge(parent: yschema.DNodeInner, a: ygdata.FNode, b: ygdata.FNode, spath: list[PathElement]) -> ygdata.FNode:
+    if not schema_filter_merge_eq(parent, a, b, spath):
+        raise ValueError("Cannot merge different XPath filter nodes")
+    schema = child_schema(parent, a)
+    if len(a.children) == 0 and len(b.children) == 0:
+        return a
+    child_parent = require_inner(schema, spath + [PathElement(schema)])
+    parts_a = schema_filter_child_parts(child_parent, a)
+    parts_b = schema_filter_child_parts(child_parent, b)
+    if len(parts_a.selections) == 0 or len(parts_b.selections) == 0:
+        return ygdata.FNode(a.name, value_match=a.value_match, children=parts_a.predicates)
+    return ygdata.FNode(
+        a.name,
+        value_match=a.value_match,
+        children=parts_a.predicates + schema_filter_merge_list(child_parent, parts_a.selections + parts_b.selections, spath + [PathElement(schema)]),
+    )
+
+
+def schema_filter_merge_list(parent: yschema.DNodeInner, nodes: list[ygdata.FNode], spath: list[PathElement]) -> list[ygdata.FNode]:
+    merged: list[ygdata.FNode] = []
+    for node in nodes:
+        schema = child_schema(parent, node)
+        did_merge = False
+        for i in range(len(merged)):
+            if schema_filter_merge_eq(parent, merged[i], node, spath):
+                merged[i] = schema_filter_merge(parent, merged[i], node, spath)
+                did_merge = True
+                break
+        if not did_merge:
+            if not isinstance(schema, yschema.DList) and not isinstance(schema, yschema.DLeaf) and not isinstance(schema, yschema.DLeafList):
+                for existing in merged:
+                    if existing.name == node.name:
+                        raise ValueError("Cannot merge XPath filters with different predicates at {format_schema_path(spath + [PathElement(schema)])}")
+            merged.append(node)
+    return merged
+
+
+def from_xpaths(droot: yschema.DRoot, paths: list[str]) -> ygdata.FNode:
+    children: list[ygdata.FNode] = []
+    selects_root = False
+    for path in paths:
+        filt = from_xpath(droot, path)
+        if len(filt.children) == 0:
+            selects_root = True
+        else:
+            children.extend(filt.children)
+    if selects_root:
+        return ygdata.FNode(None, None, [])
+    merged = schema_filter_merge_list(droot, children, [PathElement(droot)])
+    return ygdata.FNode(None, None, merged)
+
+
+def sort_schema_fnode_pairs(pairs: list[(yschema.DNode, ygdata.FNode)]) -> list[(yschema.DNode, ygdata.FNode)]:
+    pair_map: dict[str, (yschema.DNode, ygdata.FNode)] = {}
+    for schema, fnode in pairs:
+        pair_map[path_step_name(schema)] = (schema, fnode)
+    return [pair_map[key] for key in sorted(pair_map.keys())]
+
+
+def xpath_literal(raw: str) -> str:
+    if "'" not in raw:
+        return "'{raw}'"
+    if "\"" not in raw:
+        return "\"{raw}\""
+    raise ValueError("XPath string literal cannot contain both quote characters: {raw}")
+
+
+def value_match_literal(vm: value) -> str:
+    if isinstance(vm, ygdata.ValueMatch):
+        if isinstance(vm, ygdata.VWildcard):
+            return xpath_literal(vm.pattern)
+        raise ValueError("Unknown FNode value match type: {type(vm)}")
+    return xpath_literal(ygdata.yang_str(vm))
+
+
+def filter_child_parts(parent: yschema.DNodeInner, children: list[ygdata.FNode]) -> (predicates: list[(yschema.DNode, ygdata.FNode)], selections: list[(yschema.DNode, ygdata.FNode)]):
+    predicates: list[(yschema.DNode, ygdata.FNode)] = []
+    selections: list[(yschema.DNode, ygdata.FNode)] = []
+    for child in children:
+        schema = child_schema(parent, child)
+        if child.value_match is not None and isinstance(schema, yschema.DLeaf):
+            predicates.append((schema, child))
+        else:
+            selections.append((schema, child))
+    return (predicates=predicates, selections=selections)
+
+
+def render_xpath(schema_node: yschema.DNode, fnode: ygdata.FNode, base_path: str, spath: list[PathElement], deterministic: bool) -> list[str]:
+    segment = path_step_name(schema_node)
+    value_match = fnode.value_match
+    if value_match is not None:
+        if not isinstance(schema_node, yschema.DNodeLeaf):
+            raise ValueError("Only leaf and leaf-list FNodes can have self value matches at {format_schema_path(spath)}")
+        segment += "[.={value_match_literal(value_match)}]"
+
+    selections: list[(yschema.DNode, ygdata.FNode)] = []
+    if len(fnode.children) > 0:
+        parent = require_inner(schema_node, spath)
+        parts = filter_child_parts(parent, fnode.children)
+        predicate_names: set[ygdata.Id] = set()
+        for pred_schema, pred in parts.predicates:
+            pred_name = ygdata.Id(pred_schema.namespace, pred_schema.name)
+            if pred_name in predicate_names:
+                raise ValueError("Cannot render duplicate XPath predicates for {format_schema_path(spath + [PathElement(pred_schema)])}")
+            predicate_names.add(pred_name)
+        predicates = sort_schema_fnode_pairs(parts.predicates) if deterministic else parts.predicates
+        for pred_schema, pred in predicates:
+            if len(pred.children) > 0:
+                raise ValueError("Leaf predicate FNode cannot have children")
+            pred_value = pred.value_match!
+            segment += "[{path_step_name(pred_schema)}={value_match_literal(pred_value)}]"
+        selections = parts.selections
+
+    path = base_path + "/" + segment
+    if len(selections) == 0:
+        return [path]
+
+    res: list[str] = []
+    for child_schema, child in selections:
+        res.extend(render_xpath(child_schema, child, path, spath + [PathElement(child_schema)], deterministic))
+    return res
+
+
+def to_xpaths(root: yschema.DRoot, filt: ygdata.FNode, deterministic: bool=True) -> list[str]:
+    if filt.name is None and len(filt.children) == 0:
+        return ["/"]
+
+    paths: list[str] = []
+    if filt.name is None:
+        for child in filt.children:
+            schema = child_schema(root, child)
+            paths.extend(render_xpath(schema, child, "", [PathElement(root), PathElement(schema)], deterministic))
+    else:
+        schema = child_schema(root, filt)
+        paths.extend(render_xpath(schema, filt, "", [PathElement(root), PathElement(schema)], deterministic))
+
+    if deterministic:
+        return sorted(paths)
+    return paths
+
+
+def to_xpathstr(root: yschema.DRoot, filt: ygdata.FNode, deterministic: bool=True) -> str:
+    return "\n".join(to_xpaths(root, filt, deterministic))
+
+
+def test_schema_fixture() -> yschema.DRoot:
+    ys = r"""
+module acme {
+  namespace "http://example.com/acme";
+  prefix a;
+
+  container foo {
+    leaf l1 { type uint64; }
+    leaf l2 { type string; }
+    leaf-list ll { type uint64; }
+    list l {
+      key "name";
+      leaf name { type string; }
+      leaf v { type uint64; }
+    }
+    list pairs {
+      key "k1 k2";
+      leaf k1 { type string; }
+      leaf k2 { type string; }
+      leaf payload { type string; }
+    }
+  }
+}
+"""
+    return yang.compile([ys])
+
+
+def assert_fnode_equal(actual: ygdata.FNode, expected: ygdata.FNode) -> None:
+    testing.assertEqual(actual.prsrc(deterministic=True), expected.prsrc(deterministic=True))
+
+
+def _test_from_xpath_simple_selection():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    actual = from_xpath(root, "/a:foo/a:l2")
+    expected = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l2")),
+        ]),
+    ])
+    assert_fnode_equal(actual, expected)
+
+
+def _test_from_xpath_typed_predicate():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    actual = from_xpath(root, "/a:foo[a:l1='1']/a:l2")
+    expected = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l1"), value_match=u64(1)),
+            ygdata.FNode(ygdata.Id(ns, "l2")),
+        ]),
+    ])
+    assert_fnode_equal(actual, expected)
+
+
+def _test_from_xpath_list_key_selected_child():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    actual = from_xpath(root, "/a:foo/a:l[a:name='eth0']/a:v")
+    expected = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l"), children=[
+                ygdata.FNode(ygdata.Id(ns, "name"), value_match="eth0"),
+                ygdata.FNode(ygdata.Id(ns, "v")),
+            ]),
+        ]),
+    ])
+    assert_fnode_equal(actual, expected)
+
+
+def _test_from_xpath_multi_key_list():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    actual = from_xpath(root, "/a:foo/a:pairs[a:k1='1'][a:k2='2']/a:payload")
+    expected = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "pairs"), children=[
+                ygdata.FNode(ygdata.Id(ns, "k1"), value_match="1"),
+                ygdata.FNode(ygdata.Id(ns, "k2"), value_match="2"),
+                ygdata.FNode(ygdata.Id(ns, "payload")),
+            ]),
+        ]),
+    ])
+    assert_fnode_equal(actual, expected)
+
+
+def _test_leaflist_value_selector_roundtrip():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    actual = from_xpath(root, "/a:foo/a:ll[.='2']")
+    expected = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "ll"), value_match=u64(2)),
+        ]),
+    ])
+    assert_fnode_equal(actual, expected)
+    testing.assertEqual(to_xpaths(root, actual), ["/a:foo/a:ll[.='2']"])
+
+
+def _test_wildcard_predicate():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    actual = from_xpath(root, "/a:foo/a:l[a:name='eth*']")
+    expected = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l"), children=[
+                ygdata.FNode(ygdata.Id(ns, "name"), value_match=ygdata.VWildcard("eth*")),
+            ]),
+        ]),
+    ])
+    assert_fnode_equal(actual, expected)
+    testing.assertEqual(to_xpaths(root, actual), ["/a:foo/a:l[a:name='eth*']"])
+
+
+def _test_from_xpaths_merges_shared_ancestors():
+    root = test_schema_fixture()
+    paths = to_xpaths(root, from_xpaths(root, [
+        "/a:foo/a:l[a:name='eth0']/a:v",
+        "/a:foo/a:l[a:name='eth0']",
+    ]))
+    testing.assertEqual(paths, ["/a:foo/a:l[a:name='eth0']"])
+
+
+def _test_from_xpaths_merges_leaflist_value_selectors():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    actual = from_xpaths(root, [
+        "/a:foo/a:ll[.='2']",
+        "/a:foo/a:ll[.='3']",
+    ])
+    expected = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "ll"), value_match=u64(2)),
+            ygdata.FNode(ygdata.Id(ns, "ll"), value_match=u64(3)),
+        ]),
+    ])
+    assert_fnode_equal(actual, expected)
+    testing.assertEqual(to_xpaths(root, actual), [
+        "/a:foo/a:ll[.='2']",
+        "/a:foo/a:ll[.='3']",
+    ])
+
+
+def _test_to_xpaths_roundtrip():
+    root = test_schema_fixture()
+    paths = [
+        "/a:foo/a:l[a:name='eth0']/a:v",
+        "/a:foo/a:pairs[a:k1='1'][a:k2='2']/a:payload",
+    ]
+    testing.assertEqual(to_xpaths(root, from_xpaths(root, paths)), sorted(paths))
+
+
+def _test_to_xpaths_sorts_predicates():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    filt = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "pairs"), children=[
+                ygdata.FNode(ygdata.Id(ns, "k2"), value_match="2"),
+                ygdata.FNode(ygdata.Id(ns, "k1"), value_match="1"),
+                ygdata.FNode(ygdata.Id(ns, "payload")),
+            ]),
+        ]),
+    ])
+    testing.assertEqual(to_xpaths(root, filt), ["/a:foo/a:pairs[a:k1='1'][a:k2='2']/a:payload"])
+
+
+def _test_to_xpaths_accepts_named_fnode():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    filt = ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+        ygdata.FNode(ygdata.Id(ns, "l2")),
+    ])
+    testing.assertEqual(to_xpaths(root, filt), ["/a:foo/a:l2"])
+
+
+def _test_root_path_prints_root():
+    root = test_schema_fixture()
+    testing.assertEqual(to_xpaths(root, from_xpath(root, "/")), ["/"])
+
+
+def _test_rejects_relative_path():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "a:foo/a:l2")
+        testing.error("Expected relative path to fail")
+    except ValueError as e:
+        testing.assertIn("absolute location path", e.error_message)
+
+
+def _test_rejects_abbreviated_step():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "/a:foo/./a:l2")
+        testing.error("Expected abbreviated step to fail")
+    except ValueError as e:
+        testing.assertIn("node-test steps only", e.error_message)
+
+
+def _test_rejects_descendant_abbreviation():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "//a:foo")
+        testing.error("Expected descendant abbreviation to fail")
+    except ValueError as e:
+        testing.assertIn("Expected XPath location path", e.error_message)
+
+
+def _test_rejects_positional_predicate():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "/a:foo/a:l[1]")
+        testing.error("Expected positional predicate to fail")
+    except ValueError as e:
+        testing.assertIn("Expected XPath predicate child name", e.error_message)
+
+
+def _test_rejects_unknown_name():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "/a:foo/a:missing")
+        testing.error("Expected unknown name to fail")
+    except ValueError as e:
+        testing.assertIn("Child 'missing' not found", e.error_message)
+
+
+def _test_rejects_container_predicate():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "/a:foo[a:l='eth0']")
+        testing.error("Expected predicate against non-leaf child to fail")
+    except ValueError as e:
+        testing.assertIn("XPath child predicates require leaf nodes", e.error_message)
+
+
+def _test_rejects_function_predicate():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "/a:foo/a:l[contains(a:name,'eth')]")
+        testing.error("Expected function predicate to fail")
+    except ValueError as e:
+        testing.assertIn("Expected XPath predicate equality", e.error_message)
+
+
+def _test_rejects_duplicate_child_predicate():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "/a:foo/a:l[a:name='eth0'][a:name='eth1']")
+        testing.error("Expected duplicate predicate to fail")
+    except ValueError as e:
+        testing.assertIn("Duplicate XPath child predicate", e.error_message)
+
+
+def _test_rejects_leaflist_child_predicate():
+    root = test_schema_fixture()
+    try:
+        from_xpath(root, "/a:foo[a:ll='2']")
+        testing.error("Expected leaf-list child predicate to fail")
+    except ValueError as e:
+        testing.assertIn("XPath child predicates require leaf nodes", e.error_message)
+
+
+def _test_rejects_duplicate_rendered_leaf_predicate():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    filt = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l1"), value_match=u64(1)),
+            ygdata.FNode(ygdata.Id(ns, "l1"), value_match=u64(2)),
+            ygdata.FNode(ygdata.Id(ns, "l2")),
+        ]),
+    ])
+    try:
+        to_xpaths(root, filt)
+        testing.error("Expected duplicate leaf predicates to fail")
+    except ValueError as e:
+        testing.assertIn("Cannot render duplicate XPath predicates", e.error_message)
+
+
+def _test_render_wildcard_value_match():
+    root = test_schema_fixture()
+    ns = "http://example.com/acme"
+    filt = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l"), children=[
+                ygdata.FNode(ygdata.Id(ns, "name"), value_match=ygdata.VWildcard("eth*")),
+            ]),
+        ]),
+    ])
+    testing.assertEqual(to_xpaths(root, filt), ["/a:foo/a:l[a:name='eth*']"])

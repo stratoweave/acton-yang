@@ -9,6 +9,8 @@ class LocationPath(object):
 
     @staticmethod
     def try_parse(p: Parser):
+        if p.try_peek_char_in("/") is not None:
+            return AbsoluteLocationPath.try_parse(p)
         a = AbsoluteLocationPath.try_parse(p)
         if a is not None:
             return a
@@ -31,9 +33,13 @@ class AbsoluteLocationPath(LocationPath):
     def try_parse(p: Parser):
         if p.try_get_char_in("/") is not None:
             steps = []
+            if p.try_peek_char_in("/") is not None:
+                return None
             step = Step.try_parse(p)
             if step is not None:
                 steps.append(step)
+            elif p.i < p.input_len:
+                return None
             while True:
                 if p.try_get_char_in("/") is not None:
                     step = Step.try_parse(p)
@@ -226,6 +232,8 @@ class Predicate:
                         return Predicate(p.get_slice_substr(begin, p.i - 1))
                     elif c in "'\"":
                         l = p.get_substr_while(lambda _c: _c != c)
+                        if p.try_get_char_in(c) is None:
+                            p.raise_error("Missing predicate string closing quote")
                 else:
                     p.raise_error("Missing predicate closing bracket")
         return None
@@ -286,7 +294,7 @@ class Parser(object):
         # return slice(begin, end)
         return (begin, end)
 
-    def get_slice_substr(self, begin, end):
+    def get_slice_substr(self, begin, end) -> str:
         return self.input[begin:end]
 
     def get_substr_while(self, predicate) -> str:
@@ -306,7 +314,7 @@ class Parser(object):
     def try_get_char_in(self, chars) -> ?str:
         return self.try_get_char_if(lambda c: c in chars)
 
-    def raise_error(self, message: str, index: ?int):
+    def raise_error(self, message: str, index: ?int=None):
         i = index if index is not None else self.i - 1
         raise ValueError("{message} at position {i} in pattern {self.input}")
 
@@ -315,6 +323,15 @@ def try_parse_ncname(p: Parser) -> ?str:
 
 def try_parse_location_path(s):
     return LocationPath.try_parse(Parser(s))
+
+def parse_location_path(s) -> LocationPath:
+    p = Parser(s)
+    path = LocationPath.try_parse(p)
+    if path is not None:
+        if p.i == p.input_len:
+            return path
+        raise ValueError("Unexpected trailing input at position {p.i} in pattern {p.input}")
+    raise ValueError("Expected XPath location path at position {p.i} in pattern {p.input}")
 
 def _test_simple_absolute_path():
     path = try_parse_location_path("/foo:bar/baz[x=42]")
@@ -352,4 +369,35 @@ def _test_simple_relative_path():
                     testing.assertEqual(s3.name, "baz")
                     testing.assertEqual(len(s3.predicates), 1)
                     return
+    testing.error("Unexpected parse result")
+
+def _test_parse_location_path_rejects_trailing_input():
+    try:
+        parse_location_path("/foo/bar extra")
+        testing.error("Expected trailing input to fail")
+    except ValueError as e:
+        testing.assertIn("Unexpected trailing input", e.error_message)
+
+def _test_parse_location_path_rejects_descendant_abbreviation():
+    try:
+        parse_location_path("//foo")
+        testing.error("Expected descendant abbreviation to fail")
+    except ValueError as e:
+        testing.assertIn("Expected XPath location path", e.error_message)
+
+def _test_parse_location_path_accepts_root():
+    path = parse_location_path("/")
+    if isinstance(path, AbsoluteLocationPath):
+        testing.assertEqual(len(path.steps), 0)
+        return
+    testing.error("Unexpected parse result")
+
+def _test_predicate_quoted_literal_preserved():
+    path = parse_location_path("/foo[bar='a]b']")
+    if isinstance(path, AbsoluteLocationPath):
+        s1 = path.steps[0]
+        if isinstance(s1, NodeTestStep):
+            testing.assertEqual(len(s1.predicates), 1)
+            testing.assertEqual(s1.predicates[0].predicate, "bar='a]b'")
+            return
     testing.error("Unexpected parse result")
