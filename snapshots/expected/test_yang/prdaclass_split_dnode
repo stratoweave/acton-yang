@@ -1,0 +1,171 @@
+# ===== foo_src_dnode.act (prdnode) =====
+
+import base64
+import yang.xpath as yxpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+_base_foo_base_id: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='base_id', base=[])
+_base_foo_der_id: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='der_id', base=[_base_foo_base_id])
+_identities: list[DIdentity] = [
+    _base_foo_base_id,
+    _base_foo_der_id,
+]
+
+
+BASE_foo_base_id: DIdentity = _base_foo_base_id
+BASE_foo_der_id: DIdentity = _base_foo_der_id
+IDENTITIES: list[DIdentity] = _identities
+
+
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='lid', config=True, default='der_id', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_base_id], identities=_identities))
+])
+
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='base_id')
+
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='der_id', base=[
+        DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='base_id')
+    ])
+
+SRC_DNODE: DRoot = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1],
+    rpcs=[],
+    module_metadata={'http://example.com/foo':('foo', None)},
+)
+
+SRC_YANG_0: str = r"""module foo {
+    yang-version "1.1";
+    namespace "http://example.com/foo";
+    prefix "f";
+    identity base_id;
+    identity der_id {
+        base base_id;
+    }
+    container c1 {
+        leaf l1 {
+            type string;
+        }
+        leaf lid {
+            type identityref {
+                base base_id;
+            }
+            default der_id;
+        }
+    }
+}"""
+
+pure def src_yang() -> list[str]:
+    return [
+        SRC_YANG_0,
+    ]
+
+
+
+# ===== foo.act (prdaclass dnode_module='foo_src_dnode') =====
+
+import base64
+import json
+import std.xml as xml
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+import foo_src_dnode
+
+# == This file is generated ==
+
+
+
+
+_base_foo_base_id: DIdentity = foo_src_dnode.BASE_foo_base_id
+_base_foo_der_id: DIdentity = foo_src_dnode.BASE_foo_der_id
+_identities: list[DIdentity] = foo_src_dnode.IDENTITIES
+
+
+# Identityref constants
+foo_base_id: Identityref = Identityref('base_id', ns='http://example.com/foo', mod='foo', pfx='f')
+foo_der_id: Identityref = Identityref('der_id', ns='http://example.com/foo', mod='foo', pfx='f')
+
+
+SRC_DNODE: DRoot = foo_src_dnode.SRC_DNODE
+
+pure def src_yang() -> list[str]:
+    return foo_src_dnode.src_yang()
+
+
+NS_foo: str = 'http://example.com/foo'
+
+
+_breaker1: None = None
+class foo__c1(yadata.MNode):
+    l1: ?str
+    lid: Identityref
+
+    mut def __init__(self, l1: ?str, lid: ?Identityref=None) -> None:
+        self.l1 = l1
+        _default_lid, error = complete_and_validate_identityref(Identityref.from_adata('der_id'), _identities, [_base_foo_base_id], 'foo')
+        if _default_lid is not None:
+            self.lid = lid if lid is not None else _default_lid
+        else:
+            raise ValueError('Invalid default value for identityref leaf c1: {error}')
+
+    pure def _get_attr(self, name: str) -> ?value:
+        if name == 'f:l1':
+            return self.l1
+        if name == 'f:lid':
+            return self.lid
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> foo__c1:
+        if n is not None:
+            return foo__c1(l1=n.get_opt_str(ygdata.Id(NS_foo, 'l1')), lid=n.get_opt_Identityref(ygdata.Id(NS_foo, 'lid')))
+        return foo__c1()
+
+    mut def copy(self) -> foo__c1:
+        """Create a deep copy of this adata object"""
+        return foo__c1.from_gdata(self.to_gdata())
+
+
+_breaker2: None = None
+class root(yadata.MNode):
+    c1: foo__c1
+
+    mut def __init__(self, c1: ?foo__c1=None) -> None:
+        self.c1 = c1 if c1 is not None else foo__c1()
+
+    pure def _get_attr(self, name: str) -> ?value:
+        if name == 'f:c1':
+            return self.c1
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> root:
+        if n is not None:
+            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c1'))))
+        return root()
+
+    mut def copy(self) -> root:
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: ygdata.TreeProvider):
+    pass
+
