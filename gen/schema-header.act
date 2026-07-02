@@ -1242,8 +1242,6 @@ class DIdentity(DNode):
         if len(identities) == 0:
             return ["_identities: list[DIdentity] = []", "", ""]
 
-        result = []
-
         # Sort identities topologically (bases before derived)
         sorted_identities = []
         visited = set()
@@ -1261,26 +1259,43 @@ class DIdentity(DNode):
         for identity in identities:
             visit(identity)
 
-        # Assign (base) identity var name
-        base_var_map = {}
-        for identity in identities:
-            base_var_map[identity.key()] = identity.format_base_var_name()
-
         # Print variable declarations for identities in order of precedence
+        result = []
         for identity in sorted_identities:
-            var_name = base_var_map[identity.key()]
-            base_refs = [base_var_map[base.key()] for base in identity.base]
-            result.append("{var_name}: DIdentity = DIdentity(module={repr(identity.module)}, namespace={repr(identity.namespace)}, prefix={repr(identity.prefix)}, name={repr(identity.name)}, base=[{', '.join(base_refs)}])")
+            result.append("{identity.format_base_var_name()}: DIdentity = DIdentity(module={repr(identity.module)}, namespace={repr(identity.namespace)}, prefix={repr(identity.prefix)}, name={repr(identity.name)}, base={DIdentity.format_base_identity_var_name_list(identity.base)})")
 
         # Build the global _identities list
         result.append("_identities: list[DIdentity] = [")
         for identity in identities:
-            # Reference the variable
-            result.append("    {base_var_map[identity.key()]},")
+            result.append("    {identity.format_base_var_name()},")
         result.append("]")
         result.append("")
         result.append("")
 
+        return result
+
+    @staticmethod
+    def format_identity_public_exports(identities: list[DIdentity]) -> list[str]:
+        """Public module constants for identities, emitted only in the separate dnode module.
+        """
+        result = []
+        for identity in identities:
+            result.append("{identity.format_base_var_name(prefix="BASE_")}: DIdentity = {identity.format_base_var_name()}")
+        result.append("IDENTITIES: list[DIdentity] = _identities")
+        result.append("")
+        result.append("")
+        return result
+
+    @staticmethod
+    def format_identity_aliases(identities: list[DIdentity], dnode_module: str) -> list[str]:
+        """Private module constants for identities, aliases from the separate dnode module.
+        """
+        result = []
+        for identity in identities:
+            result.append("{identity.format_base_var_name()}: DIdentity = {dnode_module}.{identity.format_base_var_name(prefix="BASE_")}")
+        result.append("_identities: list[DIdentity] = {dnode_module}.IDENTITIES")
+        result.append("")
+        result.append("")
         return result
 
     @staticmethod
@@ -1307,8 +1322,8 @@ class DIdentity(DNode):
     def format_base_identity_var_name_list(identities: list[DIdentity]) -> str:
         return "[{", ".join([b.format_base_var_name() for b in identities])}]"
 
-    def format_base_var_name(self):
-        return safe_name("_base_{self.module}_{self.name}", safe_kw=False)
+    def format_base_var_name(self, prefix="_base_"):
+        return safe_name("{prefix}{self.module}_{self.name}", safe_kw=False)
 
 class DInput(DNodeInner):
     must: list[DMust]
@@ -1766,49 +1781,14 @@ class DRoot(DNodeInner):
             ("module_metadata", self.module_metadata),
         ]
 
-    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, device=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False) -> str:
-        def build_spath(spath: list[DNode]):
-            if len(root_path) == len(spath) - 1:
-                return spath
+    def _pr_src_dnode_consts(self) -> list[str]:
+        """Emit SRC_DNODE constants (SRC_DNODE, SRC_DNODE_CHILD_*, ...).
 
-            next = root_path[len(spath) - 1]
-            module, local_name = split_prefix_name(next)
-            child = spath[-1].get(local_name, module=module, allow_unqualified=False)
-            return build_spath(spath + [child])
-
-        # HACK: DNodeInner._prdaclass_rec mutates the children list - it removes
-        # config false nodes, and reorders list keys! Obviously this is very bad
-        # and we  should really do this elsewhere (get_dnode_children?), or add
-        # arguments to the parsers for oper data handling. Right now I just need
-        # the SRC_DNODE constant to have the same view of the schema as the
-        # adata code generator ...
-        spath = build_spath([self])
-        pname_cache: dict[str, str] = {}
-        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, device=device, exclude_ext=exclude_ext, pname_cache=pname_cache)
-
+        Shared by prdaclass (inline mode) and prdnode (separate schema module).
+        Deep hierarchies are split into top-level constants so the Acton compiler
+        does not have to parse one giant nested expression.
+        """
         res = []
-        res.append("import base64")
-        res.append("import json")
-        res.append("import std.xml as xml")
-        res.append("import yang.adata as yadata")
-        res.append("import yang.gdata as ygdata")
-        res.append("import yang.xml as yxml")
-        res.append("import yang.xpath as yxpath")
-        res.append("from yang.identityref import Identityref, PartialIdentityref")
-        res.append("from yang.pattern import YangPattern")
-        res.append("from yang.schema import *")
-        res.append("from yang.type import Decimal, Ranges")
-        if include_subs:
-            res.append("from yang.sdata import SubscriptionPath, SubscriptionNode")
-        res.append("")
-        res.append("# == This file is generated ==")
-        res.append("")
-        res.append("")
-        res.append("")
-        res.append("")
-        res.extend(DIdentity.format_identity_list(self.identities))
-        res.extend(DIdentity.format_identityref_constants(self.identities))
-
         const_counters = {}
 
         def _next_const(prefix: str) -> str:
@@ -1917,23 +1897,119 @@ class DRoot(DNodeInner):
         res.append("    module_metadata={repr(self.module_metadata)},")
         res.append(")")
         res.append("")
+        return res
+
+    @staticmethod
+    def _pr_src_yang(schema_yang: list[str]) -> list[str]:
+        """Emit the SRC_YANG_* raw-source constants and the src_yang() accessor.
+
+        Shared by prdnode (separate schema module) and prdaclass (inline mode).
+        """
+        res = []
+        src_yang_names = []
+        i = 0
+        for s in schema_yang:
+            src_yang_name = "SRC_YANG_{i}"
+            src_yang_names.append(src_yang_name)
+            res.append('{src_yang_name}: str = r"""{s}"""')
+            res.append("")
+            i += 1
+        res.append("pure def src_yang() -> list[str]:")
+        res.append("    return [")
+        for src_yang_name in src_yang_names:
+            res.append("        {src_yang_name},")
+        res.append("    ]")
+        res.append("")
+        res.append("")
+        return res
+
+    def prdnode(self, schema_yang: ?list[str]=None) -> str:
+        """Print a standalone Acton module holding SRC_DNODE (and, when given, the
+        SRC_YANG raw schema source) plus their dependencies.
+
+        Emitted as a separate `{module}_src_dnode.act` file and imported by the
+        main `{module}.act` adata module. Keeping the SRC_DNODE expression and
+        SRC_YANG strings in their own file means the Acton compiler does not
+        re-parse them when the usages of the generated adata types change.
+        """
+        res = []
+        res.append("import base64")
+        res.append("import yang.xpath as yxpath")
+        res.append("from yang.identityref import Identityref, PartialIdentityref")
+        res.append("from yang.pattern import YangPattern")
+        res.append("from yang.schema import *")
+        res.append("from yang.type import Decimal, Ranges")
+        res.append("")
+        res.append("# == This file is generated ==")
+        res.append("")
+        res.append("")
+        res.extend(DIdentity.format_identity_list(self.identities))
+        res.extend(DIdentity.format_identity_public_exports(self.identities))
+        res.extend(self._pr_src_dnode_consts())
+        if schema_yang is not None:
+            res.extend(DRoot._pr_src_yang(schema_yang))
+        return "\n".join(res)
+
+    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, device=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False, dnode_module: ?str=None) -> str:
+        def build_spath(spath: list[DNode]):
+            if len(root_path) == len(spath) - 1:
+                return spath
+
+            next = root_path[len(spath) - 1]
+            module, local_name = split_prefix_name(next)
+            child = spath[-1].get(local_name, module=module, allow_unqualified=False)
+            return build_spath(spath + [child])
+
+        # HACK: DNodeInner._prdaclass_rec mutates the children list - it removes
+        # config false nodes, and reorders list keys! Obviously this is very bad
+        # and we should really do this elsewhere (get_dnode_children?), or add
+        # arguments to the parsers for oper data handling. Right now I just need
+        # the SRC_DNODE constant to have the same view of the schema as the
+        # adata code generator ...
+        spath = build_spath([self])
+        pname_cache: dict[str, str] = {}
+        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, device=device, exclude_ext=exclude_ext, pname_cache=pname_cache)
+
+        res = []
+        res.append("import base64")
+        res.append("import json")
+        res.append("import std.xml as xml")
+        res.append("import yang.adata as yadata")
+        res.append("import yang.gdata as ygdata")
+        res.append("import yang.xml as yxml")
+        res.append("import yang.xpath as yxpath")
+        res.append("from yang.identityref import Identityref, PartialIdentityref")
+        res.append("from yang.pattern import YangPattern")
+        res.append("from yang.schema import *")
+        res.append("from yang.type import Decimal, Ranges")
+        if include_subs:
+            res.append("from yang.sdata import SubscriptionPath, SubscriptionNode")
+        if dnode_module is not None:
+            res.append("import {dnode_module}")
+        res.append("")
+        res.append("# == This file is generated ==")
+        res.append("")
+        res.append("")
+        res.append("")
+        res.append("")
+        if dnode_module is not None:
+            res.extend(DIdentity.format_identity_aliases(self.identities, dnode_module))
+            res.extend(DIdentity.format_identityref_constants(self.identities))
+            res.append("SRC_DNODE: DRoot = {dnode_module}.SRC_DNODE")
+            res.append("")
+        else:
+            res.extend(DIdentity.format_identity_list(self.identities))
+            res.extend(DIdentity.format_identityref_constants(self.identities))
+            res.extend(self._pr_src_dnode_consts())
 
         if schema_yang is not None:
-            src_yang_names = []
-            i = 0
-            for s in schema_yang:
-                src_yang_name = "SRC_YANG_{i}"
-                src_yang_names.append(src_yang_name)
-                res.append('{src_yang_name}: str = r"""{s}"""')
+            if dnode_module is not None:
+                res.append("pure def src_yang() -> list[str]:")
+                res.append("    return {dnode_module}.src_yang()")
                 res.append("")
-                i += 1
-            res.append("pure def src_yang() -> list[str]:")
-            res.append("    return [")
-            for src_yang_name in src_yang_names:
-                res.append("        {src_yang_name},")
-            res.append("    ]")
-            res.append("")
-            res.append("")
+                res.append("")
+            else:
+                res.extend(DRoot._pr_src_yang(schema_yang))
 
         res.extend(["NS_{safe_name(self.module_metadata[ns].module)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
         res.append("")
