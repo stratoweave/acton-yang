@@ -1272,7 +1272,7 @@ class DIdentity(DNode):
 
     @staticmethod
     def format_identity_public_exports(identities: list[DIdentity]) -> list[str]:
-        """Public module constants for identities, emitted only in the separate dnode module.
+        """Public module constants for identities, emitted only in the separate schema module.
         """
         result = []
         for identity in identities:
@@ -1283,13 +1283,13 @@ class DIdentity(DNode):
         return result
 
     @staticmethod
-    def format_identity_aliases(identities: list[DIdentity], dnode_module: str) -> list[str]:
-        """Private module constants for identities, aliases from the separate dnode module.
+    def format_identity_aliases(identities: list[DIdentity], schema_module: str) -> list[str]:
+        """Private module constants for identities, aliases from the separate schema module.
         """
         result = []
         for identity in identities:
-            result.append("{identity.format_base_var_name()}: DIdentity = {dnode_module}.{identity.format_base_var_name(prefix="BASE_")}")
-        result.append("_identities: list[DIdentity] = {dnode_module}.IDENTITIES")
+            result.append("{identity.format_base_var_name()}: DIdentity = {schema_module}.{identity.format_base_var_name(prefix="BASE_")}")
+        result.append("_identities: list[DIdentity] = {schema_module}.IDENTITIES")
         result.append("")
         result.append("")
         return result
@@ -1780,7 +1780,7 @@ class DRoot(DNodeInner):
     def _pr_src_dnode_consts(self) -> list[str]:
         """Emit SRC_DNODE constants (SRC_DNODE, SRC_DNODE_CHILD_*, ...).
 
-        Shared by prdaclass (inline mode) and prdnode (separate schema module).
+        Shared by prdaclass (inline mode) and prschema (separate schema module).
         Deep hierarchies are split into top-level constants so the Acton compiler
         does not have to parse one giant nested expression.
         """
@@ -1899,7 +1899,7 @@ class DRoot(DNodeInner):
     def _pr_src_yang(schema_yang: list[str]) -> list[str]:
         """Emit the SRC_YANG_* raw-source constants and the src_yang() accessor.
 
-        Shared by prdnode (separate schema module) and prdaclass (inline mode).
+        Shared by prschema (separate schema module) and prdaclass (inline mode).
         """
         res = []
         src_yang_names = []
@@ -1919,11 +1919,11 @@ class DRoot(DNodeInner):
         res.append("")
         return res
 
-    def prdnode(self, schema_yang: ?list[str]=None) -> str:
+    def prschema(self, schema_yang: ?list[str]=None) -> str:
         """Print a standalone Acton module holding SRC_DNODE (and, when given, the
         SRC_YANG raw schema source) plus their dependencies.
 
-        Emitted as a separate `{module}_src_dnode.act` file and imported by the
+        Emitted as a separate `{module}_schema.act` file and imported by the
         main `{module}.act` adata module. Keeping the SRC_DNODE expression and
         SRC_YANG strings in their own file means the Acton compiler does not
         re-parse them when the usages of the generated adata types change.
@@ -1946,7 +1946,7 @@ class DRoot(DNodeInner):
             res.extend(DRoot._pr_src_yang(schema_yang))
         return "\n".join(res)
 
-    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, device=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False, dnode_module: ?str=None) -> str:
+    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, device=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False, schema_module: ?str=None) -> str:
         def build_spath(spath: list[DNode]):
             if len(root_path) == len(spath) - 1:
                 return spath
@@ -1980,18 +1980,18 @@ class DRoot(DNodeInner):
         res.append("from yang.type import Decimal, Ranges")
         if include_subs:
             res.append("from yang.sdata import SubscriptionPath, SubscriptionNode")
-        if dnode_module is not None:
-            res.append("import {dnode_module}")
+        if schema_module is not None:
+            res.append("import {schema_module}")
         res.append("")
         res.append("# == This file is generated ==")
         res.append("")
         res.append("")
         res.append("")
         res.append("")
-        if dnode_module is not None:
-            res.extend(DIdentity.format_identity_aliases(self.identities, dnode_module))
+        if schema_module is not None:
+            res.extend(DIdentity.format_identity_aliases(self.identities, schema_module))
             res.extend(DIdentity.format_identityref_constants(self.identities))
-            res.append("SRC_DNODE: DRoot = {dnode_module}.SRC_DNODE")
+            res.append("SRC_DNODE: DRoot = {schema_module}.SRC_DNODE")
             res.append("")
         else:
             res.extend(DIdentity.format_identity_list(self.identities))
@@ -1999,9 +1999,9 @@ class DRoot(DNodeInner):
             res.extend(self._pr_src_dnode_consts())
 
         if schema_yang is not None:
-            if dnode_module is not None:
+            if schema_module is not None:
                 res.append("pure def src_yang() -> list[str]:")
-                res.append("    return {dnode_module}.src_yang()")
+                res.append("    return {schema_module}.src_yang()")
                 res.append("")
                 res.append("")
             else:

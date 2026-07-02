@@ -2184,7 +2184,7 @@ def _test_prdaclass_req_arg():
     src = root.prdaclass(loose=True)
     return src
 
-def _test_prdaclass_split_dnode():
+def _test_prdaclass_split_schema():
     ys = r"""module foo {
     yang-version "1.1";
     namespace "http://example.com/foo";
@@ -2207,13 +2207,13 @@ def _test_prdaclass_split_dnode():
 }"""
     root = yang.compile([ys])
     return "\n".join([
-        "# ===== foo_src_dnode.act (prdnode) =====",
+        "# ===== foo_schema.act (prschema) =====",
         "",
-        root.prdnode(schema_yang=[ys]),
+        root.prschema(schema_yang=[ys]),
         "",
-        "# ===== foo.act (prdaclass dnode_module='foo_src_dnode') =====",
+        "# ===== foo.act (prdaclass schema_module='foo_schema') =====",
         "",
-        root.prdaclass(dnode_module="foo_src_dnode", schema_yang=[ys]),
+        root.prdaclass(schema_module="foo_schema", schema_yang=[ys]),
     ])
 
 def _test_prdaclass_loose_p_container_with_mandatory_leaf():

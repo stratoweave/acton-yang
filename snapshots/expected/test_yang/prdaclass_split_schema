@@ -1,4 +1,4 @@
-# ===== foo_src_dnode.act (prdnode) =====
+# ===== foo_schema.act (prschema) =====
 
 import base64
 import yang.xpath as yxpath
@@ -69,7 +69,7 @@ pure def src_yang() -> list[str]:
 
 
 
-# ===== foo.act (prdaclass dnode_module='foo_src_dnode') =====
+# ===== foo.act (prdaclass schema_module='foo_schema') =====
 
 import base64
 import json
@@ -82,16 +82,16 @@ from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
 from yang.type import Decimal, Ranges
-import foo_src_dnode
+import foo_schema
 
 # == This file is generated ==
 
 
 
 
-_base_foo_base_id: DIdentity = foo_src_dnode.BASE_foo_base_id
-_base_foo_der_id: DIdentity = foo_src_dnode.BASE_foo_der_id
-_identities: list[DIdentity] = foo_src_dnode.IDENTITIES
+_base_foo_base_id: DIdentity = foo_schema.BASE_foo_base_id
+_base_foo_der_id: DIdentity = foo_schema.BASE_foo_der_id
+_identities: list[DIdentity] = foo_schema.IDENTITIES
 
 
 # Identityref constants
@@ -99,10 +99,10 @@ foo_base_id: Identityref = Identityref('base_id', ns='http://example.com/foo', m
 foo_der_id: Identityref = Identityref('der_id', ns='http://example.com/foo', mod='foo', pfx='f')
 
 
-SRC_DNODE: DRoot = foo_src_dnode.SRC_DNODE
+SRC_DNODE: DRoot = foo_schema.SRC_DNODE
 
 pure def src_yang() -> list[str]:
-    return foo_src_dnode.src_yang()
+    return foo_schema.src_yang()
 
 
 NS_foo: str = 'http://example.com/foo'
