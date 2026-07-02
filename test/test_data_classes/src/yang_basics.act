@@ -168,11 +168,7 @@ class basics__c(yadata.MNode):
         self.l_union_def_bool = l_union_def_bool if l_union_def_bool is not None else False
         self.l_union_def_enumeration = l_union_def_enumeration if l_union_def_enumeration is not None else "unlimited"
         self.l_binary_def = l_binary_def if l_binary_def is not None else base64.decode('SGVsbG8gQWN0b24g8J+roQ=='.encode())
-        _default_l_identityref_def, error = complete_and_validate_identityref(Identityref.from_adata('id2'), _identities, [_base_basics_id1], 'basics')
-        if _default_l_identityref_def is not None:
-            self.l_identityref_def = l_identityref_def if l_identityref_def is not None else _default_l_identityref_def
-        else:
-            raise ValueError('Invalid default value for identityref leaf c: {error}')
+        self.l_identityref_def = l_identityref_def if l_identityref_def is not None else basics_id2
 
     pure def _get_attr(self, name: str) -> ?value:
         if name == 'b:l_str_def':

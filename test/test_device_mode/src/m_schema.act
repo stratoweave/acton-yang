@@ -8,15 +8,20 @@ from yang.type import Decimal, Ranges
 # == This file is generated ==
 
 
-_identities: list[DIdentity] = []
-
-
-IDENTITIES: list[DIdentity] = _identities
+_base_m_protocol: DIdentity = DIdentity(module='m', namespace='urn:example:m', prefix='m', name='protocol', base=[])
+_base_m_http: DIdentity = DIdentity(module='m', namespace='urn:example:m', prefix='m', name='http', base=[_base_m_protocol])
+_base_m_https: DIdentity = DIdentity(module='m', namespace='urn:example:m', prefix='m', name='https', base=[_base_m_http])
+_identities: list[DIdentity] = [
+    _base_m_protocol,
+    _base_m_http,
+    _base_m_https,
+]
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='m', namespace='urn:example:m', prefix='m', name='cfg', config=True, presence=False, children=[
     DLeaf(module='m', namespace='urn:example:m', prefix='m', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='m', namespace='urn:example:m', prefix='m', name='enabled', config=True, mandatory=False, type_=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)),
+    DLeaf(module='m', namespace='urn:example:m', prefix='m', name='proto', config=True, default='https', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_m_protocol], identities=_identities)),
     DContainer(module='m', namespace='urn:example:m', prefix='m', name='sub', config=True, presence=False, children=[
         DLeaf(module='m', namespace='urn:example:m', prefix='m', name='detail', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ]),
@@ -25,6 +30,18 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='m', namespace='urn:example:m'
         DLeaf(module='m', namespace='urn:example:m', prefix='m', name='val', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(0, 4294967295)])))
     ])
 ])
+
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='m', namespace='urn:example:m', prefix='m', name='protocol')
+
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='m', namespace='urn:example:m', prefix='m', name='http', base=[
+        DIdentity(module='m', namespace='urn:example:m', prefix='m', name='protocol')
+    ])
+
+SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='m', namespace='urn:example:m', prefix='m', name='https', base=[
+        DIdentity(module='m', namespace='urn:example:m', prefix='m', name='http', base=[
+                DIdentity(module='m', namespace='urn:example:m', prefix='m', name='protocol')
+            ])
+    ])
 
 SRC_DNODE_RPC_0: DRpc = DRpc(module='m', namespace='urn:example:m', prefix='m', name='ping', input=DInput(module='m', namespace='urn:example:m', prefix='m', children=[
     DLeaf(module='m', namespace='urn:example:m', prefix='m', name='msg', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
@@ -41,7 +58,7 @@ SRC_DNODE_RPC_0: DRpc = DRpc(module='m', namespace='urn:example:m', prefix='m', 
 
 SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
-    identities=[],
+    identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[SRC_DNODE_RPC_0],
     module_metadata={'urn:example:m':('m', None)},
 )
@@ -49,9 +66,26 @@ SRC_DNODE: DRoot = DRoot(
 SRC_YANG_0: str = r"""module m {
   namespace "urn:example:m";
   prefix m;
+
+  identity protocol {
+    description "Base identity for transport protocols.";
+  }
+  identity http {
+    base protocol;
+  }
+  identity https {
+    base http;
+  }
+
   container cfg {
     leaf name { type string; }
     leaf enabled { type boolean; }
+    leaf proto {
+      type identityref {
+        base protocol;
+      }
+      default https;
+    }
     container sub {
       leaf detail { type string; }
     }

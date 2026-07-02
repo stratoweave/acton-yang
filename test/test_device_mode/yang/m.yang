@@ -1,9 +1,26 @@
 module m {
   namespace "urn:example:m";
   prefix m;
+
+  identity protocol {
+    description "Base identity for transport protocols.";
+  }
+  identity http {
+    base protocol;
+  }
+  identity https {
+    base http;
+  }
+
   container cfg {
     leaf name { type string; }
     leaf enabled { type boolean; }
+    leaf proto {
+      type identityref {
+        base protocol;
+      }
+      default https;
+    }
     container sub {
       leaf detail { type string; }
     }

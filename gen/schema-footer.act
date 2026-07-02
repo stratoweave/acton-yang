@@ -288,17 +288,6 @@ def is_derived_from(identity: DIdentity, bases: list[DIdentity]) -> bool:
     return True
 
 
-# partial is a union of Identityref, PartialIdentityref
-def complete_and_validate_identityref(partial: value, identities: list[DIdentity], bases: list[DIdentity], current_module: str) -> (?Identityref, ?str):
-    identityref, identity, error = complete_identityref(partial, identities, current_module)
-    if identity is not None:
-        if is_derived_from(identity, bases):
-            return identityref, None
-        else:
-            return None, "Identityref {identityref} not derived from all of the required bases: {bases}"
-    return None, error
-
-
 def list_keys(node: DNodeInner) -> ?list[str]:
     if isinstance(node, DList):
         return node.key

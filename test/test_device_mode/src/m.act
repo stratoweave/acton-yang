@@ -16,7 +16,10 @@ import m_schema
 
 
 
-_identities: list[DIdentity] = m_schema.IDENTITIES
+# Identityref constants
+m_protocol: Identityref = Identityref('protocol', ns='urn:example:m', mod='m', pfx='m')
+m_http: Identityref = Identityref('http', ns='urn:example:m', mod='m', pfx='m')
+m_https: Identityref = Identityref('https', ns='urn:example:m', mod='m', pfx='m')
 
 
 SRC_DNODE: DRoot = m_schema.SRC_DNODE
@@ -96,12 +99,14 @@ _breaker4: None = None
 class m__cfg(yadata.MNode):
     name: ?str
     enabled: ?bool
+    proto: Identityref
     sub: m__cfg__sub
     items: m__cfg__items
 
-    mut def __init__(self, name: ?str, enabled: ?bool, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
+    mut def __init__(self, name: ?str, enabled: ?bool, proto: ?Identityref=None, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
         self.name = name
         self.enabled = enabled
+        self.proto = proto if proto is not None else m_https
         self.sub = sub if sub is not None else m__cfg__sub()
         self.items = m__cfg__items(elements=items)
 
