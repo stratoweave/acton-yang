@@ -21,6 +21,10 @@ _identities: list[DIdentity] = m_src_dnode.IDENTITIES
 
 SRC_DNODE: DRoot = m_src_dnode.SRC_DNODE
 
+pure def src_yang() -> list[str]:
+    return m_src_dnode.src_yang()
+
+
 NS_m: str = 'urn:example:m'
 
 
