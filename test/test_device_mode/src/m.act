@@ -16,7 +16,16 @@ import m_schema
 
 
 
+_base_m_protocol: DIdentity = m_schema.BASE_m_protocol
+_base_m_http: DIdentity = m_schema.BASE_m_http
+_base_m_https: DIdentity = m_schema.BASE_m_https
 _identities: list[DIdentity] = m_schema.IDENTITIES
+
+
+# Identityref constants
+m_protocol: Identityref = Identityref('protocol', ns='urn:example:m', mod='m', pfx='m')
+m_http: Identityref = Identityref('http', ns='urn:example:m', mod='m', pfx='m')
+m_https: Identityref = Identityref('https', ns='urn:example:m', mod='m', pfx='m')
 
 
 SRC_DNODE: DRoot = m_schema.SRC_DNODE
@@ -96,12 +105,18 @@ _breaker4: None = None
 class m__cfg(yadata.MNode):
     name: ?str
     enabled: ?bool
+    proto: Identityref
     sub: m__cfg__sub
     items: m__cfg__items
 
-    mut def __init__(self, name: ?str, enabled: ?bool, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
+    mut def __init__(self, name: ?str, enabled: ?bool, proto: ?Identityref=None, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
         self.name = name
         self.enabled = enabled
+        _default_proto, error = complete_and_validate_identityref(Identityref.from_adata('https'), _identities, [_base_m_protocol], 'm')
+        if _default_proto is not None:
+            self.proto = proto if proto is not None else _default_proto
+        else:
+            raise ValueError('Invalid default value for identityref leaf cfg: {error}')
         self.sub = sub if sub is not None else m__cfg__sub()
         self.items = m__cfg__items(elements=items)
 
