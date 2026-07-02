@@ -674,11 +674,16 @@ class DNodeInner(DNode):
                 if not loose and child_default is not None:
                     child_type = child.type_
                     if isinstance(child_type, DTypeIdentityref):
-                        res.append("        _default_{usname(child)}, error = complete_and_validate_identityref(Identityref.from_adata('{child_default}'), _identities, {DIdentity.format_base_identity_var_name_list(child_type.identity_bases)}, {repr(child.module)})")
-                        res.append("        if _default_{usname(child)} is not None:")
-                        res.append("            self.{usname(child)} = {usname(child)} if {usname(child)} is not None else _default_{usname(child)}")
-                        res.append("        else:")
-                        res.append("            raise ValueError('Invalid default value for identityref leaf {self.name}: {{error}}')")
+                        root = spath[0]
+                        if isinstance(root, DRoot):
+                            _ref, identity, error = complete_identityref(Identityref.from_adata(child_default), root.identities, child.module)
+                            if identity is not None and is_derived_from(identity, child_type.identity_bases):
+                                default = safe_name("{identity.module}_{identity.name}", safe_kw=False)
+                                res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {default}")
+                            else:
+                                raise ValueError("Invalid default '{child_default}' for identityref leaf {self.name}.{child.name}: {error}")
+                        else:
+                            raise ValueError("Expected DRoot at start of spath, got {type(root)}")
                     else:
                         res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {prsrc_literal(child_type.builtin_type, child_default)}")
                 else:
@@ -1264,7 +1269,7 @@ class DIdentity(DNode):
         for identity in sorted_identities:
             result.append("{identity.format_base_var_name()}: DIdentity = DIdentity(module={repr(identity.module)}, namespace={repr(identity.namespace)}, prefix={repr(identity.prefix)}, name={repr(identity.name)}, base={DIdentity.format_base_identity_var_name_list(identity.base)})")
 
-        # Build the global _identities list
+        # Build the global identities list
         result.append("_identities: list[DIdentity] = [")
         for identity in identities:
             result.append("    {identity.format_base_var_name()},")
@@ -1272,30 +1277,6 @@ class DIdentity(DNode):
         result.append("")
         result.append("")
 
-        return result
-
-    @staticmethod
-    def format_identity_public_exports(identities: list[DIdentity]) -> list[str]:
-        """Public module constants for identities, emitted only in the separate schema module.
-        """
-        result = []
-        for identity in identities:
-            result.append("{identity.format_base_var_name(prefix="BASE_")}: DIdentity = {identity.format_base_var_name()}")
-        result.append("IDENTITIES: list[DIdentity] = _identities")
-        result.append("")
-        result.append("")
-        return result
-
-    @staticmethod
-    def format_identity_aliases(identities: list[DIdentity], schema_module: str) -> list[str]:
-        """Private module constants for identities, aliases from the separate schema module.
-        """
-        result = []
-        for identity in identities:
-            result.append("{identity.format_base_var_name()}: DIdentity = {schema_module}.{identity.format_base_var_name(prefix="BASE_")}")
-        result.append("_identities: list[DIdentity] = {schema_module}.IDENTITIES")
-        result.append("")
-        result.append("")
         return result
 
     @staticmethod
@@ -1322,8 +1303,8 @@ class DIdentity(DNode):
     def format_base_identity_var_name_list(identities: list[DIdentity]) -> str:
         return "[{", ".join([b.format_base_var_name() for b in identities])}]"
 
-    def format_base_var_name(self, prefix="_base_"):
-        return safe_name("{prefix}{self.module}_{self.name}", safe_kw=False)
+    def format_base_var_name(self):
+        return safe_name("_base_{self.module}_{self.name}", safe_kw=False)
 
 class DInput(DNodeInner):
     must: list[DMust]
@@ -1944,7 +1925,6 @@ class DRoot(DNodeInner):
         res.append("")
         res.append("")
         res.extend(DIdentity.format_identity_list(self.identities))
-        res.extend(DIdentity.format_identity_public_exports(self.identities))
         res.extend(self._pr_src_dnode_consts())
         if schema_yang is not None:
             res.extend(DRoot._pr_src_yang(schema_yang))
@@ -1993,7 +1973,6 @@ class DRoot(DNodeInner):
         res.append("")
         res.append("")
         if schema_module is not None:
-            res.extend(DIdentity.format_identity_aliases(self.identities, schema_module))
             res.extend(DIdentity.format_identityref_constants(self.identities))
             res.append("SRC_DNODE: DRoot = {schema_module}.SRC_DNODE")
             res.append("")

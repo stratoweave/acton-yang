@@ -18,11 +18,6 @@ _identities: list[DIdentity] = [
 ]
 
 
-BASE_foo_base_id: DIdentity = _base_foo_base_id
-BASE_foo_der_id: DIdentity = _base_foo_der_id
-IDENTITIES: list[DIdentity] = _identities
-
-
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='lid', config=True, default='der_id', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_base_id], identities=_identities))
@@ -89,11 +84,6 @@ import foo_schema
 
 
 
-_base_foo_base_id: DIdentity = foo_schema.BASE_foo_base_id
-_base_foo_der_id: DIdentity = foo_schema.BASE_foo_der_id
-_identities: list[DIdentity] = foo_schema.IDENTITIES
-
-
 # Identityref constants
 foo_base_id: Identityref = Identityref('base_id', ns='http://example.com/foo', mod='foo', pfx='f')
 foo_der_id: Identityref = Identityref('der_id', ns='http://example.com/foo', mod='foo', pfx='f')
@@ -115,11 +105,7 @@ class foo__c1(yadata.MNode):
 
     mut def __init__(self, l1: ?str, lid: ?Identityref=None) -> None:
         self.l1 = l1
-        _default_lid, error = complete_and_validate_identityref(Identityref.from_adata('der_id'), _identities, [_base_foo_base_id], 'foo')
-        if _default_lid is not None:
-            self.lid = lid if lid is not None else _default_lid
-        else:
-            raise ValueError('Invalid default value for identityref leaf c1: {error}')
+        self.lid = lid if lid is not None else foo_der_id
 
     pure def _get_attr(self, name: str) -> ?value:
         if name == 'f:l1':
