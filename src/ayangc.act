@@ -11,15 +11,15 @@ import transform_unions
 import transform_explicit_cases
 
 
-def _dnode_target(outfile: str) -> (str, str):
-    """From an output module path, derive (dnode_module_import, dnode_file_path).
+def _schema_target(outfile: str) -> (str, str):
+    """From an output module path, derive (schema_module_import, schema_file_path).
 
-    SRC_DNODE is emitted into a sibling `<name>_src_dnode.act` module. The import
+    SRC_DNODE is emitted into a sibling `<name>_schema.act` module. The import
     name is the main module's dotted path relative to the project `src/` dir with
-    `_src_dnode` appended; with no `src` component we fall back to the basename.
+    `_schema` appended; with no `src` component we fall back to the basename.
     """
     stem = outfile[:-4] if outfile.endswith(".act") else outfile
-    dnode_file = stem + "_src_dnode.act"
+    schema_file = stem + "_schema.act"
     parts = stem.split("/")
     src_idx = -1
     for i, p in enumerate(parts):
@@ -29,7 +29,7 @@ def _dnode_target(outfile: str) -> (str, str):
         mod_parts = parts[src_idx + 1:]
     else:
         mod_parts = [parts[-1]]
-    return (".".join(mod_parts) + "_src_dnode", dnode_file)
+    return (".".join(mod_parts) + "_schema", schema_file)
 
 
 proc def cmd_transform(env, file_cap, args):
@@ -210,16 +210,16 @@ proc def cmd_compile(env, file_cap, args):
             sw.reset()
             if device and outfile != "-":
                 # Device mode also implies split modules (separate SRC_DNODE, SRC_YANG)
-                dnode_module, dnode_filename = _dnode_target(outfile)
-                stage_output = root.prdaclass(schema_yang=yang_sources, loose=loose, device=device, dnode_module=dnode_module)
+                schema_module, schema_filename = _schema_target(outfile)
+                stage_output = root.prdaclass(schema_yang=yang_sources, loose=loose, device=device, schema_module=schema_module)
                 try:
                     wfc = file.WriteFileCap(file_cap)
-                    dwf = file.WriteFile(wfc, dnode_filename)
-                    dwf.write(root.prdnode(schema_yang=yang_sources).encode())
+                    dwf = file.WriteFile(wfc, schema_filename)
+                    dwf.write(root.prschema(schema_yang=yang_sources).encode())
                     dwf.close()
-                    print("Wrote SRC_DNODE module to {dnode_filename}", err=True)
+                    print("Wrote schema module to {schema_filename}", err=True)
                 except OSError as e:
-                    print("Error writing file {dnode_filename}: {e}", err=True)
+                    print("Error writing file {schema_filename}: {e}", err=True)
                     env.exit(1)
             else:
                 # Full mode (or stdout): emit SRC_DNODE inline.

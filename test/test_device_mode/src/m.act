@@ -9,20 +9,20 @@ from yang.identityref import Identityref, PartialIdentityref
 from yang.pattern import YangPattern
 from yang.schema import *
 from yang.type import Decimal, Ranges
-import m_src_dnode
+import m_schema
 
 # == This file is generated ==
 
 
 
 
-_identities: list[DIdentity] = m_src_dnode.IDENTITIES
+_identities: list[DIdentity] = m_schema.IDENTITIES
 
 
-SRC_DNODE: DRoot = m_src_dnode.SRC_DNODE
+SRC_DNODE: DRoot = m_schema.SRC_DNODE
 
 pure def src_yang() -> list[str]:
-    return m_src_dnode.src_yang()
+    return m_schema.src_yang()
 
 
 NS_m: str = 'urn:example:m'
