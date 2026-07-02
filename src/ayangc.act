@@ -211,11 +211,11 @@ proc def cmd_compile(env, file_cap, args):
             if device and outfile != "-":
                 # Device mode also implies split modules (separate SRC_DNODE, SRC_YANG)
                 dnode_module, dnode_filename = _dnode_target(outfile)
-                stage_output = root.prdaclass(loose=loose, device=device, dnode_module=dnode_module)
+                stage_output = root.prdaclass(schema_yang=yang_sources, loose=loose, device=device, dnode_module=dnode_module)
                 try:
                     wfc = file.WriteFileCap(file_cap)
                     dwf = file.WriteFile(wfc, dnode_filename)
-                    dwf.write(root.prdnode().encode())
+                    dwf.write(root.prdnode(schema_yang=yang_sources).encode())
                     dwf.close()
                     print("Wrote SRC_DNODE module to {dnode_filename}", err=True)
                 except OSError as e:
@@ -223,7 +223,7 @@ proc def cmd_compile(env, file_cap, args):
                     env.exit(1)
             else:
                 # Full mode (or stdout): emit SRC_DNODE inline.
-                stage_output = root.prdaclass(loose=loose, device=device)
+                stage_output = root.prdaclass(schema_yang=yang_sources, loose=loose, device=device)
             t2 = sw.elapsed()
             print("Generated adata in {t2.to_float()}s", err=True)
         else:

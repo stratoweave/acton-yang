@@ -45,3 +45,31 @@ SRC_DNODE: DRoot = DRoot(
     rpcs=[SRC_DNODE_RPC_0],
     module_metadata={'urn:example:m':('m', None)},
 )
+
+SRC_YANG_0: str = r"""module m {
+  namespace "urn:example:m";
+  prefix m;
+  container cfg {
+    leaf name { type string; }
+    leaf enabled { type boolean; }
+    container sub {
+      leaf detail { type string; }
+    }
+    list items {
+      key id;
+      leaf id { type string; }
+      leaf val { type uint32; }
+    }
+  }
+  rpc ping {
+    input  { leaf msg { type string; } }
+    output { leaf reply { type string; } }
+  }
+}
+"""
+
+pure def src_yang() -> list[str]:
+    return [
+        SRC_YANG_0,
+    ]
+
