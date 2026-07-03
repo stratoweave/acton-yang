@@ -125,5 +125,3 @@ def _test_remove_list_user_order_filtered():
         # testing.assertEqual(rpc_in.ordered_by, "system")
         # testing.assertEqual(rpc_out.ordered_by, "user")
 
-actor main(env):
-    _test_remove_list_user_order_filtered()
