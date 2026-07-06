@@ -208,6 +208,10 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
 
     children: dict[ygdata.Id, ygdata.Node] = {}
 
+    unique_namer = yschema.UniqueNamer(s)
+    def usname(n) -> str:
+        return unique_namer.unique_safe_name(n.name, n.prefix)
+
     for child in s.children:
         if skip_nonkeys and isinstance(s, yschema.DList) and child.name not in s.key:
             continue
@@ -227,7 +231,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
             mod = child.module
 
         if isinstance(child, yschema.DContainer):
-            opval = data.take_container(child, child.name, s.namespace != child.namespace, spath)
+            opval = data.take_container(child, usname(child), s.namespace != child.namespace, spath)
             if opval is not None:
                 val = type_narrower(opval.val)
                 cchild = from_data_recursive(root, child, val, type_narrower, loose, set_ns=s.namespace != child.namespace, root_path=root_path, spath=path_with_child())
@@ -256,7 +260,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                         raise ValueError("Error reading {format_schema_path(path_with_child())}: Cannot find child node with name {child.name}")
 
         elif isinstance(child, yschema.DList):
-            list_val = data.take_list(child, child.name, s.namespace != child.namespace, spath)
+            list_val = data.take_list(child, usname(child), s.namespace != child.namespace, spath)
             list_elements = []
 
             for element in list_val:
@@ -278,7 +282,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 children[fqname(child)] = list_gdata
 
         elif isinstance(child, yschema.DLeafList):
-            leaflist_val = data.take_leaflist(root, child, child.name, s.namespace != child.namespace, spath)
+            leaflist_val = data.take_leaflist(root, child, usname(child), s.namespace != child.namespace, spath)
             if len(leaflist_val) > 0:
                 entries: list[ygdata.LeafListEntry] = []
                 for item in leaflist_val:
@@ -305,7 +309,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
 
         elif isinstance(child, yschema.DLeaf):
-            typed = data.take_leaf(root, child, child.name, s.namespace != child.namespace, spath)
+            typed = data.take_leaf(root, child, usname(child), s.namespace != child.namespace, spath)
             if typed is not None:
                 wleaf = None
                 if typed.op == OP_REMOVE:

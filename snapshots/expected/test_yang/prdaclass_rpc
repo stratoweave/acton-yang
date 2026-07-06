@@ -76,10 +76,6 @@ class yangrpc__foo__input__woo(yadata.MNode):
     mut def __init__(self, woo_b: ?int) -> None:
         self.woo_b = woo_b
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'yrpc:woo_b':
-            return self.woo_b
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input', 'woo'])
 
@@ -103,12 +99,6 @@ class yangrpc__foo__input(yadata.MNode):
         self.a = a
         self.woo = woo if woo is not None else yangrpc__foo__input__woo()
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'yrpc:a':
-            return self.a
-        if name == 'yrpc:woo':
-            return self.woo
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input'])
 
@@ -129,10 +119,6 @@ class yangrpc__foo__output(yadata.MNode):
 
     mut def __init__(self, outoo: ?str) -> None:
         self.outoo = outoo
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'yrpc:outoo':
-            return self.outoo
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'output'])

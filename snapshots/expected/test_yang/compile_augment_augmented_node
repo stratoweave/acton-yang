@@ -52,12 +52,6 @@ class base__native__voice__service__voip__sip(yadata.MNode):
         self.bind = bind
         self.port = port if port is not None else u64(5060)
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'voice:bind':
-            return self.bind
-        if name == 'voice:port':
-            return self.port
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip', 'sip'])
 
@@ -81,12 +75,6 @@ class base__native__voice__service__voip(yadata.MNode):
         self.enabled = enabled if enabled is not None else False
         self.sip = sip if sip is not None else base__native__voice__service__voip__sip()
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'voice:enabled':
-            return self.enabled
-        if name == 'voice:sip':
-            return self.sip
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip'])
 
@@ -107,10 +95,6 @@ class base__native__voice__service(yadata.MNode):
 
     mut def __init__(self, voip: ?base__native__voice__service__voip=None) -> None:
         self.voip = voip if voip is not None else base__native__voice__service__voip()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'voice:voip':
-            return self.voip
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service'])
@@ -133,10 +117,6 @@ class base__native__voice(yadata.MNode):
     mut def __init__(self, service: ?base__native__voice__service=None) -> None:
         self.service = service if service is not None else base__native__voice__service()
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'voice:service':
-            return self.service
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice'])
 
@@ -158,10 +138,6 @@ class base__native(yadata.MNode):
     mut def __init__(self, voice: ?base__native__voice=None) -> None:
         self.voice = voice if voice is not None else base__native__voice()
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'voice:voice':
-            return self.voice
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native'])
 
@@ -182,10 +158,6 @@ class root(yadata.MNode):
 
     mut def __init__(self, native: ?base__native=None) -> None:
         self.native = native if native is not None else base__native()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:native':
-            return self.native
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

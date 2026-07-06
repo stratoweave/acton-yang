@@ -58,10 +58,6 @@ class loose_required__c2(yadata.MNode):
     mut def __init__(self, l1: ?str) -> None:
         self.l1 = l1
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'lr:l1':
-            return self.l1
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['loose-required:c2'])
 
@@ -82,10 +78,6 @@ class root(yadata.MNode):
 
     mut def __init__(self, c2: ?loose_required__c2=None) -> None:
         self.c2 = c2 if c2 is not None else loose_required__c2()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'lr:c2':
-            return self.c2
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True)

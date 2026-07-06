@@ -45,10 +45,6 @@ class foo__c1(yadata.MNode):
     mut def __init__(self, l1: ?str) -> None:
         self.l1 = l1
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:l1':
-            return self.l1
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
 
@@ -70,10 +66,6 @@ class foo__pc1__foo(yadata.MNode):
     mut def __init__(self, l1: ?str) -> None:
         self.l1 = l1
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:l1':
-            return self.l1
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:pc1', 'foo'])
 
@@ -94,10 +86,6 @@ class foo__pc1(yadata.MNode):
 
     mut def __init__(self, foo: ?foo__pc1__foo=None) -> None:
         self.foo = foo if foo is not None else foo__pc1__foo()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:foo':
-            return self.foo
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:pc1'])
@@ -132,12 +120,6 @@ class root(yadata.MNode):
         res = foo__pc1()
         self.pc1 = res
         return res
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:c1':
-            return self.c1
-        if name == 'foo:pc1':
-            return self.pc1
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

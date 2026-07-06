@@ -126,10 +126,6 @@ class m__ping__input(yadata.MNode):
     mut def __init__(self, msg: ?str) -> None:
         self.msg = msg
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'm:msg':
-            return self.msg
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['m:ping', 'input'])
 
@@ -150,10 +146,6 @@ class m__ping__output(yadata.MNode):
 
     mut def __init__(self, reply: ?str) -> None:
         self.reply = reply
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'm:reply':
-            return self.reply
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['m:ping', 'output'])

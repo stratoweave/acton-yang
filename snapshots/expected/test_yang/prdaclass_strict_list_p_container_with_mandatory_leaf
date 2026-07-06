@@ -42,10 +42,6 @@ class foo__l1__bar(yadata.MNode):
     mut def __init__(self, hi: str) -> None:
         self.hi = hi
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:hi':
-            return self.hi
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1', 'bar'])
 
@@ -80,12 +76,6 @@ class foo__l1_entry(yadata.MNode):
         res = foo__l1__bar(hi=hi)
         self.bar = res
         return res
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:name':
-            return self.name
-        if name == 'foo:bar':
-            return self.bar
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])

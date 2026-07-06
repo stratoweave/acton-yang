@@ -45,10 +45,6 @@ class foo__c__li__bar(yadata.MNode):
     mut def __init__(self, man: str) -> None:
         self.man = man
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:man':
-            return self.man
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c', 'li', 'bar'])
 
@@ -73,14 +69,6 @@ class foo__c__li_entry(yadata.MNode):
         self.name = name
         self.foo = foo if foo is not None else "banana"
         self.bar = bar
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:name':
-            return self.name
-        if name == 'foo:foo':
-            return self.foo
-        if name == 'foo:bar':
-            return self.bar
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c', 'li'])

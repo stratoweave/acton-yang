@@ -140,12 +140,6 @@ class filter_test__system_state__clock(yadata.MNode):
         self.current_datetime = current_datetime
         self.boot_datetime = boot_datetime
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:current-datetime':
-            return self.current_datetime
-        if name == 'ft:boot-datetime':
-            return self.boot_datetime
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:system-state', 'clock'])
 
@@ -166,10 +160,6 @@ class filter_test__system_state(yadata.MNode):
 
     mut def __init__(self, clock: ?filter_test__system_state__clock=None) -> None:
         self.clock = clock if clock is not None else filter_test__system_state__clock()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:clock':
-            return self.clock
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:system-state'])
@@ -194,12 +184,6 @@ class filter_test__interfaces__interface__statistics(yadata.MNode):
         self.in_octets = in_octets
         self.out_octets = out_octets
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:in-octets':
-            return self.in_octets
-        if name == 'ft:out-octets':
-            return self.out_octets
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface', 'statistics'])
 
@@ -221,10 +205,6 @@ class filter_test__interfaces__interface__ipv4(yadata.MNode):
     mut def __init__(self, mtu: ?u64) -> None:
         self.mtu = mtu
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:mtu':
-            return self.mtu
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface', 'ipv4'])
 
@@ -245,10 +225,6 @@ class filter_test__interfaces__interface__ipv6(yadata.MNode):
 
     mut def __init__(self, mtu: ?u64) -> None:
         self.mtu = mtu
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:mtu':
-            return self.mtu
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface', 'ipv6'])
@@ -288,28 +264,6 @@ class filter_test__interfaces__interface_entry(yadata.MNode):
         self.statistics = statistics if statistics is not None else filter_test__interfaces__interface__statistics()
         self.ipv4 = ipv4 if ipv4 is not None else filter_test__interfaces__interface__ipv4()
         self.ipv6 = ipv6 if ipv6 is not None else filter_test__interfaces__interface__ipv6()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:name':
-            return self.name
-        if name == 'ft:description':
-            return self.description
-        if name == 'ft:type':
-            return self.type
-        if name == 'ft:enabled':
-            return self.enabled
-        if name == 'ft:admin-status':
-            return self.admin_status
-        if name == 'ft:oper-status':
-            return self.oper_status
-        if name == 'ft:last-change':
-            return self.last_change
-        if name == 'ft:statistics':
-            return self.statistics
-        if name == 'ft:ipv4':
-            return self.ipv4
-        if name == 'ft:ipv6':
-            return self.ipv6
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces', 'interface'])
@@ -402,10 +356,6 @@ class filter_test__interfaces(yadata.MNode):
     mut def __init__(self, interface: list[filter_test__interfaces__interface_entry]=[]) -> None:
         self.interface = filter_test__interfaces__interface(elements=interface)
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:interface':
-            return iter(self.interface)
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True, root_path=['filter-test:interfaces'])
 
@@ -428,12 +378,6 @@ class root(yadata.MNode):
     mut def __init__(self, system_state: ?filter_test__system_state=None, interfaces: ?filter_test__interfaces=None) -> None:
         self.system_state = system_state if system_state is not None else filter_test__system_state()
         self.interfaces = interfaces if interfaces is not None else filter_test__interfaces()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'ft:system-state':
-            return self.system_state
-        if name == 'ft:interfaces':
-            return self.interfaces
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=True)

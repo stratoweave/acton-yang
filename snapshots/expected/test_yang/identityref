@@ -78,10 +78,6 @@ class base__config(yadata.MNode):
     mut def __init__(self, active_protocol: ?Identityref) -> None:
         self.active_protocol = active_protocol
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:active-protocol':
-            return self.active_protocol
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:config'])
 
@@ -102,10 +98,6 @@ class root(yadata.MNode):
 
     mut def __init__(self, config: ?base__config=None) -> None:
         self.config = config if config is not None else base__config()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:config':
-            return self.config
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

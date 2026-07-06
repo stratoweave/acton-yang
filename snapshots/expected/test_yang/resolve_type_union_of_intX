@@ -49,16 +49,6 @@ class root(yadata.MNode):
         self.l3 = l3
         self.l4 = l4
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:l1':
-            return self.l1
-        if name == 'foo:l2':
-            return self.l2
-        if name == 'foo:l3':
-            return self.l3
-        if name == 'foo:l4':
-            return self.l4
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)
 

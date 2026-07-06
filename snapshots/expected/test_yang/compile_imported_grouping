@@ -61,12 +61,6 @@ class bar__c1__li1_entry(yadata.MNode):
         self.l1 = l1
         self.l2 = l2
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'bar:l1':
-            return self.l1
-        if name == 'bar:l2':
-            return self.l2
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['bar:c1', 'li1'])
 
@@ -148,10 +142,6 @@ class bar__c1(yadata.MNode):
     mut def __init__(self, li1: list[bar__c1__li1_entry]=[]) -> None:
         self.li1 = bar__c1__li1(elements=li1)
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'bar:li1':
-            return iter(self.li1)
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['bar:c1'])
 
@@ -172,10 +162,6 @@ class root(yadata.MNode):
 
     mut def __init__(self, c1: ?bar__c1=None) -> None:
         self.c1 = c1 if c1 is not None else bar__c1()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'bar:c1':
-            return self.c1
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

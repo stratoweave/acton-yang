@@ -742,16 +742,6 @@ class DNodeInner(DNode):
                 res.append("")
 
         if not device:
-            if len(attr_children) > 0:
-                res.append("    pure def _get_attr(self, name: str) -> ?value:")
-                for child in attr_children:
-                    res.append("        if name == '{child.prefix}:{child.name}':")
-                    if isinstance(child, DList):
-                        res.append("            return iter(self.{usname(child)})")
-                    else:
-                        res.append("            return self.{usname(child)}")
-                res.append("")
-
             # .to_gdata()
             res.append("    mut def to_gdata(self) -> ygdata.Node:")
             if isinstance(self, DRoot):

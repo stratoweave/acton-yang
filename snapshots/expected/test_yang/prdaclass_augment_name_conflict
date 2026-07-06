@@ -44,12 +44,6 @@ class base__c1(yadata.MNode):
         self.bar_foo = bar_foo
         self.foo_foo = foo_foo
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'bar:foo':
-            return self.bar_foo
-        if name == 'foo:foo':
-            return self.foo_foo
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:c1'])
 

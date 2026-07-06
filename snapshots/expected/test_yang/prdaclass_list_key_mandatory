@@ -39,10 +39,6 @@ class foo__l1_entry(yadata.MNode):
     mut def __init__(self, name: str) -> None:
         self.name = name
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:name':
-            return self.name
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])
 

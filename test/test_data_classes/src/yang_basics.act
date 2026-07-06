@@ -170,30 +170,6 @@ class basics__c(yadata.MNode):
         self.l_binary_def = l_binary_def if l_binary_def is not None else base64.decode('SGVsbG8gQWN0b24g8J+roQ=='.encode())
         self.l_identityref_def = l_identityref_def if l_identityref_def is not None else basics_id2
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'b:l_str_def':
-            return self.l_str_def
-        if name == 'b:l_str_def_quoted':
-            return self.l_str_def_quoted
-        if name == 'b:l_uint64_def':
-            return self.l_uint64_def
-        if name == 'b:l_decimal64_def':
-            return self.l_decimal64_def
-        if name == 'b:l_union_def_str':
-            return self.l_union_def_str
-        if name == 'b:l_union_def_int':
-            return self.l_union_def_int
-        if name == 'b:l_union_def_float':
-            return self.l_union_def_float
-        if name == 'b:l_union_def_bool':
-            return self.l_union_def_bool
-        if name == 'b:l_union_def_enumeration':
-            return self.l_union_def_enumeration
-        if name == 'b:l_binary_def':
-            return self.l_binary_def
-        if name == 'b:l_identityref_def':
-            return self.l_identityref_def
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['basics:c'])
 
@@ -214,10 +190,6 @@ class root(yadata.MNode):
 
     mut def __init__(self, c: ?basics__c=None) -> None:
         self.c = c if c is not None else basics__c()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'b:c':
-            return self.c
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)
