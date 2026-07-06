@@ -48,14 +48,6 @@ class foo__l1_entry(yadata.MNode):
         self.id = id
         self.other = other
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:name':
-            return self.name
-        if name == 'foo:id':
-            return self.id
-        if name == 'foo:other':
-            return self.other
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])
 

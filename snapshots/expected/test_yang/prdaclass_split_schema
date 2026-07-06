@@ -107,12 +107,6 @@ class foo__c1(yadata.MNode):
         self.l1 = l1
         self.lid = lid if lid is not None else foo_der_id
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f:l1':
-            return self.l1
-        if name == 'f:lid':
-            return self.lid
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
 
@@ -133,10 +127,6 @@ class root(yadata.MNode):
 
     mut def __init__(self, c1: ?foo__c1=None) -> None:
         self.c1 = c1 if c1 is not None else foo__c1()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f:c1':
-            return self.c1
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

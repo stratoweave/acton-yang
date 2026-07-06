@@ -246,15 +246,6 @@ class _test_leafref_c(yadata.MNode):
         self.ref = ref
         self.refs = refs
 
-    def _get_attr(self, name: str) -> ?value:
-        if name == "y1:n":
-            return self.n
-        if name == "y1:ref":
-            return self.ref
-        if name == "y1:refs":
-            return self.refs
-        return None
-
     mut def to_gdata(self) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
@@ -268,11 +259,6 @@ class _test_leafref_root(yadata.MNode):
     mut def __init__(self, c: ?_test_leafref_c):
         self._ns = "urn:example:y1"
         self.c = c
-
-    def _get_attr(self, name: str) -> ?value:
-        if name == "y1:c":
-            return self.c
-        return None
 
     mut def to_gdata(self) -> ygdata.Node:
         raise NotImplementedError("to_gdata")

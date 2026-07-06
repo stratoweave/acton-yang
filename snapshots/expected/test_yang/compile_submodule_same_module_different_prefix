@@ -48,12 +48,6 @@ class parent__parent_container(yadata.MNode):
         self.parent_leaf = parent_leaf
         self.augmented_leaf = augmented_leaf
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'parent:parent-leaf':
-            return self.parent_leaf
-        if name == 'parent:augmented-leaf':
-            return self.augmented_leaf
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:parent-container'])
 
@@ -77,12 +71,6 @@ class parent__sub_container(yadata.MNode):
         self.sub_leaf = sub_leaf
         self.shared_leaf = shared_leaf if shared_leaf is not None else "from-shared"
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'parent:sub-leaf':
-            return self.sub_leaf
-        if name == 'parent:shared-leaf':
-            return self.shared_leaf
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:sub-container'])
 
@@ -105,12 +93,6 @@ class root(yadata.MNode):
     mut def __init__(self, parent_container: ?parent__parent_container=None, sub_container: ?parent__sub_container=None) -> None:
         self.parent_container = parent_container if parent_container is not None else parent__parent_container()
         self.sub_container = sub_container if sub_container is not None else parent__sub_container()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'parent:parent-container':
-            return self.parent_container
-        if name == 'parent:sub-container':
-            return self.sub_container
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

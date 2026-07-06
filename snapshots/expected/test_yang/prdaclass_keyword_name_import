@@ -51,18 +51,6 @@ class foo__c1(yadata.MNode):
         self.in_ = in_
         self.with_ = with_
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'foo:as':
-            return self.as_
-        if name == 'foo:for':
-            return self.for_
-        if name == 'foo:import':
-            return self.import_
-        if name == 'foo:in':
-            return self.in_
-        if name == 'foo:with':
-            return self.with_
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
 

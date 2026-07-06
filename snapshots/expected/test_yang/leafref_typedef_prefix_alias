@@ -49,10 +49,6 @@ class base_module__network_instances__network_instance__config(yadata.MNode):
     mut def __init__(self, name: ?str) -> None:
         self.name = name
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base-pfx:name':
-            return self.name
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance', 'config'])
 
@@ -75,12 +71,6 @@ class base_module__network_instances__network_instance_entry(yadata.MNode):
     mut def __init__(self, name: str, config: ?base_module__network_instances__network_instance__config=None) -> None:
         self.name = name
         self.config = config if config is not None else base_module__network_instances__network_instance__config()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base-pfx:name':
-            return self.name
-        if name == 'base-pfx:config':
-            return self.config
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance'])
@@ -161,10 +151,6 @@ class base_module__network_instances(yadata.MNode):
     mut def __init__(self, network_instance: list[base_module__network_instances__network_instance_entry]=[]) -> None:
         self.network_instance = base_module__network_instances__network_instance(elements=network_instance)
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base-pfx:network-instance':
-            return iter(self.network_instance)
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances'])
 
@@ -185,10 +171,6 @@ class consumer_module__uses_typedef(yadata.MNode):
 
     mut def __init__(self, ni: ?str) -> None:
         self.ni = ni
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'consumer:ni':
-            return self.ni
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['consumer-module:uses-typedef'])
@@ -212,12 +194,6 @@ class root(yadata.MNode):
     mut def __init__(self, network_instances: ?base_module__network_instances=None, uses_typedef: ?consumer_module__uses_typedef=None) -> None:
         self.network_instances = network_instances if network_instances is not None else base_module__network_instances()
         self.uses_typedef = uses_typedef if uses_typedef is not None else consumer_module__uses_typedef()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base-pfx:network-instances':
-            return self.network_instances
-        if name == 'consumer:uses-typedef':
-            return self.uses_typedef
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

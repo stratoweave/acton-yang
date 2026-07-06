@@ -14,9 +14,9 @@ extension dict[A(Hashable), B] (YangData):
             maybe = None
             # For cross-namespace children, only accept module-qualified keys
             if ns_qualified and schema.module is not None and schema.module != "":
-                maybe = self.get(f"{schema.module}:{name}")
+                maybe = self.get(f"{schema.module}:{schema.name}")
             else:
-                maybe = self.get(name)
+                maybe = self.get(schema.name)
             if isinstance(maybe, dict):
                 return (op=None, val=maybe)
         return None
@@ -26,9 +26,9 @@ extension dict[A(Hashable), B] (YangData):
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             lv = None
             if ns_qualified and schema.module is not None and schema.module != "":
-                lv = self.get(f"{schema.module}:{name}")
+                lv = self.get(f"{schema.module}:{schema.name}")
             else:
-                lv = self.get(name)
+                lv = self.get(schema.name)
             if isinstance(lv, list):
                 # Actually, the following code has no right to assume anything about the type of lv's elements.
                 # Still the type-checker accepts it because we don't yet have the existential types machinery available
@@ -45,9 +45,9 @@ extension dict[A(Hashable), B] (YangData):
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             leaf_value = None
             if ns_qualified and schema.module is not None and schema.module != "":
-                leaf_value = self.get(f"{schema.module}:{name}")
+                leaf_value = self.get(f"{schema.module}:{schema.name}")
             else:
-                leaf_value = self.get(name)
+                leaf_value = self.get(schema.name)
             if leaf_value is not None:
                 tv = try_parse_json_value(leaf_value, schema, schema.type_, new_path, root)
                 if tv is not None:
@@ -62,9 +62,9 @@ extension dict[A(Hashable), B] (YangData):
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             leaflist_data = None
             if ns_qualified and schema.module is not None and schema.module != "":
-                leaflist_data = self.get(f"{schema.module}:{name}")
+                leaflist_data = self.get(f"{schema.module}:{schema.name}")
             else:
-                leaflist_data = self.get(name)
+                leaflist_data = self.get(schema.name)
             if isinstance(leaflist_data, list):
                 new_path = path + [PathElement(schema)]
                 for item in leaflist_data:

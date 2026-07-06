@@ -125,12 +125,6 @@ class foo__tc1(yadata.MNode):
         self.l1 = l1
         self.l2 = l2
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f:l1':
-            return self.l1
-        if name == 'f:l2':
-            return self.l2
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:tc1'])
 
@@ -154,12 +148,6 @@ class foo__li__c1(yadata.MNode):
         self.l1 = l1
         self.l2 = l2
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f:l1':
-            return self.l1
-        if name == 'f:l2':
-            return self.l2
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:li', 'c1'])
 
@@ -182,12 +170,6 @@ class foo__li_entry(yadata.MNode):
     mut def __init__(self, name: str, c1: foo__li__c1) -> None:
         self.name = name
         self.c1 = c1
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f:name':
-            return self.name
-        if name == 'f:c1':
-            return self.c1
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:li'])
@@ -270,12 +252,6 @@ class root(yadata.MNode):
     mut def __init__(self, tc1: foo__tc1, li: list[foo__li_entry]=[]) -> None:
         self.tc1 = tc1
         self.li = foo__li(elements=li)
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'f:tc1':
-            return self.tc1
-        if name == 'f:li':
-            return iter(self.li)
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

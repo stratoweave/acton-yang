@@ -130,7 +130,7 @@ def _test_get_nc_op_pref_ancestor():
 
 extension xml.Node (YangData):
     def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
-        child_node = ygdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
+        child_node = ygdata.get_xml_opt_child(self, schema.name, schema.namespace if ns_qualified else None)
         if child_node is not None:
             op = _get_netconf_operation(child_node)
             return (op=op, val=child_node)
@@ -138,7 +138,7 @@ extension xml.Node (YangData):
 
     def take_list(self, schema: yschema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
-        elements = ygdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)
+        elements = ygdata.get_xml_children(self, schema.name, schema.namespace if ns_qualified else None)
 
         def extract_key(element_data):
             key_values = {}
@@ -151,7 +151,7 @@ extension xml.Node (YangData):
 
     mut def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, t: str, val: ?value):
         new_path = path + [PathElement(schema)]
-        maybe_node = ygdata.get_xml_opt_child(self, name, schema.namespace if ns_qualified else None)
+        maybe_node = ygdata.get_xml_opt_child(self, schema.name, schema.namespace if ns_qualified else None)
         if maybe_node is not None:
             op = _get_netconf_operation(maybe_node)
             tv = try_parse_xml_value(maybe_node.text, schema, schema.type_, new_path, maybe_node.nsdefs, root)
@@ -165,7 +165,7 @@ extension xml.Node (YangData):
     def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, t: str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: str, t: str, val: ?value)] = []
-        children = ygdata.get_xml_children(self, name, schema.namespace if ns_qualified else None)
+        children = ygdata.get_xml_children(self, schema.name, schema.namespace if ns_qualified else None)
         for child in children:
             if isinstance(child, xml.Node):
                 op = _get_netconf_operation(child)

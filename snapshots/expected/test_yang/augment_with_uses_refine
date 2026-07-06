@@ -96,12 +96,6 @@ class base__system_capabilities__subscription_capabilities(yadata.MNode):
         self.max_nodes = max_nodes if max_nodes is not None else u64(42)
         self.supported_excluded_change_type = supported_excluded_change_type if supported_excluded_change_type is not None else []
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'aug:max-nodes':
-            return self.max_nodes
-        if name == 'aug:supported-excluded-change-type':
-            return self.supported_excluded_change_type
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities', 'augmenter:subscription-capabilities'])
 
@@ -125,12 +119,6 @@ class base__system_capabilities(yadata.MNode):
         self.per_node_capabilities = base__system_capabilities__per_node_capabilities(elements=per_node_capabilities)
         self.subscription_capabilities = subscription_capabilities if subscription_capabilities is not None else base__system_capabilities__subscription_capabilities()
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:per-node-capabilities':
-            return iter(self.per_node_capabilities)
-        if name == 'aug:subscription-capabilities':
-            return self.subscription_capabilities
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:system-capabilities'])
 
@@ -151,10 +139,6 @@ class root(yadata.MNode):
 
     mut def __init__(self, system_capabilities: ?base__system_capabilities=None) -> None:
         self.system_capabilities = system_capabilities if system_capabilities is not None else base__system_capabilities()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:system-capabilities':
-            return self.system_capabilities
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)

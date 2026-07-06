@@ -55,10 +55,6 @@ class other_module__other_network_instances__network_instance_entry(yadata.MNode
     mut def __init__(self, name: str) -> None:
         self.name = name
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'other:name':
-            return self.name
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['other-module:network-instances', 'network-instance'])
 
@@ -138,10 +134,6 @@ class other_module__other_network_instances(yadata.MNode):
     mut def __init__(self, network_instance: list[other_module__other_network_instances__network_instance_entry]=[]) -> None:
         self.network_instance = other_module__other_network_instances__network_instance(elements=network_instance)
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'other:network-instance':
-            return iter(self.network_instance)
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['other-module:network-instances'])
 
@@ -162,10 +154,6 @@ class base_module__base_network_instances__network_instance__config(yadata.MNode
 
     mut def __init__(self, name: ?str) -> None:
         self.name = name
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:name':
-            return self.name
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance', 'config'])
@@ -189,12 +177,6 @@ class base_module__base_network_instances__network_instance_entry(yadata.MNode):
     mut def __init__(self, name: str, config: ?base_module__base_network_instances__network_instance__config=None) -> None:
         self.name = name
         self.config = config if config is not None else base_module__base_network_instances__network_instance__config()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:name':
-            return self.name
-        if name == 'base:config':
-            return self.config
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances', 'network-instance'])
@@ -275,10 +257,6 @@ class base_module__base_network_instances(yadata.MNode):
     mut def __init__(self, network_instance: list[base_module__base_network_instances__network_instance_entry]=[]) -> None:
         self.network_instance = base_module__base_network_instances__network_instance(elements=network_instance)
 
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:network-instance':
-            return iter(self.network_instance)
-
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:network-instances'])
 
@@ -299,10 +277,6 @@ class base_module__uses_leafref(yadata.MNode):
 
     mut def __init__(self, ni: ?str) -> None:
         self.ni = ni
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'base:ni':
-            return self.ni
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base-module:uses-leafref'])
@@ -328,14 +302,6 @@ class root(yadata.MNode):
         self.other_network_instances = other_network_instances if other_network_instances is not None else other_module__other_network_instances()
         self.base_network_instances = base_network_instances if base_network_instances is not None else base_module__base_network_instances()
         self.uses_leafref = uses_leafref if uses_leafref is not None else base_module__uses_leafref()
-
-    pure def _get_attr(self, name: str) -> ?value:
-        if name == 'other:network-instances':
-            return self.other_network_instances
-        if name == 'base:network-instances':
-            return self.base_network_instances
-        if name == 'base:uses-leafref':
-            return self.uses_leafref
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)
