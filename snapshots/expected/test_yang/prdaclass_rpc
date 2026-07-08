@@ -135,7 +135,8 @@ class yangrpc__foo__output(yadata.MNode):
 
 
 actor rpc_root(tp: ygdata.TreeProvider):
-    def foo(cb: action(?yangrpc__foo__output, ?Exception) -> None, inp: ?yangrpc__foo__input):
+    foo: action(cb: action(?yangrpc__foo__output, ?Exception) -> None, inp: ?yangrpc__foo__input) -> None
+    def foo(cb, inp):
         def cb_wrap(res: ?xml.Node, err: ?Exception):
             if res is not None:
                 gdata_res = yxml.from_xml(SRC_DNODE, res, False, ["yangrpc:foo", "output"])
@@ -150,7 +151,8 @@ actor rpc_root(tp: ygdata.TreeProvider):
             rpc_xml.children.extend(gdata_inp.to_xml())
         tp.rpc_xml(cb_wrap, rpc_xml)
 
-    def silent(cb: action(?Exception) -> None):
+    silent: action(cb: action(?Exception) -> None) -> None
+    def silent(cb):
         rpc_xml = xml.Node('silent', nsdefs=[(None, 'http://example.com/yangrpc')])
         tp.rpc_xml(lambda _, err: cb(err), rpc_xml)
 

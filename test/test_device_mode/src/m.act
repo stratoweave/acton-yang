@@ -162,7 +162,8 @@ class m__ping__output(yadata.MNode):
 
 
 actor rpc_root(tp: ygdata.TreeProvider):
-    def ping(cb: action(?m__ping__output, ?Exception) -> None, inp: ?m__ping__input):
+    ping: action(cb: action(?m__ping__output, ?Exception) -> None, inp: ?m__ping__input) -> None
+    def ping(cb, inp):
         def cb_wrap(res: ?xml.Node, err: ?Exception):
             if res is not None:
                 gdata_res = yxml.from_xml(SRC_DNODE, res, False, ["m:ping", "output"])

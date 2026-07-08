@@ -980,21 +980,31 @@ class DNodeInner(DNode):
                 input_node = rpc.input
                 output_node = rpc.output
 
-                # Build method signature based on input/output presence:
-                # - no input: in inp parameter in the wrapper signature
+                # Build the method signature based on input/output presence:
+                # - no input: no inp parameter in the wrapper signature
                 # - no output: no output adata parameter in the callback signature
                 if input_node is not None and output_node is not None:
                     # RPC with both input and output
-                    res.append("    def {safe_name(rpc.name)}(cb: action(?{get_path_name(spath + [rpc, output_node])}, ?Exception) -> None, inp: {'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node])}):")
+                    in_ref = "{'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node])}"
+                    params = "cb: action(?{get_path_name(spath + [rpc, output_node])}, ?Exception) -> None, inp: {in_ref}"
+                    argnames = "cb, inp"
                 elif input_node is not None and output_node is None:
                     # RPC with only input (no output)
-                    res.append("    def {safe_name(rpc.name)}(cb: action(?Exception) -> None, inp: {'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node])}):")
+                    in_ref = "{'?' if optional_subtree(input_node) else ''}{get_path_name(spath + [rpc, input_node])}"
+                    params = "cb: action(?Exception) -> None, inp: {in_ref}"
+                    argnames = "cb, inp"
                 elif input_node is None and output_node is not None:
                     # RPC with only output (no input)
-                    res.append("    def {safe_name(rpc.name)}(cb: action(?{get_path_name(spath + [rpc, output_node])}, ?Exception) -> None):")
+                    params = "cb: action(?{get_path_name(spath + [rpc, output_node])}, ?Exception) -> None"
+                    argnames = "cb"
                 else:
                     # RPC with neither input nor output
-                    res.append("    def {safe_name(rpc.name)}(cb: action(?Exception) -> None):")
+                    params = "cb: action(?Exception) -> None"
+                    argnames = "cb"
+
+                # Emit a standalone signature alongside the action so the actor has total type information
+                res.append("    {safe_name(rpc.name)}: action({params}) -> None")
+                res.append("    def {safe_name(rpc.name)}({argnames}):")
 
                 # Generate callback wrapper for parsing RPC output XML -> gdata -> adata
                 if output_node is not None:

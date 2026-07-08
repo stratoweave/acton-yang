@@ -152,7 +152,8 @@ class foo__r1__output(yadata.MNode):
 
 
 actor rpc_root(tp: ygdata.TreeProvider):
-    def r1(cb: action(?foo__r1__output, ?Exception) -> None, inp: ?foo__r1__input):
+    r1: action(cb: action(?foo__r1__output, ?Exception) -> None, inp: ?foo__r1__input) -> None
+    def r1(cb, inp):
         def cb_wrap(res: ?xml.Node, err: ?Exception):
             if res is not None:
                 gdata_res = yxml.from_xml(SRC_DNODE, res, False, ["foo:r1", "output"])
