@@ -282,7 +282,7 @@ actor main(env):
     compile_cmd = p.add_cmd("compile", "compile YANG modules together", _cmd_compile)
     compile_cmd.add_option("infile", "strlist", "+", [], "input YANG file(s) or directory(s)")
     compile_cmd.add_bool("loose", "generate loose validation mode classes", short="l")
-    compile_cmd.add_option("mode", "str", default="full", help="adata generation mode: 'full' (default) or 'device' (drop from_gdata/to_gdata/copy/_get_attr for a structure-only on-device class shape)", short="m")
+    compile_cmd.add_option("mode", "str", default="full", help="adata generation mode: 'full' (default) or 'device' (drop from_gdata/to_gdata/copy for a structure-only on-device class shape)", short="m")
     compile_cmd.add_option("exclude", "strlist", "*", [], "glob pattern(s) to exclude files", short="e")
     compile_cmd.add_option("stage", "str", default="", help="compile stage (adata, dnode-src, schema-tree, dnode-tree, statement, default full compile only)", short="s")
     compile_cmd.add_option("output", "str", default="", help="write stage output to file (use '-' for stdout)", short="o")

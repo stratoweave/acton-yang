@@ -1,10 +1,11 @@
 """Device-mode compile test.
 
 src/m.act is generated from yang/m.yang with `ayangc compile -m device`, which
-drops all serialization (from_gdata, to_gdata, copy, _get_attr) from the config
+drops all serialization (from_gdata, to_gdata, copy) from the config
 data classes, leaving only structure: typed fields, __init__, and the
-navigation/mutation surface. RPC input/output subtrees keep serialization so the
-rpc_root actor still compiles.
+navigation/mutation surface. RPCs (input/output classes and the rpc_root actor)
+are skipped entirely for now: rpc_root serializes input via yadata.from_adata,
+which relies on __get_attr__ reflection.
 
 The point of the test is that the generated module *compiles at all* with stock
 acton (no __get_attr__ compiler dependency); here we also exercise the retained

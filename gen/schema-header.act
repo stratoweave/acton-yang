@@ -964,7 +964,9 @@ class DNodeInner(DNode):
         res.append("")
 
 
-        if isinstance(self, DRoot):
+        # rpc_root serializes RPC input via yadata.from_adata, which relies on
+        # __get_attr__ reflection, so skip RPCs entirely in device mode for now
+        if isinstance(self, DRoot) and not device:
             # First generate data classes for RPC input/output
             for rpc in self.rpcs:
                 # Generate adata classes for DInput, DOutput, but override:
