@@ -24,8 +24,12 @@ test:
 	$(MAKE) test-data-source-roundtrip
 	$(MAKE) test-device-mode
 
+.PHONY: ayangc
+ayangc: src/schema.act
+	acton build --release
+
 .PHONY: test-device-mode-gen
-test-device-mode-gen:
+test-device-mode-gen: ayangc
 	cd test/test_device_mode && ../../out/bin/ayangc compile --infile yang -s adata -m device -o src/m.act
 
 .PHONY: test-device-mode
