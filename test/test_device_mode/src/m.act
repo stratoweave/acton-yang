@@ -49,8 +49,7 @@ class m__cfg__items_entry(yadata.MNode):
         self.val = val
 
 _breaker3: None = None
-class m__cfg__items(yadata.MNode):
-    elements: list[m__cfg__items_entry]
+class m__cfg__items(yadata.MList[m__cfg__items_entry]):
     mut def __init__(self, elements: list[m__cfg__items_entry]=[]) -> None:
         self.elements = elements
 
@@ -70,9 +69,6 @@ class m__cfg__items(yadata.MNode):
         self.elements.append(res)
         return res
 
-extension m__cfg__items(Iterable[m__cfg__items_entry]):
-    def __iter__(self) -> Iterator[m__cfg__items_entry]:
-        return self.elements.__iter__()
 
 extension m__cfg__items(Indexed[str, m__cfg__items_entry]):
     def __getitem__(self, k: str) -> m__cfg__items_entry:

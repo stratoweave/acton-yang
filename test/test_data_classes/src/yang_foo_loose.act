@@ -565,8 +565,7 @@ class foo__c1__li_entry(yadata.MNode):
         return foo__c1__li_entry.from_gdata(self.to_gdata())
 
 _breaker3: None = None
-class foo__c1__li(yadata.MNode):
-    elements: list[foo__c1__li_entry]
+class foo__c1__li(yadata.MList[foo__c1__li_entry]):
     mut def __init__(self, elements: list[foo__c1__li_entry]=[]) -> None:
         self.elements = elements
 
@@ -602,9 +601,6 @@ class foo__c1__li(yadata.MNode):
                 copied_elements.append(ce)
         return foo__c1__li(elements=copied_elements)
 
-extension foo__c1__li(Iterable[foo__c1__li_entry]):
-    def __iter__(self) -> Iterator[foo__c1__li_entry]:
-        return self.elements.__iter__()
 
 extension foo__c1__li(Indexed[str, foo__c1__li_entry]):
     def __getitem__(self, k: str) -> foo__c1__li_entry:
@@ -930,8 +926,7 @@ class foo__cc__death_entry(yadata.MNode):
         return foo__cc__death_entry.from_gdata(self.to_gdata())
 
 _breaker16: None = None
-class foo__cc__death(yadata.MNode):
-    elements: list[foo__cc__death_entry]
+class foo__cc__death(yadata.MList[foo__cc__death_entry]):
     mut def __init__(self, elements: list[foo__cc__death_entry]=[]) -> None:
         self.elements = elements
 
@@ -965,9 +960,6 @@ class foo__cc__death(yadata.MNode):
                 copied_elements.append(ce)
         return foo__cc__death(elements=copied_elements)
 
-extension foo__cc__death(Iterable[foo__cc__death_entry]):
-    def __iter__(self) -> Iterator[foo__cc__death_entry]:
-        return self.elements.__iter__()
 
 extension foo__cc__death(Indexed[str, foo__cc__death_entry]):
     def __getitem__(self, k: str) -> foo__cc__death_entry:
@@ -1121,8 +1113,7 @@ class foo__special_entry(yadata.MNode):
         return foo__special_entry.from_gdata(self.to_gdata())
 
 _breaker22: None = None
-class foo__special(yadata.MNode):
-    elements: list[foo__special_entry]
+class foo__special(yadata.MList[foo__special_entry]):
     mut def __init__(self, elements: list[foo__special_entry]=[]) -> None:
         self.elements = elements
 
@@ -1156,9 +1147,6 @@ class foo__special(yadata.MNode):
                 copied_elements.append(ce)
         return foo__special(elements=copied_elements)
 
-extension foo__special(Iterable[foo__special_entry]):
-    def __iter__(self) -> Iterator[foo__special_entry]:
-        return self.elements.__iter__()
 
 extension foo__special(Indexed[bool, foo__special_entry]):
     def __getitem__(self, k: bool) -> foo__special_entry:
@@ -1204,8 +1192,7 @@ class foo__nested__f_inner__li1__li2_entry(yadata.MNode):
         return foo__nested__f_inner__li1__li2_entry.from_gdata(self.to_gdata())
 
 _breaker24: None = None
-class foo__nested__f_inner__li1__li2(yadata.MNode):
-    elements: list[foo__nested__f_inner__li1__li2_entry]
+class foo__nested__f_inner__li1__li2(yadata.MList[foo__nested__f_inner__li1__li2_entry]):
     mut def __init__(self, elements: list[foo__nested__f_inner__li1__li2_entry]=[]) -> None:
         self.elements = elements
 
@@ -1243,9 +1230,6 @@ class foo__nested__f_inner__li1__li2(yadata.MNode):
                 copied_elements.append(ce)
         return foo__nested__f_inner__li1__li2(elements=copied_elements)
 
-extension foo__nested__f_inner__li1__li2(Iterable[foo__nested__f_inner__li1__li2_entry]):
-    def __iter__(self) -> Iterator[foo__nested__f_inner__li1__li2_entry]:
-        return self.elements.__iter__()
 
 _breaker25: None = None
 class foo__nested__f_inner__li1_entry(yadata.MNode):
@@ -1272,8 +1256,7 @@ class foo__nested__f_inner__li1_entry(yadata.MNode):
         return foo__nested__f_inner__li1_entry.from_gdata(self.to_gdata())
 
 _breaker26: None = None
-class foo__nested__f_inner__li1(yadata.MNode):
-    elements: list[foo__nested__f_inner__li1_entry]
+class foo__nested__f_inner__li1(yadata.MList[foo__nested__f_inner__li1_entry]):
     mut def __init__(self, elements: list[foo__nested__f_inner__li1_entry]=[]) -> None:
         self.elements = elements
 
@@ -1311,9 +1294,6 @@ class foo__nested__f_inner__li1(yadata.MNode):
                 copied_elements.append(ce)
         return foo__nested__f_inner__li1(elements=copied_elements)
 
-extension foo__nested__f_inner__li1(Iterable[foo__nested__f_inner__li1_entry]):
-    def __iter__(self) -> Iterator[foo__nested__f_inner__li1_entry]:
-        return self.elements.__iter__()
 
 extension foo__nested__f_inner__li1(Indexed[str, foo__nested__f_inner__li1_entry]):
     def __getitem__(self, k: str) -> foo__nested__f_inner__li1_entry:
@@ -1428,8 +1408,7 @@ class foo__li_union_entry(yadata.MNode):
         return foo__li_union_entry.from_gdata(self.to_gdata())
 
 _breaker31: None = None
-class foo__li_union(yadata.MNode):
-    elements: list[foo__li_union_entry]
+class foo__li_union(yadata.MList[foo__li_union_entry]):
     mut def __init__(self, elements: list[foo__li_union_entry]=[]) -> None:
         self.elements = elements
 
@@ -1480,9 +1459,6 @@ class foo__li_union(yadata.MNode):
                 copied_elements.append(ce)
         return foo__li_union(elements=copied_elements)
 
-extension foo__li_union(Iterable[foo__li_union_entry]):
-    def __iter__(self) -> Iterator[foo__li_union_entry]:
-        return self.elements.__iter__()
 
 _breaker32: None = None
 class foo__li_union_one_base_entry(yadata.MNode):
@@ -1503,8 +1479,7 @@ class foo__li_union_one_base_entry(yadata.MNode):
         return foo__li_union_one_base_entry.from_gdata(self.to_gdata())
 
 _breaker33: None = None
-class foo__li_union_one_base(yadata.MNode):
-    elements: list[foo__li_union_one_base_entry]
+class foo__li_union_one_base(yadata.MList[foo__li_union_one_base_entry]):
     mut def __init__(self, elements: list[foo__li_union_one_base_entry]=[]) -> None:
         self.elements = elements
 
@@ -1543,9 +1518,6 @@ class foo__li_union_one_base(yadata.MNode):
                 copied_elements.append(ce)
         return foo__li_union_one_base(elements=copied_elements)
 
-extension foo__li_union_one_base(Iterable[foo__li_union_one_base_entry]):
-    def __iter__(self) -> Iterator[foo__li_union_one_base_entry]:
-        return self.elements.__iter__()
 
 _breaker34: None = None
 class foo__state__c1(yadata.MNode):

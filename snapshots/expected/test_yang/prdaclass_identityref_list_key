@@ -75,8 +75,7 @@ class foo__c1__l1_entry(yadata.MNode):
         return foo__c1__l1_entry.from_gdata(self.to_gdata())
 
 _breaker2: None = None
-class foo__c1__l1(yadata.MNode):
-    elements: list[foo__c1__l1_entry]
+class foo__c1__l1(yadata.MList[foo__c1__l1_entry]):
     mut def __init__(self, elements: list[foo__c1__l1_entry]=[]) -> None:
         self.elements = elements
 
@@ -112,9 +111,6 @@ class foo__c1__l1(yadata.MNode):
                 copied_elements.append(ce)
         return foo__c1__l1(elements=copied_elements)
 
-extension foo__c1__l1(Iterable[foo__c1__l1_entry]):
-    def __iter__(self) -> Iterator[foo__c1__l1_entry]:
-        return self.elements.__iter__()
 
 _breaker3: None = None
 class foo__c1(yadata.MNode):

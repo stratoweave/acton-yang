@@ -16,6 +16,17 @@ class MNode(object):
         raise NotImplementedError()
 
 
+class MList[T(MNode)](MNode):
+    elements: list[T]
+    mut def __init__(self, elements: list[T]) -> None:
+        self.elements = elements
+
+
+extension MList[T(MNode)](Iterable[T]):
+    def __iter__(self) -> Iterator[T]:
+        return self.elements.__iter__()
+
+
 extension MNode (YangData):
     def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         maybe_cnt = self.__get_attr__(name)
@@ -25,15 +36,11 @@ extension MNode (YangData):
     def take_list(self, schema: yschema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
         maybe_list = self.__get_attr__(name)
-        if isinstance(maybe_list, MNode):
-            elements = maybe_list.__get_attr__("elements")
-            if isinstance(elements, list):
-                # TODO: actonlang/acton#2969 - pin expected type of entries to MNode
-                entries: list[MNode] = elements
-                key_namer = yschema.UniqueNamer(schema)
-                def element_key(entry: MNode) -> dict[str, value]:
-                    return {k: unwrap_key(k, entry.__get_attr__(key_namer.unique_safe_name(k, schema.prefix)), new_path) for k in schema.key}
-                return [(op=None, key=element_key(e), val=e) for e in entries]
+        if isinstance(maybe_list, MList):
+            key_namer = yschema.UniqueNamer(schema)
+            def element_key(entry: MNode) -> dict[str, value]:
+                return {k: unwrap_key(k, entry.__get_attr__(key_namer.unique_safe_name(k, schema.prefix)), new_path) for k in schema.key}
+            return [(op=None, key=element_key(e), val=e) for e in maybe_list]
         return []
 
     def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):

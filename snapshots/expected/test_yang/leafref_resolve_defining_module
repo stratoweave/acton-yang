@@ -67,8 +67,7 @@ class other_module__other_network_instances__network_instance_entry(yadata.MNode
         return other_module__other_network_instances__network_instance_entry.from_gdata(self.to_gdata())
 
 _breaker2: None = None
-class other_module__other_network_instances__network_instance(yadata.MNode):
-    elements: list[other_module__other_network_instances__network_instance_entry]
+class other_module__other_network_instances__network_instance(yadata.MList[other_module__other_network_instances__network_instance_entry]):
     mut def __init__(self, elements: list[other_module__other_network_instances__network_instance_entry]=[]) -> None:
         self.elements = elements
 
@@ -102,9 +101,6 @@ class other_module__other_network_instances__network_instance(yadata.MNode):
                 copied_elements.append(ce)
         return other_module__other_network_instances__network_instance(elements=copied_elements)
 
-extension other_module__other_network_instances__network_instance(Iterable[other_module__other_network_instances__network_instance_entry]):
-    def __iter__(self) -> Iterator[other_module__other_network_instances__network_instance_entry]:
-        return self.elements.__iter__()
 
 extension other_module__other_network_instances__network_instance(Indexed[str, other_module__other_network_instances__network_instance_entry]):
     def __getitem__(self, k: str) -> other_module__other_network_instances__network_instance_entry:
@@ -190,8 +186,7 @@ class base_module__base_network_instances__network_instance_entry(yadata.MNode):
         return base_module__base_network_instances__network_instance_entry.from_gdata(self.to_gdata())
 
 _breaker6: None = None
-class base_module__base_network_instances__network_instance(yadata.MNode):
-    elements: list[base_module__base_network_instances__network_instance_entry]
+class base_module__base_network_instances__network_instance(yadata.MList[base_module__base_network_instances__network_instance_entry]):
     mut def __init__(self, elements: list[base_module__base_network_instances__network_instance_entry]=[]) -> None:
         self.elements = elements
 
@@ -225,9 +220,6 @@ class base_module__base_network_instances__network_instance(yadata.MNode):
                 copied_elements.append(ce)
         return base_module__base_network_instances__network_instance(elements=copied_elements)
 
-extension base_module__base_network_instances__network_instance(Iterable[base_module__base_network_instances__network_instance_entry]):
-    def __iter__(self) -> Iterator[base_module__base_network_instances__network_instance_entry]:
-        return self.elements.__iter__()
 
 extension base_module__base_network_instances__network_instance(Indexed[str, base_module__base_network_instances__network_instance_entry]):
     def __getitem__(self, k: str) -> base_module__base_network_instances__network_instance_entry:
