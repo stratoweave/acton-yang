@@ -277,8 +277,7 @@ class filter_test__interfaces__interface_entry(yadata.MNode):
         return filter_test__interfaces__interface_entry.from_gdata(self.to_gdata())
 
 _breaker7: None = None
-class filter_test__interfaces__interface(yadata.MNode):
-    elements: list[filter_test__interfaces__interface_entry]
+class filter_test__interfaces__interface(yadata.MList[filter_test__interfaces__interface_entry]):
     mut def __init__(self, elements: list[filter_test__interfaces__interface_entry]=[]) -> None:
         self.elements = elements
 
@@ -324,9 +323,6 @@ class filter_test__interfaces__interface(yadata.MNode):
                 copied_elements.append(ce)
         return filter_test__interfaces__interface(elements=copied_elements)
 
-extension filter_test__interfaces__interface(Iterable[filter_test__interfaces__interface_entry]):
-    def __iter__(self) -> Iterator[filter_test__interfaces__interface_entry]:
-        return self.elements.__iter__()
 
 extension filter_test__interfaces__interface(Indexed[str, filter_test__interfaces__interface_entry]):
     def __getitem__(self, k: str) -> filter_test__interfaces__interface_entry:

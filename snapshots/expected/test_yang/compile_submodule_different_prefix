@@ -93,8 +93,7 @@ class main_module__main_container__sub_list_entry(yadata.MNode):
         return main_module__main_container__sub_list_entry.from_gdata(self.to_gdata())
 
 _breaker3: None = None
-class main_module__main_container__sub_list(yadata.MNode):
-    elements: list[main_module__main_container__sub_list_entry]
+class main_module__main_container__sub_list(yadata.MList[main_module__main_container__sub_list_entry]):
     mut def __init__(self, elements: list[main_module__main_container__sub_list_entry]=[]) -> None:
         self.elements = elements
 
@@ -132,9 +131,6 @@ class main_module__main_container__sub_list(yadata.MNode):
                 copied_elements.append(ce)
         return main_module__main_container__sub_list(elements=copied_elements)
 
-extension main_module__main_container__sub_list(Iterable[main_module__main_container__sub_list_entry]):
-    def __iter__(self) -> Iterator[main_module__main_container__sub_list_entry]:
-        return self.elements.__iter__()
 
 extension main_module__main_container__sub_list(Indexed[str, main_module__main_container__sub_list_entry]):
     def __getitem__(self, k: str) -> main_module__main_container__sub_list_entry:

@@ -82,8 +82,7 @@ class foo__c__li_entry(yadata.MNode):
         return foo__c__li_entry.from_gdata(self.to_gdata())
 
 _breaker3: None = None
-class foo__c__li(yadata.MNode):
-    elements: list[foo__c__li_entry]
+class foo__c__li(yadata.MList[foo__c__li_entry]):
     mut def __init__(self, elements: list[foo__c__li_entry]=[]) -> None:
         self.elements = elements
 
@@ -120,9 +119,6 @@ class foo__c__li(yadata.MNode):
                 copied_elements.append(ce)
         return foo__c__li(elements=copied_elements)
 
-extension foo__c__li(Iterable[foo__c__li_entry]):
-    def __iter__(self) -> Iterator[foo__c__li_entry]:
-        return self.elements.__iter__()
 
 extension foo__c__li(Indexed[str, foo__c__li_entry]):
     def __getitem__(self, k: str) -> foo__c__li_entry:
