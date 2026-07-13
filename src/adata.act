@@ -27,6 +27,48 @@ extension MList[T(MNode)](Iterable[T]):
         return self.elements.__iter__()
 
 
+class MKeyedList[K(Eq), T(MNode)](MList[T]):
+    """List with (compound) key of Acton type K
+
+    K is the Acton type of the scalar key leaf, or a tuple of the key leaf types
+    for lists with compound keys. In any case, this only matches for key types
+    that are not Acton "value".
+    """
+    @property
+    _key_of: pure(T) -> K
+
+    mut def __init__(self, key_of: pure(T) -> K, elements: list[T]) -> None:
+        MList.__init__(self, elements)
+        self._key_of = key_of
+
+    pure def get(self, key: K) -> ?T:
+        for e in self.elements:
+            if self._key_of(e) == key:
+                return e
+
+
+extension MKeyedList[K(Eq), T(MNode)](Indexed[K, T]):
+    def __getitem__(self, key: K) -> T:
+        e = self.get(key)
+        if e is not None:
+            return e
+        raise KeyError(key)
+
+    mut def __setitem__(self, key: K, n: T) -> None:
+        for i, e in enumerate(self.elements):
+            if self._key_of(e) == key:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, key: K) -> None:
+        for i, e in enumerate(self.elements):
+            if self._key_of(e) == key:
+                del self.elements[i]
+                return
+        raise KeyError(key)
+
+
 extension MNode (YangData):
     def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         maybe_cnt = self.__get_attr__(name)

@@ -66,7 +66,8 @@ class foo__c1__l1(yadata.MList[foo__c1__l1_entry]):
     mut def __init__(self, elements: list[foo__c1__l1_entry]=[]) -> None:
         self.elements = elements
 
-    pure def get(self, k1: str, k2: value) -> ?foo__c1__l1_entry:
+    pure def get(self, key: (str, value)) -> ?foo__c1__l1_entry:
+        k1, k2 = key
         for e in self:
             if e.k1 != k1:
                 continue
@@ -82,11 +83,12 @@ class foo__c1__l1(yadata.MList[foo__c1__l1_entry]):
                 continue
             return e
 
-    mut def create(self, k1: str, k2: value, l1: str) -> foo__c1__l1_entry:
-        e = self.get(k1, k2)
+    mut def create(self, key: (str, value), l1: str) -> foo__c1__l1_entry:
+        e = self.get(key)
         if e is not None:
             e.l1 = l1
             return e
+        k1, k2 = key
         res = foo__c1__l1_entry(k1=k1, k2=k2, l1=l1)
         self.elements.append(res)
         return res

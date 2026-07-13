@@ -567,7 +567,13 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
 
                     res.extend(list(reversed(non_optional_containers)))
 
-                    create_args_str = ", ".join(non_optional_args + list_opt_leaf_args)
+                    num_keys = len(child.key)
+                    if num_keys > 1:
+                        key_arg = "({", ".join(non_optional_args[:num_keys])})"
+                        create_call_args = [key_arg] + non_optional_args[num_keys:] + list_opt_leaf_args
+                    else:
+                        create_call_args = non_optional_args + list_opt_leaf_args
+                    create_args_str = ", ".join(create_call_args)
                     res.append("{list_element_var} = {self_name}.{usname(child)}.create({create_args_str})")
                     # Recursive call to pradata() for the list element
                     res.extend(_pradata_recursive(child, element, list_element_var, loose, list_element=True, root_path=root_path, spath=path_with_child(element.key_values(fq_list_keys(child))), path_var_names=path_var_names, reserved_names=reserved_names, create_consumed_leaves=list_consumed_leaf_args).splitlines())

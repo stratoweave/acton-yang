@@ -11,10 +11,10 @@ ad.c1.decimal = Decimal(bigint("314"), bigint("-2"))
 c2 = ad.c1.create_c2('required value', l1='inner value')
 
 # List /c1/li1 element: item1,1
-li1_element = ad.c1.li1.create('item1', 1, value=100)
+li1_element = ad.c1.li1.create(('item1', 1), value=100)
 
 # List /c1/li1 element: item2,2
-li1_element = ad.c1.li1.create('item2', 2, value=200)
+li1_element = ad.c1.li1.create(('item2', 2), value=200)
 
 # Container: /c1/li1[name='item2',extra-key='2']/c3
 li1_element.c3.nested_leaf = 'birb'

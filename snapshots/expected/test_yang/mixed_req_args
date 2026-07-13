@@ -82,23 +82,18 @@ class foo__c__li_entry(yadata.MNode):
         return foo__c__li_entry.from_gdata(self.to_gdata())
 
 _breaker3: None = None
-class foo__c__li(yadata.MList[foo__c__li_entry]):
+class foo__c__li(yadata.MKeyedList[str, foo__c__li_entry]):
     mut def __init__(self, elements: list[foo__c__li_entry]=[]) -> None:
-        self.elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: e.name, elements)
 
-    pure def get(self, name: str) -> ?foo__c__li_entry:
-        for e in self:
-            if e.name != name:
-                continue
-            return e
-
-    mut def create(self, name: str, bar: foo__c__li__bar, foo: ?str=None) -> foo__c__li_entry:
-        e = self.get(name)
+    mut def create(self, key: str, bar: foo__c__li__bar, foo: ?str=None) -> foo__c__li_entry:
+        e = self.get(key)
         if e is not None:
             e.bar = bar
             if foo is not None:
                 e.foo = foo
             return e
+        name = key
         res = foo__c__li_entry(name=name, bar=bar, foo=foo)
         self.elements.append(res)
         return res
@@ -119,24 +114,3 @@ class foo__c__li(yadata.MList[foo__c__li_entry]):
                 copied_elements.append(ce)
         return foo__c__li(elements=copied_elements)
 
-
-extension foo__c__li(Indexed[str, foo__c__li_entry]):
-    def __getitem__(self, k: str) -> foo__c__li_entry:
-        e = self.get(k)
-        if e is not None:
-            return e
-        raise KeyError(k)
-
-    mut def __setitem__(self, k: str, n: foo__c__li_entry) -> None:
-        for i, e in enumerate(self.elements):
-            if e.name == k:
-                self.elements[i] = n
-                return
-        self.elements.append(n)
-
-    mut def __delitem__(self, k: str) -> None:
-        for i, e in enumerate(self.elements):
-            if e.name == k:
-                del self.elements[i]
-                return
-        raise KeyError(k)

@@ -79,13 +79,13 @@ def adata():
     special_element = ad.special.create(True)
     
     # List /li-union element: first,4,b'Hello Acton \xf0\x9f\xab\xa1'
-    li_union_element = ad.li_union.create('first', u64(4), b'Hello Acton \xf0\x9f\xab\xa1', checker=u64(47))
+    li_union_element = ad.li_union.create(('first', u64(4), b'Hello Acton \xf0\x9f\xab\xa1'), checker=u64(47))
     
     # List /li-union element: second,unlimited,b'Hello Acton \xf0\x9f\xab\xa1'
-    li_union_element = ad.li_union.create('second', 'unlimited', b'Hello Acton \xf0\x9f\xab\xa1', checker=u64(1514))
+    li_union_element = ad.li_union.create(('second', 'unlimited', b'Hello Acton \xf0\x9f\xab\xa1'), checker=u64(1514))
     
     # List /li-union element: third,b'hi',b'Hello Acton \xf0\x9f\xab\xa1'
-    li_union_element = ad.li_union.create('third', b'hi', b'Hello Acton \xf0\x9f\xab\xa1', checker='Frank')
+    li_union_element = ad.li_union.create(('third', b'hi', b'Hello Acton \xf0\x9f\xab\xa1'), checker='Frank')
     
     # Container: /c2
     ad.c2.l1 = 'foo-qux'

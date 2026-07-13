@@ -75,22 +75,15 @@ class foo__c1__l1_entry(yadata.MNode):
         return foo__c1__l1_entry.from_gdata(self.to_gdata())
 
 _breaker2: None = None
-class foo__c1__l1(yadata.MList[foo__c1__l1_entry]):
+class foo__c1__l1(yadata.MKeyedList[(str, Identityref), foo__c1__l1_entry]):
     mut def __init__(self, elements: list[foo__c1__l1_entry]=[]) -> None:
-        self.elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: (e.k1, e.k2), elements)
 
-    pure def get(self, k1: str, k2: Identityref) -> ?foo__c1__l1_entry:
-        for e in self:
-            if e.k1 != k1:
-                continue
-            if e.k2 != k2:
-                continue
-            return e
-
-    mut def create(self, k1: str, k2: Identityref) -> foo__c1__l1_entry:
-        e = self.get(k1, k2)
+    mut def create(self, key: (str, Identityref)) -> foo__c1__l1_entry:
+        e = self.get(key)
         if e is not None:
             return e
+        k1, k2 = key
         res = foo__c1__l1_entry(k1=k1, k2=k2)
         self.elements.append(res)
         return res

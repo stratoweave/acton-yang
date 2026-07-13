@@ -17,8 +17,8 @@ import m
 
 def _test_device_navigation():
     lst = m.m__cfg__items()
-    lst.create(id="i1", val=u64(7))
-    lst.create(id="i2")
+    lst.create("i1", val=u64(7))
+    lst.create("i2")
     testing.assertNotNone(lst.get("i1"), "list get failed")
     testing.assertNone(lst.get("nope"), "unexpected entry present")
     n = 0
@@ -29,6 +29,6 @@ def _test_device_navigation():
 def _test_device_construct():
     # config tree has no serialization methods; just structure + navigation
     r = m.root(cfg=m.m__cfg(name="dev1", enabled=True, sub=m.m__cfg__sub(detail="d")))
-    r.cfg.items.create(id="x", val=u64(1))
+    r.cfg.items.create("x", val=u64(1))
     testing.assertEqual(r.cfg.name, "dev1", "field roundtrip")
     testing.assertNotNone(r.cfg.items.get("x"), "nested list get")

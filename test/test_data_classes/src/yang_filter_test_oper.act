@@ -277,18 +277,12 @@ class filter_test__interfaces__interface_entry(yadata.MNode):
         return filter_test__interfaces__interface_entry.from_gdata(self.to_gdata())
 
 _breaker7: None = None
-class filter_test__interfaces__interface(yadata.MList[filter_test__interfaces__interface_entry]):
+class filter_test__interfaces__interface(yadata.MKeyedList[str, filter_test__interfaces__interface_entry]):
     mut def __init__(self, elements: list[filter_test__interfaces__interface_entry]=[]) -> None:
-        self.elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: e.name, elements)
 
-    pure def get(self, name: str) -> ?filter_test__interfaces__interface_entry:
-        for e in self:
-            if e.name != name:
-                continue
-            return e
-
-    mut def create(self, name: str, description: ?str=None, type: ?str=None, enabled: ?bool=None, admin_status: ?str=None, oper_status: ?str=None, last_change: ?str=None) -> filter_test__interfaces__interface_entry:
-        e = self.get(name)
+    mut def create(self, key: str, description: ?str=None, type: ?str=None, enabled: ?bool=None, admin_status: ?str=None, oper_status: ?str=None, last_change: ?str=None) -> filter_test__interfaces__interface_entry:
+        e = self.get(key)
         if e is not None:
             if description is not None:
                 e.description = description
@@ -303,6 +297,7 @@ class filter_test__interfaces__interface(yadata.MList[filter_test__interfaces__i
             if last_change is not None:
                 e.last_change = last_change
             return e
+        name = key
         res = filter_test__interfaces__interface_entry(name=name, description=description, type=type, enabled=enabled, admin_status=admin_status, oper_status=oper_status, last_change=last_change)
         self.elements.append(res)
         return res
@@ -323,27 +318,6 @@ class filter_test__interfaces__interface(yadata.MList[filter_test__interfaces__i
                 copied_elements.append(ce)
         return filter_test__interfaces__interface(elements=copied_elements)
 
-
-extension filter_test__interfaces__interface(Indexed[str, filter_test__interfaces__interface_entry]):
-    def __getitem__(self, k: str) -> filter_test__interfaces__interface_entry:
-        e = self.get(k)
-        if e is not None:
-            return e
-        raise KeyError(k)
-
-    mut def __setitem__(self, k: str, n: filter_test__interfaces__interface_entry) -> None:
-        for i, e in enumerate(self.elements):
-            if e.name == k:
-                self.elements[i] = n
-                return
-        self.elements.append(n)
-
-    mut def __delitem__(self, k: str) -> None:
-        for i, e in enumerate(self.elements):
-            if e.name == k:
-                del self.elements[i]
-                return
-        raise KeyError(k)
 
 _breaker8: None = None
 class filter_test__interfaces(yadata.MNode):
