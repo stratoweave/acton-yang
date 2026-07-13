@@ -47,7 +47,7 @@ def skip_whitespace_and_comments(state: TokenizerState) -> None:
 
     # Skip whitespace
     while True:
-        state.buf = state.buf.lstrip(" \n\t")
+        state.buf = state.buf.lstrip(" \t\r\n")
         if state.buf == '':
             readline(state)
             buflen = len(state.buf)
@@ -479,6 +479,20 @@ def _test_parser_simple_statement():
     testing.assertEqual("description", stmt.kw, "Should parse keyword")
     testing.assertEqual("test", stmt.arg, "Should parse argument")
     testing.assertEqual(0, len(stmt.substatements), "Should have no substatements")
+
+def _test_parser_crlf_preserves_line_endings():
+    """Test parsing file with CRLF line endings"""
+    lf = r'''module foo {
+  description
+    "line one
+     line two";
+}'''
+    stmt = parse(lf.replace("\n", "\r\n"))
+    desc = None
+    for s in stmt.substatements:
+        if s.kw == "description":
+            desc = s.arg
+    testing.assertEqual("line one\r\nline two", desc, "CRLF preserved in string value")
 
 def _test_parser_statement_no_arg():
     """Test parsing statement without argument"""
