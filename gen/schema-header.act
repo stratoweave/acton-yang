@@ -531,6 +531,10 @@ class DNodeInner(DNode):
                 continue
             elif isinstance(child, DRpc):
                 continue
+            elif isinstance(child, DAction):
+                continue
+            elif isinstance(child, DNotification):
+                continue
             elif isinstance(child, DAnydata):
                 continue # TODO
             elif isinstance(child, DAnyxml):
@@ -1075,7 +1079,6 @@ class DAction(DNodeInner):
             ("namespace", self.namespace),
             ("prefix", self.prefix),
             ("name", self.name),
-            ("config", self.config),
             ("description", self.description),
             ("if_feature", self.if_feature),
             ("reference", self.reference),
@@ -1605,7 +1608,6 @@ class DNotification(DNodeInner):
             ("namespace", self.namespace),
             ("prefix", self.prefix),
             ("name", self.name),
-            ("config", self.config),
             ("description", self.description),
             ("if_feature", self.if_feature),
             ("must", self.must),
