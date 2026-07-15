@@ -1678,7 +1678,8 @@ class DRoot(DNodeInner):
                 for child in module.children:
                     if isinstance(child, DRpc):
                         rpcs.append(child)
-                    children.append(child)
+                    else:
+                        children.append(child)
 
                 # Add identities to global map
                 for identity in module.identity:

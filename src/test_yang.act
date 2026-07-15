@@ -1182,6 +1182,68 @@ def _test_compile_augment_implicit_input_output():
     root = yang.compile([ys])
     return root.prdaclass()
 
+def _test_compile_augment_action_rpc():
+    """Cross-module augment of an action and an rpc's input/output
+    """
+    ys_foo = r"""module foo {
+  yang-version "1.1";
+  namespace "http://example.com/foo";
+  prefix "foo";
+
+  container managed-element {
+    container security {
+    }
+  }
+
+  rpc reset {
+  }
+}"""
+    ys_bar = r"""module bar {
+  yang-version "1.1";
+  namespace "http://example.com/bar";
+  prefix "bar";
+
+  import foo {
+    prefix "f";
+  }
+
+  augment "/f:managed-element/f:security" {
+    container certificate-mgmt {
+      presence "Certificate Management sub-system";
+      action copy-certificate-from {
+        input {
+          leaf cert-name {
+            type string;
+            mandatory false;
+            description "Base name for imported certificates";
+          }
+        }
+      }
+    }
+  }
+
+  augment "/f:reset/input" {
+    leaf reset-at {
+      type string;
+    }
+  }
+
+  augment "/f:reset/output" {
+    leaf reset-finished-at {
+      type string;
+    }
+  }
+}"""
+    root = yang.compile([ys_foo, ys_bar])
+    # TODO: prdaclass filters out DAction from DRoot right now ...
+    act = root.get("managed-element").get("security").get("certificate-mgmt").get("copy-certificate-from")
+    if isinstance(act, yschema.DAction):
+        input_node = act.children[0]
+        testing.assertEqual(input_node.module, "bar")
+    else:
+        testing.error("Expected DAction")
+    return root.prdaclass()
+
 def _test_compile_augment_augmented_node():
     """Test augmenting with grouping, then augmenting nodes added by that grouping
     """

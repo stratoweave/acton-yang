@@ -311,11 +311,11 @@ snode_methods = {
         # new_input = self_input.compile(context) if self_input is not None else None # actonc codegen pre-evaluates before None-check
         new_input = None
         if self_input is not None:
-            new_input = self_input.compile(context, new_ns)
+            new_input = self_input.compile(context, new_mod, new_ns, new_pfx)
         # new_output = self_output.compile(context) if self_output is not None else None # actonc codegen pre-evaluates before None-check
         new_output = None
         if self_output is not None:
-            new_output = self_output.compile(context, new_ns)
+            new_output = self_output.compile(context, new_mod, new_ns, new_pfx)
         new = Action(self.name,
                      description=self.description,
                      if_feature=self.if_feature,
@@ -327,7 +327,7 @@ snode_methods = {
                      mod=new_mod if new_mod is not None else self.mod,
                      ns=new_ns if new_ns is not None else self.ns,
                      pfx=new_pfx if new_pfx is not None else self.pfx)
-        self.expand_children(context, new, new_ns, new_pfx)
+        self.expand_children(context, new, new_mod, new_ns, new_pfx)
         return new
 
 """,
@@ -844,11 +844,11 @@ snode_methods = {
         # new_input = self_input.compile(context) if self_input is not None else None # actonc codegen pre-evaluates before None-check
         new_input = None
         if self_input is not None:
-            new_input = self_input.compile(context)
+            new_input = self_input.compile(context, new_mod, new_ns, new_pfx)
         # new_output = self_output.compile(context) if self_output is not None else None # actonc codegen pre-evaluates before None-check
         new_output = None
         if self_output is not None:
-            new_output = self_output.compile(context)
+            new_output = self_output.compile(context, new_mod, new_ns, new_pfx)
         new = Rpc(self.name,
                   description=self.description,
                   if_feature=self.if_feature,
@@ -860,7 +860,7 @@ snode_methods = {
                   mod=new_mod if new_mod is not None else self.mod,
                   ns=new_ns if new_ns is not None else self.ns,
                   pfx=new_pfx if new_pfx is not None else self.pfx)
-        self.expand_children(context, new, new_ns, new_pfx)
+        self.expand_children(context, new, new_mod, new_ns, new_pfx)
         return new
 
 """,
