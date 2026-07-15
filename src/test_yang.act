@@ -2698,6 +2698,50 @@ def _test_leaf_defaults():
         testing.assertEqual(l_identityref_def.default, "id2")
     else:
         testing.error("Expected Leaf instance for l_identityref_def")
+    src = root.prdaclass()
+    return src
+
+def _test_leaf_defaults_from_typedef():
+    ys_base = r"""module base {
+    yang-version "1.1";
+    namespace "http://example.com/base";
+    prefix "base";
+
+    typedef percent {
+        type uint8;
+        units "percent";
+        default "50";
+    }
+
+    grouping g {
+        leaf threshold {
+            type percent;
+        }
+    }
+}"""
+    ys_foo = r"""module foo {
+    yang-version "1.1";
+    namespace "http://example.com/foo";
+    prefix "foo";
+    import base {
+        prefix "base";
+    }
+
+    container c {
+        uses base:g;
+    }
+}"""
+    root = yang.compile([ys_base, ys_foo])
+
+    threshold = root.get("c").get("threshold")
+    if isinstance(threshold, yschema.DLeaf):
+        testing.assertEqual(threshold.default, "50")
+        testing.assertEqual(threshold.units, "percent")
+    else:
+        testing.error("Expected DLeaf instance for c/threshold")
+
+    src = root.prdaclass()
+    return src
 
 def _test_prdaclass_max_elements_unbounded():
     ys_base = r"""module foo {

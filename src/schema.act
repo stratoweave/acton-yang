@@ -7043,7 +7043,9 @@ class Leaf(SchemaNodeOuter):
 
         new_default = self.default
         if new_default is None:
-            new_default = dtype.default
+            dtype_default = dtype.default
+            if isinstance(dtype_default, str):
+                new_default = dtype_default
 
         new_units = self.units
         if new_units is None:
@@ -7055,7 +7057,7 @@ class Leaf(SchemaNodeOuter):
             prefix=self.get_prefix(),
             name=self.name,
             config=self.is_config(),
-            default=self.default,
+            default=new_default,
             description=self.description,
             if_feature=self.if_feature,
             mandatory=self.mandatory,
@@ -7063,7 +7065,7 @@ class Leaf(SchemaNodeOuter):
             reference=self.reference,
             status=self.status,
             type_=dtype,
-            units=self.units,
+            units=new_units,
             when=self.when,
             exts=[ext.to_dext() for ext in self.exts]
         )
@@ -7298,7 +7300,7 @@ class LeafList(SchemaNodeOuter):
             reference=self.reference,
             status=self.status,
             type_=dtype,
-            units=self.units,
+            units=new_units,
             when=self.when,
             exts=[ext.to_dext() for ext in self.exts]
         )
