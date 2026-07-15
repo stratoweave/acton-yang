@@ -1,0 +1,101 @@
+import base64
+import json
+import std.xml as xml
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_base_foo_id1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1', base=[])
+_base_foo_id2: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id2', base=[_base_foo_id1])
+_identities: list[DIdentity] = [
+    _base_foo_id1,
+    _base_foo_id2,
+]
+
+
+# Identityref constants
+foo_id1: Identityref = Identityref('id1', ns='http://example.com/foo', mod='foo', pfx='foo')
+foo_id2: Identityref = Identityref('id2', ns='http://example.com/foo', mod='foo', pfx='foo')
+
+
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c', config=True, presence=False, children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l_str_def', config=True, default='foo', mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l_boolean_def', config=True, default='true', mandatory=False, type_=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l_identityref_def', config=True, default='id2', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_id1], identities=_identities))
+])
+
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1')
+
+SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id2', base=[
+        DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1')
+    ])
+
+SRC_DNODE: DRoot = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1],
+    rpcs=[],
+    module_metadata={'http://example.com/foo':('foo', None)},
+)
+
+NS_foo: str = 'http://example.com/foo'
+
+
+_breaker1: None = None
+class foo__c(yadata.MNode):
+    l_str_def: str
+    l_boolean_def: bool
+    l_identityref_def: Identityref
+
+    mut def __init__(self, l_str_def: ?str=None, l_boolean_def: ?bool=None, l_identityref_def: ?Identityref=None) -> None:
+        self.l_str_def = l_str_def if l_str_def is not None else "foo"
+        self.l_boolean_def = l_boolean_def if l_boolean_def is not None else True
+        self.l_identityref_def = l_identityref_def if l_identityref_def is not None else foo_id2
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> foo__c:
+        if n is not None:
+            return foo__c(l_str_def=n.get_opt_str(ygdata.Id(NS_foo, 'l_str_def')), l_boolean_def=n.get_opt_bool(ygdata.Id(NS_foo, 'l_boolean_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_foo, 'l_identityref_def')))
+        return foo__c()
+
+    mut def copy(self) -> foo__c:
+        """Create a deep copy of this adata object"""
+        return foo__c.from_gdata(self.to_gdata())
+
+
+_breaker2: None = None
+class root(yadata.MNode):
+    c: foo__c
+
+    mut def __init__(self, c: ?foo__c=None) -> None:
+        self.c = c if c is not None else foo__c()
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> root:
+        if n is not None:
+            return root(c=foo__c.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c'))))
+        return root()
+
+    mut def copy(self) -> root:
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: ygdata.TreeProvider):
+    pass
+
