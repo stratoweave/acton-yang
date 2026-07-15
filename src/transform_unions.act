@@ -3,6 +3,7 @@ import testing
 import lib as yang
 import schema as yschema
 import parser as yparser
+import transform_utils
 
 mut def rewrite_unions(node: yschema.SchemaNode) -> None:
     """Rewrite stupid union types to sane types
@@ -47,13 +48,11 @@ mut def rewrite_unions(node: yschema.SchemaNode) -> None:
         return tn
 
 
-    if isinstance(node, yschema.Leaf):
-        node.type_ = rewrite_type(node.type_)
-    elif isinstance(node, yschema.LeafList):
-        node.type_ = rewrite_type(node.type_)
-    elif isinstance(node, yschema.SchemaNodeInner):
-        for child in node.children:
-            rewrite_unions(child)
+    for n in transform_utils.collect_snodes(node):
+        if isinstance(n, yschema.Leaf):
+            n.type_ = rewrite_type(n.type_)
+        elif isinstance(n, yschema.LeafList):
+            n.type_ = rewrite_type(n.type_)
 
 test_yang = r"""module test_yang {
   yang-version "1.1";

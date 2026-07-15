@@ -1,4 +1,5 @@
 import schema as yschema
+import transform_utils
 
 
 mut def create_explicit_cases(node: yschema.SchemaNode) -> None:
@@ -21,31 +22,28 @@ mut def create_explicit_cases(node: yschema.SchemaNode) -> None:
     the same as the wrapped node's name.
     """
 
-    if isinstance(node, yschema.Choice):
-        new_children = []
-        for child in node.children:
-            if not isinstance(child, yschema.Case):
-                name = child._get_arg()
-                if name is not None:
-                    implicit_case = yschema.Case(
-                        name=name,
-                        children=[child],  # The data node becomes child of the case
-                        parent=node,
-                        mod=child.mod,
-                        ns=child.ns,
-                        pfx=child.pfx
-                    )
-                    # Update the child's parent to be the new Case node
-                    child.parent = implicit_case
-                    new_children.append(implicit_case)
+    for n in transform_utils.collect_snodes(node):
+        if isinstance(n, yschema.Choice):
+            new_children = []
+            for child in n.children:
+                if not isinstance(child, yschema.Case):
+                    name = child._get_arg()
+                    if name is not None:
+                        implicit_case = yschema.Case(
+                            name=name,
+                            children=[child],  # The data node becomes child of the case
+                            parent=n,
+                            mod=child.mod,
+                            ns=child.ns,
+                            pfx=child.pfx
+                        )
+                        # Update the child's parent to be the new Case node
+                        child.parent = implicit_case
+                        new_children.append(implicit_case)
+                    else:
+                        raise ValueError("Child {child} name is empty")
                 else:
-                    raise ValueError("Child {child} name is empty")
-            else:
-                new_children.append(child)
+                    new_children.append(child)
 
-        node.children = new_children
-
-    if isinstance(node, yschema.SchemaNodeInner):
-        for child in node.children:
-            create_explicit_cases(child)
+            n.children = new_children
 
