@@ -1,0 +1,204 @@
+import base64
+import json
+import std.xml as xml
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='managed-element', config=True, presence=False, children=[
+    DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='security', config=True, presence=False, children=[
+        DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='certificate-mgmt', config=True, presence=True)
+    ])
+])
+
+SRC_DNODE_RPC_0: DRpc = DRpc(module='foo', namespace='http://example.com/foo', prefix='foo', name='reset', input=DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
+    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-at', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+]), output=DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
+    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-finished-at', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+]), children=[
+    DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
+        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-at', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    ]),
+    DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
+        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-finished-at', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    ])
+])
+
+SRC_DNODE: DRoot = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[],
+    rpcs=[SRC_DNODE_RPC_0],
+    module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
+)
+
+NS_bar: str = 'http://example.com/bar'
+NS_foo: str = 'http://example.com/foo'
+
+
+_breaker1: None = None
+class foo__managed_element__security__certificate_mgmt(yadata.MNode):
+
+    mut def __init__(self) -> None:
+        pass
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element', 'security', 'bar:certificate-mgmt'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> ?foo__managed_element__security__certificate_mgmt:
+        if n is not None:
+            return foo__managed_element__security__certificate_mgmt()
+        return None
+
+    mut def copy(self) -> foo__managed_element__security__certificate_mgmt:
+        """Create a deep copy of this adata object"""
+        ad = foo__managed_element__security__certificate_mgmt.from_gdata(self.to_gdata())
+        if ad is not None:
+            return ad
+        raise Exception('Unreachable in foo__managed_element__security__certificate_mgmt.copy()')
+
+
+_breaker2: None = None
+class foo__managed_element__security(yadata.MNode):
+    certificate_mgmt: ?foo__managed_element__security__certificate_mgmt
+
+    mut def __init__(self, certificate_mgmt: ?foo__managed_element__security__certificate_mgmt=None) -> None:
+        self.certificate_mgmt = certificate_mgmt
+
+    mut def create_certificate_mgmt(self) -> foo__managed_element__security__certificate_mgmt:
+        existing = self.certificate_mgmt
+        if existing is not None:
+            return existing
+        res = foo__managed_element__security__certificate_mgmt()
+        self.certificate_mgmt = res
+        return res
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element', 'security'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> foo__managed_element__security:
+        if n is not None:
+            return foo__managed_element__security(certificate_mgmt=foo__managed_element__security__certificate_mgmt.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'certificate-mgmt'))))
+        return foo__managed_element__security()
+
+    mut def copy(self) -> foo__managed_element__security:
+        """Create a deep copy of this adata object"""
+        return foo__managed_element__security.from_gdata(self.to_gdata())
+
+
+_breaker3: None = None
+class foo__managed_element(yadata.MNode):
+    security: foo__managed_element__security
+
+    mut def __init__(self, security: ?foo__managed_element__security=None) -> None:
+        self.security = security if security is not None else foo__managed_element__security()
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> foo__managed_element:
+        if n is not None:
+            return foo__managed_element(security=foo__managed_element__security.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'security'))))
+        return foo__managed_element()
+
+    mut def copy(self) -> foo__managed_element:
+        """Create a deep copy of this adata object"""
+        return foo__managed_element.from_gdata(self.to_gdata())
+
+
+_breaker4: None = None
+class root(yadata.MNode):
+    managed_element: foo__managed_element
+
+    mut def __init__(self, managed_element: ?foo__managed_element=None) -> None:
+        self.managed_element = managed_element if managed_element is not None else foo__managed_element()
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> root:
+        if n is not None:
+            return root(managed_element=foo__managed_element.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'managed-element'))))
+        return root()
+
+    mut def copy(self) -> root:
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+_breaker5: None = None
+class foo__reset__input(yadata.MNode):
+    reset_at: ?str
+
+    mut def __init__(self, reset_at: ?str) -> None:
+        self.reset_at = reset_at
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:reset', 'input'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> foo__reset__input:
+        if n is not None:
+            return foo__reset__input(reset_at=n.get_opt_str(ygdata.Id(NS_bar, 'reset-at')))
+        return foo__reset__input()
+
+    mut def copy(self) -> foo__reset__input:
+        """Create a deep copy of this adata object"""
+        return foo__reset__input.from_gdata(self.to_gdata())
+
+
+_breaker6: None = None
+class foo__reset__output(yadata.MNode):
+    reset_finished_at: ?str
+
+    mut def __init__(self, reset_finished_at: ?str) -> None:
+        self.reset_finished_at = reset_finished_at
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:reset', 'output'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> foo__reset__output:
+        if n is not None:
+            return foo__reset__output(reset_finished_at=n.get_opt_str(ygdata.Id(NS_bar, 'reset-finished-at')))
+        return foo__reset__output()
+
+    mut def copy(self) -> foo__reset__output:
+        """Create a deep copy of this adata object"""
+        return foo__reset__output.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: ygdata.TreeProvider):
+    reset: action(cb: action(?foo__reset__output, ?Exception) -> None, inp: ?foo__reset__input) -> None
+    def reset(cb, inp):
+        def cb_wrap(res: ?xml.Node, err: ?Exception):
+            if res is not None:
+                gdata_res = yxml.from_xml(SRC_DNODE, res, False, ["foo:reset", "output"])
+                adata_res = foo__reset__output.from_gdata(gdata_res)
+                cb(adata_res, err)
+            else:
+                cb(None, err)
+
+        rpc_xml = xml.Node('reset', nsdefs=[(None, 'http://example.com/foo')])
+        if inp is not None:
+            gdata_inp = yadata.from_adata(SRC_DNODE, inp, False, ["foo:reset", "input"])
+            rpc_xml.children.extend(gdata_inp.to_xml())
+        tp.rpc_xml(cb_wrap, rpc_xml)
+
+
