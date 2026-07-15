@@ -1,4 +1,8 @@
+import testing
+
+import parser as yparser
 import schema as yschema
+import transform_utils
 
 PATTERN_MAP = {
     r"[a-zA-Z0-9_.-]+": r"[a-zA-Z0-9_\.-]+", # Cisco-XR 24.1.1 # Assuming literal '.' rather than wildcard that would make other group members redundant
@@ -16,6 +20,7 @@ PATTERN_MAP = {
     r".*[a-zA-Z0-9-$_]{1,64}.*": r".*[a-zA-Z0-9\-$_]{1,64}.*", # Cisco NXOS 10.4-4 # Unescaped '-'
     r".*[a-zA-Z0-9-$_]{0,63}.*": r".*[a-zA-Z0-9\-$_]{0,63}.*", # Cisco NXOS 10.4-4 # Unescaped '-'
     r"[a-zA-Z0-9-_,]+": r"[a-zA-Z0-9\-_,]+", # Cisco IOS XE 17.18.02 # Unescaped '-'
+    r"[0-9a-zA-Z_.-/]+": r"[0-9a-zA-Z_\.\-/]+", # Adtran AOS # Assuming literal '.' and '-' rather than the '.-/' range (which excludes '-')
 }
 
 mut def repair_patterns(node: yschema.SchemaNode) -> None:
@@ -37,14 +42,51 @@ mut def repair_patterns(node: yschema.SchemaNode) -> None:
             repair_type(alt_type)
 
     # For types, replace known broken pattern expressions
-    if isinstance(node, yschema.Leaf):
-        repair_type(node.type_)
-    elif isinstance(node, yschema.LeafList):
-        repair_type(node.type_)
-    elif isinstance(node, yschema.Typedef):
-        repair_type(node.type_)
+    for n in transform_utils.collect_snodes(node):
+        if isinstance(n, yschema.Leaf):
+            repair_type(n.type_)
+        elif isinstance(n, yschema.LeafList):
+            repair_type(n.type_)
+        elif isinstance(n, yschema.Typedef):
+            repair_type(n.type_)
 
-    # Recursively process children if this is an inner node
-    if isinstance(node, yschema.SchemaNodeInner):
-        for child in node.children:
-            repair_patterns(child)
+
+def _test_repair_patterns_augment_action_input():
+    test_yang = r"""module test_repair {
+  yang-version "1.1";
+  namespace "http://example.com/test_repair";
+  prefix "test_repair";
+
+  container top {
+  }
+
+  augment "/top" {
+    container fm {
+      action copy-from {
+        input {
+          leaf remote-file {
+            type string {
+              pattern "[0-9a-zA-Z_.-/]+";
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+    n = yschema.stmt_to_snode(yparser.parse(test_yang))
+    repair_patterns(n)
+
+    repaired = ""
+    if isinstance(n, yschema.Module):
+        fm = n.augment[0].get("fm")
+        if isinstance(fm, yschema.SchemaNodeInner):
+            act = fm.get("copy-from")
+            if isinstance(act, yschema.Action):
+                act_input = act.input
+                if act_input is not None:
+                    leaf = act_input.get("remote-file")
+                    if isinstance(leaf, yschema.Leaf):
+                        repaired = leaf.type_.pattern[0].value
+    testing.assertEqual(repaired, r"[0-9a-zA-Z_\.\-/]+")

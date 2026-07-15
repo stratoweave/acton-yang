@@ -1,6 +1,7 @@
 import testing
 
 import schema as yschema
+import transform_utils
 
 mut def remove_empty_refines(node: yschema.SchemaNode) -> None:
     """Remove Refine instances where all attributes have default/empty values.
@@ -34,13 +35,8 @@ mut def remove_empty_refines(node: yschema.SchemaNode) -> None:
                 refine.presence is None and
                 refine.reference is None)
 
-    # Check if this node is a Uses node with refine statements
-    if isinstance(node, yschema.Uses):
-        # Filter out empty refines
-        node.refine = [r for r in node.refine if not is_empty(r)]
-
-    # Recursively process children if this is an inner node
-    if isinstance(node, yschema.SchemaNodeInner):
-        for child in node.children:
-            remove_empty_refines(child)
+    # Filter out empty refines from all Uses nodes
+    for n in transform_utils.collect_snodes(node):
+        if isinstance(n, yschema.Uses):
+            n.refine = [r for r in n.refine if not is_empty(r)]
 
