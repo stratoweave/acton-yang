@@ -20,6 +20,7 @@ PATTERN_MAP = {
     r".*[a-zA-Z0-9-$_]{1,64}.*": r".*[a-zA-Z0-9\-$_]{1,64}.*", # Cisco NXOS 10.4-4 # Unescaped '-'
     r".*[a-zA-Z0-9-$_]{0,63}.*": r".*[a-zA-Z0-9\-$_]{0,63}.*", # Cisco NXOS 10.4-4 # Unescaped '-'
     r"[a-zA-Z0-9-_,]+": r"[a-zA-Z0-9\-_,]+", # Cisco IOS XE 17.18.02 # Unescaped '-'
+    r"[0-9a-zA-Z_.-/]+": r"[0-9a-zA-Z_\.\-/]+", # Adtran AOS # Assuming literal '.' and '-' rather than the '.-/' range (which excludes '-')
 }
 
 mut def repair_patterns(node: yschema.SchemaNode) -> None:
