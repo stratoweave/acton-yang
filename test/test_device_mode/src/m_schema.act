@@ -21,7 +21,7 @@ _identities: list[DIdentity] = [
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='m', namespace='urn:example:m', prefix='m', name='cfg', config=True, presence=False, children=[
     DLeaf(module='m', namespace='urn:example:m', prefix='m', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='m', namespace='urn:example:m', prefix='m', name='enabled', config=True, mandatory=False, type_=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)),
-    DLeaf(module='m', namespace='urn:example:m', prefix='m', name='proto', config=True, default='https', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_m_protocol], identities=_identities)),
+    DLeaf(module='m', namespace='urn:example:m', prefix='m', name='proto', config=True, default='m:https', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_m_protocol], identities=_identities)),
     DContainer(module='m', namespace='urn:example:m', prefix='m', name='sub', config=True, presence=False, children=[
         DLeaf(module='m', namespace='urn:example:m', prefix='m', name='detail', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ]),

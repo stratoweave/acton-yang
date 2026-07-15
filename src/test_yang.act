@@ -2695,7 +2695,9 @@ def _test_leaf_defaults():
 
     l_identityref_def = root.get("c").get("l_identityref_def")
     if isinstance(l_identityref_def, yschema.DLeaf):
-        testing.assertEqual(l_identityref_def.default, "id2")
+        # Identityref defaults are normalized at compile time to include the
+        # origin module prefix, like identity bases.
+        testing.assertEqual(l_identityref_def.default, "foo:id2")
     else:
         testing.error("Expected Leaf instance for l_identityref_def")
     src = root.prdaclass()
@@ -2707,15 +2709,30 @@ def _test_leaf_defaults_from_typedef():
     namespace "http://example.com/base";
     prefix "base";
 
+    identity id1;
+    identity id2 {
+        base id1;
+    }
+
     typedef percent {
         type uint8;
         units "percent";
         default "50";
     }
 
+    typedef id-type {
+        type identityref {
+            base id1;
+        }
+        default id2;
+    }
+
     grouping g {
         leaf threshold {
             type percent;
+        }
+        leaf kind {
+            type id-type;
         }
     }
 }"""
@@ -2740,8 +2757,147 @@ def _test_leaf_defaults_from_typedef():
     else:
         testing.error("Expected DLeaf instance for c/threshold")
 
+    kind = root.get("c").get("kind")
+    if isinstance(kind, yschema.DLeaf):
+        testing.assertEqual(kind.default, "base:id2")
+    else:
+        testing.error("Expected DLeaf instance for c/kind")
+
     src = root.prdaclass()
+    testing.assertIn("else base_id2", src, "identityref typedef default should resolve to base_id2")
     return src
+
+def _test_identityref_default_from_used_grouping():
+    # Regression: an identityref leaf carrying an *unprefixed* default, defined in
+    # a grouping and pulled into another module via `uses`. The instantiated node
+    # records the *using* module (foo), but the identity named by the default
+    # lives in the grouping's defining module (base), so resolving the raw default
+    # text against the instantiated node's module found nothing and prdaclass()
+    # used to raise "Invalid default 'id2' ...". Leaf.compile therefore normalizes
+    # the default to the origin-prefixed form while the defining context is still
+    # at hand, making the instantiated node self-describing.
+    ys_base = r"""module base {
+    yang-version "1.1";
+    namespace "http://example.com/base";
+    prefix "base";
+
+    identity id1;
+    identity id2 {
+        base id1;
+    }
+
+    grouping g {
+        leaf l {
+            type identityref {
+                base id1;
+            }
+            default id2;
+        }
+    }
+}"""
+    ys_foo = r"""module foo {
+    yang-version "1.1";
+    namespace "http://example.com/foo";
+    prefix "foo";
+    import base {
+        prefix "base";
+    }
+
+    container c {
+        uses base:g;
+    }
+}"""
+    root = yang.compile([ys_base, ys_foo])
+
+    # The instantiated leaf records the using module (foo), while the default is
+    # normalized to name identity id2 in its defining module (base).
+    l = root.get("c").get("l")
+    if isinstance(l, yschema.DLeaf):
+        testing.assertEqual(l.module, "foo")
+        testing.assertEqual(l.default, "base:id2")
+    else:
+        testing.error("Expected DLeaf instance for c/l")
+
+    src = root.prdaclass()
+    # The generated __init__ resolves the default to the base_id2 Identityref
+    # constant from the defining module.
+    testing.assertIn("else base_id2", src, "identityref default should resolve to base_id2")
+    return src
+
+def _test_identityref_default_conflicting_submodule_prefix():
+    # Regression: two submodules import the same module under different prefixes
+    # (bt2 in sub2, bt in sub; sub2 merges first so bt2 wins the merged import
+    # table and sub's content is remapped bt -> bt2). Compiling mainmod itself
+    # canonicalizes the default back to the origin module's own prefix (bt),
+    # which is not an import prefix of the merged module. When user's `uses`
+    # then re-compiles the already-compiled grouping content, the default must
+    # not be re-resolved through the import table -- qualification only happens
+    # on the first resolution, gated on the type not yet being a ResolvedType.
+    ys_base_types = r"""module base-types {
+    yang-version "1.1";
+    namespace "http://example.com/base-types";
+    prefix "bt";
+    identity ID1;
+    identity NORMAL { base ID1; }
+}"""
+    ys_sub = r"""submodule sub {
+    yang-version "1.1";
+    belongs-to mainmod { prefix "m"; }
+    import base-types { prefix "bt"; }
+    grouping inner-config {
+        leaf l {
+            type identityref { base "bt:ID1"; }
+            default bt:NORMAL;
+        }
+    }
+    grouping outer {
+        container config {
+            uses inner-config;
+        }
+        container state {
+            uses inner-config;
+        }
+    }
+}"""
+    ys_sub2 = r"""submodule sub2 {
+    yang-version "1.1";
+    belongs-to mainmod { prefix "m"; }
+    import base-types { prefix "bt2"; }
+    grouping unrelated {
+        leaf x { type identityref { base "bt2:ID1"; } }
+    }
+}"""
+    ys_mainmod = r"""module mainmod {
+    yang-version "1.1";
+    namespace "http://example.com/mainmod";
+    prefix "m";
+    include sub2;
+    include sub;
+    grouping top {
+        container area {
+            uses outer;
+        }
+    }
+}"""
+    ys_user = r"""module user {
+    yang-version "1.1";
+    namespace "http://example.com/user";
+    prefix "u";
+    import mainmod { prefix "m"; }
+    container c {
+        uses m:top;
+    }
+}"""
+    root = yang.compile([ys_base_types, ys_sub, ys_sub2, ys_mainmod, ys_user])
+
+    l = root.get("c").get("area").get("config").get("l")
+    if isinstance(l, yschema.DLeaf):
+        testing.assertEqual(l.default, "bt:NORMAL")
+    else:
+        testing.error("Expected DLeaf instance for c/area/config/l")
+
+    src = root.prdaclass()
+    testing.assertIn("else base_types_NORMAL", src, "identityref default should resolve to base_types_NORMAL")
 
 def _test_prdaclass_max_elements_unbounded():
     ys_base = r"""module foo {
