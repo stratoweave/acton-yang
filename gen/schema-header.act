@@ -976,12 +976,23 @@ class DNodeInner(DNode):
                     child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, device=False, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
                     res.extend(child_class_src)
 
-            # TODO: unique safe name for RPC function!
+            # Ensure the rpc_root actor actions have unique safe names
+            sn_counts = {}
+            for rpc in self.rpcs:
+                sn = safe_name(rpc.name)
+                sn_counts[sn] = sn_counts.get_def(sn, 0) + 1
+
+            rpc_actions = {}
+            for rpc in self.rpcs:
+                sn = safe_name(rpc.name)
+                name = sn if sn_counts[sn] == 1 else safe_name("{rpc.prefix}_{rpc.name}")
+                rpc_actions[name] = rpc
+
             # Generate rpc_root actor
             res.append("actor rpc_root(tp: ygdata.TreeProvider):")
             if len(self.rpcs) == 0:
                 res.append("    pass")
-            for rpc in self.rpcs:
+            for name, rpc in rpc_actions.items():
                 input_node = rpc.input
                 output_node = rpc.output
 
@@ -1008,8 +1019,8 @@ class DNodeInner(DNode):
                     argnames = "cb"
 
                 # Emit a standalone signature alongside the action so the actor has total type information
-                res.append("    {safe_name(rpc.name)}: action({params}) -> None")
-                res.append("    def {safe_name(rpc.name)}({argnames}):")
+                res.append("    {name}: action({params}) -> None")
+                res.append("    def {name}({argnames}):")
 
                 # Generate callback wrapper for parsing RPC output XML -> gdata -> adata
                 if output_node is not None:
