@@ -31,44 +31,64 @@ foo_basey: Identityref = Identityref('basey', ns='http://example.com/foo', mod='
 bar_bary: Identityref = Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')
 
 
-SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l3', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_empty', config=True, mandatory=False, type_=DTypeEmpty(name='empty', description=None, reference=None, exts=[], builtin_type='empty', default=None)),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_empty_delete', config=True, mandatory=False, type_=DTypeEmpty(name='empty', description=None, reference=None, exts=[], builtin_type='empty', default=None)),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_decimal64', config=True, mandatory=False, type_=DTypeDecimal64(name='decimal64', description=None, reference=None, exts=[], builtin_type='decimal64', default=None, fraction_digits=2, ranges=Ranges([(Decimal(bigint("-9223372036854775808"), bigint("-2")), Decimal(bigint("9223372036854775807"), bigint("-2")))]))),
-    DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li', key=['name'], config=True, min_elements=0, ordered_by='user', children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='val', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c4', config=True, presence=False, children=[
-            DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l5', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
-        ])
-    ]),
-    DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll_uint64', config=True, min_elements=0, ordered_by='system', type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
-    DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll_str', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_identityref', config=True, mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities)),
-    DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll_identityref', config=True, min_elements=0, ordered_by='system', type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities)),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_identityref_noval', config=True, mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_fooy], identities=_identities)),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l4', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l2', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l_leafref', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('f', 'c1', []), yxpath.NodeTestStep('f', 'li', []), yxpath.NodeTestStep('f', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+SRC_DNODE_CHILD_1: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+
+SRC_DNODE_CHILD_2: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l3', config=True, mandatory=False, type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)])))
+
+SRC_DNODE_CHILD_3: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_empty', config=True, mandatory=False, type_=DTypeEmpty(name='empty', description=None, reference=None, exts=[], builtin_type='empty', default=None))
+
+SRC_DNODE_CHILD_4: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_empty_delete', config=True, mandatory=False, type_=DTypeEmpty(name='empty', description=None, reference=None, exts=[], builtin_type='empty', default=None))
+
+SRC_DNODE_CHILD_5: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_decimal64', config=True, mandatory=False, type_=DTypeDecimal64(name='decimal64', description=None, reference=None, exts=[], builtin_type='decimal64', default=None, fraction_digits=2, ranges=Ranges([(Decimal(bigint("-9223372036854775808"), bigint("-2")), Decimal(bigint("9223372036854775807"), bigint("-2")))])))
+
+SRC_DNODE_CHILD_6: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li', key=['name'], config=True, min_elements=0, ordered_by='user', children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='val', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c4', config=True, presence=False, children=[
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l5', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    ])
 ])
 
-SRC_DNODE_CHILD_1: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc1', config=True, presence=True, children=[
+SRC_DNODE_CHILD_7: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll_uint64', config=True, min_elements=0, ordered_by='system', type_=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)])))
+
+SRC_DNODE_CHILD_8: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll_str', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+
+SRC_DNODE_CHILD_9: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_identityref', config=True, mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities))
+
+SRC_DNODE_CHILD_10: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll_identityref', config=True, min_elements=0, ordered_by='system', type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities))
+
+SRC_DNODE_CHILD_11: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_identityref_noval', config=True, mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_fooy], identities=_identities))
+
+SRC_DNODE_CHILD_12: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_bits', config=True, mandatory=False, type_=DTypeBits(name='bits', description=None, reference=None, exts=[], builtin_type='bits', default=None, name_to_pos={'zebra':0, 'aardvark':1, 'medved':2}))
+
+SRC_DNODE_CHILD_13: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll_bits', config=True, min_elements=0, ordered_by='system', type_=DTypeBits(name='bits', description=None, reference=None, exts=[], builtin_type='bits', default=None, name_to_pos={'x':0, 'y':1}))
+
+SRC_DNODE_CHILD_14: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_union_bits', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeBits(name='bits', description=None, reference=None, exts=[], builtin_type='bits', default=None, name_to_pos={'red':0, 'green':1}), DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)]))]))
+
+SRC_DNODE_CHILD_15: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l4', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+
+SRC_DNODE_CHILD_16: DLeaf = DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+
+SRC_DNODE_CHILD_17: DLeaf = DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l2', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+
+SRC_DNODE_CHILD_18: DLeaf = DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l_leafref', config=True, mandatory=False, type_=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('f', 'c1', []), yxpath.NodeTestStep('f', 'li', []), yxpath.NodeTestStep('f', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2, SRC_DNODE_CHILD_3, SRC_DNODE_CHILD_4, SRC_DNODE_CHILD_5, SRC_DNODE_CHILD_6, SRC_DNODE_CHILD_7, SRC_DNODE_CHILD_8, SRC_DNODE_CHILD_9, SRC_DNODE_CHILD_10, SRC_DNODE_CHILD_11, SRC_DNODE_CHILD_12, SRC_DNODE_CHILD_13, SRC_DNODE_CHILD_14, SRC_DNODE_CHILD_15, SRC_DNODE_CHILD_16, SRC_DNODE_CHILD_17, SRC_DNODE_CHILD_18])
+
+SRC_DNODE_CHILD_19: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc1', config=True, presence=True, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, presence=False, children=[
         DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, min_elements=0, ordered_by='system', type_=DTypeBinary(name='binary', description=None, reference=None, exts=[], builtin_type='binary', default=None, length=None))
     ])
 ])
 
-SRC_DNODE_CHILD_2: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc2', config=True, presence=True, children=[
+SRC_DNODE_CHILD_20: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc2', config=True, presence=True, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_mandatory', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l_empty_mandatory', config=True, mandatory=True, type_=DTypeEmpty(name='empty', description=None, reference=None, exts=[], builtin_type='empty', default=None))
     ])
 ])
 
-SRC_DNODE_CHILD_3: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc3', config=True, presence=True, children=[
+SRC_DNODE_CHILD_21: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='pc3', config=True, presence=True, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='level1', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=True, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1-optional', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
@@ -83,32 +103,32 @@ SRC_DNODE_CHILD_3: DContainer = DContainer(module='foo', namespace='http://examp
     ])
 ])
 
-SRC_DNODE_CHILD_4: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='empty-presence', config=True, presence=True)
+SRC_DNODE_CHILD_22: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='empty-presence', config=True, presence=True)
 
-SRC_DNODE_CHILD_5: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c.dot', config=True, presence=False, children=[
+SRC_DNODE_CHILD_23: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c.dot', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l.dot1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l.dot2', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_6: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='cc', config=True, presence=False, children=[
+SRC_DNODE_CHILD_24: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='cc', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='cake', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DList(module='foo', namespace='http://example.com/foo', prefix='f', name='death', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='name', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_7: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='conflict', config=True, presence=False, children=[
+SRC_DNODE_CHILD_25: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='conflict', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='inner', config=True, presence=True),
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='inner', config=True, presence=True)
 ])
 
-SRC_DNODE_CHILD_8: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='special', key=['yes'], config=True, min_elements=0, ordered_by='system', children=[
+SRC_DNODE_CHILD_26: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='special', key=['yes'], config=True, min_elements=0, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='yes', config=True, mandatory=False, type_=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None))
 ])
 
-SRC_DNODE_CHILD_9: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='nested', config=True, presence=False, children=[
+SRC_DNODE_CHILD_27: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='nested', config=True, presence=False, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='inner', config=True, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li1', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
@@ -130,7 +150,7 @@ SRC_DNODE_CHILD_9: DContainer = DContainer(module='foo', namespace='http://examp
     ])
 ])
 
-SRC_DNODE_CHILD_10: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union', key=[
+SRC_DNODE_CHILD_28: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union', key=[
 'k1',
 'k2',
 'k3'
@@ -141,28 +161,28 @@ SRC_DNODE_CHILD_10: DList = DList(module='foo', namespace='http://example.com/fo
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='checker', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint32', description=None, reference=None, exts=[], builtin_type='uint32', default=None, ranges=Ranges([(1514, 1514)])), DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(47, 47)])), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
 ])
 
-SRC_DNODE_CHILD_11: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union-one-base', key=['k1'], config=True, min_elements=0, ordered_by='system', children=[
+SRC_DNODE_CHILD_29: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-union-one-base', key=['k1'], config=True, min_elements=0, ordered_by='system', children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='k1', config=True, mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'foo':0}), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
 ])
 
-SRC_DNODE_CHILD_12: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
+SRC_DNODE_CHILD_30: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=False, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l2', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_13: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+SRC_DNODE_CHILD_31: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 
-SRC_DNODE_CHILD_14: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
+SRC_DNODE_CHILD_32: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_15: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
+SRC_DNODE_CHILD_33: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
     DLeafList(module='bar', namespace='http://example.com/bar', prefix='bar', name='idref', config=True, min_elements=0, ordered_by='system', type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities))
 ])
 
-SRC_DNODE_CHILD_16: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
+SRC_DNODE_CHILD_34: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='foo', config=True, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
@@ -177,7 +197,7 @@ SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='bar', namespace='http://exam
     ])
 
 SRC_DNODE: DRoot = DRoot(
-    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2, SRC_DNODE_CHILD_3, SRC_DNODE_CHILD_4, SRC_DNODE_CHILD_5, SRC_DNODE_CHILD_6, SRC_DNODE_CHILD_7, SRC_DNODE_CHILD_8, SRC_DNODE_CHILD_9, SRC_DNODE_CHILD_10, SRC_DNODE_CHILD_11, SRC_DNODE_CHILD_12, SRC_DNODE_CHILD_13, SRC_DNODE_CHILD_14, SRC_DNODE_CHILD_15, SRC_DNODE_CHILD_16],
+    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_19, SRC_DNODE_CHILD_20, SRC_DNODE_CHILD_21, SRC_DNODE_CHILD_22, SRC_DNODE_CHILD_23, SRC_DNODE_CHILD_24, SRC_DNODE_CHILD_25, SRC_DNODE_CHILD_26, SRC_DNODE_CHILD_27, SRC_DNODE_CHILD_28, SRC_DNODE_CHILD_29, SRC_DNODE_CHILD_30, SRC_DNODE_CHILD_31, SRC_DNODE_CHILD_32, SRC_DNODE_CHILD_33, SRC_DNODE_CHILD_34],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
@@ -252,6 +272,34 @@ SRC_YANG_0: str = r"""module foo {
             // There are no identities derived from base fooy, this leaf has no valid value!
             type identityref {
                 base fooy;
+            }
+        }
+        leaf l_bits {
+            // positions contradict both alphabetical and declaration order to
+            // prove canonical (position-ordered) serialization
+            type bits {
+                bit aardvark {
+                    position 1;
+                }
+                bit zebra {
+                    position 0;
+                }
+                bit medved;
+            }
+        }
+        leaf-list ll_bits {
+            type bits {
+                bit x;
+                bit y;
+            }
+        }
+        leaf l_union_bits {
+            type union {
+                type bits {
+                    bit red;
+                    bit green;
+                }
+                type uint8;
             }
         }
     }
@@ -636,12 +684,15 @@ class foo__c1(yadata.MNode):
     l_identityref: ?Identityref
     ll_identityref: list[Identityref]
     l_identityref_noval: ?Identityref
+    l_bits: ?set[str]
+    ll_bits: list[set[str]]
+    l_union_bits: ?value
     l4: ?str
     bar_l1: ?str
     l2: ?str
     l_leafref: ?str
 
-    mut def __init__(self, f_l1: ?str, l3: ?u64, l_empty: ?bool, l_empty_delete: ?bool, l_decimal64: ?Decimal, li: list[foo__c1__li_entry]=[], ll_uint64: ?list[u64]=None, ll_str: ?list[str]=None, l_identityref: ?Identityref, ll_identityref: ?list[Identityref]=None, l_identityref_noval: ?Identityref, l4: ?str, bar_l1: ?str, l2: ?str, l_leafref: ?str) -> None:
+    mut def __init__(self, f_l1: ?str, l3: ?u64, l_empty: ?bool, l_empty_delete: ?bool, l_decimal64: ?Decimal, li: list[foo__c1__li_entry]=[], ll_uint64: ?list[u64]=None, ll_str: ?list[str]=None, l_identityref: ?Identityref, ll_identityref: ?list[Identityref]=None, l_identityref_noval: ?Identityref, l_bits: ?set[str], ll_bits: ?list[set[str]]=None, l_union_bits: ?value, l4: ?str, bar_l1: ?str, l2: ?str, l_leafref: ?str) -> None:
         self.f_l1 = f_l1
         self.l3 = l3
         self.l_empty = l_empty
@@ -653,6 +704,9 @@ class foo__c1(yadata.MNode):
         self.l_identityref = l_identityref
         self.ll_identityref = ll_identityref if ll_identityref is not None else []
         self.l_identityref_noval = l_identityref_noval
+        self.l_bits = l_bits
+        self.ll_bits = ll_bits if ll_bits is not None else []
+        self.l_union_bits = l_union_bits
         self.l4 = l4
         self.bar_l1 = bar_l1
         self.l2 = l2
@@ -664,7 +718,7 @@ class foo__c1(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__c1:
         if n is not None:
-            return foo__c1(f_l1=n.get_opt_str(ygdata.Id(NS_foo, 'l1')), l3=n.get_opt_u64(ygdata.Id(NS_foo, 'l3')), l_empty=n.get_opt_empty(ygdata.Id(NS_foo, 'l_empty')), l_empty_delete=n.get_opt_empty(ygdata.Id(NS_foo, 'l_empty_delete')), l_decimal64=n.get_opt_Decimal(ygdata.Id(NS_foo, 'l_decimal64')), li=foo__c1__li.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li'))), ll_uint64=n.get_opt_u64s(ygdata.Id(NS_foo, 'll_uint64')), ll_str=n.get_opt_strs(ygdata.Id(NS_foo, 'll_str')), l_identityref=n.get_opt_Identityref(ygdata.Id(NS_foo, 'l_identityref')), ll_identityref=n.get_opt_Identityrefs(ygdata.Id(NS_foo, 'll_identityref')), l_identityref_noval=n.get_opt_Identityref(ygdata.Id(NS_foo, 'l_identityref_noval')), l4=n.get_opt_str(ygdata.Id(NS_foo, 'l4')), bar_l1=n.get_opt_str(ygdata.Id(NS_bar, 'l1')), l2=n.get_opt_str(ygdata.Id(NS_bar, 'l2')), l_leafref=n.get_opt_str(ygdata.Id(NS_bar, 'l_leafref')))
+            return foo__c1(f_l1=n.get_opt_str(ygdata.Id(NS_foo, 'l1')), l3=n.get_opt_u64(ygdata.Id(NS_foo, 'l3')), l_empty=n.get_opt_empty(ygdata.Id(NS_foo, 'l_empty')), l_empty_delete=n.get_opt_empty(ygdata.Id(NS_foo, 'l_empty_delete')), l_decimal64=n.get_opt_Decimal(ygdata.Id(NS_foo, 'l_decimal64')), li=foo__c1__li.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li'))), ll_uint64=n.get_opt_u64s(ygdata.Id(NS_foo, 'll_uint64')), ll_str=n.get_opt_strs(ygdata.Id(NS_foo, 'll_str')), l_identityref=n.get_opt_Identityref(ygdata.Id(NS_foo, 'l_identityref')), ll_identityref=n.get_opt_Identityrefs(ygdata.Id(NS_foo, 'll_identityref')), l_identityref_noval=n.get_opt_Identityref(ygdata.Id(NS_foo, 'l_identityref_noval')), l_bits=n.get_opt_bits(ygdata.Id(NS_foo, 'l_bits')), ll_bits=n.get_opt_bitss(ygdata.Id(NS_foo, 'll_bits')), l_union_bits=n.get_opt_value(ygdata.Id(NS_foo, 'l_union_bits')), l4=n.get_opt_str(ygdata.Id(NS_foo, 'l4')), bar_l1=n.get_opt_str(ygdata.Id(NS_bar, 'l1')), l2=n.get_opt_str(ygdata.Id(NS_bar, 'l2')), l_leafref=n.get_opt_str(ygdata.Id(NS_bar, 'l_leafref')))
         return foo__c1()
 
     mut def copy(self) -> foo__c1:
@@ -1743,7 +1797,23 @@ mut def src_schema() -> dict[str, SchemaNode]:
         LeafList('ll_str', type_=Type('string')),
         Leaf('l_identityref', type_=Type('identityref', base=['basey'])),
         LeafList('ll_identityref', type_=Type('identityref', base=['basey'])),
-        Leaf('l_identityref_noval', type_=Type('identityref', base=['fooy']))
+        Leaf('l_identityref_noval', type_=Type('identityref', base=['fooy'])),
+        Leaf('l_bits', type_=Type('bits', bit=[
+        Bit('aardvark', position=1),
+        Bit('zebra', position=0),
+        Bit('medved')
+    ])),
+        LeafList('ll_bits', type_=Type('bits', bit=[
+        Bit('x'),
+        Bit('y')
+    ])),
+        Leaf('l_union_bits', type_=Type('union', type_=[
+        Type('bits', bit=[
+                Bit('red'),
+                Bit('green')
+            ]),
+        Type('uint8')
+    ]))
     ]),
     Container('pc1', presence='p', children=[
         Container('foo', children=[

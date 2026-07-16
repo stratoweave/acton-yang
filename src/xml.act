@@ -240,13 +240,10 @@ def try_parse_xml_value(text_value: ?str, schema_node: yschema.DNodeLeaf, schema
         elif isinstance(schema_type, yschema.DTypeInstanceIdentifier):
             val = text_value
         elif isinstance(schema_type, yschema.DTypeBits):
-            bits_val = set(None)
-            for bit in text_value.split(" "):
-                if bit in schema_type.name_to_pos:
-                    bits_val.add(bit)
-                else:
-                    raise YangValidationError(path, schema_type, text_value)
-            val = bits_val
+            try:
+                val = schema_type.canonical_bits(text_value.split(" "))
+            except ValueError:
+                raise YangValidationError(path, schema_type, text_value)
 
         if val is not None and schema_type.validate_value(val):
             return (t=type_name, val=val)

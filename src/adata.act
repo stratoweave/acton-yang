@@ -84,6 +84,15 @@ def try_validate_mnode_value(val: value, schema_type: yschema.DType, path: list[
         intval = coerce_integer_value(val, schema_type, path)
         if intval is not None and schema_type.validate_value(intval):
             return (t=schema_type.builtin_type, val=intval)
+    elif isinstance(schema_type, yschema.DTypeBits):
+        if isinstance(val, set):
+            # TODO(acton#2969): drop the set[str] annotation once
+            # value-narrowing unboxes set elements.
+            sv: set[str] = val
+            try:
+                return (t=schema_type.builtin_type, val=schema_type.canonical_bits(list(sv)))
+            except ValueError:
+                return None
     else:
         if schema_type.validate_value(val):
             return (t=schema_type.builtin_type, val=val)

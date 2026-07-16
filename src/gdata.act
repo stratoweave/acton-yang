@@ -277,6 +277,21 @@ def _nsq(node_ns, v: ?value=None):
     return r
 
 
+def as_bits(v: ?value) -> ?list[str]:
+    if isinstance(v, list):
+        # TODO(acton#2969): drop the list[str] annotation once value-narrowing
+        # unboxes list elements.
+        lv: list[str] = v
+        return lv
+
+
+def adata_val(v: value) -> value:
+    bits = as_bits(v)
+    if bits is not None:
+        return set(bits)
+    return v
+
+
 def yang_str(v) -> str:
     if isinstance(v, bytes):
         s = base64.encode(v).decode()
@@ -284,6 +299,9 @@ def yang_str(v) -> str:
     if isinstance(v, Identityref):
         s = "{v.mod}:{v.val}"
         return s
+    bits = as_bits(v)
+    if bits is not None:
+        return " ".join(bits)
     s = str(v)
     if isinstance(v, bool):
         s = s.lower()
@@ -310,6 +328,9 @@ def json_val(v: value) -> ?value:
         return "{v.mod}:{v.val}"
     if isinstance(v, Decimal):
         return str(v)
+    bits = as_bits(v)
+    if bits is not None:
+        return " ".join(bits)
     return v
 
 
@@ -326,12 +347,6 @@ def repr_gdata(v) -> str:
     elif isinstance(v, list):
         return "[" + ", ".join([repr_gdata(e) for e in v]) + "]"
     return repr(v)
-
-
-def repr_adata(v) -> str:
-    if isinstance(v, Present):
-        return "True"
-    return repr_gdata(v)
 
 
 class Id:
@@ -416,6 +431,9 @@ def value_to_json(v: value) -> dict[str, ?value]:
         return {"type": "float", "value": v}
     if isinstance(v, str):
         return {"type": "str", "value": v}
+    bits = as_bits(v)
+    if bits is not None:
+        return {"type": "bits", "value": bits}
     raise ValueError("Unsupported gdata value in serialization: {type(v)}")
 
 
@@ -464,6 +482,16 @@ def value_from_json(data: value) -> value:
                 raw = data.get("value")
                 if isinstance(raw, str):
                     return raw
+            if value_type == "bits":
+                raw = data.get("value")
+                if isinstance(raw, list):
+                    names = []
+                    for item in raw:
+                        if isinstance(item, str):
+                            names.append(item)
+                        else:
+                            raise ValueError("Invalid gdata value encoding: {data}")
+                    return names
     raise ValueError("Invalid gdata value encoding: {data}")
 
 
@@ -1169,19 +1197,18 @@ class Node(value):
             return []
 
     def get_value(self, name) -> value:
-        child = self.get_leaf(name)
-        return child.val
+        return adata_val(self.get_leaf(name).val)
 
     def get_opt_value(self, name) -> ?value:
         child = self.get_opt_leaf(name)
         if child is not None:
-            return child.val
+            return adata_val(child.val)
 
     def get_values(self, name) -> list[value]:
         if isinstance(self, Container):
             for nm,child in self.children.items():
                 if isinstance(child, LeafList) and nm == name:
-                    return [e.val for e in child.entries]
+                    return [adata_val(e.val) for e in child.entries]
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_values(self, name) -> list[value]:
@@ -1219,6 +1246,35 @@ class Node(value):
     def get_opt_Identityrefs(self, name) -> list[Identityref]:
         try:
             return self.get_Identityrefs(name)
+        except ValueError:
+            return []
+
+    def get_bits(self, name) -> set[str]:
+        bits = as_bits(self.get_leaf(name).val)
+        if bits is not None:
+            return set(bits)
+        raise ValueError("Leaf {name} value is not type bits")
+
+    def get_opt_bits(self, name) -> ?set[str]:
+        bits = as_bits(self.get_opt_leaf(name)?.val)
+        if bits is not None:
+            return set(bits)
+
+    def get_bitss(self, name) -> list[set[str]]:
+        if isinstance(self, Container):
+            for nm,child in self.children.items():
+                if isinstance(child, LeafList) and nm == name:
+                    cvals: list[set[str]] = []
+                    for entry in child.entries:
+                        bits = as_bits(entry.val)
+                        if bits is not None:
+                            cvals.append(set(bits))
+                    return cvals
+        raise ValueError("Cannot find leaf-list child with name {name}")
+
+    def get_opt_bitss(self, name) -> list[set[str]]:
+        try:
+            return self.get_bitss(name)
         except ValueError:
             return []
 
@@ -1949,16 +2005,10 @@ def vals_equal(a: value, b: value) -> bool:
         return a == b
     if isinstance(a, Present) and isinstance(b, Present):
         return True
-    if isinstance(a, set) and isinstance(b, set):
-        # YANG bits values are decoded into a set of bit names. Assign to a
-        # correctly-typed local so set operations use the str element witness:
-        # isinstance-narrowing a `value` back to a parameterized type otherwise
-        # picks an arbitrary element type (actonlang/acton#2969).
-        # TODO(acton#2969): drop the set[str] annotation once value-narrowing
-        # unboxes set elements, leaving `return a == b`.
-        sa: set[str] = a
-        sb: set[str] = b
-        return sa == sb
+    la = as_bits(a)
+    lb = as_bits(b)
+    if la is not None and lb is not None:
+        return la == lb
     if type(a) != type(b):
         # It is valid to compare values of different type, which happens if
         # leaves are of type union and value a and b happen to be of different
@@ -1986,17 +2036,10 @@ def vals_less_than(a: value, b: value) -> bool:
         return a < b
     if isinstance(a, Present) and isinstance(b, Present):
         return False
-    if isinstance(a, set) and isinstance(b, set):
-        # YANG bits values are decoded into a set of bit names. Assign to a
-        # correctly-typed local (actonlang/acton#2969) so iteration unboxes the
-        # bit names, then order lexicographically by the sorted names. Equal sets
-        # have equal sorted lists, so they are never less-than each other
-        # (consistent with vals_equal).
-        # TODO(acton#2969): drop the set[str] annotation once value-narrowing
-        # unboxes set elements, leaving `return sorted(list(a)) < sorted(list(b))`.
-        sa: set[str] = a
-        sb: set[str] = b
-        return sorted(list(sa)) < sorted(list(sb))
+    la = as_bits(a)
+    lb = as_bits(b)
+    if la is not None and lb is not None:
+        return la < lb
     raise ValueError("Unsupported value type or mismatch in lt comparison: {type(a)}, {type(b)}")
 
 
@@ -5703,6 +5746,9 @@ def _test_serialization_roundtrip_special_types():
         Id(ns_special, "empty"): Leaf(Present()),
         Id(ns_special, "counter"): Leaf(u64(18446744073709551615)),
         Id(ns_special, "fraction"): Leaf(Decimal(314, -2)),
+        # YANG bits: canonical position-ordered list of bit names (position
+        # order deliberately contradicts name order)
+        Id(ns_special, "flags"): Leaf(["zulu", "alpha", "mike"]),
     }, ns=ns_special, module="special")
 
     return _serde_roundtrip_json(original)

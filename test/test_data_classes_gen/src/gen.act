@@ -167,6 +167,34 @@ ys_foo = r"""module foo {
                 base fooy;
             }
         }
+        leaf l_bits {
+            // positions contradict both alphabetical and declaration order to
+            // prove canonical (position-ordered) serialization
+            type bits {
+                bit aardvark {
+                    position 1;
+                }
+                bit zebra {
+                    position 0;
+                }
+                bit medved;
+            }
+        }
+        leaf-list ll_bits {
+            type bits {
+                bit x;
+                bit y;
+            }
+        }
+        leaf l_union_bits {
+            type union {
+                type bits {
+                    bit red;
+                    bit green;
+                }
+                type uint8;
+            }
+        }
     }
     container pc1 {
         presence "p";
@@ -510,6 +538,14 @@ ys_basics = r"""module basics {
                 base id1;
             }
             default id2;
+        }
+        leaf l_bits_def {
+            type bits {
+                bit a;
+                bit b;
+                bit c;
+            }
+            default "c a";
         }
     }
 }"""

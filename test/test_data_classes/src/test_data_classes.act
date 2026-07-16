@@ -582,6 +582,7 @@ def basics_leaf_defaults(r):
     testing.assertEqual(r.c.l_str_def_quoted, '"foo"')
     testing.assertEqual(r.c.l_binary_def, "Hello Acton 🫡".encode())
     testing.assertEqual(r.c.l_identityref_def, yang_basics.basics_id2)
+    testing.assertEqual(r.c.l_bits_def, set(["a", "c"]))
 
     # union types
     uds = r.c.l_union_def_str
@@ -642,6 +643,42 @@ def _test_union_default_other_type():
     c.l_union_def_int = "foo"
     c.l_union_def_float = "foo"
     c.l_union_def_enumeration = 42
+
+def _test_bits_from_xml():
+    # Bit name order in the input does not matter; adata exposes bits as a set
+    # of names and serialized output is the RFC 7950 canonical form ordered by
+    # bit position (zebra=0, aardvark=1, medved=2).
+    xml_text = """<data><c1 xmlns="http://example.com/foo"><l_bits>medved aardvark zebra</l_bits><ll_bits>y x</ll_bits><ll_bits>x</ll_bits></c1></data>"""
+    gd = yxml.from_xml(yang_foo.SRC_DNODE, xml.decode(xml_text))
+    r = yang_foo_root.from_gdata(gd)
+    l_bits = r.c1.l_bits
+    if l_bits is not None:
+        testing.assertEqual(l_bits, set(["aardvark", "medved", "zebra"]))
+    else:
+        raise ValueError("Expected l_bits to be set")
+    testing.assertEqual(r.c1.ll_bits, [set(["x", "y"]), set(["x"])])
+    xml_out = r.to_gdata().to_xmlstr()
+    testing.assertTrue("<l_bits>zebra aardvark medved</l_bits>" in xml_out, "bits must serialize in canonical position order, got: {xml_out}")
+    testing.assertTrue("<ll_bits>x y</ll_bits>" in xml_out, "bits leaf-list entries must serialize in canonical position order, got: {xml_out}")
+    return xml_out
+
+def _test_union_bits_roundtrip():
+    # A union with a bits member: adata presents bits as set[str] even in the
+    # value-typed union field (from_gdata converts the canonical gdata list),
+    # and to_gdata canonicalizes the set back to position order.
+    xml_text = """<data><c1 xmlns="http://example.com/foo"><l_union_bits>green red</l_union_bits></c1></data>"""
+    gd = yxml.from_xml(yang_foo.SRC_DNODE, xml.decode(xml_text))
+    r = yang_foo_root.from_gdata(gd)
+    v = r.c1.l_union_bits
+    if isinstance(v, set):
+        # TODO(acton#2969): drop the set[str] annotation once value-narrowing
+        # unboxes set elements.
+        sv: set[str] = v
+        testing.assertEqual(sv, set(["red", "green"]))
+    else:
+        raise ValueError("Expected l_union_bits to hold a set of bit names")
+    xml_out = r.to_gdata().to_xmlstr()
+    testing.assertTrue("<l_union_bits>red green</l_union_bits>" in xml_out, "union bits must round-trip in canonical position order, got: {xml_out}")
 
 def _test_empty_presence():
     xml_text = """<data><empty-presence xmlns="http://example.com/foo"/></data>"""

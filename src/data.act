@@ -10,7 +10,6 @@ import lib as yang
 import gdata as ygdata
 import schema as yschema
 from identityref import Identityref, PartialIdentityref
-from gdata import repr_adata
 from type import Decimal, Ranges
 from type import SIGNED_INT_TYPES, UNSIGNED_INT_TYPES
 
@@ -348,6 +347,14 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
         raise ValueError("Unknown schema node type at {format_schema_path(spath)}: {type(s)}")
 
 
+def repr_adata(v: value) -> str:
+    if ygdata.as_bits(v) is not None:
+        return "set({ygdata.repr_gdata(v)})"
+    if isinstance(v, ygdata.Present):
+        return "True"
+    return ygdata.repr_gdata(v)
+
+
 def pradata(root: yschema.DRoot, node: ygdata.Node, self_name: str="ad", loose: bool=False, root_path: list[str]=[]):
     return _pradata_recursive(root, node, self_name, loose, top=True, root_path=root_path, spath=[PathElement(root)], path_var_names={}, reserved_names=set([self_name]), create_consumed_leaves=set())
 
@@ -428,7 +435,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                 # come first in the correct order.
                 if not yschema.is_optional_arg_yang_leaf(cchild, yschema.list_keys(container), loose):
                     leaf = node.get_leaf(fqname(cchild))
-                    non_optional_args.append("{repr_adata(leaf.val)}")
+                    non_optional_args.append(repr_adata(leaf.val))
             elif isinstance(cchild, yschema.DContainer):
                 if not (cchild.presence or loose or yschema.optional_subtree(cchild)):
                     cchild_safe_name = unique_namer.unique_safe_name(cchild.name, cchild.prefix)
@@ -523,8 +530,8 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
             leaflist = node.get_opt_leaflist(fqname(child))
             if leaflist is not None:
                 # DLeafList values are copied verbatim
-                vals = [e.val for e in leaflist.entries if isinstance(e, ygdata.LeafListEntryMerge)]
-                leaves.append("{self_name}.{usname(child)} = {repr_adata(vals)}")
+                vals = [repr_adata(e.val) for e in leaflist.entries if isinstance(e, ygdata.LeafListEntryMerge)]
+                leaves.append("{self_name}.{usname(child)} = [{", ".join(vals)}]")
         elif isinstance(child, yschema.DContainer):
             container = node.get_opt_cnt(fqname(child))
             if container is not None:

@@ -39,7 +39,8 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='basics', namespace='http://ex
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_bool', config=True, default='false', mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_enumeration', config=True, default='unlimited', mandatory=False, type_=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'unlimited':0}), DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)]))])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_binary_def', config=True, default='SGVsbG8gQWN0b24g8J+roQ==', mandatory=False, type_=DTypeBinary(name='binary', description=None, reference=None, exts=[], builtin_type='binary', default=None, length=None)),
-    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_identityref_def', config=True, default='b:id2', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_basics_id1], identities=_identities))
+    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_identityref_def', config=True, default='b:id2', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_basics_id1], identities=_identities)),
+    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_bits_def', config=True, default='c a', mandatory=False, type_=DTypeBits(name='bits', description=None, reference=None, exts=[], builtin_type='bits', default=None, name_to_pos={'a':0, 'b':1, 'c':2}))
 ])
 
 SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='basics', namespace='http://example.com/basics', prefix='b', name='id1')
@@ -131,6 +132,14 @@ SRC_YANG_0: str = r"""module basics {
             }
             default id2;
         }
+        leaf l_bits_def {
+            type bits {
+                bit a;
+                bit b;
+                bit c;
+            }
+            default "c a";
+        }
     }
 }"""
 
@@ -156,8 +165,9 @@ class basics__c(yadata.MNode):
     l_union_def_enumeration: value
     l_binary_def: bytes
     l_identityref_def: Identityref
+    l_bits_def: set[str]
 
-    mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?value=None, l_union_def_int: ?value=None, l_union_def_float: ?value=None, l_union_def_bool: ?value=None, l_union_def_enumeration: ?value=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None) -> None:
+    mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?value=None, l_union_def_int: ?value=None, l_union_def_float: ?value=None, l_union_def_bool: ?value=None, l_union_def_enumeration: ?value=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None, l_bits_def: ?set[str]=None) -> None:
         self.l_str_def = l_str_def if l_str_def is not None else "foo"
         self.l_str_def_quoted = l_str_def_quoted if l_str_def_quoted is not None else "\"foo\""
         self.l_uint64_def = l_uint64_def if l_uint64_def is not None else u64(1234567890)
@@ -169,6 +179,7 @@ class basics__c(yadata.MNode):
         self.l_union_def_enumeration = l_union_def_enumeration if l_union_def_enumeration is not None else "unlimited"
         self.l_binary_def = l_binary_def if l_binary_def is not None else base64.decode('SGVsbG8gQWN0b24g8J+roQ=='.encode())
         self.l_identityref_def = l_identityref_def if l_identityref_def is not None else basics_id2
+        self.l_bits_def = l_bits_def if l_bits_def is not None else {'a', 'c'}
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['basics:c'])
@@ -176,7 +187,7 @@ class basics__c(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> basics__c:
         if n is not None:
-            return basics__c(l_str_def=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(ygdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(ygdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_enumeration=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(ygdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_basics, 'l_identityref_def')))
+            return basics__c(l_str_def=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(ygdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(ygdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_enumeration=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(ygdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_basics, 'l_identityref_def')), l_bits_def=n.get_opt_bits(ygdata.Id(NS_basics, 'l_bits_def')))
         return basics__c()
 
     mut def copy(self) -> basics__c:
@@ -241,7 +252,12 @@ mut def src_schema() -> dict[str, SchemaNode]:
         Type('uint16')
     ]), default='unlimited'),
         Leaf('l_binary_def', type_=Type('binary'), default='SGVsbG8gQWN0b24g8J+roQ=='),
-        Leaf('l_identityref_def', type_=Type('identityref', base=['id1']), default='id2')
+        Leaf('l_identityref_def', type_=Type('identityref', base=['id1']), default='id2'),
+        Leaf('l_bits_def', type_=Type('bits', bit=[
+        Bit('a'),
+        Bit('b'),
+        Bit('c')
+    ]), default='c a')
     ])
 ])
     return res
