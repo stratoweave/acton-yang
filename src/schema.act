@@ -3634,6 +3634,31 @@ class SchemaNode(object):
                 raise ValueError("Recursion limit reached")
         raise ValueError("Unable to find identity '{name}' in module '{self.get_module_name()}'")
 
+    def qualify_identityref_default(self, type_: Type, resolved_type: Type, default: str, context: Context) -> str:
+        """Normalize an identityref default to the origin module's prefix
+
+        Like identity bases, an identityref default gets appended the prefix of
+        the module where it is defined. Defaults of other types are unchanged.
+        """
+        def is_identityref_type(t: Type) -> bool:
+            """Check whether a resolved type bottoms out in the identityref builtin type"""
+            if t.name == "identityref":
+                return True
+            if isinstance(t, ResolvedType):
+                base_typedef = t.resolved_base_typedef
+                if base_typedef is not None:
+                    return is_identityref_type(base_typedef.type_)
+            return False
+
+        # Skip if we have already resolved this (=already normalized)
+        if isinstance(type_, ResolvedType) or not is_identityref_type(resolved_type):
+            return default
+        try:
+            identity = self.get_identity(default, context)
+        except ValueError as ex:
+            raise ValueError("Failed to resolve identityref default '{default}' of {self} in module '{self.get_module_name()}': {ex.error_message}")
+        return "{identity.pfx}:{identity.name}"
+
     def to_statement(self) -> Statement:
         """Convert this schema node to a Statement
         """
@@ -7025,9 +7050,13 @@ class Leaf(SchemaNodeOuter):
     def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
         resolved_type = self.type_.resolve_type(context, new_mod, new_ns, new_pfx)
 
+        new_default = self.default
+        if new_default is not None:
+            new_default = self.qualify_identityref_default(self.type_, resolved_type, new_default, context)
+
         new = Leaf(self.name,
                    config=self.config,
-                   default=self.default,
+                   default=new_default,
                    description=self.description,
                    if_feature=self.if_feature,
                    mandatory=self.mandatory,
@@ -7250,9 +7279,11 @@ class LeafList(SchemaNodeOuter):
     def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
         resolved_type = self.type_.resolve_type(context, new_mod, new_ns, new_pfx)
 
+        new_default = [self.qualify_identityref_default(self.type_, resolved_type, d, context) for d in self.default]
+
         new = LeafList(self.name,
                        config=self.config,
-                       default=self.default,
+                       default=new_default,
                        description=self.description,
                        if_feature=self.if_feature,
                        max_elements=self.max_elements,
@@ -9648,8 +9679,12 @@ class Typedef(SchemaNodeOuter):
 
         resolved_base_type = self.type_.resolve_type(context, new_mod, new_ns, new_pfx)
 
+        new_default = self.default
+        if new_default is not None:
+            new_default = self.qualify_identityref_default(self.type_, resolved_base_type, new_default, context)
+
         new = Typedef(self.name,
-                      default=self.default,
+                      default=new_default,
                       description=self.description,
                       reference=self.reference,
                       status=self.status,

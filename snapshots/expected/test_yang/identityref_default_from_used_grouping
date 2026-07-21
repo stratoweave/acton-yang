@@ -29,8 +29,7 @@ base_id2: Identityref = Identityref('id2', ns='http://example.com/base', mod='ba
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c', config=True, presence=False, children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='threshold', config=True, default='50', mandatory=False, type_=DTypeIntegerUnsigned(name='base:percent', description=None, reference=None, exts=[], builtin_type='uint8', default='50', ranges=Ranges([(0, 255)])), units='percent'),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='kind', config=True, default='base:id2', mandatory=False, type_=DTypeIdentityref(name='base:id-type', description=None, reference=None, exts=[], builtin_type='identityref', default='base:id2', identity_bases=[_base_base_id1], identities=_identities))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l', config=True, default='base:id2', mandatory=False, type_=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_base_id1], identities=_identities))
 ])
 
 SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='id1')
@@ -52,12 +51,10 @@ NS_foo: str = 'http://example.com/foo'
 
 _breaker1: None = None
 class foo__c(yadata.MNode):
-    threshold: u64
-    kind: Identityref
+    l: Identityref
 
-    mut def __init__(self, threshold: ?u64=None, kind: ?Identityref=None) -> None:
-        self.threshold = threshold if threshold is not None else u64(50)
-        self.kind = kind if kind is not None else base_id2
+    mut def __init__(self, l: ?Identityref=None) -> None:
+        self.l = l if l is not None else base_id2
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c'])
@@ -65,7 +62,7 @@ class foo__c(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__c:
         if n is not None:
-            return foo__c(threshold=n.get_opt_u64(ygdata.Id(NS_foo, 'threshold')), kind=n.get_opt_Identityref(ygdata.Id(NS_foo, 'kind')))
+            return foo__c(l=n.get_opt_Identityref(ygdata.Id(NS_foo, 'l')))
         return foo__c()
 
     mut def copy(self) -> foo__c:
