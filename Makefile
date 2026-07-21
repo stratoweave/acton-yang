@@ -30,7 +30,7 @@ ayangc: src/schema.act
 
 .PHONY: test-device-mode-gen
 test-device-mode-gen: ayangc
-	cd test/test_device_mode && ../../out/bin/ayangc compile --infile yang -s adata -m device -o src/m.act
+	cd test/test_device_mode && ../../out/bin/ayangc compile --infile yang -s adata -m device --loose -o src/m.act
 
 .PHONY: test-device-mode
 test-device-mode: test-device-mode-gen
