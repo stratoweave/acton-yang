@@ -95,14 +95,14 @@ _breaker4: None = None
 class m__cfg(yadata.MNode):
     name: ?str
     enabled: ?bool
-    proto: Identityref
+    proto: ?Identityref
     sub: m__cfg__sub
     items: m__cfg__items
 
-    mut def __init__(self, name: ?str, enabled: ?bool, proto: ?Identityref=None, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
+    mut def __init__(self, name: ?str, enabled: ?bool, proto: ?Identityref, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
         self.name = name
         self.enabled = enabled
-        self.proto = proto if proto is not None else m_https
+        self.proto = proto
         self.sub = sub if sub is not None else m__cfg__sub()
         self.items = m__cfg__items(elements=items)
 
