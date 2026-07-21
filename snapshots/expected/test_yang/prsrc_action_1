@@ -1,6 +1,9 @@
-Action('action1', description='action 1', input=Input(children=[
-    Leaf('rli1', type_=Type('string'), description='action input leaf 1')
-]), output=Output(children=[
-    Leaf('rlo1', type_=Type('string'), description='action output leaf 1'),
-    Leaf('rlo2', type_=Type('string'), description='action output leaf 2')
-]))
+Action('action1', description='action 1', children=[
+    Input(children=[
+        Leaf('rli1', type_=Type('string'), description='action input leaf 1')
+    ]),
+    Output(children=[
+        Leaf('rlo1', type_=Type('string'), description='action output leaf 1'),
+        Leaf('rlo2', type_=Type('string'), description='action output leaf 2')
+    ])
+])

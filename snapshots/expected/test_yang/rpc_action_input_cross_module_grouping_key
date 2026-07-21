@@ -1,0 +1,198 @@
+import base64
+import json
+import std.xml as xml
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='svc', namespace='urn:example:svc', prefix='svc', name='mgmt', config=True, presence=False)
+
+SRC_DNODE_RPC_0: DRpc = DRpc(module='svc', namespace='urn:example:svc', prefix='svc', name='register', input=DInput(module='svc', namespace='urn:example:svc', prefix='svc', children=[
+    DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', children=[
+        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, mandatory=False, type_=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+    ])
+]), children=[
+    DInput(module='svc', namespace='urn:example:svc', prefix='svc', children=[
+        DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', children=[
+            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, mandatory=False, type_=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, mandatory=False, type_=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+        ])
+    ])
+])
+
+SRC_DNODE: DRoot = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[],
+    rpcs=[SRC_DNODE_RPC_0],
+    module_metadata={'urn:example:keygrp':('keygrp', None), 'urn:example:svc':('svc', None)},
+)
+
+NS_keygrp: str = 'urn:example:keygrp'
+NS_svc: str = 'urn:example:svc'
+
+
+_breaker1: None = None
+class svc__mgmt(yadata.MNode):
+
+    mut def __init__(self) -> None:
+        pass
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:mgmt'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> svc__mgmt:
+        if n is not None:
+            return svc__mgmt()
+        return svc__mgmt()
+
+    mut def copy(self) -> svc__mgmt:
+        """Create a deep copy of this adata object"""
+        return svc__mgmt.from_gdata(self.to_gdata())
+
+
+_breaker2: None = None
+class root(yadata.MNode):
+    mgmt: svc__mgmt
+
+    mut def __init__(self, mgmt: ?svc__mgmt=None) -> None:
+        self.mgmt = mgmt if mgmt is not None else svc__mgmt()
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> root:
+        if n is not None:
+            return root(mgmt=svc__mgmt.from_gdata(n.get_opt_cnt(ygdata.Id(NS_svc, 'mgmt'))))
+        return root()
+
+    mut def copy(self) -> root:
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+_breaker3: None = None
+class svc__register__input__servers_entry(yadata.MNode):
+    id: str
+    port: ?u64
+
+    mut def __init__(self, id: str, port: ?u64) -> None:
+        self.id = id
+        self.port = port
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:register', 'input', 'servers'])
+
+    @staticmethod
+    mut def from_gdata(n: ygdata.Node) -> svc__register__input__servers_entry:
+        return svc__register__input__servers_entry(id=n.get_str(ygdata.Id(NS_svc, 'id')), port=n.get_opt_u64(ygdata.Id(NS_svc, 'port')))
+
+    mut def copy(self) -> svc__register__input__servers_entry:
+        """Create a deep copy of this adata object"""
+        return svc__register__input__servers_entry.from_gdata(self.to_gdata())
+
+_breaker4: None = None
+class svc__register__input__servers(yadata.MList[svc__register__input__servers_entry]):
+    mut def __init__(self, elements: list[svc__register__input__servers_entry]=[]) -> None:
+        self.elements = elements
+
+    pure def get(self, id: str) -> ?svc__register__input__servers_entry:
+        for e in self:
+            if e.id != id:
+                continue
+            return e
+
+    mut def create(self, id: str, port: ?u64=None) -> svc__register__input__servers_entry:
+        e = self.get(id)
+        if e is not None:
+            if port is not None:
+                e.port = port
+            return e
+        res = svc__register__input__servers_entry(id=id, port=port)
+        self.elements.append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.List) -> list[svc__register__input__servers_entry]:
+        if n is not None:
+            return [svc__register__input__servers_entry.from_gdata(e) for e in n.elements]
+        return []
+
+    mut def copy(self) -> svc__register__input__servers:
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return svc__register__input__servers(elements=copied_elements)
+
+
+extension svc__register__input__servers(Indexed[str, svc__register__input__servers_entry]):
+    def __getitem__(self, k: str) -> svc__register__input__servers_entry:
+        e = self.get(k)
+        if e is not None:
+            return e
+        raise KeyError(k)
+
+    mut def __setitem__(self, k: str, n: svc__register__input__servers_entry) -> None:
+        for i, e in enumerate(self.elements):
+            if e.id == k:
+                self.elements[i] = n
+                return
+        self.elements.append(n)
+
+    mut def __delitem__(self, k: str) -> None:
+        for i, e in enumerate(self.elements):
+            if e.id == k:
+                del self.elements[i]
+                return
+        raise KeyError(k)
+
+_breaker5: None = None
+class svc__register__input(yadata.MNode):
+    servers: svc__register__input__servers
+
+    mut def __init__(self, servers: list[svc__register__input__servers_entry]=[]) -> None:
+        self.servers = svc__register__input__servers(elements=servers)
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:register', 'input'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> svc__register__input:
+        if n is not None:
+            return svc__register__input(servers=svc__register__input__servers.from_gdata(n.get_opt_list(ygdata.Id(NS_svc, 'servers'))))
+        return svc__register__input()
+
+    mut def copy(self) -> svc__register__input:
+        """Create a deep copy of this adata object"""
+        return svc__register__input.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: ygdata.TreeProvider):
+    register: action(cb: action(?Exception) -> None, inp: ?svc__register__input) -> None
+    def register(cb, inp):
+        rpc_xml = xml.Node('register', nsdefs=[(None, 'urn:example:svc')])
+        if inp is not None:
+            gdata_inp = yadata.from_adata(SRC_DNODE, inp, False, ["svc:register", "input"])
+            rpc_xml.children.extend(gdata_inp.to_xml())
+        tp.rpc_xml(lambda _, err: cb(err), rpc_xml)
+
+

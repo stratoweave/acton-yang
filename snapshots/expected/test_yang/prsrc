@@ -58,11 +58,14 @@ Module('test_yang', yang_version=1.1, namespace='http://example.com/test_yang', 
             Leaf('k2', type_=Type('string'))
         ])
     ]),
-    Rpc('rpc1', description='rpc 1', input=Input(children=[
-    Leaf('rli1', type_=Type('string'), description='rpc input leaf 1')
-]), output=Output(children=[
-    Leaf('rlo1', type_=Type('string'), description='rpc output leaf 1')
-])),
+    Rpc('rpc1', description='rpc 1', children=[
+        Input(children=[
+            Leaf('rli1', type_=Type('string'), description='rpc input leaf 1')
+        ]),
+        Output(children=[
+            Leaf('rlo1', type_=Type('string'), description='rpc output leaf 1')
+        ])
+    ]),
     Notification('n1', description='notification 1', children=[
         Anydata('n1ad', description='notification anydata 1'),
         Anyxml('n1ax', description='notification anyxml 1')
