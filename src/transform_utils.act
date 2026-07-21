@@ -6,7 +6,7 @@ def collect_snodes(node: yschema.SchemaNode) -> list[yschema.SchemaNode]:
     """Collect all schema nodes in the subtree rooted at node, in pre-order.
 
     Descends into .children as well as schema nodes that are kept outside of
-    .children: augments on module/submodule/uses, input/output on action/rpc.
+    .children: augments on module/submodule/uses.
     """
     res = [node]
     if isinstance(node, yschema.Module):
@@ -18,20 +18,6 @@ def collect_snodes(node: yschema.SchemaNode) -> list[yschema.SchemaNode]:
     elif isinstance(node, yschema.Uses):
         for augment in node.augment:
             res.extend(collect_snodes(augment))
-    elif isinstance(node, yschema.Action):
-        node_input = node.input
-        if node_input is not None:
-            res.extend(collect_snodes(node_input))
-        node_output = node.output
-        if node_output is not None:
-            res.extend(collect_snodes(node_output))
-    elif isinstance(node, yschema.Rpc):
-        node_input = node.input
-        if node_input is not None:
-            res.extend(collect_snodes(node_input))
-        node_output = node.output
-        if node_output is not None:
-            res.extend(collect_snodes(node_output))
     if isinstance(node, yschema.SchemaNodeInner):
         for child in node.children:
             res.extend(collect_snodes(child))

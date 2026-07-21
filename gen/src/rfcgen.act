@@ -23,10 +23,12 @@ child_stmts = {
     "container",
     "grouping",
     "identity",
+    "input",
     "leaf",
     "leaf-list",
     "list",
     "notification",
+    "output",
     "rpc",
     "typedef",
     "uses",
@@ -291,66 +293,19 @@ def _attr_defval(name, stmt, stms) -> str:
 
 snode_methods = {
     "action": {
-        "get": """    def get(self, name: str, ns: ?str=None) -> SchemaNode:
-        # TODO: support looking up qualified by namespace
-        #tns = ns if ns is not None else self.get_namespace()
-        if name == 'input':
-            _input = self.input
-            if _input is not None:
-                return _input
-        if name == 'output':
-            _output = self.output
-            if _output is not None:
-                return _output
-        return SchemaNode.get(self, name, ns)
-
-""",
-        "compile": """    def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
-        self_input = self.input
-        self_output = self.output
-        # new_input = self_input.compile(context) if self_input is not None else None # actonc codegen pre-evaluates before None-check
-        new_input = None
-        if self_input is not None:
-            new_input = self_input.compile(context, new_mod, new_ns, new_pfx)
-        # new_output = self_output.compile(context) if self_output is not None else None # actonc codegen pre-evaluates before None-check
-        new_output = None
-        if self_output is not None:
-            new_output = self_output.compile(context, new_mod, new_ns, new_pfx)
-        new = Action(self.name,
-                     description=self.description,
-                     if_feature=self.if_feature,
-                     input=new_input if new_input is not None and isinstance(new_input, Input) else Input(),
-                     output=new_output if new_output is not None and isinstance(new_output, Output) else Output(),
-                     reference=self.reference,
-                     status=self.status,
-                     exts=self.compile_exts(context),
-                     mod=new_mod if new_mod is not None else self.mod,
-                     ns=new_ns if new_ns is not None else self.ns,
-                     pfx=new_pfx if new_pfx is not None else self.pfx)
-        self.expand_children(context, new, new_mod, new_ns, new_pfx)
-        return new
-
-""",
-        "resolve_compiled_schema_path_dependencies": """    mut def resolve_compiled_schema_path_dependencies(self):
-        self_input = self.input
-        if self_input is not None:
-            self_input.resolve_compiled_schema_path_dependencies()
-        self_output = self.output
-        if self_output is not None:
-            self_output.resolve_compiled_schema_path_dependencies()
-        for child in self.children:
-            child.resolve_compiled_schema_path_dependencies()
-
-""",
         "to_dnode": """    def to_dnode(self, context: DTypeContext) -> DAction:
+        input_dnode = None
+        output_dnode = None
+        for child in self.children:
+            if isinstance(child, Input) and len(child.children) > 0:
+                input_dnode = child.to_dnode(context)
+            if isinstance(child, Output) and len(child.children) > 0:
+                output_dnode = child.to_dnode(context)
+
         dnode_children = []
-        self_input = self.input
-        if self_input is not None:
-            input_dnode = self_input.to_dnode(context)
+        if input_dnode is not None:
             dnode_children.append(input_dnode)
-        self_output = self.output
-        if self_output is not None:
-            output_dnode = self_output.to_dnode(context)
+        if output_dnode is not None:
             dnode_children.append(output_dnode)
 
         new_dnode = DAction(
@@ -831,74 +786,20 @@ snode_methods = {
 """
     },
     "rpc": {
-        "get": """    def get(self, name: str, ns: ?str=None) -> SchemaNode:
-        # TODO: support looking up qualified by namespace
-        #tns = ns if ns is not None else self.get_namespace()
-        if name == 'input':
-            _input = self.input
-            if _input is not None:
-                return _input
-        if name == 'output':
-            _output = self.output
-            if _output is not None:
-                return _output
-        return SchemaNode.get(self, name, ns)
-
-""",
-        "compile": """    def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
-        self_input = self.input
-        self_output = self.output
-        # new_input = self_input.compile(context) if self_input is not None else None # actonc codegen pre-evaluates before None-check
-        new_input = None
-        if self_input is not None:
-            new_input = self_input.compile(context, new_mod, new_ns, new_pfx)
-        # new_output = self_output.compile(context) if self_output is not None else None # actonc codegen pre-evaluates before None-check
-        new_output = None
-        if self_output is not None:
-            new_output = self_output.compile(context, new_mod, new_ns, new_pfx)
-        new = Rpc(self.name,
-                  description=self.description,
-                  if_feature=self.if_feature,
-                  input=new_input if new_input is not None and isinstance(new_input, Input) else Input(),
-                  output=new_output if new_output is not None and isinstance(new_output, Output) else Output(),
-                  reference=self.reference,
-                  status=self.status,
-                  exts=self.compile_exts(context),
-                  mod=new_mod if new_mod is not None else self.mod,
-                  ns=new_ns if new_ns is not None else self.ns,
-                  pfx=new_pfx if new_pfx is not None else self.pfx)
-        self.expand_children(context, new, new_mod, new_ns, new_pfx)
-        return new
-
-""",
-        "resolve_compiled_schema_path_dependencies": """    mut def resolve_compiled_schema_path_dependencies(self):
-        self_input = self.input
-        if self_input is not None:
-            self_input.resolve_compiled_schema_path_dependencies()
-        self_output = self.output
-        if self_output is not None:
-            self_output.resolve_compiled_schema_path_dependencies()
-        for child in self.children:
-            child.resolve_compiled_schema_path_dependencies()
-
-""",
         "to_dnode": """    def to_dnode(self, context: DTypeContext) -> DRpc:
-        # Convert SchemaNode Rpc.input/output to DRpc.input/output and add to
-        # its children, but only if Input and Output actually contain data
-        # nodes.
+        input_dnode = None
+        output_dnode = None
+        for child in self.children:
+            if isinstance(child, Input) and len(child.children) > 0:
+                input_dnode = child.to_dnode(context)
+            if isinstance(child, Output) and len(child.children) > 0:
+                output_dnode = child.to_dnode(context)
+
         dnode_children = []
-        self_input = self.input
-        if self_input is not None and len(self_input.children) > 0:
-            input_dnode = self_input.to_dnode(context)
+        if input_dnode is not None:
             dnode_children.append(input_dnode)
-        else:
-            input_dnode = None
-        self_output = self.output
-        if self_output is not None and len(self_output.children) > 0:
-            output_dnode = self_output.to_dnode(context)
+        if output_dnode is not None:
             dnode_children.append(output_dnode)
-        else:
-            output_dnode = None
 
         new_dnode = DRpc(
             module=self.get_module_name(),
@@ -1420,6 +1321,20 @@ def gen(stmts: dict[str, Stmt]) -> list[str]:
             res.append('        new = {_class_name(stmt_name)}({(",\n               " + " " * len(_class_name(stmt_name))).join(new_args)})')
             if have_children:
                 res.append("        self.expand_children(context, new, new_mod, new_ns, new_pfx)")
+            if stmt_name in {"rpc", "action"}:
+                # Always synthesize the input/output children so that augments
+                # may target them. Empty nodes are skipped in .to_dnode().
+                res.append("        has_input = False")
+                res.append("        has_output = False")
+                res.append("        for c in new.children:")
+                res.append("            if isinstance(c, Input):")
+                res.append("                has_input = True")
+                res.append("            if isinstance(c, Output):")
+                res.append("                has_output = True")
+                res.append("        if not has_input:")
+                res.append("            new.children.append(Input(parent=new))")
+                res.append("        if not has_output:")
+                res.append("            new.children.append(Output(parent=new))")
             for substmt in stmt.substmts.values():
                 if substmt.name == "augment":
                     res.append("        new.expand_augments(context)")

@@ -84,8 +84,8 @@ def _test_repair_patterns_augment_action_input():
         if isinstance(fm, yschema.SchemaNodeInner):
             act = fm.get("copy-from")
             if isinstance(act, yschema.Action):
-                act_input = act.input
-                if act_input is not None:
+                act_input = act.get("input")
+                if isinstance(act_input, yschema.Input):
                     leaf = act_input.get("remote-file")
                     if isinstance(leaf, yschema.Leaf):
                         repaired = leaf.type_.pattern[0].value

@@ -1222,13 +1222,13 @@ def _test_compile_augment_action_rpc():
     }
   }
 
-  augment "/f:reset/input" {
+  augment "/f:reset/f:input" {
     leaf reset-at {
       type string;
     }
   }
 
-  augment "/f:reset/output" {
+  augment "/f:reset/f:output" {
     leaf reset-finished-at {
       type string;
     }
@@ -1301,6 +1301,169 @@ def _test_compile_augment_augmented_node():
     root = yang.compile([ys_base, ys_voice])
     src = root.prdaclass()
     return src
+
+def _test_rpc_action_input_cross_module_grouping_key():
+    """A cross-module grouping supplies a list key leaf under both an rpc input
+    and an action input.
+    """
+    ys_keygrp = r"""module keygrp {
+  yang-version 1.1;
+  namespace "urn:example:keygrp";
+  prefix kg;
+  grouping id-key {
+    leaf id {
+      type string;
+    }
+  }
+}"""
+    ys_svc = r"""module svc {
+  yang-version 1.1;
+  namespace "urn:example:svc";
+  prefix svc;
+  import keygrp {
+    prefix kg;
+  }
+  rpc register {
+    input {
+      list servers {
+        key id;
+        uses kg:id-key;
+        leaf port {
+          type uint16;
+        }
+      }
+    }
+  }
+  container mgmt {
+    action reset {
+      input {
+        list targets {
+          key id;
+          uses kg:id-key;
+          leaf force {
+            type boolean;
+          }
+        }
+      }
+    }
+  }
+}"""
+    root = yang.compile([ys_keygrp, ys_svc])
+    # TODO: remove this when we also print DAction / action "actions" in rpc_root
+    act = root.get("mgmt").get("reset")
+    if isinstance(act, yschema.DAction):
+        targets = act.get("input").get("targets")
+        if isinstance(targets, yschema.DList):
+            found_key = False
+            for child in targets.children:
+                if isinstance(child, yschema.DLeaf) and child.name == "id":
+                    found_key = True
+                    testing.assertEqual(child.module, "svc")
+                    testing.assertEqual(child.namespace, targets.namespace)
+                    testing.assertEqual(child.prefix, "svc")
+            testing.assertTrue(found_key, "action key leaf 'id' missing")
+        else:
+            testing.error("Expected DList targets")
+    else:
+        testing.error("Expected DAction reset")
+    return root.prdaclass()
+
+def _test_rpc_input_submodule_prefix_remap():
+    """A submodule imports a module under a different prefix than the parent
+    module. Prefix references under rpc input must be remapped when the
+    submodule is merged, like everywhere else in the tree.
+    """
+    ys_keygrp = r"""module keygrp {
+  yang-version 1.1;
+  namespace "urn:example:keygrp";
+  prefix kg;
+  grouping id-key {
+    leaf id {
+      type string;
+    }
+  }
+}"""
+    ys_main = r"""module main {
+  yang-version 1.1;
+  namespace "urn:example:main";
+  prefix m;
+  import keygrp {
+    prefix kg;
+  }
+  include sub;
+}"""
+    ys_sub = r"""submodule sub {
+  yang-version 1.1;
+  belongs-to main {
+    prefix m;
+  }
+  import keygrp {
+    prefix kgx;
+  }
+  rpc register {
+    input {
+      uses kgx:id-key;
+    }
+  }
+}"""
+    root = yang.compile([ys_keygrp, ys_main, ys_sub])
+    rpc = root.get("register")
+    if isinstance(rpc, yschema.DRpc):
+        rpc_input = rpc.input
+        if rpc_input is not None:
+            leaf = rpc_input.get("id")
+            if isinstance(leaf, yschema.DLeaf):
+                testing.assertEqual(leaf.module, "main")
+            else:
+                testing.error("Expected DLeaf id")
+        else:
+            testing.error("Expected DRpc input")
+    else:
+        testing.error("Expected DRpc register")
+
+def _test_rpc_input_import_prefix_leafref():
+    """A leafref under rpc input written with a non-canonical import prefix is
+    prefix-remapped like the rest of the tree, so its path resolves.
+    """
+    ys_b = r"""module b {
+  yang-version 1.1;
+  namespace "urn:example:b";
+  prefix b;
+  container targets {
+    leaf name {
+      type string;
+    }
+  }
+}"""
+    ys_a = r"""module a {
+  yang-version 1.1;
+  namespace "urn:example:a";
+  prefix a;
+  import b {
+    prefix bx;
+  }
+  rpc register {
+    input {
+      leaf ref {
+        type leafref {
+          path "/bx:targets/bx:name";
+        }
+      }
+    }
+  }
+}"""
+    root = yang.compile([ys_a, ys_b])
+    rpc = root.get("register", module="a")
+    if isinstance(rpc, yschema.DRpc):
+        rpc_input = rpc.input
+        if rpc_input is not None:
+            leaf = rpc_input.get("ref")
+            if not isinstance(leaf, yschema.DLeaf):
+                testing.error("Expected DLeaf ref")
+        else:
+            testing.error("Expected DRpc input")
+    else:
+        testing.error("Expected DRpc register")
 
 def _test_compile_refine():
     """Refining a grouping"""

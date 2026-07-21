@@ -4547,7 +4547,7 @@ extension SchemaNode (Eq):
         if type(self) != type(other):
             return False
         elif isinstance(self, Action) and isinstance(other, Action):
-            return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.input == other.input and self.output == other.output and self.reference == other.reference and self.status == other.status
+            return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.reference == other.reference and self.status == other.status
         elif isinstance(self, Anydata) and isinstance(other, Anydata):
             return self.name == other.name and self.config == other.config and self.description == other.description and self.if_feature == other.if_feature and self.mandatory == other.mandatory and self.must == other.must and self.reference == other.reference and self.status == other.status and self.when == other.when
         elif isinstance(self, Anyxml) and isinstance(other, Anyxml):
@@ -4605,7 +4605,7 @@ extension SchemaNode (Eq):
         elif isinstance(self, Revision) and isinstance(other, Revision):
             return self.date == other.date and self.description == other.description and self.reference == other.reference
         elif isinstance(self, Rpc) and isinstance(other, Rpc):
-            return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.input == other.input and self.output == other.output and self.reference == other.reference and self.status == other.status
+            return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.reference == other.reference and self.status == other.status
         elif isinstance(self, Submodule) and isinstance(other, Submodule):
             return self.name == other.name and self.augment == other.augment and self.belongs_to == other.belongs_to and self.contact == other.contact and self.description == other.description and self.deviation == other.deviation and self.extension_ == other.extension_ and self.feature == other.feature and self.import_ == other.import_ and self.include == other.include and self.organization == other.organization and self.reference == other.reference and self.revision == other.revision and self.yang_version == other.yang_version
         elif isinstance(self, Type) and isinstance(other, Type):
@@ -4758,12 +4758,10 @@ class Action(SchemaNodeInner):
     name: str
     description: ?str
     if_feature: list[str]
-    input: ?Input
-    output: ?Output
     reference: ?str
     status: ?str
 
-    def __init__(self, name: str, description: ?str=None, if_feature: list[str]=[], input: ?Input=None, output: ?Output=None, reference: ?str=None, status: ?str=None, exts=[], children=[], parent=None, mod=None, ns=None, pfx=None):
+    def __init__(self, name: str, description: ?str=None, if_feature: list[str]=[], reference: ?str=None, status: ?str=None, exts=[], children=[], parent=None, mod=None, ns=None, pfx=None):
         self.parent = parent
         new_mod = mod
         new_ns = ns
@@ -4781,38 +4779,12 @@ class Action(SchemaNodeInner):
         self.name = name
         self.description = description
         self.if_feature = if_feature
-        self.input = input
-        self.output = output
         self.reference = reference
         self.status = status
         self.exts = exts
         self.children = children
         for n in self.exts:
             n.parent = self
-        self_input = self.input
-        if self_input is not None:
-            self_input.parent = self
-            n_mod = self_input.mod
-            if n_mod is None:
-                self_input.mod = self.mod
-            n_ns = self_input.ns
-            if n_ns is None:
-                self_input.ns = self.ns
-            n_pfx = self_input.pfx
-            if n_pfx is None:
-                self_input.pfx = self.pfx
-        self_output = self.output
-        if self_output is not None:
-            self_output.parent = self
-            n_mod = self_output.mod
-            if n_mod is None:
-                self_output.mod = self.mod
-            n_ns = self_output.ns
-            if n_ns is None:
-                self_output.ns = self.ns
-            n_pfx = self_output.pfx
-            if n_pfx is None:
-                self_output.pfx = self.pfx
         for n in self.children:
             n.parent = self
             n_mod = n.mod
@@ -4829,8 +4801,6 @@ class Action(SchemaNodeInner):
         return [
             ("description", self.description),
             ("if-feature", self.if_feature),
-            ("input", self.input),
-            ("output", self.output),
             ("reference", self.reference),
             ("status", self.status),
             ("exts", self.exts),
@@ -4848,63 +4818,19 @@ class Action(SchemaNodeInner):
             self.reference = ref_reference
         self.exts.extend(refine.compile_exts(context))
 
-    def get(self, name: str, ns: ?str=None) -> SchemaNode:
-        # TODO: support looking up qualified by namespace
-        #tns = ns if ns is not None else self.get_namespace()
-        if name == 'input':
-            _input = self.input
-            if _input is not None:
-                return _input
-        if name == 'output':
-            _output = self.output
-            if _output is not None:
-                return _output
-        return SchemaNode.get(self, name, ns)
-
-    def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
-        self_input = self.input
-        self_output = self.output
-        # new_input = self_input.compile(context) if self_input is not None else None # actonc codegen pre-evaluates before None-check
-        new_input = None
-        if self_input is not None:
-            new_input = self_input.compile(context, new_mod, new_ns, new_pfx)
-        # new_output = self_output.compile(context) if self_output is not None else None # actonc codegen pre-evaluates before None-check
-        new_output = None
-        if self_output is not None:
-            new_output = self_output.compile(context, new_mod, new_ns, new_pfx)
-        new = Action(self.name,
-                     description=self.description,
-                     if_feature=self.if_feature,
-                     input=new_input if new_input is not None and isinstance(new_input, Input) else Input(),
-                     output=new_output if new_output is not None and isinstance(new_output, Output) else Output(),
-                     reference=self.reference,
-                     status=self.status,
-                     exts=self.compile_exts(context),
-                     mod=new_mod if new_mod is not None else self.mod,
-                     ns=new_ns if new_ns is not None else self.ns,
-                     pfx=new_pfx if new_pfx is not None else self.pfx)
-        self.expand_children(context, new, new_mod, new_ns, new_pfx)
-        return new
-
-    mut def resolve_compiled_schema_path_dependencies(self):
-        self_input = self.input
-        if self_input is not None:
-            self_input.resolve_compiled_schema_path_dependencies()
-        self_output = self.output
-        if self_output is not None:
-            self_output.resolve_compiled_schema_path_dependencies()
-        for child in self.children:
-            child.resolve_compiled_schema_path_dependencies()
-
     def to_dnode(self, context: DTypeContext) -> DAction:
+        input_dnode = None
+        output_dnode = None
+        for child in self.children:
+            if isinstance(child, Input) and len(child.children) > 0:
+                input_dnode = child.to_dnode(context)
+            if isinstance(child, Output) and len(child.children) > 0:
+                output_dnode = child.to_dnode(context)
+
         dnode_children = []
-        self_input = self.input
-        if self_input is not None:
-            input_dnode = self_input.to_dnode(context)
+        if input_dnode is not None:
             dnode_children.append(input_dnode)
-        self_output = self.output
-        if self_output is not None:
-            output_dnode = self_output.to_dnode(context)
+        if output_dnode is not None:
             dnode_children.append(output_dnode)
 
         new_dnode = DAction(
@@ -4923,6 +4849,30 @@ class Action(SchemaNodeInner):
 
     def is_config(self) -> bool:
         return False
+
+    def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
+        new = Action(self.name,
+                     description=self.description,
+                     if_feature=self.if_feature,
+                     reference=self.reference,
+                     status=self.status,
+                     exts=self.compile_exts(context),
+                     mod=new_mod if new_mod is not None else self.mod,
+                     ns=new_ns if new_ns is not None else self.ns,
+                     pfx=new_pfx if new_pfx is not None else self.pfx)
+        self.expand_children(context, new, new_mod, new_ns, new_pfx)
+        has_input = False
+        has_output = False
+        for c in new.children:
+            if isinstance(c, Input):
+                has_input = True
+            if isinstance(c, Output):
+                has_output = True
+        if not has_input:
+            new.children.append(Input(parent=new))
+        if not has_output:
+            new.children.append(Output(parent=new))
+        return new
 
     def update_namespace_qualifiers(self, new_ns: str, new_pfx: str, new_mod: str) -> None:
         """Updates the ns (namespace), pfx (prefix), and mod (module) attributes.
@@ -4961,7 +4911,7 @@ class Action(SchemaNodeInner):
 
 extension Action (Ord):
     def __eq__(self, other: Action):
-        return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.input == other.input and self.output == other.output and self.reference == other.reference and self.status == other.status
+        return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.reference == other.reference and self.status == other.status
 
     def __lt__(a, b):
         return a.name < b.name
@@ -8877,12 +8827,10 @@ class Rpc(SchemaNodeInner):
     name: str
     description: ?str
     if_feature: list[str]
-    input: ?Input
-    output: ?Output
     reference: ?str
     status: ?str
 
-    def __init__(self, name: str, description: ?str=None, if_feature: list[str]=[], input: ?Input=None, output: ?Output=None, reference: ?str=None, status: ?str=None, exts=[], children=[], parent=None, mod=None, ns=None, pfx=None):
+    def __init__(self, name: str, description: ?str=None, if_feature: list[str]=[], reference: ?str=None, status: ?str=None, exts=[], children=[], parent=None, mod=None, ns=None, pfx=None):
         self.parent = parent
         new_mod = mod
         new_ns = ns
@@ -8900,38 +8848,12 @@ class Rpc(SchemaNodeInner):
         self.name = name
         self.description = description
         self.if_feature = if_feature
-        self.input = input
-        self.output = output
         self.reference = reference
         self.status = status
         self.exts = exts
         self.children = children
         for n in self.exts:
             n.parent = self
-        self_input = self.input
-        if self_input is not None:
-            self_input.parent = self
-            n_mod = self_input.mod
-            if n_mod is None:
-                self_input.mod = self.mod
-            n_ns = self_input.ns
-            if n_ns is None:
-                self_input.ns = self.ns
-            n_pfx = self_input.pfx
-            if n_pfx is None:
-                self_input.pfx = self.pfx
-        self_output = self.output
-        if self_output is not None:
-            self_output.parent = self
-            n_mod = self_output.mod
-            if n_mod is None:
-                self_output.mod = self.mod
-            n_ns = self_output.ns
-            if n_ns is None:
-                self_output.ns = self.ns
-            n_pfx = self_output.pfx
-            if n_pfx is None:
-                self_output.pfx = self.pfx
         for n in self.children:
             n.parent = self
             n_mod = n.mod
@@ -8948,8 +8870,6 @@ class Rpc(SchemaNodeInner):
         return [
             ("description", self.description),
             ("if-feature", self.if_feature),
-            ("input", self.input),
-            ("output", self.output),
             ("reference", self.reference),
             ("status", self.status),
             ("exts", self.exts),
@@ -8967,71 +8887,20 @@ class Rpc(SchemaNodeInner):
             self.reference = ref_reference
         self.exts.extend(refine.compile_exts(context))
 
-    def get(self, name: str, ns: ?str=None) -> SchemaNode:
-        # TODO: support looking up qualified by namespace
-        #tns = ns if ns is not None else self.get_namespace()
-        if name == 'input':
-            _input = self.input
-            if _input is not None:
-                return _input
-        if name == 'output':
-            _output = self.output
-            if _output is not None:
-                return _output
-        return SchemaNode.get(self, name, ns)
-
-    def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
-        self_input = self.input
-        self_output = self.output
-        # new_input = self_input.compile(context) if self_input is not None else None # actonc codegen pre-evaluates before None-check
-        new_input = None
-        if self_input is not None:
-            new_input = self_input.compile(context, new_mod, new_ns, new_pfx)
-        # new_output = self_output.compile(context) if self_output is not None else None # actonc codegen pre-evaluates before None-check
-        new_output = None
-        if self_output is not None:
-            new_output = self_output.compile(context, new_mod, new_ns, new_pfx)
-        new = Rpc(self.name,
-                  description=self.description,
-                  if_feature=self.if_feature,
-                  input=new_input if new_input is not None and isinstance(new_input, Input) else Input(),
-                  output=new_output if new_output is not None and isinstance(new_output, Output) else Output(),
-                  reference=self.reference,
-                  status=self.status,
-                  exts=self.compile_exts(context),
-                  mod=new_mod if new_mod is not None else self.mod,
-                  ns=new_ns if new_ns is not None else self.ns,
-                  pfx=new_pfx if new_pfx is not None else self.pfx)
-        self.expand_children(context, new, new_mod, new_ns, new_pfx)
-        return new
-
-    mut def resolve_compiled_schema_path_dependencies(self):
-        self_input = self.input
-        if self_input is not None:
-            self_input.resolve_compiled_schema_path_dependencies()
-        self_output = self.output
-        if self_output is not None:
-            self_output.resolve_compiled_schema_path_dependencies()
-        for child in self.children:
-            child.resolve_compiled_schema_path_dependencies()
-
     def to_dnode(self, context: DTypeContext) -> DRpc:
-        # Convert SchemaNode Rpc.input/output to DRpc.input/output and add to
-        # its children, but only if Input and Output actually contain data
-        # nodes.
+        input_dnode = None
+        output_dnode = None
+        for child in self.children:
+            if isinstance(child, Input) and len(child.children) > 0:
+                input_dnode = child.to_dnode(context)
+            if isinstance(child, Output) and len(child.children) > 0:
+                output_dnode = child.to_dnode(context)
+
         dnode_children = []
-        self_input = self.input
-        if self_input is not None and len(self_input.children) > 0:
-            input_dnode = self_input.to_dnode(context)
+        if input_dnode is not None:
             dnode_children.append(input_dnode)
-        else:
-            input_dnode = None
-        self_output = self.output
-        if self_output is not None and len(self_output.children) > 0:
-            output_dnode = self_output.to_dnode(context)
+        if output_dnode is not None:
             dnode_children.append(output_dnode)
-        else:
-            output_dnode = None
 
         new_dnode = DRpc(
             module=self.get_module_name(),
@@ -9051,6 +8920,30 @@ class Rpc(SchemaNodeInner):
 
     def is_config(self) -> bool:
         return False
+
+    def compile(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None):
+        new = Rpc(self.name,
+                  description=self.description,
+                  if_feature=self.if_feature,
+                  reference=self.reference,
+                  status=self.status,
+                  exts=self.compile_exts(context),
+                  mod=new_mod if new_mod is not None else self.mod,
+                  ns=new_ns if new_ns is not None else self.ns,
+                  pfx=new_pfx if new_pfx is not None else self.pfx)
+        self.expand_children(context, new, new_mod, new_ns, new_pfx)
+        has_input = False
+        has_output = False
+        for c in new.children:
+            if isinstance(c, Input):
+                has_input = True
+            if isinstance(c, Output):
+                has_output = True
+        if not has_input:
+            new.children.append(Input(parent=new))
+        if not has_output:
+            new.children.append(Output(parent=new))
+        return new
 
     def update_namespace_qualifiers(self, new_ns: str, new_pfx: str, new_mod: str) -> None:
         """Updates the ns (namespace), pfx (prefix), and mod (module) attributes.
@@ -9089,7 +8982,7 @@ class Rpc(SchemaNodeInner):
 
 extension Rpc (Ord):
     def __eq__(self, other: Rpc):
-        return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.input == other.input and self.output == other.output and self.reference == other.reference and self.status == other.status
+        return self.name == other.name and self.description == other.description and self.if_feature == other.if_feature and self.reference == other.reference and self.status == other.status
 
     def __lt__(a, b):
         return a.name < b.name
@@ -10524,14 +10417,12 @@ def stmt_to_snode(stmt: Statement, parent: ?SchemaNode=None) -> SchemaNode:
             n = Action(arg,
                        description=take_opt_str(ss, "description"),
                        if_feature=take_strlist(ss, "if-feature"),
-                       input=take_opt_input(ss),
-                       output=take_opt_output(ss),
                        reference=take_opt_str(ss, "reference"),
                        status=take_opt_str(ss, "status"),
                        exts=take_exts(ss),
                        parent=parent
                        )
-            n.children=take_nodes(ss, ["grouping", "typedef"], n)
+            n.children=take_nodes(ss, ["grouping", "input", "output", "typedef"], n)
             if len(ss) > 0:
                 name = ss[0].kw
                 prefix = ss[0].prefix
@@ -11020,14 +10911,12 @@ def stmt_to_snode(stmt: Statement, parent: ?SchemaNode=None) -> SchemaNode:
             n = Rpc(arg,
                     description=take_opt_str(ss, "description"),
                     if_feature=take_strlist(ss, "if-feature"),
-                    input=take_opt_input(ss),
-                    output=take_opt_output(ss),
                     reference=take_opt_str(ss, "reference"),
                     status=take_opt_str(ss, "status"),
                     exts=take_exts(ss),
                     parent=parent
                     )
-            n.children=take_nodes(ss, ["grouping", "typedef"], n)
+            n.children=take_nodes(ss, ["grouping", "input", "output", "typedef"], n)
             if len(ss) > 0:
                 name = ss[0].kw
                 prefix = ss[0].prefix
