@@ -1,0 +1,5 @@
+<c1 xmlns="http://example.com/foo">
+  <l_bits>zebra aardvark medved</l_bits>
+  <ll_bits>x y</ll_bits>
+  <ll_bits>x</ll_bits>
+</c1>

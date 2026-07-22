@@ -2395,12 +2395,26 @@ class DTypeBits(DType):
         return DTypeBits(t.name, resolver.description, resolver.reference, resolver.units, [ext.to_dext() for ext in t.exts], resolver.builtin_type, resolver.default, resolver.bits)
 
     def validate_value(self, val: value) -> bool:
-        if isinstance(val, set):
+        if isinstance(val, list):
             for elem in val:
                 if elem not in self.name_to_pos:
                     return False
             return True
         return False
+
+    def canonical_bits(self, names: list[str]) -> list[str]:
+        """Bit names in RFC 7950 canonical order (ascending position), deduplicated
+        """
+        wanted = set()
+        for name in names:
+            if name == "":
+                continue
+            if name in self.name_to_pos:
+                wanted.add(name)
+            else:
+                raise ValueError("Invalid bit name '{name}', expected one of: {', '.join(self.name_to_pos.keys())}")
+        # name_to_pos was built in ascending position order so iteration is canonical order
+        return [name for name in self.name_to_pos.keys() if name in wanted]
 
     def prtyinst(self) -> str:
         return "DTypeBits({self.format_common_params()}, name_to_pos={repr(self.name_to_pos)})"
@@ -2868,7 +2882,8 @@ class DTypeResolver(object):
                 next_pos = 0
                 if self.bits:
                     raise ValueError("Invalid restriction of bits in type \"{t.name}\"")
-                positions = set(None)
+                positions = set()
+                bits = []
                 for b in _bit:
                     name = b.name
                     _position = b.position
@@ -2883,7 +2898,11 @@ class DTypeResolver(object):
                             raise ValueError("Bit \"{name}\" must be assigned an explicit position when automatic assignment would exceed maximum limit of {MAX_BIT_POSITION} in type \"{t.name}\"")
                         position = next_pos
                         next_pos += 1
-                    self.bits[name] = position
+                    positions.add(position)
+                    bits.append((pos=position, name=name))
+                # Acton dicts iterate in insertion order, so insert in ascending
+                # position order is preserved
+                self.bits.update([(b.name, b.pos) for b in sorted(bits)])
 
             # enum
             _enum = t.enum
@@ -4234,6 +4253,11 @@ def yang_leaf_to_acton_arg_type(leaf: DNodeLeaf, key_names: ?list[str], loose: b
     return optional_str + t
 
 def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
+    def set_to_bits(acton_type: str) -> str:
+        if acton_type == "set[str]":
+            return "bits"
+        return acton_type
+
     taker_prefix = "get_"
     if isinstance(n, DContainer):
         optional = loose or n.presence or optional_subtree(n)
@@ -4248,11 +4272,11 @@ def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
         optional_str = "opt_" if optional else ""
         if n.type_.builtin_type == "empty":
             return taker_prefix + optional_str + "empty"
-        return taker_prefix + optional_str + yang_type_to_acton_type(n.type_)
+        return taker_prefix + optional_str + set_to_bits(yang_type_to_acton_type(n.type_))
     if isinstance(n, DLeafList):
         optional = loose or n.min_elements == 0
         optional_str = "opt_" if optional else ""
-        return taker_prefix + optional_str + yang_type_to_acton_type(n.type_) + "s"
+        return taker_prefix + optional_str + set_to_bits(yang_type_to_acton_type(n.type_)) + "s"
     raise ValueError("unreachable - unknown node type {type(n)}")
 
 def yang_leaflist_to_acton_type(leaf: DLeafList) -> str:
@@ -4264,7 +4288,7 @@ def yang_typename_to_acton_type(type_name: str) -> str:
     if type_name == "binary":
         return "bytes"
     elif type_name == "bits":
-        raise NotImplementedError('bits not supported')
+        return "set[str]"
     elif type_name == "boolean":
         return "bool"
     elif type_name == "decimal64":
@@ -4362,6 +4386,10 @@ def prsrc_literal(ytype: str, value: str) -> str:
         return "False"
     elif ytype == "enumeration":
         return '"' + value + '"'
+    elif ytype == "bits":
+        names = set(value.split(" "))
+        names.discard("")
+        return repr(names)
     elif ytype == "identityref":
         return value
     elif ytype in SIGNED_INT_TYPES:
