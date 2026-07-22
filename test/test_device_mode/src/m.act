@@ -49,47 +49,21 @@ class m__cfg__items_entry(yadata.MNode):
         self.val = val
 
 _breaker3: None = None
-class m__cfg__items(yadata.MList[m__cfg__items_entry]):
+class m__cfg__items(yadata.MKeyedList[str, m__cfg__items_entry]):
     mut def __init__(self, elements: list[m__cfg__items_entry]=[]) -> None:
-        self.elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: e.id, elements)
 
-    pure def get(self, id: str) -> ?m__cfg__items_entry:
-        for e in self:
-            if e.id != id:
-                continue
-            return e
-
-    mut def create(self, id: str, val: ?u64=None) -> m__cfg__items_entry:
-        e = self.get(id)
+    mut def create(self, key: str, val: ?u64=None) -> m__cfg__items_entry:
+        e = self.get(key)
         if e is not None:
             if val is not None:
                 e.val = val
             return e
+        id = key
         res = m__cfg__items_entry(id=id, val=val)
         self.elements.append(res)
         return res
 
-
-extension m__cfg__items(Indexed[str, m__cfg__items_entry]):
-    def __getitem__(self, k: str) -> m__cfg__items_entry:
-        e = self.get(k)
-        if e is not None:
-            return e
-        raise KeyError(k)
-
-    mut def __setitem__(self, k: str, n: m__cfg__items_entry) -> None:
-        for i, e in enumerate(self.elements):
-            if e.id == k:
-                self.elements[i] = n
-                return
-        self.elements.append(n)
-
-    mut def __delitem__(self, k: str) -> None:
-        for i, e in enumerate(self.elements):
-            if e.id == k:
-                del self.elements[i]
-                return
-        raise KeyError(k)
 
 _breaker4: None = None
 class m__cfg(yadata.MNode):

@@ -480,6 +480,22 @@ def _test_list_indexed():
     del r.c1.li["b"]
     testing.assertNone(r.c1.li.get("b"))
 
+def _test_list_multi_key():
+    r = yang_foo_root()
+    li1_e = r.nested.f_inner.li1.create("l1")
+    li1_e.li2.create(("a", "1"), baz="one")
+    li1_e.li2.create(("a", "2"), baz="two")
+
+    found = li1_e.li2.get(("a", "2"))
+    testing.assertNotNone(found)
+    if found is not None:
+        testing.assertEqual(found.baz, "two")
+    testing.assertNone(li1_e.li2.get(("a", "3")))
+
+    testing.assertEqual(li1_e.li2[("a", "1")].baz, "one")
+    del li1_e.li2[("a", "1")]
+    testing.assertNone(li1_e.li2.get(("a", "1")))
+
 def _test_list_get_union_key():
     r = yang_foo_root()
     r.li_union_one_base.create("foo")
@@ -498,11 +514,11 @@ def _test_list_get_union_key():
 
 def _test_list_get_compound_key():
     r = yang_foo_root()
-    r.li_union.create("a", u64(1), "hi".encode())
-    r.li_union.create("a", u64(2), "hi".encode())
-    r.li_union.create("b", u64(1), "hi".encode())
+    r.li_union.create(("a", u64(1), "hi".encode()))
+    r.li_union.create(("a", u64(2), "hi".encode()))
+    r.li_union.create(("b", u64(1), "hi".encode()))
 
-    found = r.li_union.get("a", u64(2), "hi".encode())
+    found = r.li_union.get(("a", u64(2), "hi".encode()))
     testing.assertNotNone(found)
     if found is not None:
         testing.assertEqual(found.k1, "a")
@@ -512,7 +528,7 @@ def _test_list_get_compound_key():
         else:
             testing.error("k2 in adata is not u64")
 
-    testing.assertNone(r.li_union.get("z", u64(1), "hi".encode()))
+    testing.assertNone(r.li_union.get(("z", u64(1), "hi".encode())))
 
 def _test_p_container_create_idempotency():
     r = yang_foo_root()

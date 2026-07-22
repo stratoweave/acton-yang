@@ -807,16 +807,6 @@ class DNodeInner(DNode):
             # - the list itself
             # - the list entry class
             # Here we create the list class, list entry class was created above
-            breaker_name, breaker_idx = next_breaker_name(breaker_idx)
-            res.append("{breaker_name}: None = None")
-            res.append("class {pname()}(yadata.MList[{pname()}_entry]):")
-
-            init_args = ["self"]
-            init_args.append("elements: list[{pname()}_entry]=[]")
-            init_args_str: str = ", ".join(init_args)
-            res.append("    mut def __init__({init_args_str}) -> None:")
-            res.append("        self.elements = elements")
-            res.append("")
 
             # list_args_req contains the list keys names and also any
             # non-optional children. We use unique safe names for both to avoid conflicts.
@@ -848,11 +838,44 @@ class DNodeInner(DNode):
                         list_args_req.append(arg)
                         list_args_req_sig.append("{arg}: {pname(child)}")
 
-            # .get() returns the entry matching all key values, or None
-            if len(list_key_args) > 0:
-                # Keys come first in list_args_req(_sig)
-                get_args_sig = ", ".join(["self"] + list_args_req_sig[:len(list_key_args)])
-                res.append("    pure def get({get_args_sig}) -> ?{pname()}_entry:")
+            # Lists whose key leaves all map to concrete Acton types (not value,
+            # concrete types/tuples where Eq is (automatically) implemented)
+            # subclass MKeyedList[K, T], where K is the Acton type for the key
+            # (scalar value or tuple) and T is the adata entry type.
+            # If any of the keys maps to Acton value type, we must use MList[T]
+            # and generate the .get() method here, and also lose out on Indexed[K, T] protocol.
+            key_acton_types = [yang_type_to_acton_type(list_key_types[k]) for k in list_key_args]
+            key_impl_eq = len(list_key_args) > 0 and "value" not in key_acton_types
+
+            def scalar_or_tuple(l):
+                if len(l) == 0:
+                    return ""
+                elif len(l) == 1:
+                    return l[0]
+                return "({", ".join(l)})"
+
+            key_type = scalar_or_tuple(key_acton_types)
+
+            breaker_name, breaker_idx = next_breaker_name(breaker_idx)
+            res.append("{breaker_name}: None = None")
+            if key_impl_eq:
+                key_expr = scalar_or_tuple(["e.{k}" for k in list_key_args])
+                res.append("class {pname()}(yadata.MKeyedList[{key_type}, {pname()}_entry]):")
+                res.append("    mut def __init__(self, elements: list[{pname()}_entry]=[]) -> None:")
+                res.append("        yadata.MKeyedList.__init__(self, lambda e: {key_expr}, elements)")
+            else:
+                res.append("class {pname()}(yadata.MList[{pname()}_entry]):")
+                res.append("    mut def __init__(self, elements: list[{pname()}_entry]=[]) -> None:")
+                res.append("        self.elements = elements")
+            res.append("")
+
+            # .get(key) returns the entry matching the key, or None. We generate
+            # it here for lists where one of the keys maps to Acton value type.
+            if len(list_key_args) > 0 and not key_impl_eq:
+                key_bind = ", ".join(list_key_args)
+                res.append("    pure def get(self, key: {key_type}) -> ?{pname()}_entry:")
+                # Bind scalar key to name or unpack tuple
+                res.append("        {key_bind} = key")
                 res.append("        for e in self:")
                 for us_key in list_key_args:
                     key_dtype = list_key_types[us_key]
@@ -885,11 +908,21 @@ class DNodeInner(DNode):
             # create() finds an existing entry by key via .get() (when the
             # list has keys), updates its non-key args, and returns it.
             # Otherwise it appends a fresh entry.
-            list_args_str = ", ".join(["self"] + list_args_req_sig + list_args_opt_sig)
+            non_key_arg_names = list_args_req + list_args_opt
+            # Disambiguate the "key" parameter name in case there is another
+            # parameter with the same name.
+            key_param = "key"
+            while key_param in non_key_arg_names:
+                key_param = key_param + "_"
+            create_sig = ["self"]
+            if len(list_key_args) > 0:
+                create_sig.append("{key_param}: {key_type}")
+            create_sig.extend(list_args_req_sig[len(list_key_args):])
+            create_sig.extend(list_args_opt_sig)
+            list_args_str = ", ".join(create_sig)
             res.append("    mut def create({list_args_str}) -> {pname()}_entry:")
             if len(list_key_args) > 0:
-                key_call_args = ", ".join(list_args_req[:len(list_key_args)])
-                res.append("        e = self.get({key_call_args})")
+                res.append("        e = self.get({key_param})")
                 res.append("        if e is not None:")
                 for req_arg in list_args_req[len(list_key_args):]:
                     res.append("            e.{req_arg} = {req_arg}")
@@ -897,6 +930,9 @@ class DNodeInner(DNode):
                     res.append("            if {opt_arg} is not None:")
                     res.append("                e.{opt_arg} = {opt_arg}")
                 res.append("            return e")
+                # Bind scalar key to name or unpack tuple
+                key_bind = ", ".join(list_key_args)
+                res.append("        {key_bind} = {key_param}")
             list_params_str = ", ".join(["{arg}={arg}" for arg in list_args_req + list_args_opt])
             res.append("        res = {pname()}_entry({list_params_str})")
             res.append("        self.elements.append(res)")
@@ -931,35 +967,6 @@ class DNodeInner(DNode):
                 res.append("        return {pname()}(elements=copied_elements)")
                 res.append("")
 
-            # Indexed extension for single-key lists with a non-union key.
-            # Composite keys would need a tuple, union keys are typed as Acton
-            # value; neither can implement Eq
-            if len(list_key_args) == 1:
-                us_key = list_key_args[0]
-                key_dtype = list_key_types[us_key]
-                if not isinstance(key_dtype, DTypeUnion):
-                    key_acton_type = yang_type_to_acton_type(key_dtype)
-                    res.append("")
-                    res.append("extension {pname()}(Indexed[{key_acton_type}, {pname()}_entry]):")
-                    res.append("    def __getitem__(self, k: {key_acton_type}) -> {pname()}_entry:")
-                    res.append("        e = self.get(k)")
-                    res.append("        if e is not None:")
-                    res.append("            return e")
-                    res.append("        raise KeyError(k)")
-                    res.append("")
-                    res.append("    mut def __setitem__(self, k: {key_acton_type}, n: {pname()}_entry) -> None:")
-                    res.append("        for i, e in enumerate(self.elements):")
-                    res.append("            if e.{us_key} == k:")
-                    res.append("                self.elements[i] = n")
-                    res.append("                return")
-                    res.append("        self.elements.append(n)")
-                    res.append("")
-                    res.append("    mut def __delitem__(self, k: {key_acton_type}) -> None:")
-                    res.append("        for i, e in enumerate(self.elements):")
-                    res.append("            if e.{us_key} == k:")
-                    res.append("                del self.elements[i]")
-                    res.append("                return")
-                    res.append("        raise KeyError(k)")
         res.append("")
 
 

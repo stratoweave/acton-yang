@@ -107,22 +107,17 @@ class svc__register__input__servers_entry(yadata.MNode):
         return svc__register__input__servers_entry.from_gdata(self.to_gdata())
 
 _breaker4: None = None
-class svc__register__input__servers(yadata.MList[svc__register__input__servers_entry]):
+class svc__register__input__servers(yadata.MKeyedList[str, svc__register__input__servers_entry]):
     mut def __init__(self, elements: list[svc__register__input__servers_entry]=[]) -> None:
-        self.elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: e.id, elements)
 
-    pure def get(self, id: str) -> ?svc__register__input__servers_entry:
-        for e in self:
-            if e.id != id:
-                continue
-            return e
-
-    mut def create(self, id: str, port: ?u64=None) -> svc__register__input__servers_entry:
-        e = self.get(id)
+    mut def create(self, key: str, port: ?u64=None) -> svc__register__input__servers_entry:
+        e = self.get(key)
         if e is not None:
             if port is not None:
                 e.port = port
             return e
+        id = key
         res = svc__register__input__servers_entry(id=id, port=port)
         self.elements.append(res)
         return res
@@ -143,27 +138,6 @@ class svc__register__input__servers(yadata.MList[svc__register__input__servers_e
                 copied_elements.append(ce)
         return svc__register__input__servers(elements=copied_elements)
 
-
-extension svc__register__input__servers(Indexed[str, svc__register__input__servers_entry]):
-    def __getitem__(self, k: str) -> svc__register__input__servers_entry:
-        e = self.get(k)
-        if e is not None:
-            return e
-        raise KeyError(k)
-
-    mut def __setitem__(self, k: str, n: svc__register__input__servers_entry) -> None:
-        for i, e in enumerate(self.elements):
-            if e.id == k:
-                self.elements[i] = n
-                return
-        self.elements.append(n)
-
-    mut def __delitem__(self, k: str) -> None:
-        for i, e in enumerate(self.elements):
-            if e.id == k:
-                del self.elements[i]
-                return
-        raise KeyError(k)
 
 _breaker5: None = None
 class svc__register__input(yadata.MNode):
