@@ -1,0 +1,40 @@
+"""A yang-patch value is a fragment of its target: a patch of operational
+data leaves the entry's config leaves out, mandatory ones included, and
+the decoder takes it."""
+
+import testing
+import std.xml as xml
+import yang
+import yang.gdata as gdata
+import yang.ypatch as ypatch
+
+NS = "urn:loose-patch"
+
+MODEL = r"""module loose-patch {
+  yang-version "1.1";
+  namespace "urn:loose-patch";
+  prefix lp;
+  list router {
+    key name;
+    leaf name { type string; }
+    leaf id { type uint32; mandatory true; }
+    container state {
+      config false;
+      leaf clock { type string; }
+    }
+  }
+}"""
+
+
+def _q(n: str) -> gdata.Id:
+    return gdata.Id(NS, n)
+
+
+def _test_edit_value_leaves_mandatory_config_out():
+    schema = yang.compile([MODEL])
+    value = xml.decode('<router xmlns="urn:loose-patch"><name>r1</name><state><clock>now</clock></state></router>')
+    edit = ypatch.Edit("0", ypatch.OP_REPLACE, "/loose-patch:router=r1", value)
+    tree = ypatch.edit_to_gdata(schema, edit)
+    entry = tree.get_list(_q("router")).elements[0]
+    testing.assertEqual(entry.get_str(_q("name")), "r1")
+    testing.assertEqual(entry.children[_q("state")].get_str(_q("clock")), "now")

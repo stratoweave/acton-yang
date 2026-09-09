@@ -289,7 +289,11 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
 
     Container / list-entry terminals reuse restconf.from_xml_path; leaf and
     leaf-list terminals are built here, since from_xml_path only handles inner
-    nodes (and a leaf-list value selector isn't a RESTCONF key).
+    nodes (and a leaf-list value selector isn't a RESTCONF key). A value may
+    leave mandatory leaves out: it is a fragment of the target, partial by
+    definition for merge, and RFC 8072 validates the datastore after the
+    edits are applied, not each value. A patch of operational data never
+    carries the config leaves of the entry it sits in.
     """
     def target_segments(target: str) -> list[str]:
         # Split a RESTCONF api-path into resolve_path segments: a list-key selector
@@ -416,7 +420,7 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
         return wrap_to_root(pe, inner)
 
     # Container / list-entry terminal: restconf handles the body + wrapping.
-    return restconf.from_xml_path(root, e.value, segs, rop)
+    return restconf.from_xml_path(root, e.value, segs, rop, loose=True)
 
 
 def edits_to_gdata(root: yschema.DRoot, edits: list[Edit]) -> ?gdata.Node:
