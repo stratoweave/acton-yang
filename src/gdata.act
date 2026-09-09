@@ -373,34 +373,17 @@ class Id:
         raise ValueError("Invalid gdata id encoding: {data}")
 
 
-# We can't implement both Ord and Hashable protocol?!
-# https://github.com/actonlang/acton/pull/2380#issuecomment-3092550729
-# Until that is adressed, we have hack_sorted function so sort a list of Id objects
-#extension Id (Ord):
-#    def __lt__(self, other: Id):
-#        return self.q < other.q or (self.q == other.q and self.name < other.name)
-
-def hack_sorted[T](li: Iterator[T]) -> list[T]:
-    l = list(li)
-    ls = list(map(str, l))
-    key_map = dict(zip(ls, l))
-    return [key_map[key] for key in sorted(ls)]
-
-
-# This is a shim to do equality comparison on lists with elements where we can't implement Ord
-def hack_eq[T(Eq)](l1: list[T], l2: list[T]) -> bool:
-    if len(l1) != len(l2):
-        return False
-    for i in range(len(l1)):
-        if l1[i] != l2[i]:
-            return False
-    return True
-
-
-extension Id (Hashable):
+extension Id (Eq):
     def __eq__(self, other: Id):
         return self.q == other.q and self.name == other.name
 
+
+extension Id (Ord):
+    def __lt__(self, other: Id):
+        return self.q < other.q or (self.q == other.q and self.name < other.name)
+
+
+extension Id (Hashable):
     def hash(self, hasher):
         self.q.hash(hasher)
         self.name.hash(hasher)
@@ -639,7 +622,7 @@ class Node(value):
         module_args = ["module='{self.module}'"] if self.module is not None else []
         base_args = ns_args + module_args
 
-        self_children = self.children if not deterministic else {k: self.children[k] for k in hack_sorted(self.children.keys())}
+        self_children = self.children if not deterministic else {k: self.children[k] for k in sorted(self.children.keys())}
 
         if isinstance(self, Leaf):
             args = [repr_gdata(self.val)] + base_args
@@ -770,7 +753,7 @@ class Node(value):
         the output stable for comparisons/tests.
         """
         if deterministic:
-            self_children = {k: self.children[k] for k in hack_sorted(self.children.keys())}
+            self_children = {k: self.children[k] for k in sorted(self.children.keys())}
         else:
             self_children = self.children
 
@@ -823,7 +806,7 @@ class Node(value):
     def _to_xml_rec(self, key_names: ?list[Id]=None, skip_nonkeys: bool=False, parent_absent: bool=False, deterministic=False) -> list[xml.Node]:
         if isinstance(self, Container) or isinstance(self, Absent) or isinstance(self, Create) or isinstance(self, Delete) or isinstance(self, Replace):
             if deterministic:
-                self_children = {k: self.children[k] for k in hack_sorted(self.children.keys())}
+                self_children = {k: self.children[k] for k in sorted(self.children.keys())}
             else:
                 self_children = self.children
             children = []
@@ -1320,7 +1303,7 @@ extension Node(Eq):
             return True
 
         if isinstance(self, List) and isinstance(other, List):
-            if not hack_eq(self.keys, other.keys):
+            if self.keys != other.keys:
                 return False
             if len(self.elements) != len(other.elements):
                 return False
@@ -2195,7 +2178,7 @@ def _merge_rec(a: Node, b: Node, path: list[_PathElement]) -> Node:
         return LeafList(new_entries, user_order=a.user_order, ns=a.ns, module=a.module)
 
     elif isinstance(a, List) and isinstance(b, List):
-        if not hack_eq(a.keys, b.keys):
+        if a.keys != b.keys:
             raise ValueError("Cannot merge lists with different keys at {_format_gdata_path(path)}: {str(a.keys)} != {str(b.keys)}")
         if a.user_order != b.user_order:
             raise ValueError("Cannot merge lists with different user_order at {_format_gdata_path(path)}")
@@ -2335,7 +2318,7 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
 
     # Helper function for diffing system-ordered lists (order doesn't matter)
     def diff_system_ordered_list_elements(old_list: List, new_list: List) -> ?list[Node]:
-        if not hack_eq(old_list.keys, new_list.keys):
+        if old_list.keys != new_list.keys:
             raise ValueError("List keys differ at {_format_gdata_path(path)}: {str(old_list.keys)} != {str(new_list.keys)}")
 
         # Map elements by key for both lists
@@ -2371,7 +2354,7 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
     # Helper function for diffing user-ordered lists (order matters)
     def diff_user_ordered_list_elements(old_list: List, new_list: List) -> ?list[Node]:
 
-        if not hack_eq(old_list.keys, new_list.keys):
+        if old_list.keys != new_list.keys:
             raise ValueError("List keys differ at {_format_gdata_path(path)}: {str(old_list.keys)} != {str(new_list.keys)}")
 
         # Map old elements by key
@@ -3074,7 +3057,7 @@ def _patch_rec(old: ?Node, p: ?Node, path: list[_PathElement]) -> ?Node:
         return Container(children=new_children, presence=old.presence, ns=old.ns, module=old.module)
 
     elif isinstance(old, List) and isinstance(p, List):
-        if not hack_eq(old.keys, p.keys):
+        if old.keys != p.keys:
             raise ValueError("List keys differ at {_format_gdata_path(path)}: {str(old.keys)} != {str(p.keys)}")
 
         old_map = {e.key_str(old.keys): e for e in old.elements}
@@ -3474,8 +3457,10 @@ extension Delivery(Hashable):
 
     def hash(self, hasher):
         len(self.want).hash(hasher)
-        for spec in hack_sorted(iter(self.want)):
-            spec.hash(hasher)
+        # Subscription specs have no semantic order, but set iteration order
+        # must not affect the hash of equal deliveries.
+        for spec_hash in sorted([seed_hash(u64(0), spec) for spec in self.want]):
+            spec_hash.hash(hasher)
 
 
 class TreeProvider(object):
@@ -3606,6 +3591,14 @@ def get_xml_children(n: xml.Node, name: str, ns: ?str) -> list[xml.Node]:
 
 
 NS_acme = "http://example.com/acme"
+
+
+def _test_id_ord_and_hashable():
+    ids = [Id("urn:b", "a"), Id("urn:a", "b"), Id("urn:a", "a")]
+    testing.assertEqual(sorted(ids), [Id("urn:a", "a"), Id("urn:a", "b"), Id("urn:b", "a")])
+
+    by_id = {Id("urn:a", "a"): "found"}
+    testing.assertEqual(by_id[Id("urn:a", "a")], "found")
 
 
 def _test_format_gdata_path():
@@ -6107,6 +6100,25 @@ def _test_subscription_spec_default_on_change():
     testing.assertEqual(periodic == onchange, False)
     testing.assertEqual(onchange == SubscriptionSpec(None, on_change=True), True)
     testing.assertEqual(len({periodic, onchange}), 2)
+
+
+def _test_delivery_hash_order_independent():
+    def ignore_update(node: ?Node, error: ?Exception) -> None:
+        pass
+
+    a = SubscriptionSpec(FNode(Id("urn:a", "a")), period=1)
+    b = SubscriptionSpec(FNode(Id("urn:b", "b")), on_change=True)
+    removed = SubscriptionSpec(FNode(Id("urn:removed", "removed")), period=2)
+
+    first = {a, b}
+    second = {removed, b, a}
+    second.discard(removed)
+
+    dst = Dst(ignore_update)
+    first_delivery = Delivery(dst, first)
+    second_delivery = Delivery(dst, second)
+    testing.assertEqual(first_delivery, second_delivery)
+    testing.assertEqual(hash(first_delivery), hash(second_delivery))
 
 
 def _test_serialization_roundtrip_leaflist():

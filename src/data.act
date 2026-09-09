@@ -628,7 +628,7 @@ def _prpaths_recursive(s: yschema.DNodeInner, node: ygdata.Node, spath: list[ysc
 
     has_value_nodes = False
 
-    for gname in ygdata.hack_sorted(node.children.keys()):
+    for gname in sorted(node.children.keys()):
         gchild = node.children[gname]
         try:
             if gname.q != "":
