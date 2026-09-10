@@ -247,7 +247,7 @@ class _test_leafref_c(yadata.MNode):
         self.ref = ref
         self.refs = refs
 
-    mut def to_gdata(self) -> ygdata.Node:
+    mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
     def copy(self):
@@ -261,7 +261,7 @@ class _test_leafref_root(yadata.MNode):
         self._ns = "urn:example:y1"
         self.c = c
 
-    mut def to_gdata(self) -> ygdata.Node:
+    mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
     def copy(self):
@@ -1868,3 +1868,64 @@ def _test_bits_leaf_comparison():
     out2 = gd_list.prsrc(deterministic=True)
     testing.assertEqual(out1, out2, "deterministic serialisation of a bits leaf-list must be stable")
     testing.assertTrue(len(out1) > 0, "deterministic serialisation must produce output")
+
+
+def _same_node(a: ygdata.Node, b: ygdata.Node) -> bool:
+    """Compare object pointers without inspecting either node."""
+    NotImplemented
+
+
+def _test_from_xml_prev_reuse():
+    y = r"""module y {
+  namespace "urn:example:y";
+  prefix y;
+  container c1 {
+    leaf l1 { type string; }
+    container c2 { leaf l2 { type string; } }
+    list l3 {
+      key "k";
+      leaf k { type string; }
+      leaf v { type uint32; }
+    }
+    leaf-list ll { type string; }
+  }
+}"""
+    xml_a = r"""<data><c1 xmlns="urn:example:y">
+  <l1>a</l1>
+  <c2><l2>b</l2></c2>
+  <l3><k>x</k><v>1</v></l3>
+  <l3><k>y</k><v>2</v></l3>
+  <ll>p</ll><ll>q</ll>
+</c1></data>"""
+    s = yang.compile([y])
+    prev = from_xml(s, xml.decode(xml_a))
+    pc1 = prev.get_cnt(ygdata.Id("urn:example:y", "c1"))
+    pl3 = pc1.get_list(ygdata.Id("urn:example:y", "l3"))
+
+    # The same input again: the result is prev itself
+    testing.assertTrue(_same_node(prev, from_xml(s, xml.decode(xml_a), prev=prev)))
+
+    # l2 changes: root, c1 and c2 are rebuilt, their other children are prev's
+    xml_b = xml_a.replace("<l2>b</l2>", "<l2>B</l2>")
+    res = from_xml(s, xml.decode(xml_b), prev=prev)
+    testing.assertEqual(from_xml(s, xml.decode(xml_b)), res, "content comes from the input")
+    c1 = res.get_cnt(ygdata.Id("urn:example:y", "c1"))
+    testing.assertFalse(_same_node(prev, res))
+    testing.assertFalse(_same_node(pc1, c1))
+    testing.assertFalse(_same_node(pc1.get_cnt(ygdata.Id("urn:example:y", "c2")), c1.get_cnt(ygdata.Id("urn:example:y", "c2"))))
+    testing.assertTrue(_same_node(pc1.get_leaf(ygdata.Id("urn:example:y", "l1")), c1.get_leaf(ygdata.Id("urn:example:y", "l1"))))
+    testing.assertTrue(_same_node(pl3, c1.get_list(ygdata.Id("urn:example:y", "l3"))))
+    testing.assertTrue(_same_node(pc1.get_leaflist(ygdata.Id("urn:example:y", "ll")), c1.get_leaflist(ygdata.Id("urn:example:y", "ll"))))
+
+    # y moves in front of x: l3 is ordered by the system, so the List is prev's
+    xml_c = xml_a.replace("<l3><k>x</k><v>1</v></l3>\n  <l3><k>y</k><v>2</v></l3>", "<l3><k>y</k><v>2</v></l3>\n  <l3><k>x</k><v>1</v></l3>")
+    testing.assertTrue(_same_node(pl3, from_xml(s, xml.decode(xml_c), prev=prev).get_cnt(ygdata.Id("urn:example:y", "c1")).get_list(ygdata.Id("urn:example:y", "l3"))))
+
+    # x's value changes and z is new: y is prev's, the rest of the path is rebuilt
+    xml_d = xml_a.replace("<v>1</v>", "<v>7</v>").replace("<ll>p</ll>", "<l3><k>z</k><v>3</v></l3><ll>p</ll>")
+    l3 = from_xml(s, xml.decode(xml_d), prev=prev).get_cnt(ygdata.Id("urn:example:y", "c1")).get_list(ygdata.Id("urn:example:y", "l3"))
+    testing.assertFalse(_same_node(pl3, l3))
+    testing.assertEqual(3, len(l3.elements))
+    testing.assertFalse(_same_node(pl3.elements["x"], l3.elements["x"]))
+    testing.assertTrue(_same_node(pl3.elements["y"], l3.elements["y"]))
+    testing.assertTrue(ygdata.vals_equal(u64(7), l3.elements["x"].get_leaf(ygdata.Id("urn:example:y", "v")).val))

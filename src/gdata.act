@@ -562,6 +562,12 @@ def base_node_json(node: Node, node_type: str) -> dict[str, ?value]:
     return result
 
 
+def key_str_part(val: value) -> str:
+    """The escaped key_str component for one key leaf val"""
+    key = val if isinstance(val, str) else str(val)
+    return key.replace("\\", "\\\\").replace(",", "\\,")
+
+
 class Node(value):
     ns: ?str
     module: ?str
@@ -611,15 +617,8 @@ class Node(value):
 
     def key_str(self, key_names: list[Id]) -> str:
         if len(key_names) == 1:
-            val = self.get_leaf(key_names[0]).val
-            key = val if isinstance(val, str) else str(val)
-            return key.replace("\\", "\\\\").replace(",", "\\,")
-        parts: list[str] = []
-        for kn in key_names:
-            val = self.get_leaf(kn).val
-            key = val if isinstance(val, str) else str(val)
-            parts.append(key.replace("\\", "\\\\").replace(",", "\\,"))
-        return ",".join(parts)
+            return key_str_part(self.get_leaf(key_names[0]).val)
+        return ",".join([key_str_part(self.get_leaf(kn).val) for kn in key_names])
 
     def key_values(self, key_names: list[Id]) -> dict[str, value]:
         return {kn.name: self.get_leaf(kn).val for kn in key_names}

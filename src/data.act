@@ -164,7 +164,7 @@ def has_mandatory_content(container: yschema.DContainer) -> bool:
 
 
 
-def from_data[A(YangData)](root: yschema.DRoot, data: A, type_narrower: (?value) -> A, loose: bool=False, root_path: list[str]=[]) -> ygdata.Container:
+def from_data[A(YangData)](root: yschema.DRoot, data: A, type_narrower: (?value) -> A, loose: bool=False, root_path: list[str]=[], prev: ?ygdata.Container=None) -> ygdata.Container:
     """Generic function to convert data to gdata tree based on schema
 
     Args:
@@ -176,13 +176,25 @@ def from_data[A(YangData)](root: yschema.DRoot, data: A, type_narrower: (?value)
                   at some inner node. For example, if root_path=["mod:c1", "c2"],
                   the function will navigate from s through c1 and c2 before starting
                   to parse the actual data.
+        prev: The gdata tree from a previous call for the same schema+root_path.
+              The parser will reference parts of the previous tree that have not
+              changed. Because this results in pointer equality for the parts
+              that have not changed, this allows other functions (like merge,
+              diff, patch) to optimize their tree comparisons efficiently.
 
     Returns:
         A yang.gdata.Container containing the parsed data tree
     """
-    return from_data_recursive(root, root, data, type_narrower, loose, root_path=root_path, spath=[PathElement(root)])
+    node = from_data_recursive(root, root, data, type_narrower, loose, root_path=root_path, spath=[PathElement(root)], prev=prev)
+    if isinstance(node, ygdata.Container):
+        return node
+    raise ValueError("Root of the parsed data is not a Container: {type(node)}")
 
-def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner, data: A, type_narrower: (?value) -> A, loose: bool=False, set_ns: bool=True, root_path: list[str]=[], spath: list[PathElement]=[], skip_nonkeys: bool=False) -> ygdata.Container:
+def _same_node(a: ygdata.Node, b: ygdata.Node) -> bool:
+    """Compare object pointers without inspecting either node."""
+    NotImplemented
+
+def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner, data: A, type_narrower: (?value) -> A, loose: bool=False, set_ns: bool=True, root_path: list[str]=[], spath: list[PathElement]=[], op: ?str=None, prev: ?ygdata.Node=None) -> ygdata.Node:
     """Internal function with additional recursion accumulators
 
     Args:
@@ -200,9 +212,14 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                predicates when descending into list elements. This is passed to
                YangData.take_* so that any validation errors can render full,
                human-friendly paths (e.g., /c1/l2[k1='A']/v1).
+        op: The NETCONF operation on s, if any. A remove or delete of a list
+            element reads only the keys.
+        prev: The node a previous call produced for schema+root_path
 
     Returns:
-        A yang.gdata.Container containing the parsed data tree
+        The parsed node for s: a Container, or the Absent, Delete, Create or
+        Replace wrapper based on the op. The result is prev itself when the
+        data equals prev.
     """
 
     # Navigate to root path if specified
@@ -212,10 +229,21 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
         local_name, module = parse_qualified_name(next)
         child = s.get(local_name, module=module, allow_unqualified=False)
         if isinstance(child, yschema.DNodeInner):
-            return from_data_recursive(root, child, data, type_narrower, loose, set_ns, root_path, spath + [PathElement(child)])
+            return from_data_recursive(root, child, data, type_narrower, loose, set_ns, root_path, spath + [PathElement(child)], prev=prev)
         raise ValueError("Node at {format_schema_path(spath + [PathElement(child)])} is not inner: {type(child)}")
 
+    # Callers are unlikely to pass in prev when parsing payloads with operations
+    # (edit-config). We don't reuse prev for non-declarative ops.
+    prev_container = None
+    if isinstance(prev, ygdata.Container) and (op is None or op == OP_MERGE):
+        prev_container = prev
+    skip_nonkeys = True if op == OP_REMOVE or op == OP_DELETE else False
+
     children: dict[ygdata.Id, ygdata.Node] = {}
+    prev_children: dict[ygdata.Id, ygdata.Node] = {}
+    if prev_container is not None:
+        prev_children = prev_container.children
+    changed = False
 
     unique_namer = yschema.UniqueNamer(s)
     def usname(n) -> str:
@@ -232,6 +260,8 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
         def path_with_child(k=None):
             return spath + [PathElement(child, k)]
 
+        cid = fqname(child)
+
         # Determine namespace (only include if different from parent)
         ns = None
         mod = None
@@ -243,24 +273,17 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
             opval = data.take_container(child, usname(child), s.namespace != child.namespace, spath)
             if opval is not None:
                 val = type_narrower(opval.val)
-                cchild = from_data_recursive(root, child, val, type_narrower, loose, set_ns=s.namespace != child.namespace, root_path=root_path, spath=path_with_child())
-                cns = child.namespace if set_ns and child.namespace != "" else None
-                cmod = child.module if set_ns and child.module != "" else None
-                wcchild = None
-                if opval.op == OP_REMOVE:
-                    wcchild = ygdata.Absent(cchild.children, ns=cns, module=cmod)
-                elif opval.op == OP_DELETE:
-                    wcchild = ygdata.Delete(cchild.children, ns=cns, module=cmod)
-                elif opval.op == OP_CREATE:
-                    wcchild = ygdata.Create(cchild.children, presence=cchild.presence, ns=cns, module=cmod)
-                elif opval.op == OP_REPLACE:
-                    wcchild = ygdata.Replace(cchild.children, presence=cchild.presence, ns=cns, module=cmod)
-
-                if wcchild is not None and not isinstance(wcchild, ygdata.Container):
-                    # Absent, Delete, Create, Replace wrappers are not Container and may not have any children
-                    children[fqname(child)] = wcchild
-                elif isinstance(cchild, ygdata.Container) and (cchild.presence or len(cchild.children) > 0):
-                    children[fqname(child)] = cchild
+                prev_cchild = prev_children.get(cid)
+                cchild = from_data_recursive(root, child, val, type_narrower, loose, set_ns=s.namespace != child.namespace, root_path=root_path, spath=path_with_child(), op=opval.op, prev=prev_cchild)
+                # Drop an empty non-presence container, keep op wrappers
+                if isinstance(cchild, ygdata.Container):
+                    keep = cchild.presence or len(cchild.children) > 0
+                else:
+                    keep = True
+                if keep:
+                    children[cid] = cchild
+                    if not (prev_cchild is not None and _same_node(cchild, prev_cchild)):
+                        changed = True
             else:
                 # Missing container: if this is a non-presence container and it has
                 # mandatory content, then raise an error in strict mode.
@@ -270,25 +293,29 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
 
         elif isinstance(child, yschema.DList):
             list_val = data.take_list(child, usname(child), s.namespace != child.namespace, spath)
-            list_keys = fq_list_keys(child)
             list_elements = []
+            prev_list = prev_children.get(cid)
+            list_changed = False
 
-            for element in list_val:
-                do_skip = True if element.op == OP_REMOVE or element.op == OP_DELETE else False
+            for i, element in enumerate(list_val):
                 element_data = type_narrower(element.val)
-                element_gdata = from_data_recursive(root, child, element_data, type_narrower, loose, set_ns=False, root_path=root_path, spath=path_with_child(element.key), skip_nonkeys=do_skip)
-                if element.op == OP_REMOVE:
-                    list_elements.append(ygdata.Absent(element_gdata.key_children(list_keys)))
-                elif element.op == OP_DELETE:
-                    list_elements.append(ygdata.Delete(element_gdata.key_children(list_keys)))
-                elif element.op == OP_CREATE:
-                    list_elements.append(ygdata.Create(element_gdata.children))
-                elif element.op == OP_REPLACE:
-                    list_elements.append(ygdata.Replace(element_gdata.children))
-                else:
-                    list_elements.append(element_gdata)
+                prev_element = None
+                if isinstance(prev_list, ygdata.List):
+                    prev_element = prev_list.elements.get(",".join([ygdata.key_str_part(element.key[k]) for k in child.key]))
+                elif isinstance(prev_list, ygdata.KeylessList) and i < len(prev_list.elements):
+                    prev_element = prev_list.elements[i]
+
+                list_element = from_data_recursive(root, child, element_data, type_narrower, loose, set_ns=False, root_path=root_path, spath=path_with_child(element.key), op=element.op, prev=prev_element)
+                list_elements.append(list_element)
+                if not (prev_element is not None and _same_node(list_element, prev_element)):
+                    list_changed = True
             if len(list_elements) > 0:
-                children[fqname(child)] = list_node(child, list_elements, ns=ns, module=mod)
+                new_list = list_node(child, list_elements, ns=ns, module=mod)
+                if prev_list is not None and not list_changed and new_list == prev_list:
+                    children[cid] = prev_list
+                else:
+                    children[cid] = new_list
+                    changed = True
 
         elif isinstance(child, yschema.DLeafList):
             leaflist_val = data.take_leaflist(root, child, usname(child), s.namespace != child.namespace, spath)
@@ -297,14 +324,13 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 for item in leaflist_val:
                     iv = item.val
                     if iv is not None:
-                        op = item.op
-                        if op == OP_REMOVE:
+                        if item.op == OP_REMOVE:
                             entries.append(ygdata.LeafListEntryRemove(iv))
-                        elif op == OP_DELETE:
+                        elif item.op == OP_DELETE:
                             entries.append(ygdata.LeafListEntryDelete(iv))
-                        elif op == OP_CREATE:
+                        elif item.op == OP_CREATE:
                             entries.append(ygdata.LeafListEntryCreate(iv))
-                        elif op == OP_REPLACE:
+                        elif item.op == OP_REPLACE:
                             entries.append(ygdata.LeafListEntryReplace(iv))
                         else:
                             entries.append(ygdata.LeafListEntryMerge(iv))
@@ -312,7 +338,12 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                     # Missing leaf-list value
                     raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
                 if len(entries) > 0:
-                    children[fqname(child)] = ygdata.LeafList(entries, user_order=user_order(child.ordered_by), ns=ns, module=mod)
+                    prev_child = prev_children.get(cid)
+                    if isinstance(prev_child, ygdata.LeafList) and prev_child.entries == entries:
+                        children[cid] = prev_child
+                    else:
+                        children[cid] = ygdata.LeafList(entries, user_order=user_order(child.ordered_by), ns=ns, module=mod)
+                        changed = True
             elif not yschema.is_optional_arg_yang_leaf(child, loose):
                 # Missing leaf-list value
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
@@ -336,25 +367,44 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 else:
                     av = typed.val
                     if av is not None:
-                        wleaf = ygdata.Leaf(av, ns=ns, module=mod)
+                        prev_child = prev_children.get(cid)
+                        if isinstance(prev_child, ygdata.Leaf) and ygdata.vals_equal(prev_child.val, av):
+                            children[cid] = prev_child
+                        else:
+                            wleaf = ygdata.Leaf(av, ns=ns, module=mod)
                 if wleaf is not None:
-                    children[fqname(child)] = wleaf
+                    children[cid] = wleaf
+                    changed = True
             elif not yschema.is_optional_arg_yang_leaf(child, loose):
                 # Missing leaf value
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Cannot find child node with name {child.name}")
         else:
             raise ValueError(f"Unknown schema node type at {format_schema_path(path_with_child())}: {child}")
 
+    presence = False
+    ns_out = None
+    mod_out = None
     if isinstance(s, yschema.DContainer):
-        return ygdata.Container(children, presence=s.presence, ns=s.namespace if set_ns and s.namespace != "" else None, module=s.module if set_ns and s.module != "" else None)
-    elif isinstance(s, yschema.DList) or isinstance(s, yschema.DRoot):
-        # When processing a list element, return it as a Container
-        # The List wrapper is created by the parent when processing all elements
-        return ygdata.Container(children)
-    elif isinstance(s, yschema.DOutput) or isinstance(s, yschema.DInput):
-        return ygdata.Container(children)
+        presence = s.presence
+        ns_out = s.namespace if set_ns and s.namespace != "" else None
+        mod_out = s.module if set_ns and s.module != "" else None
+    elif isinstance(s, yschema.DList) or isinstance(s, yschema.DRoot) or isinstance(s, yschema.DOutput) or isinstance(s, yschema.DInput):
+        pass
     else:
         raise ValueError("Unknown schema node type at {format_schema_path(spath)}: {type(s)}")
+
+    if op == OP_REMOVE:
+        return ygdata.Absent(children, ns=ns_out, module=mod_out)
+    if op == OP_DELETE:
+        return ygdata.Delete(children, ns=ns_out, module=mod_out)
+    if op == OP_CREATE:
+        return ygdata.Create(children, presence=presence, ns=ns_out, module=mod_out)
+    if op == OP_REPLACE:
+        return ygdata.Replace(children, presence=presence, ns=ns_out, module=mod_out)
+    # check length to detect child only present in prev, but missing now
+    if prev_container is not None and not changed and len(children) == len(prev_container.children):
+        return prev_container
+    return ygdata.Container(children, presence=presence, ns=ns_out, module=mod_out)
 
 
 def repr_adata(v: value) -> str:
