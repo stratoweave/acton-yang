@@ -268,6 +268,12 @@ extension LeafListEntry(Ord):
         return vals_less_than(self.val, other.val)
 
 
+extension LeafListEntry(Hashable):
+    def hash(self, hasher):
+        self.hash_tag().hash(hasher)
+        vals_hash(self.val, hasher)
+
+
 def _nsq(node_ns, v: ?value=None):
     r = []
     if node_ns is not None:
@@ -1297,7 +1303,7 @@ extension Node(Eq):
                 return True
 
             # System-ordered: compare as multisets to avoid ordering issues
-            for entry in _leaflist_unique_entries(self.entries):
+            for entry in set(self.entries):
                 if self.entries.count(entry) != other.entries.count(entry):
                     return False
             return True
@@ -2028,22 +2034,48 @@ def vals_less_than(a: value, b: value) -> bool:
     raise ValueError("Unsupported value type or mismatch in lt comparison: {type(a)}, {type(b)}")
 
 
-pure def _leaflist_unique_entries(entries: list[LeafListEntry]) -> list[LeafListEntry]:
-    """Create a "set" of unique LeafListEntry objects
+def vals_hash(v: value, hasher):
+    """Hash a leaf value consistently with vals_equal
 
-    TODO: This is a workaround for a compiler error where codegen is incorrect
-    for a type implementing multiple protocol extensions (Ord, Hashable):
-    https://github.com/actonlang/acton/issues/1126
+    vals_equal is only true for two values of the same type, so we follow that
+    when hashing - include the type name in the hash.
     """
-
-    if len(entries) == 0:
-        return []
-    head = entries[0]
-    tail = entries[1:]
-    for entry in tail:
-        if entry == head:
-            return _leaflist_unique_entries(tail)
-    return [head] + _leaflist_unique_entries(tail)
+    # Hash known leaf value types
+    if isinstance(v, bool):
+        "bool".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, float):
+        "float".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, Decimal):
+        "Decimal".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, str):
+        "str".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, bytes):
+        "bytes".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, u64):
+        "u64".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, int):
+        "int".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, Identityref):
+        "Identityref".hash(hasher)
+        v.hash(hasher)
+    elif isinstance(v, Present):
+        "Present".hash(hasher)
+    else:
+        bits = as_bits(v)
+        if bits is not None:
+            # str.hash feeds the characters without a length, so a sequence of
+            # strings must be joined. A YANG bit name cannot contain a space.
+            "bits".hash(hasher)
+            " ".join(bits).hash(hasher)
+        else:
+            raise ValueError("Unsupported value type in hash: {type(v)}")
 
 
 def _list_value_index(vals: list[LeafListEntry], target: LeafListEntry, start: int=0) -> ?int:
