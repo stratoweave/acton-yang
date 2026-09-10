@@ -39,8 +39,8 @@ class foo__ieee_802_3(yadata.MNode):
     mut def __init__(self, ieee_802_3: ?str) -> None:
         self.ieee_802_3 = ieee_802_3
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:ieee-802.3'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:ieee-802.3'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__ieee_802_3:
@@ -60,8 +60,8 @@ class root(yadata.MNode):
     mut def __init__(self, ieee_802_3: ?foo__ieee_802_3=None) -> None:
         self.ieee_802_3 = ieee_802_3 if ieee_802_3 is not None else foo__ieee_802_3()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:

@@ -107,8 +107,8 @@ class keywords__class(yadata.MNode):
         self.protocol = protocol
         self.type = type
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['keywords:class'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['keywords:class'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> keywords__class:
@@ -132,8 +132,8 @@ class keywords__import_entry(yadata.MNode):
         self.type = type
         self.class = class
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['keywords:import'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['keywords:import'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> keywords__import_entry:
@@ -185,8 +185,8 @@ class root(yadata.MNode):
         self.class = class if class is not None else keywords__class()
         self.import = keywords__import(elements=import)
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:

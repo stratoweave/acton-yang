@@ -44,8 +44,8 @@ class base__c1(yadata.MNode):
         self.bar_foo = bar_foo
         self.foo_foo = foo_foo
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:c1'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:c1'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__c1:

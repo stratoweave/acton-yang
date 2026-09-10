@@ -49,8 +49,8 @@ class parent__parent_container(yadata.MNode):
         self.parent_leaf = parent_leaf
         self.augmented_leaf = augmented_leaf
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:parent-container'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:parent-container'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> parent__parent_container:
@@ -72,8 +72,8 @@ class parent__sub_container(yadata.MNode):
         self.sub_leaf = sub_leaf
         self.another_leaf = another_leaf
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:sub-container'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:sub-container'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> parent__sub_container:
@@ -95,8 +95,8 @@ class root(yadata.MNode):
         self.parent_container = parent_container if parent_container is not None else parent__parent_container()
         self.sub_container = sub_container if sub_container is not None else parent__sub_container()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:

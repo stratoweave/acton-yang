@@ -253,13 +253,13 @@ def try_parse_xml_value(text_value: ?str, schema_node: yschema.DNodeLeaf, schema
     return None
 
 
-def from_xml(root: yschema.DRoot, data: xml.Node, loose: bool=False, root_path: list[str]=[]) -> ygdata.Container:
+def from_xml(root: yschema.DRoot, data: xml.Node, loose: bool=False, root_path: list[str]=[], prev: ?ygdata.Node=None) -> ygdata.Container:
     def type_narrower(v):
         if isinstance(v, xml.Node):
             return v
         raise ValueError("Value is not an xml.Node: {type(v)}")
 
-    return from_data(root, data, type_narrower, loose, root_path)
+    return from_data(root, data, type_narrower, loose, root_path, prev)
 
 
 def xml_node_ns(n: xml.Node) -> ?str:

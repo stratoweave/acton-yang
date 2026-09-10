@@ -56,8 +56,8 @@ class main_module__main_container__sub_group_container(yadata.MNode):
     mut def __init__(self, sub_group_leaf: ?str=None) -> None:
         self.sub_group_leaf = sub_group_leaf if sub_group_leaf is not None else "from-submodule"
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-group-container'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-group-container'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> main_module__main_container__sub_group_container:
@@ -81,8 +81,8 @@ class main_module__main_container__sub_list_entry(yadata.MNode):
         self.sub_value = sub_value
         self.ref_to_main = ref_to_main
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-list'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-list'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> main_module__main_container__sub_list_entry:
@@ -136,8 +136,8 @@ class main_module__main_container__group_container(yadata.MNode):
         self.group_leaf = group_leaf if group_leaf is not None else "refined-default"
         self.augmented_in_group = augmented_in_group
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'group-container'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'group-container'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> main_module__main_container__group_container:
@@ -165,8 +165,8 @@ class main_module__main_container(yadata.MNode):
         self.sub_list = main_module__main_container__sub_list(elements=sub_list)
         self.group_container = group_container if group_container is not None else main_module__main_container__group_container()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> main_module__main_container:
@@ -186,8 +186,8 @@ class root(yadata.MNode):
     mut def __init__(self, main_container: ?main_module__main_container=None) -> None:
         self.main_container = main_container if main_container is not None else main_module__main_container()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:

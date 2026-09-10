@@ -330,7 +330,7 @@ class _device_entry(yadata.MNode):
         self.leaf2 = leaf2
         self.leaf3 = leaf3
 
-    mut def to_gdata(self) -> ygdata.Node:
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
     @staticmethod
@@ -374,11 +374,11 @@ class _root(yadata.MNode):
     mut def __init__(self, device: ?_device=None) -> None:
         self.device = device if device is not None else _device()
 
-    mut def to_gdata(self) -> ygdata.Node:
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
         raise NotImplementedError("to_gdata")
 
-    mut def encode(self, schema: yschema.DRoot) -> ygdata.Node:
-        return yadata.from_adata(schema, self, loose=False, root_path=[])
+    mut def encode(self, schema: yschema.DRoot, prev: ?ygdata.Node=None) -> ygdata.Container:
+        return yadata.from_adata(schema, self, loose=False, root_path=[], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> _root:
@@ -408,8 +408,12 @@ def _test_adata_encode(t: testing.SyncT):
     """from_adata of a list, as a transform encodes its output"""
     schema = _schema()
     r = _root.from_gdata(_devices(0, t.scale(), 1))
+    prev = r.encode(schema)
+    # Without an Identity on gdata.Node, str(node) is an approximation that compares the adresses
+    assert str(r.encode(schema, prev=prev)) == str(prev)
     for n in t.loop():
-        _count(r.encode(schema), n)
+        prev = r.encode(schema, prev=prev)
+        _count(prev, n)
 
 
 def _test_adata_copy(t: testing.SyncT):
