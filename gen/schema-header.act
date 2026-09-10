@@ -760,8 +760,8 @@ class DNodeInner(DNode):
             if isinstance(self, DRoot):
                 res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose})")
             else:
-                root_path = ["{'{node.module}:' if prev.module != node.module else ''}{node.name}" if node is not None else None for prev, node in zip(spath, spath[1:] + [None])]
-                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose}, root_path={repr(root_path[:-1])})")
+                root_path = ["{'{node.module}:' if prev.module != node.module else ''}{node.name}" for prev, node in zip(spath, spath[1:])]
+                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose}, root_path={repr(root_path)})")
             res.append("")
 
             # .from_gdata()
