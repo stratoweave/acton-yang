@@ -2849,8 +2849,6 @@ def _prune_list_element(elem: Node, fnode: FNode, keys: list[Id]) -> (node: ?Nod
 
     groups = _group_filter_children(fnode.children)
     pruned_children: dict[Id, Node] = {}
-    for key in elem.children:
-        pruned_children[key] = elem.children[key]
     has_selection = False
     for name, flist in groups.items():
         if name not in elem.children:
@@ -2859,6 +2857,9 @@ def _prune_list_element(elem: Node, fnode: FNode, keys: list[Id]) -> (node: ?Nod
         if not res.matched:
             return (node=elem, matched=False, select=False)
         if res.select:
+            if not has_selection:
+                for key in elem.children:
+                    pruned_children[key] = elem.children[key]
             has_selection = True
             if res.node is None:
                 if name in pruned_children:
@@ -5889,6 +5890,22 @@ def _test_prune_list_select_leaf():
             }, ns=NS_acme, module="acme")
         }).prsrc(deterministic=True)
     )
+
+
+def _test_prune_list_select_before_predicate():
+    """Selections before a predicate remove all selected leaves only on matching entries."""
+    key = Id("", "name")
+    x = Id("", "x")
+    y = Id("", "y")
+    name = Id("", "items")
+    a = Container({key: Leaf("a"), x: Leaf(1), y: Leaf(2)})
+    b = Container({key: Leaf("b"), x: Leaf(3), y: Leaf(4)})
+    tree = Container({name: List([key], [a, b])})
+    filt = FNode(children=[FNode(name, children=[FNode(x), FNode(y), FNode(key, value_match="a")])])
+    expected = Container({name: List([key], [Container({key: Leaf("a")}), b])})
+    testing.assertEqual(prune(tree, filt), expected)
+    testing.assertEqual(a, Container({key: Leaf("a"), x: Leaf(1), y: Leaf(2)}))
+    testing.assertEqual(b, Container({key: Leaf("b"), x: Leaf(3), y: Leaf(4)}))
 
 
 def _test_prune_leaflist_values():
