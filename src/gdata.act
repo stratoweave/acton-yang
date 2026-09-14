@@ -2849,8 +2849,6 @@ def _prune_list_element(elem: Node, fnode: FNode, keys: list[Id]) -> (node: ?Nod
 
     groups = _group_filter_children(fnode.children)
     pruned_children: dict[Id, Node] = {}
-    for key in elem.children:
-        pruned_children[key] = elem.children[key]
     has_selection = False
     for name, flist in groups.items():
         if name not in elem.children:
@@ -2859,6 +2857,9 @@ def _prune_list_element(elem: Node, fnode: FNode, keys: list[Id]) -> (node: ?Nod
         if not res.matched:
             return (node=elem, matched=False, select=False)
         if res.select:
+            if not has_selection:
+                for key in elem.children:
+                    pruned_children[key] = elem.children[key]
             has_selection = True
             if res.node is None:
                 if name in pruned_children:
