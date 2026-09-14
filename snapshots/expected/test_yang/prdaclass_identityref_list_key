@@ -28,21 +28,21 @@ foo_id1: Identityref = Identityref('id1', ns='http://example.com/foo', mod='foo'
 foo_id2: Identityref = Identityref('id2', ns='http://example.com/foo', mod='foo', pfx='foo')
 
 
-SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, children=[
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, adata_name='c1', children=[
     DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=[
 'k1',
 'k2'
-        ], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k1', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k2', config=True, is_key=True, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, units=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_id1], identities=_identities))
+        ], config=True, min_elements=0, ordered_by='system', adata_name='l1', children=[
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k1', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='k1'),
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k2', config=True, is_key=True, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, units=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_id1], identities=_identities), adata_name='k2')
     ])
 ])
 
-SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1', adata_name='id1')
 
 SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id2', base=[
-        DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1')
-    ])
+        DIdentity(module='foo', namespace='http://example.com/foo', prefix='foo', name='id1', adata_name='id1')
+    ], adata_name='id2')
 
 SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],

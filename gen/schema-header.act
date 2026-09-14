@@ -286,6 +286,7 @@ class DNode(object):
     description: ?str
     reference: ?str
     exts: list[DExt]
+    adata_name: str
 
     def get(self, name: str, module: ?str=None, namespace: ?str=None, prefix: ?str=None, allow_unqualified=True) -> DNode:
         """Get child node by name with optional namespace qualifiers.
@@ -537,12 +538,7 @@ class DNodeInner(DNode):
         # unsupported nodes (DAny*), but it is lazy and wrong!
         self.children = new_children
 
-        unique_namer = UniqueNamer(self)
-
-        def usname(n) -> str:
-            return unique_namer.unique_safe_name(n.name, n.prefix)
-
-        # Avoid rebuilding UniqueNamer for every ancestor in path
+        # Avoid recomputing the path name for every ancestor in path
         # pname_cache is threaded through _prdaclass_rec
         def pname(n: ?DNode=None) -> str:
             if n is not None:
@@ -558,12 +554,9 @@ class DNodeInner(DNode):
             return val
 
         def us_list_key():
-            """Convert list key names (DList.key) to their unique safe names
-
-            We use the containing list node prefix since the list keys must be
-            defined in the same namespace as the list."""
+            """The adata attribute names of the list keys (DList.key), in key order"""
             if isinstance(self, DList):
-                return list(map(lambda x: unique_namer.unique_safe_name(x, self.prefix), self.key))
+                return [list_key_child(self, k).adata_name for k in self.key]
             raise ValueError("{self} not a list node")
 
         def maybe_user_order(n: DList):
@@ -601,16 +594,16 @@ class DNodeInner(DNode):
 
         for child in attr_children:
             if isinstance(child, DLeaf):
-                res.append("    {usname(child)}: {yang_leaf_to_acton_type(child, loose)}")
+                res.append("    {child.adata_name}: {yang_leaf_to_acton_type(child, loose)}")
             elif isinstance(child, DLeafList):
-                res.append("    {usname(child)}: {yang_leaflist_to_acton_type(child)}")
+                res.append("    {child.adata_name}: {yang_leaflist_to_acton_type(child)}")
             elif isinstance(child, DContainer):
                 if child.presence:
-                    res.append("    {usname(child)}: ?{pname(child)}")
+                    res.append("    {child.adata_name}: ?{pname(child)}")
                 else:
-                    res.append("    {usname(child)}: {pname(child)}")
+                    res.append("    {child.adata_name}: {pname(child)}")
             elif isinstance(child, DNodeInner):
-                res.append("    {usname(child)}: {pname(child)}")
+                res.append("    {child.adata_name}: {pname(child)}")
             elif isinstance(child, DAnydata):
                 pass # TODO
             elif isinstance(child, DAnyxml):
@@ -631,21 +624,21 @@ class DNodeInner(DNode):
         for child in attr_children:
             if isinstance(child, DContainer):
                 if loose or child.presence or optional_subtree(child):
-                    opt_args.append("{usname(child)}: ?{pname(child)}=None")
+                    opt_args.append("{child.adata_name}: ?{pname(child)}=None")
                 else:
-                    req_args.append("{usname(child)}: {pname(child)}")
+                    req_args.append("{child.adata_name}: {pname(child)}")
             elif isinstance(child, DLeaf):
                 optional_arg = is_optional_arg_yang_leaf(child, loose)
                 defval = "=None" if optional_arg else ""
-                child_arg = "{usname(child)}: {yang_leaf_to_acton_arg_type(child, loose)}{defval}"
+                child_arg = "{child.adata_name}: {yang_leaf_to_acton_arg_type(child, loose)}{defval}"
                 if optional_arg:
                     opt_args.append(child_arg)
                 else:
                     req_args.append(child_arg)
             elif isinstance(child, DLeafList):
-                opt_args.append("{usname(child)}: ?{yang_leaflist_to_acton_type(child)}=None")
+                opt_args.append("{child.adata_name}: ?{yang_leaflist_to_acton_type(child)}=None")
             elif isinstance(child, DList):
-                opt_args.append("{usname(child)}: list[{pname(child)}_entry]=[]")
+                opt_args.append("{child.adata_name}: list[{pname(child)}_entry]=[]")
 
         init_args_str = ", ".join(["self"] + req_args + opt_args)
         res.append("    mut def __init__({init_args_str}) -> None:")
@@ -653,11 +646,11 @@ class DNodeInner(DNode):
         for child in attr_children:
             if isinstance(child, DContainer):
                 if (loose or optional_subtree(child)) and not child.presence:
-                    res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {pname(child)}()")
+                    res.append("        self.{child.adata_name} = {child.adata_name} if {child.adata_name} is not None else {pname(child)}()")
                 else:
                     # NOTE: the default argument for P-container is None, so
                     # although unconditionally set here, it can be None
-                    res.append("        self.{usname(child)} = {usname(child)}")
+                    res.append("        self.{child.adata_name} = {child.adata_name}")
             elif isinstance(child, DLeaf):
                 child_default = child.default
                 if not loose and child_default is not None:
@@ -665,18 +658,18 @@ class DNodeInner(DNode):
                     if isinstance(root, DRoot):
                         default = prsrc_default(child.type, child_default, root.identities, child.module)
                         if default is not None:
-                            res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {default}")
+                            res.append("        self.{child.adata_name} = {child.adata_name} if {child.adata_name} is not None else {default}")
                         else:
                             raise ValueError("Invalid default '{child_default}' for leaf {self.name}.{child.name}, expected {child.type.format_hint()}")
                     else:
                         raise ValueError("Expected DRoot at start of spath, got {type(root)}")
                 else:
-                    res.append("        self.{usname(child)} = {usname(child)}")
+                    res.append("        self.{child.adata_name} = {child.adata_name}")
             elif isinstance(child, DLeafList):
                 # TODO: this is where we can set the leaf-list to a default value, not []
-                res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else []")
+                res.append("        self.{child.adata_name} = {child.adata_name} if {child.adata_name} is not None else []")
             elif isinstance(child, DList):
-                res.append("        self.{usname(child)} = {pname(child)}(elements={usname(child)})")
+                res.append("        self.{child.adata_name} = {pname(child)}(elements={child.adata_name})")
         if len(attr_children) == 0:
             res.append("        pass")
         res.append("")
@@ -686,33 +679,28 @@ class DNodeInner(DNode):
         # container
         for child in attr_children:
             if isinstance(child, DContainer) and child.presence:
-                # We must generate unique safe names for this node children too
-                child_unique_namer = UniqueNamer(child)
-
                 pc_args_req = []
                 pc_args_req_sig = []
                 pc_args_opt = []
                 pc_args_opt_sig = []
                 for cchild in child.children:
                     if isinstance(cchild, DLeaf):
-                        carg = child_unique_namer.unique_safe_name(cchild.name, cchild.prefix)
                         ctype = yang_leaf_to_acton_arg_type(cchild, loose)
                         if is_optional_arg_yang_leaf(cchild, loose):
-                            pc_args_opt.append(carg)
-                            pc_args_opt_sig.append("{carg}: {ctype}=None")
+                            pc_args_opt.append(cchild.adata_name)
+                            pc_args_opt_sig.append("{cchild.adata_name}: {ctype}=None")
                         else:
-                            pc_args_req.append(carg)
-                            pc_args_req_sig.append("{carg}: {ctype}")
+                            pc_args_req.append(cchild.adata_name)
+                            pc_args_req_sig.append("{cchild.adata_name}: {ctype}")
                     elif isinstance(cchild, DContainer):
                         if not (loose or optional_subtree(cchild) or cchild.presence):
-                            carg = child_unique_namer.unique_safe_name(cchild.name, cchild.prefix)
                             ctype = get_path_name(spath + [child, cchild])
-                            pc_args_req.append(carg)
-                            pc_args_req_sig.append("{carg}: {ctype}")
+                            pc_args_req.append(cchild.adata_name)
+                            pc_args_req_sig.append("{cchild.adata_name}: {ctype}")
                 pc_args_str = ", ".join(["self"] + pc_args_req_sig + pc_args_opt_sig)
                 pc_params_str= ", ".join(["{arg}={arg}" for arg in pc_args_req + pc_args_opt])
-                res.append("    mut def create_{usname(child)}({pc_args_str}) -> {pname(child)}:")
-                res.append("        existing = self.{usname(child)}")
+                res.append("    mut def create_{child.adata_name}({pc_args_str}) -> {pname(child)}:")
+                res.append("        existing = self.{child.adata_name}")
                 res.append("        if existing is not None:")
                 for req_arg in pc_args_req:
                     res.append("            existing.{req_arg} = {req_arg}")
@@ -721,7 +709,7 @@ class DNodeInner(DNode):
                     res.append("                existing.{opt_arg} = {opt_arg}")
                 res.append("            return existing")
                 res.append("        res = {pname(child)}({pc_params_str})")
-                res.append("        self.{usname(child)} = res")
+                res.append("        self.{child.adata_name} = res")
                 res.append("        return res")
                 res.append("")
 
@@ -740,9 +728,9 @@ class DNodeInner(DNode):
             from_gdata_args_list = []
             for child in attr_children:
                 if isinstance(child, DNodeLeaf):
-                    from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
+                    from_gdata_args_list.append("{child.adata_name}=n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
                 else:
-                    from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}')))")
+                    from_gdata_args_list.append("{child.adata_name}={pname(child)}.from_gdata(n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}')))")
             from_gdata_args = ", ".join(from_gdata_args_list)
             res.append("    @staticmethod")
             if isinstance(self, DList):
@@ -799,24 +787,22 @@ class DNodeInner(DNode):
             list_key_types = {}
             for child in attr_children:
                 if isinstance(child, DLeaf):
-                    arg = usname(child)
                     arg_type = yang_leaf_to_acton_arg_type(child, loose)
-                    if arg in list_key_args:
-                        list_key_types[arg] = child.type
-                        list_args_req.append(arg)
-                        list_args_req_sig.append("{arg}: {arg_type}")
+                    if child.adata_name in list_key_args:
+                        list_key_types[child.adata_name] = child.type
+                        list_args_req.append(child.adata_name)
+                        list_args_req_sig.append("{child.adata_name}: {arg_type}")
                         continue
                     if is_optional_arg_yang_leaf(child, loose):
-                        list_args_opt.append(arg)
-                        list_args_opt_sig.append("{arg}: {arg_type}=None")
+                        list_args_opt.append(child.adata_name)
+                        list_args_opt_sig.append("{child.adata_name}: {arg_type}=None")
                     else:
-                        list_args_req.append(arg)
-                        list_args_req_sig.append("{arg}: {arg_type}")
+                        list_args_req.append(child.adata_name)
+                        list_args_req_sig.append("{child.adata_name}: {arg_type}")
                 elif isinstance(child, DContainer):
                     if not (loose or optional_subtree(child) or child.presence):
-                        arg = usname(child)
-                        list_args_req.append(arg)
-                        list_args_req_sig.append("{arg}: {pname(child)}")
+                        list_args_req.append(child.adata_name)
+                        list_args_req_sig.append("{child.adata_name}: {pname(child)}")
 
             # Lists whose key leaves all map to Hashable Acton types (concrete
             # types/tuples where Hashable is (automatically) implemented)
@@ -1065,11 +1051,12 @@ class DAction(DNodeInner):
     if_feature: list[str]
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], reference=None, status=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], reference=None, status=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Action"
         self.config = False
         self.description = description
@@ -1090,6 +1077,7 @@ class DAction(DNodeInner):
             ("reference", self.reference),
             ("status", self.status),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DAnydata(DNode):
@@ -1099,11 +1087,12 @@ class DAnydata(DNode):
     status: ?str
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Anydata"
         self.config = config
         self.description = description
@@ -1130,6 +1119,7 @@ class DAnydata(DNode):
             ("status", self.status),
             ("when", self.when),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DAnyxml(DNode):
@@ -1139,11 +1129,12 @@ class DAnyxml(DNode):
     status: ?str
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Anyxml"
         self.config = config
         self.description = description
@@ -1170,6 +1161,7 @@ class DAnyxml(DNode):
             ("status", self.status),
             ("when", self.when),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DContainer(DNodeInner):
@@ -1178,11 +1170,12 @@ class DContainer(DNodeInner):
     presence: bool
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature=[], must=[], presence: bool, reference=None, status=None, when=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature=[], must=[], presence: bool, reference=None, status=None, when=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Container"
         self.config = config
         self.description = description
@@ -1210,17 +1203,19 @@ class DContainer(DNodeInner):
             ("status", self.status),
             ("when", self.when),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DIdentity(DNode):
     base: list[DIdentity]
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, base: list[DIdentity]=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, base: list[DIdentity]=[], adata_name: ?str=None):
         self.gname = "Identity"
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.config = False
         self.description = None
         self.reference = None
@@ -1235,6 +1230,7 @@ class DIdentity(DNode):
             ("name", self.name),
             ("exts", self.exts),
             ("base", self.base),
+            ("adata_name", self.adata_name),
         ]
 
     def __repr__(self):
@@ -1315,11 +1311,12 @@ class DIdentity(DNode):
 class DInput(DNodeInner):
     must: list[DMust]
 
-    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = "input"
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Container"
         self.config = False
         self.description = None
@@ -1337,6 +1334,7 @@ class DInput(DNodeInner):
             ("reference", self.reference),
             ("must", self.must),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DModule(DNodeInner):
@@ -1352,9 +1350,10 @@ class DModule(DNodeInner):
     revision: list[Revision]
     yang_version: float
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[], augment=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[], augment=[], adata_name: ?str=None):
         self.module = module
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Container"
         self.namespace = namespace
         self.prefix = prefix
@@ -1397,6 +1396,7 @@ class DModule(DNodeInner):
             ("reference", self.reference),
             ("revision", self.revision),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DList(DNodeInner):
@@ -1410,11 +1410,12 @@ class DList(DNodeInner):
     unique: list[str]
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, unique=[], when=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, unique=[], when=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "List"
         self.key = key
         self.config = config
@@ -1450,6 +1451,7 @@ class DList(DNodeInner):
             ("unique", self.unique),
             ("when", self.when),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DLeaf(DNodeLeaf):
@@ -1458,11 +1460,12 @@ class DLeaf(DNodeLeaf):
     mandatory: bool
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory: bool=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory: bool=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Leaf"
         self.config = config
         self.description = description
@@ -1497,6 +1500,7 @@ class DLeaf(DNodeLeaf):
             ("units", self.units),
             ("when", self.when),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 
@@ -1507,11 +1511,12 @@ class DLeafList(DNodeLeaf):
     ordered_by: str
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, type: DType, units=None, when=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "LeafList"
         self.config = config
         self.description = description
@@ -1548,6 +1553,7 @@ class DLeafList(DNodeLeaf):
             ("units", self.units),
             ("when", self.when),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 
@@ -1584,11 +1590,12 @@ class DNotification(DNodeInner):
     must: list[DMust]
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], must=[], reference=None, status=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], must=[], reference=None, status=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Notification"
         self.config = False
         self.description = description
@@ -1611,16 +1618,18 @@ class DNotification(DNodeInner):
             ("reference", self.reference),
             ("status", self.status),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 class DOutput(DNodeInner):
     must: list[DMust]
 
-    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = "output"
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Container"
         self.config = False
         self.description = None
@@ -1638,6 +1647,7 @@ class DOutput(DNodeInner):
             ("reference", self.reference),
             ("must", self.must),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 # Tuple alias for the entry in the module_metadata dict
@@ -1649,11 +1659,12 @@ class DRoot(DNodeInner):
     rpcs: list[DRpc]
     module_metadata: dict[str, ModuleMetadata]
 
-    def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, ModuleMetadata]={}):
+    def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, ModuleMetadata]={}, adata_name: ?str=None):
         self.module = ""
         self.namespace = ""
         self.prefix = ""
         self.name = "root"
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Container"
         self.config = True
         self.description = None
@@ -1754,6 +1765,7 @@ class DRoot(DNodeInner):
 
         # Resolve DType references, e.g. resolve base identities
         root.resolve_references(root, [], allow_failure)
+        set_adata_names(root.children)
 
         return root
 
@@ -1803,6 +1815,7 @@ class DRoot(DNodeInner):
             ("rpcs", self.rpcs),
             ("identities", self.identities),
             ("module_metadata", self.module_metadata),
+            ("adata_name", self.adata_name),
         ]
 
     def _pr_src_dnode_consts(self) -> list[str]:
@@ -2088,7 +2101,7 @@ class DRoot(DNodeInner):
                 res.append(node)
             return res
 
-        # Avoid rebuilding UniqueNamer for every ancestor in path
+        # Avoid recomputing the path name for every ancestor in path
         _path_name_cache: dict[str, str] = {}
         def cached_path_name(spath: list[DNodeInner]) -> str:
             key = "/".join(["{n.prefix}:{n.name}" for n in spath])
@@ -2127,12 +2140,6 @@ class DRoot(DNodeInner):
                     res.append(child)
             return res
 
-        def list_key_child(node: DList, key_name: str) -> DLeaf:
-            for child in node.children:
-                if isinstance(child, DLeaf) and child.is_key and child.name == key_name:
-                    return child
-            raise ValueError("Unable to find key leaf {key_name} in list {node.name}")
-
         def emit_node(spath: list[DNodeInner], breaker_idx: int) -> (list[str], int):
             node = spath[-1]
 
@@ -2149,7 +2156,6 @@ class DRoot(DNodeInner):
                 child_res, breaker_idx = emit_node(spath + [child], breaker_idx)
                 res.extend(child_res)
 
-            unique_namer = UniqueNamer(node)
             reserved_names = {"subscribe", "filt", "entry", "dst", "_segments", "_direct_children"}
 
             def key_fields() -> list[(str, str)]:
@@ -2240,13 +2246,7 @@ class DRoot(DNodeInner):
                 res.append("")
 
             def usname(n: DNode) -> str:
-                name = unique_namer.unique_safe_name(n.name, n.prefix)
-                if name in reserved_names:
-                    return name + "_"
-                return name
-
-            def us_list_key(key_name: str) -> str:
-                name = unique_namer.unique_safe_name(key_name, node.prefix)
+                name = n.adata_name
                 if name in reserved_names:
                     return name + "_"
                 return name
@@ -2319,12 +2319,12 @@ class DRoot(DNodeInner):
                     entry_args = []
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
-                        entry_args.append("{us_list_key(key_name)}: {yang_leaf_to_acton_arg_type(key_leaf, loose=False)}")
+                        entry_args.append("{usname(key_leaf)}: {yang_leaf_to_acton_arg_type(key_leaf, loose=False)}")
                     res.append("    pure def entry(self, {', '.join(entry_args)}) -> {subs_entry_path_name(spath)}:")
                     res.append("        predicates = [")
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
-                        res.append("            ygdata.FNode(ygdata.Id(NS_{safe_name(key_leaf.module)}, '{key_leaf.name}'), value_match={us_list_key(key_name)}),")
+                        res.append("            ygdata.FNode(ygdata.Id(NS_{safe_name(key_leaf.module)}, '{key_leaf.name}'), value_match={usname(key_leaf)}),")
                     res.append("        ]")
                     res.append("        base_path = self._path!.parent")
                     res.append("        return {subs_entry_path_name(spath)}(SubscriptionPath(ygdata.Id(NS_{safe_name(node.module)}, '{node.name}'), predicates=predicates, parent=base_path))")
@@ -2353,11 +2353,12 @@ class DRpc(DNodeInner):
     output: ?DOutput
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], input: ?DInput=None, output: ?DOutput=None, reference=None, status=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], input: ?DInput=None, output: ?DOutput=None, reference=None, status=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name if adata_name is not None else safe_name(self.name)
         self.gname = "Rpc"
         self.config = False
         self.description = description
@@ -2382,6 +2383,7 @@ class DRpc(DNodeInner):
             ("reference", self.reference),
             ("status", self.status),
             ("exts", self.exts),
+            ("adata_name", self.adata_name),
         ]
 
 
@@ -3358,6 +3360,7 @@ class SchemaNode(object):
                 if in_choice:
                     unset_mandatory(dnode_child)
                 new_children.append(dnode_child)
+            set_adata_names(new_children)
             return new_children
         raise ValueError("get_dnode_children() called on non-inner node {type(self)}")
 
@@ -4580,28 +4583,51 @@ def safe_name(name: str, safe_kw=True) -> str:
     return new
 
 
-class UniqueNamer(object):
-    def __init__(self, node: DNodeInner):
-        seen = set()
-        dups = set()
-        for child in node.children:
-            if child.name in seen:
-                dups.add(child.name)
-            else:
-                seen.add(child.name)
-        self._name_conflicts = dups
+def set_adata_names(children: list[DNode]) -> None:
+    """Prefix adata_name in children with conflicting names
 
-    def unique_name(self, name, prefix):
-        if name not in self._name_conflicts:
-            return name
-        return "{prefix}:{name}"
+    In DNode constructor we already set adata_name to safe_name(name) as a
+    default (if adata_name arg is not provided). After collecting all the
+    children, we run this and check whether multiple namespaces contribute to
+    the siblings and add prefixes as needed.
+    """
+    if len(children) < 2:
+        return
+    namespace = children[0].namespace
+    for child in children:
+        if child.namespace != namespace:
+            break
+    else:
+        return
+    seen = set()
+    dups = set()
+    for child in children:
+        if child.name in seen:
+            dups.add(child.name)
+        else:
+            seen.add(child.name)
+    for child in children:
+        if child.name in dups:
+            child.adata_name = safe_name("{child.prefix}_{child.name}")
 
-    def unique_safe_name(self, name, prefix, safe_kw=True):
-        unique_name = self.unique_name(name, prefix)
-        return safe_name(unique_name, safe_kw).replace(":", "_")
 
-    def is_unique(self, name):
-        return name not in self._name_conflicts
+pure def unique_name(parent: DNodeInner, node: DNode) -> str:
+    """node.name, qualified with its prefix when another child of parent has
+    the same name; the path form of adata_name, for schema paths and errors"""
+    same = 0
+    for child in parent.children:
+        if child.name == node.name:
+            same += 1
+    if same > 1:
+        return "{node.prefix}:{node.name}"
+    return node.name
+
+
+def list_key_child(node: DList, key_name: str) -> DLeaf:
+    for child in node.children:
+        if isinstance(child, DLeaf) and child.is_key and child.name == key_name:
+            return child
+    raise ValueError("Unable to find key leaf {key_name} in list {node.name}")
 
 
 def get_path_name(path: list[DNode]) -> str:
@@ -4654,8 +4680,7 @@ def get_path_usnames(path: list[DNode]) -> list[str]:
             if isinstance(prev, DRoot):
                 res.append(safe_name(node.module, safe_kw=False))
             if isinstance(prev, DNodeInner):
-                un = UniqueNamer(prev)
-                res.append(un.unique_safe_name(node.name, node.prefix, safe_kw=False))
+                res.append(safe_name(unique_name(prev, node), safe_kw=False).replace(":", "_"))
         elif isinstance(node, DRoot):
             continue
         else:
@@ -4709,8 +4734,7 @@ def get_path_unames(path: list[DNode]) -> list[str]:
         if i > 0:
             prev = path[i-1]
             if isinstance(prev, DNodeInner):
-                un = UniqueNamer(prev)
-                res.append(un.unique_name(node.name, node.prefix))
+                res.append(unique_name(prev, node))
         elif isinstance(node, DRoot):
             res.append("")
         else:

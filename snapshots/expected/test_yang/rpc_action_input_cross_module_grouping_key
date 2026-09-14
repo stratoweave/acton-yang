@@ -18,18 +18,18 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0: DContainer = DContainer(module='svc', namespace='urn:example:svc', prefix='svc', name='mgmt', config=True, presence=False)
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='svc', namespace='urn:example:svc', prefix='svc', name='mgmt', config=True, presence=False, adata_name='mgmt')
 
-SRC_DNODE_RPC_0: DRpc = DRpc(module='svc', namespace='urn:example:svc', prefix='svc', name='register', input=DInput(module='svc', namespace='urn:example:svc', prefix='svc', children=[
-    DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, units=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+SRC_DNODE_RPC_0: DRpc = DRpc(module='svc', namespace='urn:example:svc', prefix='svc', name='register', input=DInput(module='svc', namespace='urn:example:svc', prefix='svc', adata_name='input', children=[
+    DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', adata_name='servers', children=[
+        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='id'),
+        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, units=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])), adata_name='port')
     ])
-]), children=[
-    DInput(module='svc', namespace='urn:example:svc', prefix='svc', children=[
-        DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', children=[
-            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, units=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+]), adata_name='register', children=[
+    DInput(module='svc', namespace='urn:example:svc', prefix='svc', adata_name='input', children=[
+        DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', adata_name='servers', children=[
+            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='id'),
+            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, units=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])), adata_name='port')
         ])
     ])
 ])
