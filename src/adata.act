@@ -111,24 +111,24 @@ extension MKeyedList[K(Hashable), T(MNode)](Indexed[K, T]):
 
 
 extension MNode (YangData):
-    def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
-        maybe_cnt = self.__get_attr__(name)
+    def take_container(self, schema: yschema.DContainer, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
+        maybe_cnt = self.__get_attr__(schema.adata_name!)
         if maybe_cnt is not None:
             return (op=None, val=maybe_cnt)
 
-    def take_list(self, schema: yschema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
+    def take_list(self, schema: yschema.DList, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
-        maybe_list = self.__get_attr__(name)
+        maybe_list = self.__get_attr__(schema.adata_name!)
         if isinstance(maybe_list, MList):
-            key_namer = yschema.UniqueNamer(schema)
+            key_names = [yschema.list_key_child(schema, k).adata_name! for k in schema.key]
             def element_key(entry: MNode) -> dict[str, value]:
-                return {k: unwrap_key(k, entry.__get_attr__(key_namer.unique_safe_name(k, schema.prefix)), new_path) for k in schema.key}
+                return {schema.key[i]: unwrap_key(schema.key[i], entry.__get_attr__(key_names[i]), new_path) for i in range(len(key_names))}
             return [(op=None, key=element_key(e), val=e) for e in maybe_list]
         return []
 
-    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
+    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         new_path = path + [PathElement(schema)]
-        maybe_attr = self.__get_attr__(name)
+        maybe_attr = self.__get_attr__(schema.adata_name!)
         if maybe_attr is not None:
             schema_type = schema.type
             tv = try_validate_mnode_value(maybe_attr, schema_type, new_path)
@@ -138,10 +138,10 @@ extension MNode (YangData):
                 return (op=None, val=tv.val)
             raise YangValidationError(path, schema_type, maybe_attr)
 
-    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, val: ?value)]:
+    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: ?str, val: ?value)] = []
-        children = self.__get_attr__(name)
+        children = self.__get_attr__(schema.adata_name!)
         if isinstance(children, list):
             schema_type = schema.type
             for child in children:

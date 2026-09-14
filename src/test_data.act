@@ -5,6 +5,7 @@ import lib as yang
 import adata as yadata
 import gdata as ygdata
 import schema as yschema
+import xpath as yxpath
 
 from data import YangValidationError, format_schema_path
 from xml import from_xml
@@ -317,8 +318,20 @@ def _test_leafref_target_type_json():
     return gd.prsrc()
 
 
+def _leafref_uint_dnode() -> yschema.DRoot:
+    """The schema ayangc prints for _leafref_uint_schema() into a generated
+    module, by prdaclass() and prsrc()"""
+    return yschema.DRoot(module_metadata={'urn:example:y1':('y1', None, [], True)}, children=[
+        yschema.DContainer(module='y1', namespace='urn:example:y1', prefix='y1', name='c', config=True, presence=False, adata_name='c', children=[
+            yschema.DLeaf(module='y1', namespace='urn:example:y1', prefix='y1', name='n', config=True, is_key=False, mandatory=False, type=yschema.DTypeIntegerUnsigned(name='uint8', description=None, reference=None, units=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)])), adata_name='n'),
+            yschema.DLeaf(module='y1', namespace='urn:example:y1', prefix='y1', name='ref', config=True, is_key=False, mandatory=False, type=yschema.DTypeLeafref(name='leafref', description=None, reference=None, units=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep(None, 'c', []), yxpath.NodeTestStep(None, 'n', [])]), require_instance=False, target_type=yschema.DTypeIntegerUnsigned(name='uint8', description=None, reference=None, units=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)]))), adata_name='ref'),
+            yschema.DLeafList(module='y1', namespace='urn:example:y1', prefix='y1', name='refs', config=True, min_elements=0, ordered_by='system', type=yschema.DTypeLeafref(name='leafref', description=None, reference=None, units=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep(None, 'c', []), yxpath.NodeTestStep(None, 'n', [])]), require_instance=False, target_type=yschema.DTypeIntegerUnsigned(name='uint8', description=None, reference=None, units=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)]))), adata_name='refs')
+        ])
+    ])
+
+
 def _test_leafref_target_type_adata():
-    s = yang.compile([_leafref_uint_schema()])
+    s = _leafref_uint_dnode()
     ad = _test_leafref_root(_test_leafref_c(7, 7, [7, 8]))
     gd = yadata.from_adata(s, ad)
     return gd.prsrc()

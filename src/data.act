@@ -116,12 +116,12 @@ protocol YangData:
     that can carry YANG-modeled data, like XML and JSON
     """
     # TODO: can value implement YangData? Yes, once Acton supports recursive protocol definitions ...
-    take_container: mut(yschema.DContainer, str, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
-    take_list: mut(yschema.DList, str, bool, list[PathElement]) -> list[(op: ?str, key: dict[str, value], val: value)]
+    take_container: mut(yschema.DContainer, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
+    take_list: mut(yschema.DList, bool, list[PathElement]) -> list[(op: ?str, key: dict[str, value], val: value)]
     # Return the operation and parsed value of a leaf, or None for a missing leaf
-    take_leaf: mut(yschema.DRoot, yschema.DLeaf, str, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
+    take_leaf: mut(yschema.DRoot, yschema.DLeaf, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
     # Return the operation and parsed value of each leaf-list item
-    take_leaflist: mut(yschema.DRoot, yschema.DLeafList, str, bool, list[PathElement]) -> list[(op: ?str, val: ?value)]
+    take_leaflist: mut(yschema.DRoot, yschema.DLeafList, bool, list[PathElement]) -> list[(op: ?str, val: ?value)]
 
 
 def user_order(ordered_by):
@@ -243,10 +243,6 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
         prev_children = prev_container.children
     changed = False
 
-    unique_namer = yschema.UniqueNamer(s)
-    def usname(n) -> str:
-        return unique_namer.unique_safe_name(n.name, n.prefix)
-
     for child in s.children:
         if skip_nonkeys and isinstance(s, yschema.DList) and child.name not in s.key:
             continue
@@ -268,7 +264,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
             mod = child.module
 
         if isinstance(child, yschema.DContainer):
-            opval = data.take_container(child, usname(child), s.namespace != child.namespace, spath)
+            opval = data.take_container(child, s.namespace != child.namespace, spath)
             if opval is not None:
                 val = type_narrower(opval.val)
                 prev_cchild = prev_children.get(cid)
@@ -290,7 +286,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                         raise ValueError("Error reading {format_schema_path(path_with_child())}: Cannot find child node with name {child.name}")
 
         elif isinstance(child, yschema.DList):
-            list_val = data.take_list(child, usname(child), s.namespace != child.namespace, spath)
+            list_val = data.take_list(child, s.namespace != child.namespace, spath)
             list_elements = []
             prev_list = prev_children.get(cid)
             list_changed = False
@@ -316,7 +312,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                     changed = True
 
         elif isinstance(child, yschema.DLeafList):
-            leaflist_val = data.take_leaflist(root, child, usname(child), s.namespace != child.namespace, spath)
+            leaflist_val = data.take_leaflist(root, child, s.namespace != child.namespace, spath)
             if len(leaflist_val) > 0:
                 entries: list[ygdata.LeafListEntry] = []
                 for item in leaflist_val:
@@ -347,7 +343,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
 
         elif isinstance(child, yschema.DLeaf):
-            typed = data.take_leaf(root, child, usname(child), s.namespace != child.namespace, spath)
+            typed = data.take_leaf(root, child, s.namespace != child.namespace, spath)
             if typed is not None:
                 wleaf = None
                 if typed.op == OP_REMOVE:

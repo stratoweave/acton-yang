@@ -285,6 +285,8 @@ class DNode(object):
     description: ?str
     reference: ?str
     exts: list[DExt]
+    # Unique safe name this node. Only set in the bundled schema, None in schemas compiled at runtime
+    adata_name: ?str
 
     def get(self, name: str, module: ?str=None, namespace: ?str=None, prefix: ?str=None, allow_unqualified=True) -> DNode:
         """Get child node by name with optional namespace qualifiers.
@@ -387,12 +389,18 @@ class DNode(object):
     def _get_class_name(self):
         return type(self).split(".")[-1]
 
-    def prsrc(self, indent=0):
+    def prsrc(self, indent=0, adata_name: ?str=None):
         """Print Acton source code for this compiled schema node and its subnodes
+
+        The node is printed with adata_name, and each child with the adata
+        attribute name UniqueNamer gives it among the children of this node.
         """
         res = []
         args = []
-        attrs_text = _prsrc_attrs(indent, self._get_attrs())
+        attrs = self._get_attrs()
+        if adata_name is not None:
+            attrs.append(("adata_name", adata_name))
+        attrs_text = _prsrc_attrs(indent, attrs)
         if len(attrs_text) > 0:
             args.append(attrs_text)
         have_children = True if isinstance(self, DNodeInner) and len(self.children) > 0 else False
@@ -404,7 +412,8 @@ class DNode(object):
             text_line += ')'
         res.append(text_line)
         if isinstance(self, DNodeInner) and have_children:
-            child_res = [child.prsrc(indent+1) for child in self.children]
+            unique_namer = UniqueNamer(self)
+            child_res = [child.prsrc(indent+1, unique_namer.unique_safe_name(child.name, child.prefix)) for child in self.children]
             res.append(",\n".join(child_res))
             res.append(_ind(indent) + "])")
         return "\n".join(res)
@@ -1066,11 +1075,12 @@ class DAction(DNodeInner):
     if_feature: list[str]
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], reference=None, status=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], reference=None, status=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = False
         self.description = description
         self.if_feature = if_feature
@@ -1099,11 +1109,12 @@ class DAnydata(DNode):
     status: ?str
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1138,11 +1149,12 @@ class DAnyxml(DNode):
     status: ?str
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature: list[str]=[], mandatory: ?bool=None, must: list[DMust]=[], reference: ?str=None, status: ?str=None, when: ?str=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1176,11 +1188,12 @@ class DContainer(DNodeInner):
     presence: bool
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature=[], must=[], presence: bool, reference=None, status=None, when=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, if_feature=[], must=[], presence: bool, reference=None, status=None, when=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1212,11 +1225,12 @@ class DContainer(DNodeInner):
 class DIdentity(DNode):
     base: list[DIdentity]
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, base: list[DIdentity]=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, base: list[DIdentity]=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = False
         self.description = None
         self.reference = None
@@ -1311,11 +1325,12 @@ class DIdentity(DNode):
 class DInput(DNodeInner):
     must: list[DMust]
 
-    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = "input"
+        self.adata_name = adata_name
         self.config = False
         self.description = None
         self.reference = None
@@ -1347,9 +1362,10 @@ class DModule(DNodeInner):
     revision: list[Revision]
     yang_version: float
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[], augment=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[], augment=[], adata_name: ?str=None):
         self.module = module
         self.name = name
+        self.adata_name = adata_name
         self.namespace = namespace
         self.prefix = prefix
         self.yang_version = yang_version
@@ -1404,11 +1420,12 @@ class DList(DNodeInner):
     unique: list[str]
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, unique=[], when=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, unique=[], when=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.key = key
         self.config = config
         self.description = description
@@ -1451,11 +1468,12 @@ class DLeaf(DNodeLeaf):
     mandatory: bool
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory: bool=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory: bool=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = config
         self.description = description
         self.default = default
@@ -1499,11 +1517,12 @@ class DLeafList(DNodeLeaf):
     ordered_by: str
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, type: DType, units=None, when=None, exts=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = config
         self.description = description
         self.default = default
@@ -1575,11 +1594,12 @@ class DNotification(DNodeInner):
     must: list[DMust]
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], must=[], reference=None, status=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], must=[], reference=None, status=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = False
         self.description = description
         self.if_feature = if_feature
@@ -1606,11 +1626,12 @@ class DNotification(DNodeInner):
 class DOutput(DNodeInner):
     must: list[DMust]
 
-    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, must=[], exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = "output"
+        self.adata_name = adata_name
         self.config = False
         self.description = None
         self.reference = None
@@ -1638,11 +1659,12 @@ class DRoot(DNodeInner):
     rpcs: list[DRpc]
     module_metadata: dict[str, ModuleMetadata]
 
-    def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, ModuleMetadata]={}):
+    def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, ModuleMetadata]={}, adata_name: ?str=None):
         self.module = ""
         self.namespace = ""
         self.prefix = ""
         self.name = "root"
+        self.adata_name = adata_name
         self.config = True
         self.description = None
         self.reference = None
@@ -1826,19 +1848,21 @@ class DRoot(DNodeInner):
             node_const_prefix: str,
             list_const_prefix: str,
             split_threshold=50,
-            force_const=False
+            force_const=False,
+            adata_name: ?str=None
         ) -> str:
             if isinstance(node, DNodeInner):
                 should_split = _dnode_size(node) > split_threshold
                 if not force_const and not should_split:
-                    return node.prsrc()
+                    return node.prsrc(adata_name=adata_name)
 
                 const_name = _next_const(node_const_prefix)
                 if not should_split:
-                    res.append("{const_name}: {node._get_class_name()} = {node.prsrc()}")
+                    res.append("{const_name}: {node._get_class_name()} = {node.prsrc(adata_name=adata_name)}")
                     res.append("")
                     return const_name
 
+                unique_namer = UniqueNamer(node)
                 child_consts = []
                 for child in node.children:
                     child_consts.append(_emit_dnode(
@@ -1846,12 +1870,16 @@ class DRoot(DNodeInner):
                         node_const_prefix,
                         list_const_prefix,
                         split_threshold=split_threshold,
-                        force_const=True
+                        force_const=True,
+                        adata_name=unique_namer.unique_safe_name(child.name, child.prefix)
                     ))
                 children_expr = _list_expr(child_consts)
 
                 args = []
-                attrs_text = _prsrc_attrs(0, node._get_attrs())
+                attrs = node._get_attrs()
+                if adata_name is not None:
+                    attrs.append(("adata_name", adata_name))
+                attrs_text = _prsrc_attrs(0, attrs)
                 if len(attrs_text) > 0:
                     args.append(attrs_text)
                 args.append("children={children_expr}")
@@ -1860,23 +1888,25 @@ class DRoot(DNodeInner):
                 return const_name
 
             if not force_const:
-                return node.prsrc()
+                return node.prsrc(adata_name=adata_name)
 
             const_name = _next_const(node_const_prefix)
-            res.append("{const_name}: {node._get_class_name()} = {node.prsrc()}")
+            res.append("{const_name}: {node._get_class_name()} = {node.prsrc(adata_name=adata_name)}")
             res.append("")
             return const_name
 
         # Emit SRC_DNODE as top-level constants and split deep hierarchies
         src_dnode_split_threshold = 20
         src_dnode_child_consts = []
+        unique_namer = UniqueNamer(self)
         for child in self.children:
             src_dnode_child_consts.append(_emit_dnode(
                 child,
                 "SRC_DNODE_CHILD",
                 "SRC_DNODE_CHILDREN",
                 split_threshold=src_dnode_split_threshold,
-                force_const=True
+                force_const=True,
+                adata_name=unique_namer.unique_safe_name(child.name, child.prefix)
             ))
         src_dnode_children = _list_expr(src_dnode_child_consts)
 
@@ -2120,12 +2150,6 @@ class DRoot(DNodeInner):
                     res.append(child)
             return res
 
-        def list_key_child(node: DList, key_name: str) -> DLeaf:
-            for child in node.children:
-                if isinstance(child, DLeaf) and child.is_key and child.name == key_name:
-                    return child
-            raise ValueError("Unable to find key leaf {key_name} in list {node.name}")
-
         def emit_node(spath: list[DNodeInner], breaker_idx: int) -> (list[str], int):
             node = spath[-1]
 
@@ -2352,11 +2376,12 @@ class DRpc(DNodeInner):
     output: ?DOutput
     status: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], input: ?DInput=None, output: ?DOutput=None, reference=None, status=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, description: ?str=None, if_feature=[], input: ?DInput=None, output: ?DOutput=None, reference=None, status=None, exts=[], children=[], adata_name: ?str=None):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.adata_name = adata_name
         self.config = False
         self.description = description
         self.if_feature = if_feature
@@ -4600,6 +4625,13 @@ class UniqueNamer(object):
 
     def is_unique(self, name):
         return name not in self._name_conflicts
+
+
+def list_key_child(node: DList, key_name: str) -> DLeaf:
+    for child in node.children:
+        if isinstance(child, DLeaf) and child.is_key and child.name == key_name:
+            return child
+    raise ValueError("Unable to find key leaf {key_name} in list {node.name}")
 
 
 def get_path_name(path: list[DNode]) -> str:
