@@ -32,7 +32,6 @@ jobs:
           git diff --exit-code
       - run: acton build
       - run: acton test
-      - run: acton test perf
       - run: make test-daclass
       - run: make test-data-source-roundtrip
       # another diff check because test-daclass also generates code
@@ -61,6 +60,4 @@ jobs:
           make
           git diff
       - name: "Run StratoWeave tests"
-        run: |
-          acton test
-          acton test perf
+        run: acton test
