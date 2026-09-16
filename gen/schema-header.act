@@ -106,12 +106,6 @@ MAX_LENGTH_STMT = 9223372036854775807 # Maximum supported by len(str) should be 
 MAX_ENUM_VALUE = 2147483647 # RFC7950 9.6.4.2
 MAX_BIT_POSITION = 4294967295 # RFC7950 9.7.4.2
 
-# Acton types from yang_typename_to_acton_type() that cannot be dict keys, so
-# a list keyed by one of them cannot use the indexed MKeyedList. set[str] (bits)
-# is Eq and gets the scanning MEqKeyedList; "value" (unions) has no Eq at all
-# and gets a plain MList with a generated get().
-NON_HASHABLE_ACTON_TYPES = {"value", "set[str]"}
-
 def _yind(n):
     return "  " * n
 
@@ -852,15 +846,12 @@ class DNodeInner(DNode):
             # subclass MKeyedList[K, T], where K is the Acton type for the key
             # (scalar value or tuple) and T is the adata entry type. MKeyedList
             # keeps a dict[K, int] index, so the key has to be usable as a dict
-            # key, not just comparable. Keys that are Eq but not Hashable (bits)
-            # subclass MEqKeyedList[K, T] instead, which finds by scanning but
-            # offers the same get() and Indexed[K, T] protocol.
-            # If any of the keys maps to Acton value type (unions), we must use
-            # MList[T] and generate the .get() method here, and also lose out on
+            # key. Every Acton type we map a YANG type to is Hashable except
+            # "value" (unions), so for a list with a union key we must use
+            # MList[T] generate the .get() method here, and also lose out on
             # Indexed[K, T] protocol.
             key_acton_types = [yang_type_to_acton_type(list_key_types[k]) for k in list_key_args]
-            key_impl_eq = len(list_key_args) > 0 and "value" not in key_acton_types
-            key_impl_hash = key_impl_eq and all(map(lambda t: t not in NON_HASHABLE_ACTON_TYPES, key_acton_types))
+            key_impl_hash = len(list_key_args) > 0 and "value" not in key_acton_types
 
             single_key = len(list_key_args) == 1
             def as_tuple(parts: list[str]) -> str:
@@ -877,12 +868,11 @@ class DNodeInner(DNode):
 
             breaker_name, breaker_idx = next_breaker_name(breaker_idx)
             res.append("{breaker_name}: None = None")
-            if key_impl_eq:
+            if key_impl_hash:
                 key_expr = "e.{list_key_args[0]}" if single_key else as_tuple(["{k}=e.{k}" for k in list_key_args])
-                base = "MKeyedList" if key_impl_hash else "MEqKeyedList"
-                res.append("class {pname()}(yadata.{base}[{key_type}, {pname()}_entry]):")
+                res.append("class {pname()}(yadata.MKeyedList[{key_type}, {pname()}_entry]):")
                 res.append("    mut def __init__(self, elements: list[{pname()}_entry]=[]) -> None:")
-                res.append("        yadata.{base}.__init__(self, lambda e: {key_expr}, elements)")
+                res.append("        yadata.MKeyedList.__init__(self, lambda e: {key_expr}, elements)")
             else:
                 res.append("class {pname()}(yadata.MList[{pname()}_entry]):")
                 res.append("    mut def __init__(self, elements: list[{pname()}_entry]=[]) -> None:")
@@ -891,7 +881,7 @@ class DNodeInner(DNode):
 
             # .get(key) returns the entry matching the key, or None. We generate
             # it here for lists where one of the keys maps to Acton value type.
-            if len(list_key_args) > 0 and not key_impl_eq:
+            if len(list_key_args) > 0 and not key_impl_hash:
                 res.append("    pure def get(self, key: {key_type}) -> ?{pname()}_entry:")
                 # Bind scalar key to name or destructure the named tuple
                 res.append("        {unpack_key('key')}")
@@ -4374,8 +4364,8 @@ def yang_leaf_to_acton_arg_type(leaf: DNodeLeaf, key_names: ?list[str], loose: b
     return optional_str + t
 
 def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
-    def set_to_bits(acton_type: str) -> str:
-        if acton_type == "set[str]":
+    def iset_to_bits(acton_type: str) -> str:
+        if acton_type == "iset[str]":
             return "bits"
         return acton_type
 
@@ -4393,11 +4383,11 @@ def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
         optional_str = "opt_" if optional else ""
         if n.type.builtin_type == "empty":
             return taker_prefix + optional_str + "empty"
-        return taker_prefix + optional_str + set_to_bits(yang_type_to_acton_type(n.type))
+        return taker_prefix + optional_str + iset_to_bits(yang_type_to_acton_type(n.type))
     if isinstance(n, DLeafList):
         optional = loose or n.min_elements == 0
         optional_str = "opt_" if optional else ""
-        return taker_prefix + optional_str + set_to_bits(yang_type_to_acton_type(n.type)) + "s"
+        return taker_prefix + optional_str + iset_to_bits(yang_type_to_acton_type(n.type)) + "s"
     raise ValueError("unreachable - unknown node type {type(n)}")
 
 def yang_leaflist_to_acton_type(leaf: DLeafList) -> str:
@@ -4409,7 +4399,7 @@ def yang_typename_to_acton_type(type_name: str) -> str:
     if type_name == "binary":
         return "bytes"
     elif type_name == "bits":
-        return "set[str]"
+        return "iset[str]"
     elif type_name == "boolean":
         return "bool"
     elif type_name == "decimal64":
@@ -4510,7 +4500,7 @@ def prsrc_literal(ytype: str, value: str) -> str:
     elif ytype == "bits":
         names = set(value.split(" "))
         names.discard("")
-        return repr(names)
+        return repr(names.freeze())
     elif ytype == "identityref":
         return value
     elif ytype in SIGNED_INT_TYPES:

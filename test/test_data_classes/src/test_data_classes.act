@@ -666,33 +666,33 @@ def _test_list_decimal_key():
     testing.assertEqual(len(r.li_decimal), 1)
 
 def _test_list_bits_key():
-    """bits keys compare but cannot hash, so the list scans and still has Indexed"""
+    """bits keys are iset[str], which hashes, so the list is an indexed MKeyedList"""
     r = yang_foo_root()
-    r.li_bits.create({"one"}, val="1")
-    r.li_bits.create({"one", "two"}, val="12")
-    r.li_bits.create({"three"}, val="3")
+    r.li_bits.create(iset(["one"]), val="1")
+    r.li_bits.create(iset(["one", "two"]), val="12")
+    r.li_bits.create(iset(["three"]), val="3")
 
-    # Set equality, so member order in the literal is irrelevant
-    found = r.li_bits.get({"two", "one"})
+    # Set equality and hashing, so member order in the key is irrelevant
+    found = r.li_bits.get(iset(["two", "one"]))
     testing.assertNotNone(found)
     if found is not None:
         testing.assertEqual(found.val, "12")
-    testing.assertNone(r.li_bits.get({"two"}))
+    testing.assertNone(r.li_bits.get(iset(["two"])))
 
     # create() finds the existing entry rather than adding a second one
-    r.li_bits.create({"one"}, val="one")
+    r.li_bits.create(iset(["one"]), val="one")
     testing.assertEqual(len(r.li_bits), 3)
 
     # The Indexed protocol, which the plain MList fallback does not offer
-    testing.assertEqual(r.li_bits[{"one"}].val, "one")
-    r.li_bits[{"three"}] = yang_foo.foo__li_bits_entry(k1={"three"}, val="33")
-    testing.assertEqual(r.li_bits[{"three"}].val, "33")
-    del r.li_bits[{"one"}]
-    testing.assertNone(r.li_bits.get({"one"}))
-    testing.assertEqual(r.li_bits[{"one", "two"}].val, "12")
+    testing.assertEqual(r.li_bits[iset(["one"])].val, "one")
+    r.li_bits[iset(["three"])] = yang_foo.foo__li_bits_entry(k1=iset(["three"]), val="33")
+    testing.assertEqual(r.li_bits[iset(["three"])].val, "33")
+    del r.li_bits[iset(["one"])]
+    testing.assertNone(r.li_bits.get(iset(["one"])))
+    testing.assertEqual(r.li_bits[iset(["one", "two"])].val, "12")
     testing.assertEqual(len(r.li_bits), 2)
     try:
-        del r.li_bits[{"one"}]
+        del r.li_bits[iset(["one"])]
         testing.error("Expected KeyError deleting an absent bits key")
     except KeyError:
         pass
@@ -819,7 +819,7 @@ def basics_leaf_defaults(r):
     testing.assertEqual(r.c.l_str_def_quoted, '"foo"')
     testing.assertEqual(r.c.l_binary_def, "Hello Acton 🫡".encode())
     testing.assertEqual(r.c.l_identityref_def, yang_basics.basics_id2)
-    testing.assertEqual(r.c.l_bits_def, set(["a", "c"]))
+    testing.assertEqual(r.c.l_bits_def, iset(["a", "c"]))
 
     # union types
     uds = r.c.l_union_def_str
@@ -882,36 +882,36 @@ def _test_union_default_other_type():
     c.l_union_def_enumeration = 42
 
 def _test_bits_from_xml():
-    # Bit name order in the input does not matter; adata exposes bits as a set
-    # of names and serialized output is the RFC 7950 canonical form ordered by
-    # bit position (zebra=0, aardvark=1, medved=2).
+    # Bit name order in the input does not matter; adata exposes bits as an
+    # iset of names and serialized output is the RFC 7950 canonical form
+    # ordered by bit position (zebra=0, aardvark=1, medved=2).
     xml_text = """<data><c1 xmlns="http://example.com/foo"><l_bits>medved aardvark zebra</l_bits><ll_bits>y x</ll_bits><ll_bits>x</ll_bits></c1></data>"""
     gd = yxml.from_xml(yang_foo.SRC_DNODE, xml.decode(xml_text))
     r = yang_foo_root.from_gdata(gd)
     l_bits = r.c1.l_bits
     if l_bits is not None:
-        testing.assertEqual(l_bits, set(["aardvark", "medved", "zebra"]))
+        testing.assertEqual(l_bits, iset(["aardvark", "medved", "zebra"]))
     else:
         raise ValueError("Expected l_bits to be set")
-    testing.assertEqual(r.c1.ll_bits, [set(["x", "y"]), set(["x"])])
+    testing.assertEqual(r.c1.ll_bits, [iset(["x", "y"]), iset(["x"])])
     xml_out = r.to_gdata().to_xmlstr()
     testing.assertTrue("<l_bits>zebra aardvark medved</l_bits>" in xml_out, "bits must serialize in canonical position order, got: {xml_out}")
     testing.assertTrue("<ll_bits>x y</ll_bits>" in xml_out, "bits leaf-list entries must serialize in canonical position order, got: {xml_out}")
     return xml_out
 
 def _test_union_bits_roundtrip():
-    # A union with a bits member: adata presents bits as set[str] even in the
+    # A union with a bits member: adata presents bits as iset[str] even in the
     # value-typed union field (from_gdata converts the canonical gdata list),
-    # and to_gdata canonicalizes the set back to position order.
+    # and to_gdata canonicalizes the iset back to position order.
     xml_text = """<data><c1 xmlns="http://example.com/foo"><l_union_bits>green red</l_union_bits></c1></data>"""
     gd = yxml.from_xml(yang_foo.SRC_DNODE, xml.decode(xml_text))
     r = yang_foo_root.from_gdata(gd)
     v = r.c1.l_union_bits
-    if isinstance(v, set):
-        # TODO(acton#2969): drop the set[str] annotation once value-narrowing
+    if isinstance(v, iset):
+        # TODO(acton#2969): drop the iset[str] annotation once value-narrowing
         # unboxes set elements.
-        sv: set[str] = v
-        testing.assertEqual(sv, set(["red", "green"]))
+        sv: iset[str] = v
+        testing.assertEqual(sv, iset(["red", "green"]))
     else:
         raise ValueError("Expected l_union_bits to hold a set of bit names")
     xml_out = r.to_gdata().to_xmlstr()

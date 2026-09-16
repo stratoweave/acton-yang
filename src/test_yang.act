@@ -1740,7 +1740,7 @@ def _test_prdaclass_decimal64_list_key():
     return root.prdaclass()
 
 def _test_prdaclass_bits_list_key():
-    """bits maps to set[str], which is Eq but not Hashable, so this list scans through MEqKeyedList"""
+    """bits maps to iset[str], which is Hashable, so this list is an indexed MKeyedList"""
     ys = r"""module foo {
   yang-version "1.1";
   namespace "http://example.com/foo";

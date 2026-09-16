@@ -294,7 +294,7 @@ def as_bits(v: ?value) -> ?list[str]:
 def adata_val(v: value) -> value:
     bits = as_bits(v)
     if bits is not None:
-        return set(bits)
+        return iset(bits)
     return v
 
 
@@ -1238,30 +1238,30 @@ class Node(value):
         except ValueError:
             return []
 
-    def get_bits(self, name) -> set[str]:
+    def get_bits(self, name) -> iset[str]:
         bits = as_bits(self.get_leaf(name).val)
         if bits is not None:
-            return set(bits)
+            return iset(bits)
         raise ValueError("Leaf {name} value is not type bits")
 
-    def get_opt_bits(self, name) -> ?set[str]:
+    def get_opt_bits(self, name) -> ?iset[str]:
         bits = as_bits(self.get_opt_leaf(name)?.val)
         if bits is not None:
-            return set(bits)
+            return iset(bits)
 
-    def get_bitss(self, name) -> list[set[str]]:
+    def get_bitss(self, name) -> list[iset[str]]:
         if isinstance(self, Container):
             for nm,child in self.children.items():
                 if isinstance(child, LeafList) and nm == name:
-                    cvals: list[set[str]] = []
+                    cvals: list[iset[str]] = []
                     for entry in child.entries:
                         bits = as_bits(entry.val)
                         if bits is not None:
-                            cvals.append(set(bits))
+                            cvals.append(iset(bits))
                     return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
-    def get_opt_bitss(self, name) -> list[set[str]]:
+    def get_opt_bitss(self, name) -> list[iset[str]]:
         try:
             return self.get_bitss(name)
         except ValueError:

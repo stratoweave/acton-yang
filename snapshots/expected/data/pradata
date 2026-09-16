@@ -6,6 +6,7 @@ ad.c1.optional_leaf = 42
 ad.c1.empty_yes = True
 ad.c1.empty_no = False
 ad.c1.decimal = Decimal(314, -2)
+ad.c1.flags = iset(['lower', 'middle'])
 
 # P-container: /c1/c2
 c2 = ad.c1.create_c2('required value', l1='inner value')

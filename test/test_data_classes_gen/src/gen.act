@@ -358,7 +358,7 @@ ys_foo = r"""module foo {
         }
     }
     list li-bits {
-        // bits is Eq but not Hashable, so this list scans through MEqKeyedList
+        // bits maps to iset[str], which is Hashable, so this list is indexed by its key too
         key k1;
         leaf k1 {
             type bits {

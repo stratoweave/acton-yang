@@ -44,41 +44,47 @@ extension MList[T(MNode)](Collection[T]):
         return len(self._elements)
 
 
-class MEqKeyedList[K(Eq), T(MNode)](MList[T]):
-    """List with (compound) key of Acton type K, found by scanning
+class MKeyedList[K(Hashable), T(MNode)](MList[T]):
+    """List with (compound) key of Acton type K, found through an index
 
     K is the Acton type of the scalar key leaf, or a tuple of the key leaf types
-    for lists with compound keys. This is the base for keys that can be
-    compared but not hashed, which today means bits (set[str]); anything
-    Hashable gets MKeyedList and its index instead.
+    for lists with compound keys. Lookups go through a dict[K, int] rather than
+    scanning, so K has to be Hashable.
     """
     @property
     _key_of: pure(T) -> K
+    # position of the key in MList._elements
+    _index: dict[K, int]
 
     mut def __init__(self, key_of: pure(T) -> K, elements: list[T]) -> None:
         MList.__init__(self, elements)
         self._key_of = key_of
-
-    # get() and the Indexed protocol go through _position(), _append() and
-    # _reindex(); MKeyedList overrides those three to answer from its index
-    pure def _position(self, key: K) -> ?int:
-        """Position in _elements of the first element with this key, or None"""
-        for i, e in enumerate(self._elements):
-            if self._key_of(e) == key:
-                return i
-        return None
+        self._index = {}
+        self._reindex()
 
     mut def _reindex(self) -> None:
-        """Called after _elements changed shape under __delitem__"""
-        pass
+        """Rebuild the key index from _elements"""
+        index = {}
+        for i, e in enumerate(self._elements):
+            k = self._key_of(e)
+            # On duplicate keys the first element wins
+            if k not in index:
+                index[k] = i
+        self._index = index
+
+    mut def _append(self, e: T) -> None:
+        k = self._key_of(e)
+        if k not in self._index:
+            self._index[k] = len(self._elements)
+        self._elements.append(e)
 
     pure def get(self, key: K) -> ?T:
-        i = self._position(key)
+        i = self._index.get(key)
         if i is not None:
             return self._elements[i]
 
 
-extension MEqKeyedList[K(Eq), T(MNode)](Indexed[K, T]):
+extension MKeyedList[K(Hashable), T(MNode)](Indexed[K, T]):
     def __getitem__(self, key: K) -> T:
         e = self.get(key)
         if e is not None:
@@ -89,53 +95,19 @@ extension MEqKeyedList[K(Eq), T(MNode)](Indexed[K, T]):
         nkey = self._key_of(n)
         if nkey != key:
             raise ValueError("cannot assign entry keyed {nkey} at key {key}; delete and re-create to change a key")
-        i = self._position(key)
+        i = self._index.get(key)
         if i is None:
             self._append(n)
             return
         self._elements[i!] = n
 
     mut def __delitem__(self, key: K) -> None:
-        i = self._position(key)
+        i = self._index.get(key)
         if i is None:
             raise KeyError(key)
         del self._elements[i!]
         # Everything after i shifted down
         self._reindex()
-
-
-class MKeyedList[K(Hashable), T(MNode)](MEqKeyedList[K, T]):
-    """List with (compound) key of Acton type K, found through an index
-
-    Lookups go through a dict[K, int] rather than scanning, so K has to be
-    Hashable in addition to the restrictions in MEqKeyedList.
-    """
-    # position of the key in MList._elements
-    _index: dict[K, int]
-
-    mut def __init__(self, key_of: pure(T) -> K, elements: list[T]) -> None:
-        MEqKeyedList.__init__(self, key_of, elements)
-        self._index = {}
-        self._reindex()
-
-    mut def _reindex(self) -> None:
-        """Rebuild the key index from _elements"""
-        index = {}
-        for i, e in enumerate(self._elements):
-            k = self._key_of(e)
-            # On duplicate keys the first element wins, like a scan would
-            if k not in index:
-                index[k] = i
-        self._index = index
-
-    pure def _position(self, key: K) -> ?int:
-        return self._index.get(key)
-
-    mut def _append(self, e: T) -> None:
-        k = self._key_of(e)
-        if k not in self._index:
-            self._index[k] = len(self._elements)
-        self._elements.append(e)
 
 
 extension MNode (YangData):
@@ -196,10 +168,10 @@ def try_validate_mnode_value(val: value, schema_type: yschema.DType, path: list[
         if intval is not None and schema_type.validate_value(intval):
             return (t=schema_type.builtin_type, val=intval)
     elif isinstance(schema_type, yschema.DTypeBits):
-        if isinstance(val, set):
-            # TODO(acton#2969): drop the set[str] annotation once
+        if isinstance(val, iset):
+            # TODO(acton#2969): drop the iset[str] annotation once
             # value-narrowing unboxes set elements.
-            sv: set[str] = val
+            sv: iset[str] = val
             try:
                 return (t=schema_type.builtin_type, val=schema_type.canonical_bits(list(sv)))
             except ValueError:
