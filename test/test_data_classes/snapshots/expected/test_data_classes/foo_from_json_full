@@ -105,6 +105,20 @@ Container({
       Id('http://example.com/foo', 'checker'): Leaf('Frank')
     })
   ]),
+  Id('http://example.com/foo', 'li-ref'): List([Id('http://example.com/foo', 'k_idref'), Id('http://example.com/foo', 'k_iid'), Id('http://example.com/foo', 'k_leafref')], ns='http://example.com/foo', module='foo', elements=[
+    Container({
+      Id('http://example.com/foo', 'k_idref'): Leaf(Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')),
+      Id('http://example.com/foo', 'k_iid'): Leaf("/foo:c1/foo:li[foo:name='tuta']"),
+      Id('http://example.com/foo', 'k_leafref'): Leaf('tuta'),
+      Id('http://example.com/foo', 'val'): Leaf('v1')
+    }),
+    Container({
+      Id('http://example.com/foo', 'k_idref'): Leaf(Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')),
+      Id('http://example.com/foo', 'k_iid'): Leaf("/foo:c1/foo:li[foo:name='tuta']/foo:val"),
+      Id('http://example.com/foo', 'k_leafref'): Leaf('tuta'),
+      Id('http://example.com/foo', 'val'): Leaf('v2')
+    })
+  ]),
   Id('http://example.com/foo', 'c2'): Container({
     Id('http://example.com/foo', 'l1'): Leaf('foo-qux')
   }, ns='http://example.com/foo', module='foo'),

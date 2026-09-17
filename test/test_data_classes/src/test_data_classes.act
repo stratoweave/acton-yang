@@ -170,6 +170,18 @@ xml_text_full = """<data>
   <k3>SGVsbG8gQWN0b24g8J+roQ==</k3>
   <checker>Frank</checker>
 </li-union>
+<li-ref xmlns="http://example.com/foo">
+  <k_idref xmlns:foo="http://example.com/foo">foo:fooy</k_idref>
+  <k_iid>/foo:c1/foo:li[foo:name='tuta']</k_iid>
+  <k_leafref>tuta</k_leafref>
+  <val>v1</val>
+</li-ref>
+<li-ref xmlns="http://example.com/foo">
+  <k_idref xmlns:bar="http://example.com/bar">bar:bary</k_idref>
+  <k_iid>/foo:c1/foo:li[foo:name='tuta']/foo:val</k_iid>
+  <k_leafref>tuta</k_leafref>
+  <val>v2</val>
+</li-ref>
 <c2 xmlns="http://example.com/foo">
   <l1>foo-qux</l1>
 </c2>
@@ -719,6 +731,26 @@ def _test_list_get_compound_key():
 
     testing.assertNone(r.li_union.get(("z", u64(1), "hi".encode())))
 
+def _test_list_ref_key():
+    """A compound key whose parts are identityref, instance-identifier and leafref"""
+    r = yang_foo_root()
+    iid = "/f:c1/f:li[f:name='a']"
+    r.li_ref.create((k_idref=yang_foo.foo_fooy, k_iid=iid, k_leafref="a"), val="fooy")
+    r.li_ref.create((k_idref=yang_foo.bar_bary, k_iid=iid, k_leafref="a"), val="bary")
+
+    # 2nd
+    testing.assertNotNone(r.li_ref.get((k_idref=yang_foo.bar_bary, k_iid=iid, k_leafref="a")))
+    # doesn't exist
+    testing.assertNone(r.li_ref.get((k_idref=yang_foo.foo_basey, k_iid=iid, k_leafref="a")))
+
+    # create() finds the existing entry rather than adding a second one
+    r.li_ref.create((k_idref=yang_foo.foo_fooy, k_iid=iid, k_leafref="a"), val="still fooy")
+    testing.assertEqual(len(r.li_ref), 2)
+    testing.assertEqual(r.li_ref[(k_idref=yang_foo.foo_fooy, k_iid=iid, k_leafref="a")].val, "still fooy")
+
+    del r.li_ref[(k_idref=yang_foo.foo_fooy, k_iid=iid, k_leafref="a")]
+    testing.assertEqual(len(r.li_ref), 1)
+
 def _test_p_container_create_idempotency():
     r = yang_foo_root()
     pc1 = r.create_pc1()
@@ -1002,6 +1034,20 @@ json_full = {
             "k2": "aGk=",
             "k3": "SGVsbG8gQWN0b24g8J+roQ==",
             "checker": "Frank"
+        }
+    ],
+    "foo:li-ref": [
+        {
+            "k_idref": "foo:fooy",
+            "k_iid": "/foo:c1/foo:li[foo:name='tuta']",
+            "k_leafref": "tuta",
+            "val": "v1"
+        },
+        {
+            "k_idref": "bar:bary",
+            "k_iid": "/foo:c1/foo:li[foo:name='tuta']/foo:val",
+            "k_leafref": "tuta",
+            "val": "v2"
         }
     ],
     "foo:c2": {
