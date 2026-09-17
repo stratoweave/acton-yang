@@ -84,6 +84,12 @@ def adata():
     # List /li-union element: third,b'hi',b'Hello Acton \xf0\x9f\xab\xa1'
     li_union_element = ad.li_union.create((k1='third', k2=b'hi', k3=b'Hello Acton \xf0\x9f\xab\xa1'), checker='Frank')
     
+    # List /li-ref element: Identityref('fooy'\, ns='http://example.com/foo'\, mod='foo'\, pfx='f'),/foo:c1/foo:li[foo:name='tuta'],tuta
+    li_ref_element = ad.li_ref.create((k_idref=Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f'), k_iid="/foo:c1/foo:li[foo:name='tuta']", k_leafref='tuta'), val='v1')
+    
+    # List /li-ref element: Identityref('bary'\, ns='http://example.com/bar'\, mod='bar'\, pfx='bar'),/foo:c1/foo:li[foo:name='tuta']/foo:val,tuta
+    li_ref_element = ad.li_ref.create((k_idref=Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar'), k_iid="/foo:c1/foo:li[foo:name='tuta']/foo:val", k_leafref='tuta'), val='v2')
+    
     # Container: /c2
     ad.c2.l1 = 'foo-qux'
     

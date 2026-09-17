@@ -383,6 +383,29 @@ ys_foo = r"""module foo {
             }
         }
     }
+    list li-ref {
+        // Compound key with "esoteric" reference types
+        // identityref -> Identityref
+        // instance-identifier -> str
+        // leafref -> Acton type of target leaf
+        key "k_idref k_iid k_leafref";
+        leaf k_idref {
+            type identityref {
+                base basey;
+            }
+        }
+        leaf k_iid {
+            type instance-identifier;
+        }
+        leaf k_leafref {
+            type leafref {
+                path "/f:c1/f:li/f:name";
+            }
+        }
+        leaf val {
+            type string;
+        }
+    }
     container state {
         config false;
         container c1 {

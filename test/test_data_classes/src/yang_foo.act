@@ -175,24 +175,35 @@ SRC_DNODE_CHILD_31: DList = DList(module='foo', namespace='http://example.com/fo
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='k1', config=True, mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'foo':0}), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
 ])
 
-SRC_DNODE_CHILD_32: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
+SRC_DNODE_CHILD_32: DList = DList(module='foo', namespace='http://example.com/foo', prefix='f', name='li-ref', key=[
+'k_idref',
+'k_iid',
+'k_leafref'
+    ], config=True, min_elements=0, ordered_by='system', children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='k_idref', config=True, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities)),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='k_iid', config=True, mandatory=False, type=DTypeInstanceIdentifier(name='instance-identifier', description=None, reference=None, exts=[], builtin_type='instance-identifier', default=None, require_instance=False)),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='k_leafref', config=True, mandatory=False, type=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('f', 'c1', []), yxpath.NodeTestStep('f', 'li', []), yxpath.NodeTestStep('f', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='val', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+])
+
+SRC_DNODE_CHILD_33: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='state', config=False, presence=False, children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=False, presence=False, children=[
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l2', config=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
-SRC_DNODE_CHILD_33: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+SRC_DNODE_CHILD_34: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='f', name='ll-empty', config=True, min_elements=0, ordered_by='system', type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 
-SRC_DNODE_CHILD_34: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
+SRC_DNODE_CHILD_35: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c2', config=True, presence=False, children=[
     DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
-SRC_DNODE_CHILD_35: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
+SRC_DNODE_CHILD_36: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='test-idref', config=True, presence=False, children=[
     DLeafList(module='bar', namespace='http://example.com/bar', prefix='bar', name='idref', config=True, min_elements=0, ordered_by='system', type=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_basey], identities=_identities))
 ])
 
-SRC_DNODE_CHILD_36: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
+SRC_DNODE_CHILD_37: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='conflict', config=True, presence=False, children=[
     DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='foo', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
@@ -207,7 +218,7 @@ SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='bar', namespace='http://exam
     ])
 
 SRC_DNODE: DRoot = DRoot(
-    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_19, SRC_DNODE_CHILD_20, SRC_DNODE_CHILD_21, SRC_DNODE_CHILD_22, SRC_DNODE_CHILD_23, SRC_DNODE_CHILD_24, SRC_DNODE_CHILD_25, SRC_DNODE_CHILD_26, SRC_DNODE_CHILD_27, SRC_DNODE_CHILD_28, SRC_DNODE_CHILD_29, SRC_DNODE_CHILD_30, SRC_DNODE_CHILD_31, SRC_DNODE_CHILD_32, SRC_DNODE_CHILD_33, SRC_DNODE_CHILD_34, SRC_DNODE_CHILD_35, SRC_DNODE_CHILD_36],
+    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_19, SRC_DNODE_CHILD_20, SRC_DNODE_CHILD_21, SRC_DNODE_CHILD_22, SRC_DNODE_CHILD_23, SRC_DNODE_CHILD_24, SRC_DNODE_CHILD_25, SRC_DNODE_CHILD_26, SRC_DNODE_CHILD_27, SRC_DNODE_CHILD_28, SRC_DNODE_CHILD_29, SRC_DNODE_CHILD_30, SRC_DNODE_CHILD_31, SRC_DNODE_CHILD_32, SRC_DNODE_CHILD_33, SRC_DNODE_CHILD_34, SRC_DNODE_CHILD_35, SRC_DNODE_CHILD_36, SRC_DNODE_CHILD_37],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],
     module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
@@ -498,6 +509,29 @@ SRC_YANG_0: str = r"""module foo {
                 }
                 type string;
             }
+        }
+    }
+    list li-ref {
+        // Compound key with "esoteric" reference types
+        // identityref -> Identityref
+        // instance-identifier -> str
+        // leafref -> Acton type of target leaf
+        key "k_idref k_iid k_leafref";
+        leaf k_idref {
+            type identityref {
+                base basey;
+            }
+        }
+        leaf k_iid {
+            type instance-identifier;
+        }
+        leaf k_leafref {
+            type leafref {
+                path "/f:c1/f:li/f:name";
+            }
+        }
+        leaf val {
+            type string;
         }
     }
     container state {
@@ -1609,6 +1643,63 @@ class foo__li_union_one_base(yadata.MList[foo__li_union_one_base_entry]):
 
 
 _breaker38: None = None
+class foo__li_ref_entry(yadata.MNode):
+    k_idref: Identityref
+    k_iid: str
+    k_leafref: str
+    val: ?str
+
+    mut def __init__(self, k_idref: Identityref, k_iid: str, k_leafref: str, val: ?str) -> None:
+        self.k_idref = k_idref
+        self.k_iid = k_iid
+        self.k_leafref = k_leafref
+        self.val = val
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:li-ref'])
+
+    @staticmethod
+    mut def from_gdata(n: ygdata.Node) -> foo__li_ref_entry:
+        return foo__li_ref_entry(k_idref=n.get_Identityref(ygdata.Id(NS_foo, 'k_idref')), k_iid=n.get_str(ygdata.Id(NS_foo, 'k_iid')), k_leafref=n.get_str(ygdata.Id(NS_foo, 'k_leafref')), val=n.get_opt_str(ygdata.Id(NS_foo, 'val')))
+
+    mut def copy(self) -> foo__li_ref_entry:
+        """Create a deep copy of this adata object"""
+        return foo__li_ref_entry.from_gdata(self.to_gdata())
+
+_breaker39: None = None
+class foo__li_ref(yadata.MKeyedList[(k_idref: Identityref, k_iid: str, k_leafref: str), foo__li_ref_entry]):
+    mut def __init__(self, elements: list[foo__li_ref_entry]=[]) -> None:
+        yadata.MKeyedList.__init__(self, lambda e: (k_idref=e.k_idref, k_iid=e.k_iid, k_leafref=e.k_leafref), elements)
+
+    mut def create(self, key: (k_idref: Identityref, k_iid: str, k_leafref: str), val: ?str=None) -> foo__li_ref_entry:
+        e = self.get(key)
+        if e is not None:
+            if val is not None:
+                e.val = val
+            return e
+        (k_idref=k_idref, k_iid=k_iid, k_leafref=k_leafref) = key
+        res = foo__li_ref_entry(k_idref=k_idref, k_iid=k_iid, k_leafref=k_leafref, val=val)
+        self._append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.List) -> list[foo__li_ref_entry]:
+        if n is not None:
+            return [foo__li_ref_entry.from_gdata(e) for e in n.elements]
+        return []
+
+    mut def copy(self) -> foo__li_ref:
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return foo__li_ref(elements=copied_elements)
+
+
+_breaker40: None = None
 class foo__state__c1(yadata.MNode):
     l1: ?str
     l2: ?str
@@ -1631,7 +1722,7 @@ class foo__state__c1(yadata.MNode):
         return foo__state__c1.from_gdata(self.to_gdata())
 
 
-_breaker39: None = None
+_breaker41: None = None
 class foo__state(yadata.MNode):
     c1: foo__state__c1
 
@@ -1652,7 +1743,7 @@ class foo__state(yadata.MNode):
         return foo__state.from_gdata(self.to_gdata())
 
 
-_breaker40: None = None
+_breaker42: None = None
 class foo__c2(yadata.MNode):
     l1: ?str
 
@@ -1673,7 +1764,7 @@ class foo__c2(yadata.MNode):
         return foo__c2.from_gdata(self.to_gdata())
 
 
-_breaker41: None = None
+_breaker43: None = None
 class bar__test_idref(yadata.MNode):
     idref: list[Identityref]
 
@@ -1694,7 +1785,7 @@ class bar__test_idref(yadata.MNode):
         return bar__test_idref.from_gdata(self.to_gdata())
 
 
-_breaker42: None = None
+_breaker44: None = None
 class bar__bar_conflict(yadata.MNode):
     foo: ?str
 
@@ -1715,7 +1806,7 @@ class bar__bar_conflict(yadata.MNode):
         return bar__bar_conflict.from_gdata(self.to_gdata())
 
 
-_breaker43: None = None
+_breaker45: None = None
 class root(yadata.MNode):
     c1: foo__c1
     pc1: ?foo__pc1
@@ -1731,13 +1822,14 @@ class root(yadata.MNode):
     li_decimal: foo__li_decimal
     li_bits: foo__li_bits
     li_union_one_base: foo__li_union_one_base
+    li_ref: foo__li_ref
     state: foo__state
     ll_empty: list[str]
     c2: foo__c2
     test_idref: bar__test_idref
     bar_conflict: bar__bar_conflict
 
-    mut def __init__(self, c1: ?foo__c1=None, pc1: ?foo__pc1=None, pc2: ?foo__pc2=None, pc3: ?foo__pc3=None, empty_presence: ?foo__empty_presence=None, c_dot: ?foo__c_dot=None, cc: ?foo__cc=None, f_conflict: ?foo__f_conflict=None, special: list[foo__special_entry]=[], nested: ?foo__nested=None, li_union: list[foo__li_union_entry]=[], li_decimal: list[foo__li_decimal_entry]=[], li_bits: list[foo__li_bits_entry]=[], li_union_one_base: list[foo__li_union_one_base_entry]=[], state: ?foo__state=None, ll_empty: ?list[str]=None, c2: ?foo__c2=None, test_idref: ?bar__test_idref=None, bar_conflict: ?bar__bar_conflict=None) -> None:
+    mut def __init__(self, c1: ?foo__c1=None, pc1: ?foo__pc1=None, pc2: ?foo__pc2=None, pc3: ?foo__pc3=None, empty_presence: ?foo__empty_presence=None, c_dot: ?foo__c_dot=None, cc: ?foo__cc=None, f_conflict: ?foo__f_conflict=None, special: list[foo__special_entry]=[], nested: ?foo__nested=None, li_union: list[foo__li_union_entry]=[], li_decimal: list[foo__li_decimal_entry]=[], li_bits: list[foo__li_bits_entry]=[], li_union_one_base: list[foo__li_union_one_base_entry]=[], li_ref: list[foo__li_ref_entry]=[], state: ?foo__state=None, ll_empty: ?list[str]=None, c2: ?foo__c2=None, test_idref: ?bar__test_idref=None, bar_conflict: ?bar__bar_conflict=None) -> None:
         self.c1 = c1 if c1 is not None else foo__c1()
         self.pc1 = pc1
         self.pc2 = pc2
@@ -1752,6 +1844,7 @@ class root(yadata.MNode):
         self.li_decimal = foo__li_decimal(elements=li_decimal)
         self.li_bits = foo__li_bits(elements=li_bits)
         self.li_union_one_base = foo__li_union_one_base(elements=li_union_one_base)
+        self.li_ref = foo__li_ref(elements=li_ref)
         self.state = state if state is not None else foo__state()
         self.ll_empty = ll_empty if ll_empty is not None else []
         self.c2 = c2 if c2 is not None else foo__c2()
@@ -1798,7 +1891,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'pc1'))), pc2=foo__pc2.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'pc2'))), pc3=foo__pc3.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'pc3'))), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'empty-presence'))), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c.dot'))), cc=foo__cc.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'cc'))), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'conflict'))), special=foo__special.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'special'))), nested=foo__nested.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'nested'))), li_union=foo__li_union.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-union'))), li_decimal=foo__li_decimal.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-decimal'))), li_bits=foo__li_bits.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-bits'))), li_union_one_base=foo__li_union_one_base.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-union-one-base'))), state=foo__state.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'state'))), ll_empty=n.get_opt_strs(ygdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c2'))), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'test-idref'))), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'conflict'))))
+            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c1'))), pc1=foo__pc1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'pc1'))), pc2=foo__pc2.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'pc2'))), pc3=foo__pc3.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'pc3'))), empty_presence=foo__empty_presence.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'empty-presence'))), c_dot=foo__c_dot.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c.dot'))), cc=foo__cc.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'cc'))), f_conflict=foo__f_conflict.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'conflict'))), special=foo__special.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'special'))), nested=foo__nested.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'nested'))), li_union=foo__li_union.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-union'))), li_decimal=foo__li_decimal.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-decimal'))), li_bits=foo__li_bits.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-bits'))), li_union_one_base=foo__li_union_one_base.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-union-one-base'))), li_ref=foo__li_ref.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li-ref'))), state=foo__state.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'state'))), ll_empty=n.get_opt_strs(ygdata.Id(NS_foo, 'll-empty')), c2=foo__c2.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c2'))), test_idref=bar__test_idref.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'test-idref'))), bar_conflict=bar__bar_conflict.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'conflict'))))
         return root()
 
     mut def copy(self) -> root:
@@ -1951,6 +2044,12 @@ mut def src_schema() -> dict[str, SchemaNode]:
             ]),
         Type('string')
     ]))
+    ]),
+    List('li-ref', key='k_idref k_iid k_leafref', children=[
+        Leaf('k_idref', type=Type('identityref', base=['basey'])),
+        Leaf('k_iid', type=Type('instance-identifier')),
+        Leaf('k_leafref', type=Type('leafref', path='/f:c1/f:li/f:name')),
+        Leaf('val', type=Type('string'))
     ]),
     Container('state', config=False, children=[
         Container('c1', children=[
