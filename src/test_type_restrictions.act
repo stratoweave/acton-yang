@@ -1,0 +1,39 @@
+import testing
+import lib as yang
+
+
+def _module(leaf_type: str) -> str:
+    return r"""module m {
+  yang-version "1.1";
+  namespace "http://example.com/m";
+  prefix "m";
+  leaf foo { """ + leaf_type + r""" }
+}"""
+
+
+def _assert_accepted(leaf_type: str):
+    try:
+        yang.compile([_module(leaf_type)])
+    except ValueError as ex:
+        testing.error("Expected {leaf_type} to compile, got: {ex.error_message}")
+
+
+def _assert_rejected(leaf_type: str, expected: str):
+    try:
+        yang.compile([_module(leaf_type)])
+    except ValueError as ex:
+        testing.assertEqual("Failed to resolve type at /m:foo: " + expected, ex.error_message, "Unexpected error for {leaf_type}")
+        return
+    testing.error("Expected ValueError for {leaf_type}")
+
+
+def _test_range_type():
+    _assert_accepted(r'type uint8 { range "1..4"; }')
+    _assert_rejected(r'type string { range "1..4"; }', r'The range statement is only valid for numeric types, not "string" in type "string"')
+    _assert_rejected(r'type boolean { range "1..4"; }', r'The range statement is only valid for numeric types, not "boolean" in type "boolean"')
+
+
+def _test_length_type():
+    _assert_accepted(r'type string { length "1..4"; }')
+    _assert_accepted(r'type binary { length "1..4"; }')
+    _assert_rejected(r'type int32 { length "1..4"; }', r'The length statement is only valid for string and binary types, not "int32" in type "int32"')
