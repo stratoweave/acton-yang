@@ -51,8 +51,8 @@ class svc__mgmt(yadata.MNode):
     mut def __init__(self) -> None:
         pass
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:mgmt'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:mgmt'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> svc__mgmt:
@@ -72,8 +72,8 @@ class root(yadata.MNode):
     mut def __init__(self, mgmt: ?svc__mgmt=None) -> None:
         self.mgmt = mgmt if mgmt is not None else svc__mgmt()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
@@ -95,8 +95,8 @@ class svc__register__input__servers_entry(yadata.MNode):
         self.id = id
         self.port = port
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:register', 'input', 'servers'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:register', 'input', 'servers'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> svc__register__input__servers_entry:
@@ -146,8 +146,8 @@ class svc__register__input(yadata.MNode):
     mut def __init__(self, servers: list[svc__register__input__servers_entry]=[]) -> None:
         self.servers = svc__register__input__servers(elements=servers)
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:register', 'input'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['svc:register', 'input'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> svc__register__input:

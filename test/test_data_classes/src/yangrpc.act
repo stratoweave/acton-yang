@@ -79,8 +79,8 @@ class root(yadata.MNode):
     mut def __init__(self) -> None:
         pass
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
@@ -100,8 +100,8 @@ class yangrpc__foo__input__woo(yadata.MNode):
     mut def __init__(self, woo_b: ?int) -> None:
         self.woo_b = woo_b
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input', 'woo'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input', 'woo'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__input__woo:
@@ -123,8 +123,8 @@ class yangrpc__foo__input(yadata.MNode):
         self.a = a
         self.woo = woo if woo is not None else yangrpc__foo__input__woo()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'input'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__input:
@@ -144,8 +144,8 @@ class yangrpc__foo__output(yadata.MNode):
     mut def __init__(self, outoo: ?str) -> None:
         self.outoo = outoo
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'output'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['yangrpc:foo', 'output'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__output:

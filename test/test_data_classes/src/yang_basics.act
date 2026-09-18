@@ -181,8 +181,8 @@ class basics__c(yadata.MNode):
         self.l_identityref_def = l_identityref_def if l_identityref_def is not None else basics_id2
         self.l_bits_def = l_bits_def if l_bits_def is not None else iset({'a', 'c'})
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['basics:c'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['basics:c'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> basics__c:
@@ -202,8 +202,8 @@ class root(yadata.MNode):
     mut def __init__(self, c: ?basics__c=None) -> None:
         self.c = c if c is not None else basics__c()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:

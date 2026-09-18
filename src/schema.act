@@ -746,12 +746,12 @@ class DNodeInner(DNode):
 
         if not device:
             # .to_gdata()
-            res.append("    mut def to_gdata(self) -> ygdata.Node:")
+            res.append("    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:")
             if isinstance(self, DRoot):
-                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose})")
+                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose}, prev=prev)")
             else:
                 root_path = ["{'{node.module}:' if prev.module != node.module else ''}{node.name}" for prev, node in zip(spath, spath[1:])]
-                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose}, root_path={repr(root_path)})")
+                res.append("        return yadata.from_adata(SRC_DNODE, self, loose={loose}, root_path={repr(root_path)}, prev=prev)")
             res.append("")
 
             # .from_gdata()

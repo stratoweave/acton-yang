@@ -63,8 +63,8 @@ class foo__c1__l1_entry(yadata.MNode):
         self.k1 = k1
         self.k2 = k2
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1', 'l1'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1', 'l1'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> foo__c1__l1_entry:
@@ -112,8 +112,8 @@ class foo__c1(yadata.MNode):
     mut def __init__(self, l1: list[foo__c1__l1_entry]=[]) -> None:
         self.l1 = foo__c1__l1(elements=l1)
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:c1'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__c1:
@@ -133,8 +133,8 @@ class root(yadata.MNode):
     mut def __init__(self, c1: ?foo__c1=None) -> None:
         self.c1 = c1 if c1 is not None else foo__c1()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:

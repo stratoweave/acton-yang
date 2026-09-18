@@ -54,8 +54,8 @@ class foo__managed_element__security__certificate_mgmt(yadata.MNode):
     mut def __init__(self) -> None:
         pass
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element', 'security', 'bar:certificate-mgmt'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element', 'security', 'bar:certificate-mgmt'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> ?foo__managed_element__security__certificate_mgmt:
@@ -86,8 +86,8 @@ class foo__managed_element__security(yadata.MNode):
         self.certificate_mgmt = res
         return res
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element', 'security'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element', 'security'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__managed_element__security:
@@ -107,8 +107,8 @@ class foo__managed_element(yadata.MNode):
     mut def __init__(self, security: ?foo__managed_element__security=None) -> None:
         self.security = security if security is not None else foo__managed_element__security()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:managed-element'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__managed_element:
@@ -128,8 +128,8 @@ class root(yadata.MNode):
     mut def __init__(self, managed_element: ?foo__managed_element=None) -> None:
         self.managed_element = managed_element if managed_element is not None else foo__managed_element()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
@@ -149,8 +149,8 @@ class foo__reset__input(yadata.MNode):
     mut def __init__(self, reset_at: ?str) -> None:
         self.reset_at = reset_at
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:reset', 'input'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:reset', 'input'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__reset__input:
@@ -170,8 +170,8 @@ class foo__reset__output(yadata.MNode):
     mut def __init__(self, reset_finished_at: ?str) -> None:
         self.reset_finished_at = reset_finished_at
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:reset', 'output'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:reset', 'output'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__reset__output:

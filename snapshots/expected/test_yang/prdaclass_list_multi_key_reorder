@@ -48,8 +48,8 @@ class foo__l1_entry(yadata.MNode):
         self.id = id
         self.other = other
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:l1'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> foo__l1_entry:

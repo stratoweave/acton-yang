@@ -170,11 +170,11 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, sch
     return None
 
 
-def from_json(root: yschema.DRoot, data: dict[str, ?value], loose: bool=False, root_path: list[str]=[]) -> ygdata.Container:
+def from_json(root: yschema.DRoot, data: dict[str, ?value], loose: bool=False, root_path: list[str]=[], prev: ?ygdata.Node=None) -> ygdata.Container:
     def type_narrower(v):
         if isinstance(v, dict):
             return v
         raise ValueError("Value is not a dict: {type(v)}")
 
-    return from_data(root, data, type_narrower, loose, root_path)
+    return from_data(root, data, type_narrower, loose, root_path, prev)
 

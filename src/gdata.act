@@ -554,6 +554,15 @@ def base_node_json(node: Node, node_type: str) -> dict[str, ?value]:
     return result
 
 
+def key_str_values(vals: list[value]) -> str:
+    """The key string of a list element with these key values, in key order.
+
+    Commas in a value are escaped so the key string of a compound key is
+    unambiguous.
+    """
+    return ",".join([str(v).replace(",", "\\,") for v in vals])
+
+
 class Node(value):
     ns: ?str
     module: ?str
@@ -600,7 +609,7 @@ class Node(value):
         raise ValueError("Expected dict for gdata node, got {type(data)}")
 
     def key_str(self, key_names: list[Id]) -> str:
-        return ",".join([str(self.get_leaf(kn).val).replace(",", "\\,") for kn in key_names])
+        return key_str_values([self.get_leaf(kn).val for kn in key_names])
 
     def key_values(self, key_names: list[Id]) -> dict[str, value]:
         return {kn.name: self.get_leaf(kn).val for kn in key_names}

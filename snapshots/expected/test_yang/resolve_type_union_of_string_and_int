@@ -37,8 +37,8 @@ class root(yadata.MNode):
     mut def __init__(self, l1: ?value=None) -> None:
         self.l1 = l1 if l1 is not None else 42
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:

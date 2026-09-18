@@ -8,7 +8,14 @@ from data import coerce_integer_value, unwrap_key
 from data import OP_CREATE, OP_DELETE, OP_REMOVE, OP_REPLACE, OP_MERGE
 
 class MNode(object):
-    mut def to_gdata(self) -> ygdata.Node:
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        """The gdata tree of this object
+
+        prev is the tree a previous call returned for the same location,
+        typically the output this object replaces. Where the data equals a
+        subtree of prev, the result holds prev's own node object. A prev that
+        is not a Container yields no reuse. See yang.data.from_data.
+        """
         raise NotImplementedError("to_gdata")
 
     mut def copy(self) -> Self:
@@ -182,10 +189,10 @@ def try_validate_mnode_value(val: value, schema_type: yschema.DType, path: list[
     return None
 
 
-def from_adata(root: yschema.DRoot, data: MNode, loose: bool=False, root_path: list[str]=[]) -> ygdata.Container:
+def from_adata(root: yschema.DRoot, data: MNode, loose: bool=False, root_path: list[str]=[], prev: ?ygdata.Node=None) -> ygdata.Container:
     def type_narrower(v):
         if isinstance(v, MNode):
             return v
         raise ValueError("Value is not an yang.adata.MNode: {type(v)}")
 
-    return from_data(root, data, type_narrower, loose, root_path)
+    return from_data(root, data, type_narrower, loose, root_path, prev)

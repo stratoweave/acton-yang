@@ -52,8 +52,8 @@ class base__native__voice__service__voip__sip(yadata.MNode):
         self.bind = bind
         self.port = port if port is not None else u64(5060)
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip', 'sip'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip', 'sip'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service__voip__sip:
@@ -75,8 +75,8 @@ class base__native__voice__service__voip(yadata.MNode):
         self.enabled = enabled if enabled is not None else False
         self.sip = sip if sip is not None else base__native__voice__service__voip__sip()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service', 'voip'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service__voip:
@@ -96,8 +96,8 @@ class base__native__voice__service(yadata.MNode):
     mut def __init__(self, voip: ?base__native__voice__service__voip=None) -> None:
         self.voip = voip if voip is not None else base__native__voice__service__voip()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice', 'service'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service:
@@ -117,8 +117,8 @@ class base__native__voice(yadata.MNode):
     mut def __init__(self, service: ?base__native__voice__service=None) -> None:
         self.service = service if service is not None else base__native__voice__service()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native', 'voice:voice'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice:
@@ -138,8 +138,8 @@ class base__native(yadata.MNode):
     mut def __init__(self, voice: ?base__native__voice=None) -> None:
         self.voice = voice if voice is not None else base__native__voice()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native'])
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['base:native'], prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native:
@@ -159,8 +159,8 @@ class root(yadata.MNode):
     mut def __init__(self, native: ?base__native=None) -> None:
         self.native = native if native is not None else base__native()
 
-    mut def to_gdata(self) -> ygdata.Node:
-        return yadata.from_adata(SRC_DNODE, self, loose=False)
+    mut def to_gdata(self, prev: ?ygdata.Node=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
 
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
