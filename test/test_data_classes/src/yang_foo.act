@@ -486,7 +486,7 @@ SRC_YANG_0: str = r"""module foo {
         }
     }
     list li-bits {
-        // bits is Eq but not Hashable, so this list scans through MEqKeyedList
+        // bits maps to iset[str], which is Hashable, so this list is indexed by its key too
         key k1;
         leaf k1 {
             type bits {
@@ -728,15 +728,15 @@ class foo__c1(yadata.MNode):
     l_identityref: ?Identityref
     ll_identityref: list[Identityref]
     l_identityref_noval: ?Identityref
-    l_bits: ?set[str]
-    ll_bits: list[set[str]]
+    l_bits: ?iset[str]
+    ll_bits: list[iset[str]]
     l_union_bits: ?value
     l4: ?str
     bar_l1: ?str
     l2: ?str
     l_leafref: ?str
 
-    mut def __init__(self, f_l1: ?str, l3: ?u64, l_empty: ?bool, l_empty_delete: ?bool, l_decimal64: ?Decimal, li: list[foo__c1__li_entry]=[], ll_uint64: ?list[u64]=None, ll_str: ?list[str]=None, l_identityref: ?Identityref, ll_identityref: ?list[Identityref]=None, l_identityref_noval: ?Identityref, l_bits: ?set[str], ll_bits: ?list[set[str]]=None, l_union_bits: ?value, l4: ?str, bar_l1: ?str, l2: ?str, l_leafref: ?str) -> None:
+    mut def __init__(self, f_l1: ?str, l3: ?u64, l_empty: ?bool, l_empty_delete: ?bool, l_decimal64: ?Decimal, li: list[foo__c1__li_entry]=[], ll_uint64: ?list[u64]=None, ll_str: ?list[str]=None, l_identityref: ?Identityref, ll_identityref: ?list[Identityref]=None, l_identityref_noval: ?Identityref, l_bits: ?iset[str], ll_bits: ?list[iset[str]]=None, l_union_bits: ?value, l4: ?str, bar_l1: ?str, l2: ?str, l_leafref: ?str) -> None:
         self.f_l1 = f_l1
         self.l3 = l3
         self.l_empty = l_empty
@@ -1530,10 +1530,10 @@ class foo__li_decimal(yadata.MKeyedList[Decimal, foo__li_decimal_entry]):
 
 _breaker34: None = None
 class foo__li_bits_entry(yadata.MNode):
-    k1: set[str]
+    k1: iset[str]
     val: ?str
 
-    mut def __init__(self, k1: set[str], val: ?str) -> None:
+    mut def __init__(self, k1: iset[str], val: ?str) -> None:
         self.k1 = k1
         self.val = val
 
@@ -1549,11 +1549,11 @@ class foo__li_bits_entry(yadata.MNode):
         return foo__li_bits_entry.from_gdata(self.to_gdata())
 
 _breaker35: None = None
-class foo__li_bits(yadata.MEqKeyedList[set[str], foo__li_bits_entry]):
+class foo__li_bits(yadata.MKeyedList[iset[str], foo__li_bits_entry]):
     mut def __init__(self, elements: list[foo__li_bits_entry]=[]) -> None:
-        yadata.MEqKeyedList.__init__(self, lambda e: e.k1, elements)
+        yadata.MKeyedList.__init__(self, lambda e: e.k1, elements)
 
-    mut def create(self, key: set[str], val: ?str=None) -> foo__li_bits_entry:
+    mut def create(self, key: iset[str], val: ?str=None) -> foo__li_bits_entry:
         e = self.get(key)
         if e is not None:
             if val is not None:

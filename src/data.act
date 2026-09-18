@@ -349,7 +349,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
 
 def repr_adata(v: value) -> str:
     if ygdata.as_bits(v) is not None:
-        return "set({ygdata.repr_gdata(v)})"
+        return "iset({ygdata.repr_gdata(v)})"
     if isinstance(v, ygdata.Present):
         return "True"
     return ygdata.repr_gdata(v)
@@ -738,6 +738,13 @@ def _src_yang():
             fraction-digits 2;
           }
         }
+        leaf flags {
+          type bits {
+            bit upper;
+            bit middle;
+            bit lower;
+          }
+        }
         container c2 {
           presence "This is a presence container";
           leaf l1 {
@@ -789,6 +796,7 @@ def _test_pradata():
             ygdata.Id("urn:example:test", "empty-yes"): ygdata.Leaf(ygdata.Present()),
             ygdata.Id("urn:example:test", "empty-no"): ygdata.Absent(),
             ygdata.Id("urn:example:test", "decimal"): ygdata.Leaf(Decimal(314, -2)),
+            ygdata.Id("urn:example:test", "flags"): ygdata.Leaf(["lower", "middle"]),
             ygdata.Id("urn:example:test", "c2"): ygdata.Container({
                 ygdata.Id("urn:example:test", "l1"): ygdata.Leaf("inner value"),
                 ygdata.Id("urn:example:test", "mandatory-leaf"): ygdata.Leaf("required value")

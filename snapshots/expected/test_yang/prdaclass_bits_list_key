@@ -36,9 +36,9 @@ NS_foo: str = 'http://example.com/foo'
 
 _breaker1: None = None
 class foo__c1__l1_entry(yadata.MNode):
-    k1: set[str]
+    k1: iset[str]
 
-    mut def __init__(self, k1: set[str]) -> None:
+    mut def __init__(self, k1: iset[str]) -> None:
         self.k1 = k1
 
     mut def to_gdata(self) -> ygdata.Node:
@@ -53,11 +53,11 @@ class foo__c1__l1_entry(yadata.MNode):
         return foo__c1__l1_entry.from_gdata(self.to_gdata())
 
 _breaker2: None = None
-class foo__c1__l1(yadata.MEqKeyedList[set[str], foo__c1__l1_entry]):
+class foo__c1__l1(yadata.MKeyedList[iset[str], foo__c1__l1_entry]):
     mut def __init__(self, elements: list[foo__c1__l1_entry]=[]) -> None:
-        yadata.MEqKeyedList.__init__(self, lambda e: e.k1, elements)
+        yadata.MKeyedList.__init__(self, lambda e: e.k1, elements)
 
-    mut def create(self, key: set[str]) -> foo__c1__l1_entry:
+    mut def create(self, key: iset[str]) -> foo__c1__l1_entry:
         e = self.get(key)
         if e is not None:
             return e

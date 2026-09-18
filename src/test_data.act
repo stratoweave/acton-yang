@@ -1848,7 +1848,7 @@ def _test_bits_leaf_comparison():
             testing.assertTrue(flags_type.validate_value(["a", "b"]), "canonical bits value must validate")
             testing.assertTrue(flags_type.validate_value(empty_bits), "empty bits value must validate")
             testing.assertFalse(flags_type.validate_value(["a", "z"]), "unknown bit name must not validate")
-            testing.assertFalse(flags_type.validate_value(set(["a", "b"])), "set values must not validate")
+            testing.assertFalse(flags_type.validate_value(iset(["a", "b"])), "the adata iset form must not validate")
         else:
             raise ValueError("Expected flags leaf type to be DTypeBits")
     else:
