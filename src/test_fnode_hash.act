@@ -1,0 +1,96 @@
+"""Filter nodes as set members and dict keys.
+
+A transform that links to many publishers keeps one filter path per
+publisher and looks them up on every transaction, so FNode has to hash
+the way it compares: structurally, over its name, value match and
+children.
+"""
+
+import testing
+
+import gdata as ygdata
+from type import Decimal
+
+NS = "urn:test:fnode-hash"
+
+
+def _q(name: str) -> ygdata.Id:
+    return ygdata.Id(NS, name)
+
+
+def _entry(name: str, tail: ?ygdata.FNode=None) -> ygdata.FNode:
+    """The path /device[name=...] as build_links renders it, with an
+    optional selection below the entry."""
+    children: list[ygdata.FNode] = [ygdata.FNode(_q("name"), value_match=name)]
+    if tail is not None:
+        children.append(tail)
+    return ygdata.FNode(_q("device"), children=children)
+
+
+def _test_equal_paths_hash_alike():
+    a = _entry("dev-1")
+    b = _entry("dev-1")
+    testing.assertTrue(a == b)
+    s: set[ygdata.FNode] = set()
+    s.add(a)
+    s.add(b)
+    testing.assertEqual(len(s), 1)
+    testing.assertTrue(b in s)
+
+
+def _test_different_paths_stay_apart():
+    s: set[ygdata.FNode] = set()
+    s.add(_entry("dev-1"))
+    s.add(_entry("dev-2"))
+    s.add(_entry("dev-1", ygdata.FNode(_q("value"))))
+    s.add(ygdata.FNode(_q("node"), children=[ygdata.FNode(_q("name"), value_match="dev-1")]))
+    testing.assertEqual(len(s), 4)
+    testing.assertFalse(_entry("dev-3") in s)
+
+
+def _test_value_match_kinds_stay_apart():
+    """Different value match kinds remain distinct set members."""
+    s: set[ygdata.FNode] = set()
+    s.add(ygdata.FNode(_q("name"), value_match="7"))
+    s.add(ygdata.FNode(_q("name"), value_match=7))
+    s.add(ygdata.FNode(_q("name"), value_match=ygdata.VWildcard("7")))
+    s.add(ygdata.FNode(_q("name")))
+    testing.assertEqual(len(s), 4)
+
+
+def _test_tagged_tuple_as_dict_key():
+    """A (tag, path) tuple keys a dict the way the transaction engine
+    keys its link subscriptions."""
+    d: dict[(str, ygdata.FNode), int] = {}
+    # More than four entries exercise hashed lookup rather than linear search.
+    for i in range(1, 9):
+        d[("inventory", _entry("dev-{i}"))] = i
+    d[("status", _entry("dev-1"))] = 9
+    testing.assertEqual(len(d), 9)
+    for i in range(1, 9):
+        testing.assertEqual(d[("inventory", _entry("dev-{i}"))], i)
+    testing.assertEqual(d[("status", _entry("dev-1"))], 9)
+    testing.assertTrue(("inventory", _entry("dev-9")) not in d)
+
+
+def _test_equal_decimal_matches_hash_alike():
+    """Decimal predicates retain their numeric equality across scales."""
+    equal_pairs = [
+        (Decimal(314, -2), Decimal(3140, -3)),
+        (Decimal(-314, -2), Decimal(-3140, -3)),
+        (Decimal(0, 5), Decimal(0, -3)),
+    ]
+    for a_value, b_value in equal_pairs:
+        a = ygdata.FNode(_q("value"), value_match=a_value)
+        b = ygdata.FNode(_q("value"), value_match=b_value)
+        testing.assertEqual(a, b)
+        testing.assertEqual(hash(a), hash(b))
+        testing.assertEqual(seed_hash(u64(17), a), seed_hash(u64(17), b))
+        testing.assertEqual(len({a, b}), 1)
+        # Ensure the tuple-key lookup uses hashes even for the first pair.
+        d = {("inventory", _entry("dev-{i}")): i for i in range(8)}
+        d[("status", a)] = 8
+        testing.assertEqual(d[("status", b)], 8)
+        d[("status", b)] = 9
+        testing.assertEqual(len(d), 9)
+        testing.assertEqual(d[("status", a)], 9)
