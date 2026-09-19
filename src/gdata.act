@@ -1376,6 +1376,9 @@ class Node(value):
 
 extension Node(Eq):
     def __eq__(self, other: Node) -> bool:
+        if _same_node(self, other):
+            return True
+
         if self.ns != other.ns:
             return False
 
@@ -1479,6 +1482,11 @@ extension Node(Eq):
             return True
 
         return False
+
+
+def _same_node(a: Node, b: Node) -> bool:
+    """Compare object pointers without inspecting either node."""
+    NotImplemented
 
 
 class ListNode(Node):
