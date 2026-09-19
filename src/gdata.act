@@ -1957,6 +1957,11 @@ extension ValueMatch(Eq):
             return self.pattern == other.pattern
         return False
 
+extension ValueMatch(Hashable):
+    def hash(self, hasher):
+        if isinstance(self, VWildcard):
+            self.pattern.hash(hasher)
+
 
 extension FNode(Eq):
     def __eq__(self, other: FNode) -> bool:
@@ -1970,6 +1975,25 @@ extension FNode(Eq):
             if self.children[i] != other.children[i]:
                 return False
         return True
+
+extension FNode(Hashable):
+    def hash(self, hasher):
+        """Structural, agreeing with __eq__: name, value_match, children in order."""
+        name = self.name
+        if name is not None:
+            name.hash(hasher)
+        v = self.value_match
+        if isinstance(v, ValueMatch):
+            1.hash(hasher)
+            v.hash(hasher)
+        elif v is not None:
+            2.hash(hasher)
+            vals_hash(v, hasher)
+        else:
+            0.hash(hasher)
+        len(self.children).hash(hasher)
+        for c in self.children:
+            c.hash(hasher)
 
 def sorted_elements(elements, key_names: list[Id]):
     keys = list(map(lambda elem: elem.key_str(key_names), elements))
