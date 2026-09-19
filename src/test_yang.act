@@ -1604,6 +1604,32 @@ def _test_resolve_type_union_of_string():
         testing.assertEqual(acton_type, "?str")
     return root.prdaclass()
 
+def _test_resolve_type_union_of_str_yang_types():
+    """Test resolution of a union whose members are distinct YANG types that all map to str"""
+    ys = r"""module foo {
+  yang-version "1.1";
+  namespace "http://example.com/foo";
+  prefix "foo";
+
+  leaf l1 {
+    type union {
+      type enumeration {
+        enum first;
+      }
+      type instance-identifier;
+      type string;
+    }
+  }
+}
+"""
+    root = yang.compile([ys])
+    l1 = root.get("l1")
+
+    if isinstance(l1, yschema.DLeaf):
+        acton_type = yschema.yang_leaf_to_acton_type(l1, None)
+        testing.assertEqual(acton_type, "?str")
+    return root.prdaclass()
+
 def _test_resolve_type_union_of_intX():
     ys = r"""module foo {
   yang-version "1.1";
