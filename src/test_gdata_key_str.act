@@ -1,0 +1,22 @@
+import testing
+
+import gdata
+
+
+def _test_key_str():
+    first = gdata.Id("urn:test:key", "first")
+    second = gdata.Id("urn:test:key", "second")
+    number = gdata.Id("urn:test:key", "number")
+    data = gdata.Container({
+        first: gdata.Leaf("a,b"),
+        second: gdata.Leaf(""),
+        number: gdata.Leaf(42),
+    })
+    testing.assertEqual(data.key_str([]), "")
+    testing.assertEqual(data.key_str([first]), "a\\,b")
+    testing.assertEqual(data.key_str([second]), "")
+    testing.assertEqual(data.key_str([number]), "42")
+    testing.assertEqual(data.key_str([first, number, second]), "a\\,b,42,")
+    testing.assertEqual(data.key_str([number, first]), "42,a\\,b")
+    testing.assertEqual(gdata.Container({first: gdata.Leaf("device-1")}).key_str([first]), "device-1")
+    testing.assertEqual(gdata.Container({first: gdata.Leaf("a\\,b")}).key_str([first]), "a\\\\,b")
