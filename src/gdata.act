@@ -3692,6 +3692,45 @@ def _test_named_child_getters_keep_type_checks():
     testing.assertEqual(len(data.get_opt_Identityrefs(not_leaflist)), 0)
     testing.assertEqual(len(data.get_opt_bitss(not_leaflist)), 0)
 
+    try:
+        data.get_cnt(not_container)
+        testing.error("Expected required container getter to fail")
+    except ValueError:
+        pass
+
+
+def _test_optional_leaflist_getters_keep_values():
+    ints = Id("", "ints")
+    u64s = Id("", "u64s")
+    strs = Id("", "strs")
+    bytess = Id("", "bytess")
+    decimals = Id("", "decimals")
+    bools = Id("", "bools")
+    values = Id("", "values")
+    identityrefs = Id("", "identityrefs")
+    bitss = Id("", "bitss")
+    data = Container({
+        ints: LeafList([LeafListEntryMerge(1)]),
+        u64s: LeafList([LeafListEntryMerge(u64(1))]),
+        strs: LeafList([LeafListEntryMerge("one")]),
+        bytess: LeafList([LeafListEntryMerge(b"one")]),
+        decimals: LeafList([LeafListEntryMerge(Decimal(1, 0))]),
+        bools: LeafList([LeafListEntryMerge(True)]),
+        values: LeafList([LeafListEntryMerge("one")]),
+        identityrefs: LeafList([LeafListEntryMerge(Identityref("one", "urn:test", "test", "test"))]),
+        bitss: LeafList([LeafListEntryMerge(["one"])]),
+    })
+
+    testing.assertEqual(len(data.get_opt_ints(ints)), 1)
+    testing.assertEqual(len(data.get_opt_u64s(u64s)), 1)
+    testing.assertEqual(len(data.get_opt_strs(strs)), 1)
+    testing.assertEqual(len(data.get_opt_bytess(bytess)), 1)
+    testing.assertEqual(len(data.get_opt_Decimals(decimals)), 1)
+    testing.assertEqual(len(data.get_opt_bools(bools)), 1)
+    testing.assertEqual(len(data.get_opt_values(values)), 1)
+    testing.assertEqual(len(data.get_opt_Identityrefs(identityrefs)), 1)
+    testing.assertEqual(len(data.get_opt_bitss(bitss)), 1)
+
 
 def _test_format_gdata_path():
     path = [

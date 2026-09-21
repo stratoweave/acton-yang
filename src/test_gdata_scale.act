@@ -13,6 +13,10 @@ operation costs the selected data, linear when it pays for the whole
 input. The other scenarios run a whole-list operation once per body
 and are linear at best.
 
+Scenarios named `_sparse` use entries with only two leaves. They model
+filtered feeds where generated decoding still probes optional children
+that are absent from every entry.
+
 The operations are the ones a StratoWeave node runs per transaction
 and per message: merge, diff, patch, filter and prune of trees;
 equality and key_str of list entries; adata encoding and decoding,
@@ -63,6 +67,8 @@ BOOLS = _q("bools")
 VALUES = _q("values")
 IDENTITYREFS = _q("identityrefs")
 BITSS = _q("bitss")
+MISSING = _q("missing")
+OPTIONAL_CONTAINERS: list[ygdata.Id] = [_q("optional-container-" + str(i)) for i in range(10)]
 
 
 def _dev_name(i: int) -> str:
@@ -117,6 +123,35 @@ def _wide_getters(width: int) -> ygdata.Node:
         (BITSS, ygdata.LeafList([ygdata.LeafListEntryMerge(["one"])], ns=NS, module=MODULE)),
     ]
     return ygdata.Container(dict(_unrelated_children(width) + selected))
+
+
+def _sparse_elem(i: int) -> ygdata.Node:
+    """One filtered entry with two leaves and no optional containers."""
+    return ygdata.Container({
+        KEY: ygdata.Leaf(_dev_name(i), ns=NS, module=MODULE),
+        _q("value"): ygdata.Leaf(i, ns=NS, module=MODULE),
+    })
+
+
+def _sparse_elements(count: int) -> list[ygdata.Node]:
+    return [_sparse_elem(i) for i in range(count)]
+
+
+def _optional_absent_count(n: ygdata.Node) -> int:
+    """Exercise every optional getter that used exceptions for absence."""
+    found = 0
+    if n.get_opt_cnt(MISSING) is not None:
+        found += 1
+    found += len(n.get_opt_ints(MISSING))
+    found += len(n.get_opt_u64s(MISSING))
+    found += len(n.get_opt_strs(MISSING))
+    found += len(n.get_opt_bytess(MISSING))
+    found += len(n.get_opt_Decimals(MISSING))
+    found += len(n.get_opt_bools(MISSING))
+    found += len(n.get_opt_values(MISSING))
+    found += len(n.get_opt_Identityrefs(MISSING))
+    found += len(n.get_opt_bitss(MISSING))
+    return found
 
 
 def _elements(start: int, count: int, value: int) -> list[ygdata.Node]:
@@ -396,6 +431,25 @@ class _device_entry(yadata.MNode):
         return _device_entry(self.name, self.value, self.leaf0, self.leaf1, self.leaf2, self.leaf3)
 
 
+class _sparse_entry:
+    name: str
+    value: ?int
+    optional_containers: int
+
+    mut def __init__(self, name: str, value: ?int, optional_containers: int) -> None:
+        self.name = name
+        self.value = value
+        self.optional_containers = optional_containers
+
+    @staticmethod
+    mut def from_gdata(n: ygdata.Node) -> _sparse_entry:
+        found = 0
+        for name in OPTIONAL_CONTAINERS:
+            if n.get_opt_cnt(name) is not None:
+                found += 1
+        return _sparse_entry(name=n.get_str(KEY), value=n.get_opt_int(_q("value")), optional_containers=found)
+
+
 class _device(yadata.MKeyedList[str, _device_entry]):
     mut def __init__(self, elements: list[_device_entry]=[]) -> None:
         yadata.MKeyedList.__init__(self, lambda e: e.name, elements)
@@ -469,6 +523,28 @@ def _test_adata_decode_wide(t: testing.SyncT):
             if entry.name == "wide" and entry.value == n:
                 found += 1
         assert found == EACH
+
+
+def _test_adata_decode_sparse(t: testing.SyncT):
+    """generated-style decode probing ten absent optional containers"""
+    elements = _sparse_elements(t.scale())
+    for n in t.loop():
+        found = 0
+        for element in elements:
+            entry = _sparse_entry.from_gdata(element)
+            if entry.value is not None and entry.optional_containers == 0:
+                found += 1
+        assert found == n
+
+
+def _test_get_optional_sparse(t: testing.SyncT):
+    """all exception-based optional getters on absent children"""
+    elements = _sparse_elements(t.scale())
+    for _ in t.loop():
+        found = 0
+        for element in elements:
+            found += _optional_absent_count(element)
+        assert found == 0
 
 
 def _test_get_children_wide(t: testing.SyncT):
