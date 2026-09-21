@@ -3667,6 +3667,32 @@ def _test_id_ord_and_hashable():
     testing.assertEqual(by_id[Id("urn:a", "a")], "found")
 
 
+def _test_named_child_getters_keep_type_checks():
+    not_leaf = Id("", "not-leaf")
+    not_container = Id("", "not-container")
+    not_list = Id("", "not-list")
+    not_leaflist = Id("", "not-leaflist")
+    data = Container({
+        not_leaf: Container(),
+        not_container: Leaf("value"),
+        not_list: Leaf("value"),
+        not_leaflist: Leaf("value"),
+    })
+
+    testing.assertEqual(data.get_opt_leaf_or_absent(not_leaf), None)
+    testing.assertEqual(data.get_opt_cnt(not_container), None)
+    testing.assertEqual(data.get_opt_list(not_list), None)
+    testing.assertEqual(len(data.get_opt_ints(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_u64s(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_strs(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_bytess(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_Decimals(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_bools(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_values(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_Identityrefs(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_bitss(not_leaflist)), 0)
+
+
 def _test_format_gdata_path():
     path = [
         _PathElement(Id("", "config")),
