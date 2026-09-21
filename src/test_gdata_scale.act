@@ -400,6 +400,20 @@ def _test_patch_edits_each(t: testing.SyncT):
                 ypatch.edit_to_gdata(schema, e)
 
 
+# Wide-container operations, EACH per body.
+
+def _test_prune_container_miss_wide(t: testing.SyncT):
+    """prune naming a missing child in a wide container"""
+    tree = ygdata.Container(dict(_unrelated_children(t.scale())))
+    filt = ygdata.FNode(children=[ygdata.FNode(_q("missing"))])
+    for n in t.loop():
+        for _ in range(EACH):
+            res = ygdata.prune(tree, filt)
+            if res is None:
+                raise ValueError("missing child prune removed the container")
+            assert len(res!.children) == n
+
+
 # adata: a hand written equivalent of what ayangc generates for the
 # schema above, so the encoder and decoder run without a generated
 # module.
