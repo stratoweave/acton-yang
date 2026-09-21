@@ -3,13 +3,15 @@
     acton test perf  --module test_gdata_scale
     acton test scale --module test_gdata_scale --name filter_each --end-scale 100000
 
-Scale is the number of list entries. Every scenario builds its inputs
-before the loop, from t.scale(), so a body measures the operation
-alone. The scenarios named `_each` run an operation that names one
-entry a fixed EACH times per body, so their growth is the growth of
-one such call with the size of the list: flat when the call costs the
-entry, linear when it pays for the whole list. The other scenarios
-run a whole-list operation once per body and are linear at best.
+Scale is the number of list entries, except in scenarios named `_wide`,
+where it is the number of unrelated children in one container. Every
+scenario builds its inputs before the loop, from t.scale(), so a body
+measures the operation alone. The scenarios named `_each` or `_wide`
+run a fixed number of operations per body, so their growth is the
+growth of one such operation with the size of the input: flat when the
+operation costs the selected data, linear when it pays for the whole
+input. The other scenarios run a whole-list operation once per body
+and are linear at best.
 
 The operations are the ones a StratoWeave node runs per transaction
 and per message: merge, diff, patch, filter and prune of trees;
@@ -23,6 +25,9 @@ device.
 import testing
 import std.xml as xml
 
+from identityref import Identityref
+from type import Decimal
+
 import lib as yang
 import adata as yadata
 import gdata as ygdata
@@ -34,7 +39,7 @@ NS = "urn:scale"
 MODULE = "scale"
 LEAVES = 4
 
-# One-entry operations per body.
+# Repeated operations per body.
 EACH = 64
 
 
@@ -45,6 +50,19 @@ def _q(name: str) -> ygdata.Id:
 KEY = _q("name")
 KEYS: list[ygdata.Id] = [KEY]
 DEVICE = _q("device")
+EMPTY_PRESENT = _q("empty-present")
+EMPTY_ABSENT = _q("empty-absent")
+CONTAINER = _q("container")
+CHILD_LIST = _q("child-list")
+INTS = _q("ints")
+U64S = _q("u64s")
+STRS = _q("strs")
+BYTESS = _q("bytess")
+DECIMALS = _q("decimals")
+BOOLS = _q("bools")
+VALUES = _q("values")
+IDENTITYREFS = _q("identityrefs")
+BITSS = _q("bitss")
 
 
 def _dev_name(i: int) -> str:
@@ -62,6 +80,43 @@ def _elem(i: int, value: int) -> ygdata.Node:
     ]
     leaves: list[(ygdata.Id, ygdata.Node)] = [(_q("leaf" + str(j)), ygdata.Leaf("value-" + str(j) + "-" + str(value), ns=NS, module=MODULE)) for j in range(LEAVES)]
     return ygdata.Container(dict(pairs + leaves))
+
+
+def _unrelated_children(width: int) -> list[(ygdata.Id, ygdata.Node)]:
+    return [(_q("unrelated" + str(i)), ygdata.Leaf(i, ns=NS, module=MODULE)) for i in range(width)]
+
+
+def _wide_elem(width: int) -> ygdata.Node:
+    """One entry with the decoded leaves among `width` unrelated leaves."""
+    decoded: list[(ygdata.Id, ygdata.Node)] = [
+        (KEY, ygdata.Leaf("wide", ns=NS, module=MODULE)),
+        (_q("value"), ygdata.Leaf(width, ns=NS, module=MODULE)),
+        (_q("leaf0"), ygdata.Leaf("value-0", ns=NS, module=MODULE)),
+        (_q("leaf1"), ygdata.Leaf("value-1", ns=NS, module=MODULE)),
+        (_q("leaf2"), ygdata.Leaf("value-2", ns=NS, module=MODULE)),
+        (_q("leaf3"), ygdata.Leaf("value-3", ns=NS, module=MODULE)),
+    ]
+    return ygdata.Container(dict(_unrelated_children(width) + decoded))
+
+
+def _wide_getters(width: int) -> ygdata.Node:
+    """Every remaining named-child getter among unrelated leaves."""
+    selected: list[(ygdata.Id, ygdata.Node)] = [
+        (EMPTY_PRESENT, ygdata.Leaf(ygdata.Present(), ns=NS, module=MODULE)),
+        (EMPTY_ABSENT, ygdata.Absent(ns=NS, module=MODULE)),
+        (CONTAINER, ygdata.Container(ns=NS, module=MODULE)),
+        (CHILD_LIST, ygdata.List(KEYS, ns=NS, module=MODULE)),
+        (INTS, ygdata.LeafList([ygdata.LeafListEntryMerge(1)], ns=NS, module=MODULE)),
+        (U64S, ygdata.LeafList([ygdata.LeafListEntryMerge(u64(1))], ns=NS, module=MODULE)),
+        (STRS, ygdata.LeafList([ygdata.LeafListEntryMerge("one")], ns=NS, module=MODULE)),
+        (BYTESS, ygdata.LeafList([ygdata.LeafListEntryMerge(b"one")], ns=NS, module=MODULE)),
+        (DECIMALS, ygdata.LeafList([ygdata.LeafListEntryMerge(Decimal(1, 0))], ns=NS, module=MODULE)),
+        (BOOLS, ygdata.LeafList([ygdata.LeafListEntryMerge(True)], ns=NS, module=MODULE)),
+        (VALUES, ygdata.LeafList([ygdata.LeafListEntryMerge("one")], ns=NS, module=MODULE)),
+        (IDENTITYREFS, ygdata.LeafList([ygdata.LeafListEntryMerge(Identityref("one", NS, MODULE, MODULE))], ns=NS, module=MODULE)),
+        (BITSS, ygdata.LeafList([ygdata.LeafListEntryMerge(["one"])], ns=NS, module=MODULE)),
+    ]
+    return ygdata.Container(dict(_unrelated_children(width) + selected))
 
 
 def _elements(start: int, count: int, value: int) -> list[ygdata.Node]:
@@ -402,6 +457,45 @@ def _test_adata_decode(t: testing.SyncT):
     tree = _devices(0, t.scale(), 1)
     for n in t.loop():
         assert len(_root.from_gdata(tree).device) == n
+
+
+def _test_adata_decode_wide(t: testing.SyncT):
+    """from_gdata of scalar leaves in a wide container"""
+    tree = _wide_elem(t.scale())
+    for n in t.loop():
+        found = 0
+        for _ in range(EACH):
+            entry = _device_entry.from_gdata(tree)
+            if entry.name == "wide" and entry.value == n:
+                found += 1
+        assert found == EACH
+
+
+def _test_get_children_wide(t: testing.SyncT):
+    """all named-child getters in a wide container"""
+    tree = _wide_getters(t.scale())
+    assert isinstance(tree.get_opt_leaf_or_absent(EMPTY_ABSENT), ygdata.Absent)
+    for n in t.loop():
+        found = 0
+        for _ in range(EACH):
+            if tree.get_empty(EMPTY_PRESENT):
+                found += 1
+            if not tree.get_empty(EMPTY_ABSENT):
+                found += 1
+            if len(tree.get_cnt(CONTAINER).children) == 0:
+                found += 1
+            if len(tree.get_list(CHILD_LIST).elements) == 0:
+                found += 1
+            found += len(tree.get_ints(INTS))
+            found += len(tree.get_u64s(U64S))
+            found += len(tree.get_strs(STRS))
+            found += len(tree.get_bytess(BYTESS))
+            found += len(tree.get_Decimals(DECIMALS))
+            found += len(tree.get_bools(BOOLS))
+            found += len(tree.get_values(VALUES))
+            found += len(tree.get_Identityrefs(IDENTITYREFS))
+            found += len(tree.get_bitss(BITSS))
+        assert found == 13 * EACH
 
 
 def _test_adata_encode(t: testing.SyncT):

@@ -938,15 +938,15 @@ class Node(value):
 
     def get_opt_leaf(self, name) -> ?Leaf:
         if isinstance(self, Container) or isinstance(self, Absent) or isinstance(self, Create) or isinstance(self, Replace) or isinstance(self, Delete):
-            for nm,child in self.children.items():
-                if isinstance(child, Leaf) and nm == name:
-                    return child
+            child = self.children.get(name)
+            if isinstance(child, Leaf):
+                return child
 
     def get_opt_leaf_or_absent(self, name) -> ?Node:
         if isinstance(self, Container) or isinstance(self, Absent) or isinstance(self, Create) or isinstance(self, Replace) or isinstance(self, Delete):
-            for nm,child in self.children.items():
-                if nm == name and (isinstance(child, Leaf) or isinstance(child, Absent)):
-                    return child
+            child = self.children.get(name)
+            if isinstance(child, Leaf) or isinstance(child, Absent):
+                return child
 
     def get_leaflist(self, name) -> LeafList:
         l = self.get_opt_leaflist(name)
@@ -962,9 +962,9 @@ class Node(value):
 
     def get_cnt(self, name) -> Container:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, Container) and nm == name:
-                    return child
+            child = self.children.get(name)
+            if isinstance(child, Container):
+                return child
         raise ValueError("Cannot find container child with name {name}")
 
     def get_opt_cnt(self, name) -> ?Container:
@@ -982,9 +982,9 @@ class Node(value):
 
     def get_opt_list(self, name) -> ?List:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, List) and nm == name:
-                    return child
+            child = self.children.get(name)
+            if isinstance(child, List):
+                return child
 
     def get_bool(self, name) -> bool:
         child = self.get_leaf(name)
@@ -1038,15 +1038,15 @@ class Node(value):
 
     def get_ints(self, name) -> list[int]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals = []
-                    # TODO: filter out imperative ops?!
-                    for entry in child.entries:
-                        v = entry.val
-                        if isinstance(v, int):
-                            cvals.append(v)
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals = []
+                # TODO: filter out imperative ops?!
+                for entry in child.entries:
+                    v = entry.val
+                    if isinstance(v, int):
+                        cvals.append(v)
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_int(self, name) -> ?int:
@@ -1071,14 +1071,14 @@ class Node(value):
 
     def get_u64s(self, name) -> list[u64]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals = []
-                    for entry in child.entries:
-                        v = entry.val
-                        if isinstance(v, u64):
-                            cvals.append(v)
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals = []
+                for entry in child.entries:
+                    v = entry.val
+                    if isinstance(v, u64):
+                        cvals.append(v)
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_u64(self, name) -> ?u64:
@@ -1110,14 +1110,14 @@ class Node(value):
 
     def get_strs(self, name) -> list[str]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals = []
-                    for entry in child.entries:
-                        v = entry.val
-                        if isinstance(v, str):
-                            cvals.append(v)
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals = []
+                for entry in child.entries:
+                    v = entry.val
+                    if isinstance(v, str):
+                        cvals.append(v)
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_strs(self, name) -> list[str]:
@@ -1142,14 +1142,14 @@ class Node(value):
 
     def get_bytess(self, name) -> list[bytes]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals = []
-                    for entry in child.entries:
-                        v = entry.val
-                        if isinstance(v, bytes):
-                            cvals.append(v)
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals = []
+                for entry in child.entries:
+                    v = entry.val
+                    if isinstance(v, bytes):
+                        cvals.append(v)
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_bytess(self, name) -> list[bytes]:
@@ -1160,14 +1160,14 @@ class Node(value):
 
     def get_Decimals(self, name) -> list[Decimal]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals = []
-                    for entry in child.entries:
-                        v = entry.val
-                        if isinstance(v, Decimal):
-                            cvals.append(v)
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals = []
+                for entry in child.entries:
+                    v = entry.val
+                    if isinstance(v, Decimal):
+                        cvals.append(v)
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_Decimals(self, name) -> list[Decimal]:
@@ -1178,14 +1178,14 @@ class Node(value):
 
     def get_bools(self, name) -> list[bool]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals = []
-                    for entry in child.entries:
-                        v = entry.val
-                        if isinstance(v, bool):
-                            cvals.append(v)
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals = []
+                for entry in child.entries:
+                    v = entry.val
+                    if isinstance(v, bool):
+                        cvals.append(v)
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_bools(self, name) -> list[bool]:
@@ -1204,9 +1204,9 @@ class Node(value):
 
     def get_values(self, name) -> list[value]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    return [adata_val(e.val) for e in child.entries]
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                return [adata_val(e.val) for e in child.entries]
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_values(self, name) -> list[value]:
@@ -1231,14 +1231,14 @@ class Node(value):
 
     def get_Identityrefs(self, name) -> list[Identityref]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals = []
-                    for entry in child.entries:
-                        v = entry.val
-                        if isinstance(v, Identityref):
-                            cvals.append(v)
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals = []
+                for entry in child.entries:
+                    v = entry.val
+                    if isinstance(v, Identityref):
+                        cvals.append(v)
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_Identityrefs(self, name) -> list[Identityref]:
@@ -1260,14 +1260,14 @@ class Node(value):
 
     def get_bitss(self, name) -> list[iset[str]]:
         if isinstance(self, Container):
-            for nm,child in self.children.items():
-                if isinstance(child, LeafList) and nm == name:
-                    cvals: list[iset[str]] = []
-                    for entry in child.entries:
-                        bits = as_bits(entry.val)
-                        if bits is not None:
-                            cvals.append(iset(bits))
-                    return cvals
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                cvals: list[iset[str]] = []
+                for entry in child.entries:
+                    bits = as_bits(entry.val)
+                    if bits is not None:
+                        cvals.append(iset(bits))
+                return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
     def get_opt_bitss(self, name) -> list[iset[str]]:
@@ -3665,6 +3665,32 @@ def _test_id_ord_and_hashable():
 
     by_id = {Id("urn:a", "a"): "found"}
     testing.assertEqual(by_id[Id("urn:a", "a")], "found")
+
+
+def _test_named_child_getters_keep_type_checks():
+    not_leaf = Id("", "not-leaf")
+    not_container = Id("", "not-container")
+    not_list = Id("", "not-list")
+    not_leaflist = Id("", "not-leaflist")
+    data = Container({
+        not_leaf: Container(),
+        not_container: Leaf("value"),
+        not_list: Leaf("value"),
+        not_leaflist: Leaf("value"),
+    })
+
+    testing.assertEqual(data.get_opt_leaf_or_absent(not_leaf), None)
+    testing.assertEqual(data.get_opt_cnt(not_container), None)
+    testing.assertEqual(data.get_opt_list(not_list), None)
+    testing.assertEqual(len(data.get_opt_ints(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_u64s(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_strs(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_bytess(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_Decimals(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_bools(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_values(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_Identityrefs(not_leaflist)), 0)
+    testing.assertEqual(len(data.get_opt_bitss(not_leaflist)), 0)
 
 
 def _test_format_gdata_path():
