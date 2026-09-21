@@ -3005,8 +3005,6 @@ def _prune_container_children(data: Node, fchildren: list[FNode]) -> (node: ?Nod
 
     groups = _group_filter_children(fchildren)
     pruned_children: dict[Id, Node] = {}
-    for key in data.children:
-        pruned_children[key] = data.children[key]
     has_selection = False
     for name, flist in groups.items():
         if name not in data.children:
@@ -3015,6 +3013,9 @@ def _prune_container_children(data: Node, fchildren: list[FNode]) -> (node: ?Nod
         if not res.matched:
             return (node=data, matched=False, select=False)
         if res.select:
+            if not has_selection:
+                for key in data.children:
+                    pruned_children[key] = data.children[key]
             has_selection = True
             if res.node is None:
                 if name in pruned_children:
