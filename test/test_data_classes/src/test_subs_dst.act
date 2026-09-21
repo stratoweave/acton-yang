@@ -229,7 +229,9 @@ actor _test_subs_dst_rooted_at_list(t: testing.AsyncT):
     def on_synced():
         synced = True
         testing.assertEqual(len(got), 2)
-        tp!.deliver_gone(next(iter(tp!.callbacks.keys())), "eth1")
+        it = next(iter(tp!.callbacks.keys()))
+        if isinstance(it,just):
+            tp!.deliver_gone(it.val, "eth1")
 
     def on_declared():
         actual_tp = tp!
@@ -286,7 +288,9 @@ actor _test_subs_dst_container_gone_is_none(t: testing.AsyncT):
         seen += 1
         if seen == 1:
             testing.assertEqual(clock!.current_datetime, "2026-04-21T10:15:00Z")
-            tp!.deliver_gone(next(iter(tp!.callbacks.keys())), "")
+            it = next(iter(tp!.callbacks.keys()))
+            if isinstance(it,just):
+                tp!.deliver_gone(it.val, "")
         elif clock is None:
             t.success()
         else:
@@ -347,7 +351,9 @@ actor _test_subs_dst_rooted_below_a_list(t: testing.AsyncT):
 
     def on_synced():
         testing.assertEqual(len(got), 2)
-        tp!.deliver_gone(next(iter(tp!.callbacks.keys())), "eth1/10.0.0.2")
+        it = next(iter(tp!.callbacks.keys()))
+        if isinstance(it,just):
+            tp!.deliver_gone(it.val, "eth1/10.0.0.2")
 
     def on_declared():
         tp!.deliver_all(_sample_tree())
