@@ -22,14 +22,14 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='svc', namespace='urn:example:
 
 SRC_DNODE_RPC_0: DRpc = DRpc(module='svc', namespace='urn:example:svc', prefix='svc', name='register', input=DInput(module='svc', namespace='urn:example:svc', prefix='svc', children=[
     DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
     ])
 ]), children=[
     DInput(module='svc', namespace='urn:example:svc', prefix='svc', children=[
         DList(module='svc', namespace='urn:example:svc', prefix='svc', name='servers', key=['id'], config=False, min_elements=0, ordered_by='system', children=[
-            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='id', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+            DLeaf(module='svc', namespace='urn:example:svc', prefix='svc', name='port', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
         ])
     ])
 ])

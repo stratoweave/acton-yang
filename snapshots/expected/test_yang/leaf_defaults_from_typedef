@@ -29,8 +29,8 @@ base_id2: Identityref = Identityref('id2', ns='http://example.com/base', mod='ba
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c', config=True, presence=False, children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='threshold', config=True, default='50', mandatory=False, type=DTypeIntegerUnsigned(name='base:percent', description=None, reference=None, exts=[], builtin_type='uint8', default='50', ranges=Ranges([(0, 255)])), units='percent'),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='kind', config=True, default='base:id2', mandatory=False, type=DTypeIdentityref(name='base:id-type', description=None, reference=None, exts=[], builtin_type='identityref', default='base:id2', identity_bases=[_base_base_id1], identities=_identities))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='threshold', config=True, default='50', is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='base:percent', description=None, reference=None, exts=[], builtin_type='uint8', default='50', ranges=Ranges([(0, 255)])), units='percent'),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='kind', config=True, default='base:id2', is_key=False, mandatory=False, type=DTypeIdentityref(name='base:id-type', description=None, reference=None, exts=[], builtin_type='identityref', default='base:id2', identity_bases=[_base_base_id1], identities=_identities))
 ])
 
 SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='id1')

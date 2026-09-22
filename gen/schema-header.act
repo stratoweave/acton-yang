@@ -542,7 +542,7 @@ class DNodeInner(DNode):
                 continue # TODO
             elif isinstance(child, DAnyxml):
                 continue # TODO
-            if isinstance(child, DLeaf) and isinstance(self, DList) and child.is_key(self):
+            if isinstance(child, DLeaf) and child.is_key:
                 key_children[child.name] = child
             else:
                 new_children.append(child)
@@ -617,7 +617,7 @@ class DNodeInner(DNode):
 
         for child in attr_children:
             if isinstance(child, DLeaf):
-                res.append("    {usname(child)}: {yang_leaf_to_acton_type(child, list_keys(self), loose)}")
+                res.append("    {usname(child)}: {yang_leaf_to_acton_type(child, loose)}")
             elif isinstance(child, DLeafList):
                 res.append("    {usname(child)}: {yang_leaflist_to_acton_type(child)}")
             elif isinstance(child, DContainer):
@@ -655,8 +655,8 @@ class DNodeInner(DNode):
                 child_default = child.default
                 if not loose and child_default is not None:
                     defval = "=None"
-                child_arg = "{usname(child)}: {yang_leaf_to_acton_arg_type(child, list_keys(self), loose)}{defval}"
-                if is_optional_arg_yang_leaf(child, list_keys(self), loose):
+                child_arg = "{usname(child)}: {yang_leaf_to_acton_arg_type(child, loose)}{defval}"
+                if is_optional_arg_yang_leaf(child, loose):
                     opt_args.append(child_arg)
                 else:
                     req_args.append(child_arg)
@@ -719,8 +719,8 @@ class DNodeInner(DNode):
                 for cchild in child.children:
                     if isinstance(cchild, DLeaf):
                         carg = child_unique_namer.unique_safe_name(cchild.name, cchild.prefix)
-                        ctype = yang_leaf_to_acton_arg_type(cchild, list_keys(self), loose)
-                        if is_optional_arg_yang_leaf(cchild, list_keys(self), loose):
+                        ctype = yang_leaf_to_acton_arg_type(cchild, loose)
+                        if is_optional_arg_yang_leaf(cchild, loose):
                             pc_args_opt.append(carg)
                             pc_args_opt_sig.append("{carg}: {ctype}=None")
                         else:
@@ -763,9 +763,9 @@ class DNodeInner(DNode):
             from_gdata_args_list = []
             for child in attr_children:
                 if isinstance(child, DNodeLeaf):
-                    from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, list_keys(self), loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
+                    from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
                 else:
-                    from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, list_keys(self), loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}')))")
+                    from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}')))")
             from_gdata_args = ", ".join(from_gdata_args_list)
             res.append("    @staticmethod")
             if isinstance(self, DList):
@@ -823,13 +823,13 @@ class DNodeInner(DNode):
             for child in attr_children:
                 if isinstance(child, DLeaf):
                     arg = usname(child)
-                    arg_type = yang_leaf_to_acton_arg_type(child, list_keys(self), loose)
+                    arg_type = yang_leaf_to_acton_arg_type(child, loose)
                     if arg in list_key_args:
                         list_key_types[arg] = child.type
                         list_args_req.append(arg)
                         list_args_req_sig.append("{arg}: {arg_type}")
                         continue
-                    if is_optional_arg_yang_leaf(child, list_keys(self), loose):
+                    if is_optional_arg_yang_leaf(child, loose):
                         list_args_opt.append(arg)
                         list_args_opt_sig.append("{arg}: {arg_type}=None")
                     else:
@@ -1476,10 +1476,11 @@ class DList(DNodeInner):
 
 class DLeaf(DNodeLeaf):
     default: ?str
+    is_key: bool
     mandatory: bool
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], mandatory=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -1489,6 +1490,7 @@ class DLeaf(DNodeLeaf):
         self.description = description
         self.default = default
         self.if_feature = if_feature
+        self.is_key = is_key
         self.mandatory = mandatory
         self.must = must
         self.reference = reference
@@ -1497,15 +1499,6 @@ class DLeaf(DNodeLeaf):
         self.units = units
         self.when = when
         self.exts = exts
-
-    def is_key(self, parent: DList) -> bool:
-        # If the leaf is in a different namespace as the list, it:
-        # - cannot possibly be a key,
-        # - may even have the same name as one of the keys!
-        if self.namespace == parent.namespace:
-            if self.name in parent.key:
-                return True
-        return False
 
     def _get_attrs(self):
         return [
@@ -1517,6 +1510,7 @@ class DLeaf(DNodeLeaf):
             ("description", self.description),
             ("default", self.default),
             ("if_feature", self.if_feature),
+            ("is_key", self.is_key),
             ("mandatory", self.mandatory),
             ("must", self.must),
             ("reference", self.reference),
@@ -2108,7 +2102,7 @@ class DRoot(DNodeInner):
 
         def list_key_child(node: DList, key_name: str) -> DLeaf:
             for child in node.children:
-                if isinstance(child, DLeaf) and child.is_key(node) and child.name == key_name:
+                if isinstance(child, DLeaf) and child.is_key and child.name == key_name:
                     return child
             raise ValueError("Unable to find key leaf {key_name} in list {node.name}")
 
@@ -2138,7 +2132,7 @@ class DRoot(DNodeInner):
                     if isinstance(level, DList):
                         for key_name in level.key:
                             key_leaf = list_key_child(level, key_name)
-                            fields.append((safe_name(level.name) + "_" + safe_name(key_name), yang_leaf_to_acton_arg_type(key_leaf, list_keys(level), loose=False)))
+                            fields.append((safe_name(level.name) + "_" + safe_name(key_name), yang_leaf_to_acton_arg_type(key_leaf, loose=False)))
                 return fields
 
             def keys_type() -> str:
@@ -2181,7 +2175,7 @@ class DRoot(DNodeInner):
                         res.append("            {vn} = _one(_at({at}, {node_id}), '{level.name}')")
                         for key_name in level.key:
                             key_leaf = list_key_child(level, key_name)
-                            key_exprs.append("{safe_name(level.name)}_{safe_name(key_name)}={vn}.{taker_name(key_leaf, list_keys(level), loose=False)}(ygdata.Id(NS_{safe_name(key_leaf.module)}, '{key_leaf.name}'))")
+                            key_exprs.append("{safe_name(level.name)}_{safe_name(key_name)}={vn}.{taker_name(key_leaf, loose=False)}(ygdata.Id(NS_{safe_name(key_leaf.module)}, '{key_leaf.name}'))")
                         at = vn
                     else:
                         vn = "c{i}"
@@ -2298,7 +2292,7 @@ class DRoot(DNodeInner):
                     entry_args = []
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
-                        entry_args.append("{us_list_key(key_name)}: {yang_leaf_to_acton_arg_type(key_leaf, list_keys(node), loose=False)}")
+                        entry_args.append("{us_list_key(key_name)}: {yang_leaf_to_acton_arg_type(key_leaf, loose=False)}")
                     res.append("    pure def entry(self, {', '.join(entry_args)}) -> {subs_entry_path_name(spath)}:")
                     res.append("        predicates = [")
                     for key_name in node.key:
@@ -4292,7 +4286,7 @@ def _prsrc_attrs(indent, attrs):
     return ", ".join(res)
 
 
-def is_optional_yang_leaf(leaf: DNodeLeaf, key_names: ?list[str], loose: bool=False) -> bool:
+def is_optional_yang_leaf(leaf: DNodeLeaf, loose: bool=False) -> bool:
     """Maps YANG leaf optionality to Acton type
     """
     optional = True
@@ -4319,12 +4313,11 @@ def is_optional_yang_leaf(leaf: DNodeLeaf, key_names: ?list[str], loose: bool=Fa
     if loose:
         optional = True
     # ... although being part of a key always makes it non-optional
-    if key_names is not None:
-        if leaf.name in key_names:
-            optional = False
+    if isinstance(leaf, DLeaf) and leaf.is_key:
+        optional = False
     return optional
 
-def is_optional_arg_yang_leaf(leaf: DNodeLeaf, key_names: ?list[str], loose: bool=False) -> bool:
+def is_optional_arg_yang_leaf(leaf: DNodeLeaf, loose: bool=False) -> bool:
     r"""Maps YANG leaf optionality to Acton type for object constructor arg
 
     This is different from the is_optional_yang_leaf because for YANG leafs with
@@ -4340,7 +4333,7 @@ def is_optional_arg_yang_leaf(leaf: DNodeLeaf, key_names: ?list[str], loose: boo
     argument, it is optional. This method is used to determine if the argument
     type should be optional.
     """
-    optional = is_optional_yang_leaf(leaf, key_names, loose)
+    optional = is_optional_yang_leaf(leaf, loose)
 
     if isinstance(leaf, DLeaf):
         if leaf.default is not None:
@@ -4348,14 +4341,14 @@ def is_optional_arg_yang_leaf(leaf: DNodeLeaf, key_names: ?list[str], loose: boo
 
     return optional
 
-def yang_leaf_to_acton_type(leaf: DNodeLeaf, key_names: ?list[str], loose: bool=False) -> str:
-    optional = is_optional_yang_leaf(leaf, key_names, loose)
+def yang_leaf_to_acton_type(leaf: DNodeLeaf, loose: bool=False) -> str:
+    optional = is_optional_yang_leaf(leaf, loose)
     optional_str = "?" if optional else ""
     t = yang_type_to_acton_type(leaf.type)
     return optional_str + t
 
-def yang_leaf_to_acton_arg_type(leaf: DNodeLeaf, key_names: ?list[str], loose: bool=False) -> str:
-    optional = is_optional_yang_leaf(leaf, key_names, loose)
+def yang_leaf_to_acton_arg_type(leaf: DNodeLeaf, loose: bool=False) -> str:
+    optional = is_optional_yang_leaf(leaf, loose)
     if isinstance(leaf, DLeaf):
         if leaf.default is not None:
             optional = True
@@ -4363,7 +4356,7 @@ def yang_leaf_to_acton_arg_type(leaf: DNodeLeaf, key_names: ?list[str], loose: b
     t = yang_type_to_acton_type(leaf.type)
     return optional_str + t
 
-def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
+def taker_name(n: DNode, loose: bool=False) -> str:
     def iset_to_bits(acton_type: str) -> str:
         if acton_type == "iset[str]":
             return "bits"
@@ -4379,7 +4372,7 @@ def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
         optional_str = "opt_" if optional else ""
         return taker_prefix + optional_str + "list"
     if isinstance(n, DLeaf):
-        optional = is_optional_arg_yang_leaf(n, key_names, loose)
+        optional = is_optional_arg_yang_leaf(n, loose)
         optional_str = "opt_" if optional else ""
         if n.type.builtin_type == "empty":
             return taker_prefix + optional_str + "empty"
