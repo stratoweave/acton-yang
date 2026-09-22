@@ -665,6 +665,11 @@ snode_methods = {
         if new_units is None:
             new_units = dtype.units
 
+        is_key = False
+        parent = self.parent
+        if isinstance(parent, List):
+            is_key = self.name in parent.keys() and self.get_namespace() == parent.get_namespace()
+
         new_dnode = DLeaf(
             module=self.get_module_name(),
             namespace=self.get_namespace(),
@@ -674,6 +679,7 @@ snode_methods = {
             default=new_default,
             description=self.description,
             if_feature=self.if_feature,
+            is_key=is_key,
             mandatory=self.mandatory,
             must=[m.to_dmust() for m in self.must],
             reference=self.reference,

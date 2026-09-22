@@ -19,27 +19,27 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='class', config=True, presence=False, children=[
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='actor', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='extension', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='from', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='import', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='protocol', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='type', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='actor', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='extension', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='from', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='import', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='protocol', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='type', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
 SRC_DNODE_CHILD_1: DList = DList(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='import', key=[
 'from',
 'type'
     ], config=True, min_elements=0, ordered_by='system', children=[
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='from', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='type', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='class', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='from', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='type', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='class', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
 SRC_DNODE_CHILD_2: DContainer = DContainer(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='C', config=True, presence=False, children=[
-    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='B4', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='B4', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DList(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='L', key=['K'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='K', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='K', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 

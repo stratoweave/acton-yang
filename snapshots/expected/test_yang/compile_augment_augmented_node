@@ -22,10 +22,10 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://exam
     DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='voice', config=True, presence=False, children=[
         DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='service', config=True, presence=False, children=[
             DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='voip', config=True, presence=False, children=[
-                DLeaf(module='voice', namespace='http://example.com/voice', prefix='voice', name='enabled', config=True, default='false', mandatory=False, type=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)),
+                DLeaf(module='voice', namespace='http://example.com/voice', prefix='voice', name='enabled', config=True, default='false', is_key=False, mandatory=False, type=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)),
                 DContainer(module='voice', namespace='http://example.com/voice', prefix='voice', name='sip', config=True, presence=False, children=[
-                    DLeaf(module='voice', namespace='http://example.com/voice', prefix='voice', name='bind', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-                    DLeaf(module='voice', namespace='http://example.com/voice', prefix='voice', name='port', config=True, default='5060', mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+                    DLeaf(module='voice', namespace='http://example.com/voice', prefix='voice', name='bind', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+                    DLeaf(module='voice', namespace='http://example.com/voice', prefix='voice', name='port', config=True, default='5060', is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
                 ])
             ])
         ])

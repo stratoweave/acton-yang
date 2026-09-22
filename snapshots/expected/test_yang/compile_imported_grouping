@@ -30,8 +30,8 @@ foo_id2: Identityref = Identityref('id2', ns='http://example.com/foo', mod='foo'
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='bar', namespace='http://example.com/bar', prefix='bar', name='c1', config=True, presence=False, children=[
     DList(module='bar', namespace='http://example.com/bar', prefix='bar', name='li1', key=['l1'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l1', config=True, description='leaf 1', mandatory=False, type=DTypeString(name='foo:string2', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l2', config=True, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_id1], identities=_identities))
+        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l1', config=True, description='leaf 1', is_key=True, mandatory=False, type=DTypeString(name='foo:string2', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='l2', config=True, is_key=False, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_id1], identities=_identities))
     ])
 ])
 

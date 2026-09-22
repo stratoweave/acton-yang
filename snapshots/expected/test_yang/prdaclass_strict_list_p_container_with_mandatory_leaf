@@ -19,9 +19,9 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_CHILD_0: DList = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='name', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='bar', config=True, presence=True, children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='hi', config=True, mandatory=True, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='hi', config=True, is_key=False, mandatory=True, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 

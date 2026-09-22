@@ -20,15 +20,15 @@ _identities: list[DIdentity] = []
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='network-instances', config=True, presence=False, children=[
     DList(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='network-instance', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='name', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DContainer(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='config', config=True, presence=False, children=[
-            DLeaf(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='name', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+            DLeaf(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='name', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
         ])
     ])
 ])
 
 SRC_DNODE_CHILD_1: DContainer = DContainer(module='consumer-module', namespace='http://example.com/consumer', prefix='consumer', name='uses-typedef', config=True, presence=False, children=[
-    DLeaf(module='consumer-module', namespace='http://example.com/consumer', prefix='consumer', name='ni', config=True, mandatory=False, type=DTypeLeafref(name='base-pfx:network-instance-ref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('base-pfx', 'network-instances', []), yxpath.NodeTestStep('base-pfx', 'network-instance', []), yxpath.NodeTestStep('base-pfx', 'config', []), yxpath.NodeTestStep('base-pfx', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+    DLeaf(module='consumer-module', namespace='http://example.com/consumer', prefix='consumer', name='ni', config=True, is_key=False, mandatory=False, type=DTypeLeafref(name='base-pfx:network-instance-ref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('base-pfx', 'network-instances', []), yxpath.NodeTestStep('base-pfx', 'network-instance', []), yxpath.NodeTestStep('base-pfx', 'config', []), yxpath.NodeTestStep('base-pfx', 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
 ])
 
 SRC_DNODE: DRoot = DRoot(

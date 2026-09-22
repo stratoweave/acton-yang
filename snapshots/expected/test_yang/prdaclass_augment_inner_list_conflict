@@ -20,11 +20,11 @@ _identities: list[DIdentity] = []
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='c1', config=True, presence=False, children=[
     DList(module='base', namespace='http://example.com/base', prefix='base', name='l1', key=['k1'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='k1', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k1', config=True, mandatory=True, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='k1', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k1', config=True, is_key=False, mandatory=True, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ]),
     DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=['k2'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k2', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k2', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 

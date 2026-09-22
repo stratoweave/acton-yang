@@ -19,7 +19,7 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_CHILD_0: DList = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='li1', key=['l1'], config=True, min_elements=0, ordered_by='system', children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
 SRC_DNODE_CHILD_1: DLeafList = DLeafList(module='foo', namespace='http://example.com/foo', prefix='foo', name='ll1', config=True, min_elements=0, ordered_by='system', type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
