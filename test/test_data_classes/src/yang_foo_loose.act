@@ -1583,9 +1583,9 @@ class foo__li_bits(yadata.MKeyedList[iset[str], foo__li_bits_entry]):
 
 _breaker36: None = None
 class foo__li_union_one_base_entry(yadata.MNode):
-    k1: value
+    k1: str
 
-    mut def __init__(self, k1: value) -> None:
+    mut def __init__(self, k1: str) -> None:
         self.k1 = k1
 
     mut def to_gdata(self) -> ygdata.Node:
@@ -1593,30 +1593,18 @@ class foo__li_union_one_base_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> foo__li_union_one_base_entry:
-        return foo__li_union_one_base_entry(k1=n.get_value(ygdata.Id(NS_foo, 'k1')))
+        return foo__li_union_one_base_entry(k1=n.get_str(ygdata.Id(NS_foo, 'k1')))
 
     mut def copy(self) -> foo__li_union_one_base_entry:
         """Create a deep copy of this adata object"""
         return foo__li_union_one_base_entry.from_gdata(self.to_gdata())
 
 _breaker37: None = None
-class foo__li_union_one_base(yadata.MList[foo__li_union_one_base_entry]):
+class foo__li_union_one_base(yadata.MKeyedList[str, foo__li_union_one_base_entry]):
     mut def __init__(self, elements: list[foo__li_union_one_base_entry]=[]) -> None:
-        self._elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: e.k1, elements)
 
-    pure def get(self, key: value) -> ?foo__li_union_one_base_entry:
-        k1 = key
-        for e in self:
-            e_k1 = e.k1
-            k1_match = False
-            if isinstance(e_k1, str) and isinstance(k1, str):
-                if e_k1 == k1:
-                    k1_match = True
-            if not k1_match:
-                continue
-            return e
-
-    mut def create(self, key: value) -> foo__li_union_one_base_entry:
+    mut def create(self, key: str) -> foo__li_union_one_base_entry:
         e = self.get(key)
         if e is not None:
             return e

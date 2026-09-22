@@ -1,0 +1,56 @@
+import base64
+import json
+import std.xml as xml
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'first':0}), DTypeInstanceIdentifier(name='instance-identifier', description=None, reference=None, exts=[], builtin_type='instance-identifier', default=None, require_instance=False), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
+
+SRC_DNODE: DRoot = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[],
+    rpcs=[],
+    module_metadata={'http://example.com/foo':('foo', None)},
+)
+
+NS_foo: str = 'http://example.com/foo'
+
+
+_breaker1: None = None
+class root(yadata.MNode):
+    l1: ?str
+
+    mut def __init__(self, l1: ?str) -> None:
+        self.l1 = l1
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False)
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> root:
+        if n is not None:
+            return root(l1=n.get_opt_str(ygdata.Id(NS_foo, 'l1')))
+        return root()
+
+    mut def copy(self) -> root:
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: ygdata.TreeProvider):
+    pass
+

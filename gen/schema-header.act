@@ -4455,27 +4455,20 @@ def yang_type_to_acton_type(t: ?DType) -> str:
     if t is not None:
         if isinstance(t, DTypeUnion):
             def get_unique_types(tys: list[DType]) -> set[str]:
-                """Recursively expand union to the base types"""
                 res = set()
                 for ty in tys:
                     if isinstance(ty, DTypeUnion):
                         res.update(get_unique_types(ty.types))
                     else:
-                        res.add(ty.builtin_type)
+                        res.add(yang_type_to_acton_type(ty))
                 return res
 
-            # Recursively find unique base types, if they all map down to the
-            # same base type, we can just use that as the Acton type
-            unique_base_types = list(get_unique_types(t.types))
-            if len(unique_base_types) == 1:
-                return yang_typename_to_acton_type(unique_base_types[0])
-
-            # Normalize to int or u64 Acton type, but only if the union consists
-            # of base integer types on the same side of 0
-            if all(map(lambda x: x in SIGNED_INT_TYPES, unique_base_types)):
-                return "int"
-            elif all(map(lambda x: x in UNSIGNED_INT_TYPES, unique_base_types)):
-                return "u64"
+            # Recursively find unique base Acton types for the members; if they
+            # all map down to the same base Acton type we can just use that as
+            # the attribute type.
+            unique_acton_types = list(get_unique_types(t.types))
+            if len(unique_acton_types) == 1:
+                return unique_acton_types[0]
 
             # TODO: use atom when union consists of types that we represent with Acton built-in types
             # TODO: use Acton union
