@@ -1600,7 +1600,7 @@ def _test_resolve_type_union_of_string():
     l1 = root.get("l1")
 
     if isinstance(l1, yschema.DLeaf):
-        acton_type = yschema.yang_leaf_to_acton_type(l1, None)
+        acton_type = yschema.yang_leaf_to_acton_type(l1)
         testing.assertEqual(acton_type, "?str")
     return root.prdaclass()
 
@@ -1626,7 +1626,7 @@ def _test_resolve_type_union_of_str_yang_types():
     l1 = root.get("l1")
 
     if isinstance(l1, yschema.DLeaf):
-        acton_type = yschema.yang_leaf_to_acton_type(l1, None)
+        acton_type = yschema.yang_leaf_to_acton_type(l1)
         testing.assertEqual(acton_type, "?str")
     return root.prdaclass()
 
@@ -1672,19 +1672,19 @@ def _test_resolve_type_union_of_intX():
     l4 = root.get("l4")
 
     if isinstance(l1, yschema.DLeaf):
-        acton_type = yschema.yang_leaf_to_acton_type(l1, None)
+        acton_type = yschema.yang_leaf_to_acton_type(l1)
         testing.assertEqual(acton_type, "?int")
 
     if isinstance(l2, yschema.DLeaf):
-        acton_type = yschema.yang_leaf_to_acton_type(l2, None)
+        acton_type = yschema.yang_leaf_to_acton_type(l2)
         testing.assertEqual(acton_type, "?u64")
 
     if isinstance(l3, yschema.DLeaf):
-        acton_type = yschema.yang_leaf_to_acton_type(l3, None)
+        acton_type = yschema.yang_leaf_to_acton_type(l3)
         testing.assertEqual(acton_type, "?value")
 
     if isinstance(l4, yschema.DLeaf):
-        acton_type = yschema.yang_leaf_to_acton_type(l4, None)
+        acton_type = yschema.yang_leaf_to_acton_type(l4)
         testing.assertEqual(acton_type, "?value")
     return root.prdaclass()
 

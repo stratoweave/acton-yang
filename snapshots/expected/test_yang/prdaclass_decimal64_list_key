@@ -20,7 +20,7 @@ _identities: list[DIdentity] = []
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, children=[
     DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=['k1'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k1', config=True, mandatory=False, type=DTypeDecimal64(name='decimal64', description=None, reference=None, exts=[], builtin_type='decimal64', default=None, fraction_digits=2, ranges=Ranges([(Decimal(-9223372036854775807 - 1, -2), Decimal(9223372036854775807, -2))])))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='k1', config=True, is_key=True, mandatory=False, type=DTypeDecimal64(name='decimal64', description=None, reference=None, exts=[], builtin_type='decimal64', default=None, fraction_digits=2, ranges=Ranges([(Decimal(-9223372036854775807 - 1, -2), Decimal(9223372036854775807, -2))])))
     ])
 ])
 

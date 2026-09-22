@@ -298,12 +298,12 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                             entries.append(ygdata.LeafListEntryReplace(iv))
                         else:
                             entries.append(ygdata.LeafListEntryMerge(iv))
-                if len(entries) == 0 and not yschema.is_optional_arg_yang_leaf(child, yschema.list_keys(s), loose):
+                if len(entries) == 0 and not yschema.is_optional_arg_yang_leaf(child, loose):
                     # Missing leaf-list value
                     raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
                 if len(entries) > 0:
                     children[fqname(child)] = ygdata.LeafList(entries, user_order=user_order(child.ordered_by), ns=ns, module=mod)
-            elif not yschema.is_optional_arg_yang_leaf(child, yschema.list_keys(s), loose):
+            elif not yschema.is_optional_arg_yang_leaf(child, loose):
                 # Missing leaf-list value
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
 
@@ -329,7 +329,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                         wleaf = ygdata.Leaf(av, ns=ns, module=mod)
                 if wleaf is not None:
                     children[fqname(child)] = wleaf
-            elif not yschema.is_optional_arg_yang_leaf(child, yschema.list_keys(s), loose):
+            elif not yschema.is_optional_arg_yang_leaf(child, loose):
                 # Missing leaf value
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Cannot find child node with name {child.name}")
         else:
@@ -433,7 +433,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
             if isinstance(cchild, yschema.DLeaf):
                 # The list of children is already sorted so that key leaves
                 # come first in the correct order.
-                if not yschema.is_optional_arg_yang_leaf(cchild, yschema.list_keys(container), loose):
+                if not yschema.is_optional_arg_yang_leaf(cchild, loose):
                     leaf = node.get_leaf(fqname(cchild))
                     non_optional_args.append(repr_adata(leaf.val))
             elif isinstance(cchild, yschema.DContainer):
@@ -471,7 +471,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
 
         for cchild in container.children:
             if isinstance(cchild, yschema.DLeaf):
-                if not yschema.is_optional_arg_yang_leaf(cchild, yschema.list_keys(container), loose):
+                if not yschema.is_optional_arg_yang_leaf(cchild, loose):
                     continue
 
                 cchild_arg = unique_namer.unique_safe_name(cchild.name, cchild.prefix)
@@ -515,7 +515,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
         if isinstance(child, yschema.DLeaf):
             if usname(child) in create_consumed_leaves:
                 continue
-            if not top and not yschema.is_optional_arg_yang_leaf(child, yschema.list_keys(s), loose):
+            if not top and not yschema.is_optional_arg_yang_leaf(child, loose):
                 # Do not print non-optional leafs if not top level, because
                 # they are implicitly set with .create*()
                 continue

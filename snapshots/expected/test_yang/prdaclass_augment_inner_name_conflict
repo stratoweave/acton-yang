@@ -20,10 +20,10 @@ _identities: list[DIdentity] = []
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='c1', config=True, presence=False, children=[
     DContainer(module='base', namespace='http://example.com/base', prefix='base', name='c2', config=True, presence=False, children=[
-        DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='foo', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='foo', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ]),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c2', config=True, presence=False, children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='foo', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='foo', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
