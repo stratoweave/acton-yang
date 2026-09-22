@@ -20,7 +20,7 @@
                             "name": "interfaces"
                         },
                         "node": {
-                            "type": "List",
+                            "type": "OList",
                             "ns": "http://example.com/network",
                             "module": "network",
                             "keys": [
@@ -29,7 +29,6 @@
                                     "name": "name"
                                 }
                             ],
-                            "user_order": true,
                             "elements": [
                                 {
                                     "type": "Container",

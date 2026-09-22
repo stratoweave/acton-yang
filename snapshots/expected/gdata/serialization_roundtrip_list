@@ -1,5 +1,5 @@
 {
-    "type": "List",
+    "type": "OList",
     "ns": "http://example.com/list",
     "module": "list",
     "keys": [
@@ -8,7 +8,6 @@
             "name": "key"
         }
     ],
-    "user_order": true,
     "elements": [
         {
             "type": "Container",
