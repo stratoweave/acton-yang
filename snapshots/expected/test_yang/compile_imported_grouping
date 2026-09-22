@@ -91,7 +91,7 @@ class bar__c1__li1(yadata.MKeyedList[str, bar__c1__li1_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[bar__c1__li1_entry]:
         if n is not None:
-            return [bar__c1__li1_entry.from_gdata(e) for e in n.elements]
+            return [bar__c1__li1_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> bar__c1__li1:

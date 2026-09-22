@@ -125,7 +125,7 @@ class svc__register__input__servers(yadata.MKeyedList[str, svc__register__input_
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[svc__register__input__servers_entry]:
         if n is not None:
-            return [svc__register__input__servers_entry.from_gdata(e) for e in n.elements]
+            return [svc__register__input__servers_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> svc__register__input__servers:

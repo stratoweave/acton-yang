@@ -701,7 +701,7 @@ class foo__c1__li(yadata.MKeyedList[str, foo__c1__li_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__c1__li_entry]:
         if n is not None:
-            return [foo__c1__li_entry.from_gdata(e) for e in n.elements]
+            return [foo__c1__li_entry.from_gdata(e) for e in ygdata.list_entries(n, False)]
         return []
 
     mut def copy(self) -> foo__c1__li:
@@ -1040,7 +1040,7 @@ class foo__cc__death(yadata.MKeyedList[str, foo__cc__death_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__cc__death_entry]:
         if n is not None:
-            return [foo__cc__death_entry.from_gdata(e) for e in n.elements]
+            return [foo__cc__death_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__cc__death:
@@ -1201,7 +1201,7 @@ class foo__special(yadata.MKeyedList[bool, foo__special_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__special_entry]:
         if n is not None:
-            return [foo__special_entry.from_gdata(e) for e in n.elements]
+            return [foo__special_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__special:
@@ -1256,7 +1256,7 @@ class foo__nested__f_inner__li1__li2(yadata.MKeyedList[(key1: str, key2: str), f
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__nested__f_inner__li1__li2_entry]:
         if n is not None:
-            return [foo__nested__f_inner__li1__li2_entry.from_gdata(e) for e in n.elements]
+            return [foo__nested__f_inner__li1__li2_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__nested__f_inner__li1__li2:
@@ -1315,7 +1315,7 @@ class foo__nested__f_inner__li1(yadata.MKeyedList[str, foo__nested__f_inner__li1
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__nested__f_inner__li1_entry]:
         if n is not None:
-            return [foo__nested__f_inner__li1_entry.from_gdata(e) for e in n.elements]
+            return [foo__nested__f_inner__li1_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__nested__f_inner__li1:
@@ -1461,7 +1461,7 @@ class foo__li_union(yadata.MList[foo__li_union_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__li_union_entry]:
         if n is not None:
-            return [foo__li_union_entry.from_gdata(e) for e in n.elements]
+            return [foo__li_union_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__li_union:
@@ -1514,7 +1514,7 @@ class foo__li_decimal(yadata.MKeyedList[Decimal, foo__li_decimal_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__li_decimal_entry]:
         if n is not None:
-            return [foo__li_decimal_entry.from_gdata(e) for e in n.elements]
+            return [foo__li_decimal_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__li_decimal:
@@ -1567,7 +1567,7 @@ class foo__li_bits(yadata.MKeyedList[iset[str], foo__li_bits_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__li_bits_entry]:
         if n is not None:
-            return [foo__li_bits_entry.from_gdata(e) for e in n.elements]
+            return [foo__li_bits_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__li_bits:
@@ -1616,7 +1616,7 @@ class foo__li_union_one_base(yadata.MKeyedList[str, foo__li_union_one_base_entry
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__li_union_one_base_entry]:
         if n is not None:
-            return [foo__li_union_one_base_entry.from_gdata(e) for e in n.elements]
+            return [foo__li_union_one_base_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__li_union_one_base:
@@ -1673,7 +1673,7 @@ class foo__li_ref(yadata.MKeyedList[(k_idref: Identityref, k_iid: str, k_leafref
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__li_ref_entry]:
         if n is not None:
-            return [foo__li_ref_entry.from_gdata(e) for e in n.elements]
+            return [foo__li_ref_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__li_ref:

@@ -35,6 +35,6 @@ def _test_edit_value_leaves_mandatory_config_out():
     value = xml.decode('<router xmlns="urn:loose-patch"><name>r1</name><state><clock>now</clock></state></router>')
     edit = ypatch.Edit("0", ypatch.OP_REPLACE, "/loose-patch:router=r1", value)
     tree = ypatch.edit_to_gdata(schema, edit)
-    entry = tree.get_list(_q("router")).elements[0]
+    entry = tree.get_list(_q("router")).get_list_entry("r1")
     testing.assertEqual(entry.get_str(_q("name")), "r1")
     testing.assertEqual(entry.children[_q("state")].get_str(_q("clock")), "now")

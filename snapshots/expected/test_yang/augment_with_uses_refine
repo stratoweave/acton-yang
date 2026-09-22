@@ -67,7 +67,7 @@ class base__system_capabilities__per_node_capabilities(yadata.MList[base__system
         return res
 
     @staticmethod
-    mut def from_gdata(n: ?ygdata.List) -> list[base__system_capabilities__per_node_capabilities_entry]:
+    mut def from_gdata(n: ?ygdata.KeylessList) -> list[base__system_capabilities__per_node_capabilities_entry]:
         if n is not None:
             return [base__system_capabilities__per_node_capabilities_entry.from_gdata(e) for e in n.elements]
         return []
@@ -121,7 +121,7 @@ class base__system_capabilities(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__system_capabilities:
         if n is not None:
-            return base__system_capabilities(per_node_capabilities=base__system_capabilities__per_node_capabilities.from_gdata(n.get_opt_list(ygdata.Id(NS_base, 'per-node-capabilities'))), subscription_capabilities=base__system_capabilities__subscription_capabilities.from_gdata(n.get_opt_cnt(ygdata.Id(NS_augmenter, 'subscription-capabilities'))))
+            return base__system_capabilities(per_node_capabilities=base__system_capabilities__per_node_capabilities.from_gdata(n.get_opt_keyless_list(ygdata.Id(NS_base, 'per-node-capabilities'))), subscription_capabilities=base__system_capabilities__subscription_capabilities.from_gdata(n.get_opt_cnt(ygdata.Id(NS_augmenter, 'subscription-capabilities'))))
         return base__system_capabilities()
 
     mut def copy(self) -> base__system_capabilities:

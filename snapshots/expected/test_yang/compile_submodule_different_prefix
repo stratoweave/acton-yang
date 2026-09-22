@@ -113,7 +113,7 @@ class main_module__main_container__sub_list(yadata.MKeyedList[str, main_module__
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[main_module__main_container__sub_list_entry]:
         if n is not None:
-            return [main_module__main_container__sub_list_entry.from_gdata(e) for e in n.elements]
+            return [main_module__main_container__sub_list_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> main_module__main_container__sub_list:
