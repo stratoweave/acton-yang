@@ -986,11 +986,10 @@ class Node(value):
                 return child
 
     def get_bool(self, name) -> bool:
-        child = self.get_leaf(name)
-        childval = child.val
-        if isinstance(childval, bool):
+        childval = self.get_opt_bool(name)
+        if childval is not None:
             return childval
-        raise ValueError("Leaf {name} is not of type bool")
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_opt_bool(self, name) -> ?bool:
         child = self.get_opt_leaf(name)
@@ -998,6 +997,7 @@ class Node(value):
             childval = child.val
             if isinstance(childval, bool):
                 return childval
+            raise ValueError("Leaf {name} is not of type bool")
 
     def get_empty(self, name) -> bool:
         child = self.get_opt_empty(name)
@@ -1011,15 +1011,15 @@ class Node(value):
             childval = child.val
             if isinstance(childval, Present):
                 return True
+            raise ValueError("Leaf {name} is not of type empty")
         if isinstance(child, Absent):
             return False
 
     def get_Decimal(self, name) -> Decimal:
-        child = self.get_leaf(name)
-        childval = child.val
-        if isinstance(childval, Decimal):
+        childval = self.get_opt_Decimal(name)
+        if childval is not None:
             return childval
-        raise ValueError("Leaf {name} is not of type Decimal")
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_opt_Decimal(self, name) -> ?Decimal:
         child = self.get_opt_leaf(name)
@@ -1027,13 +1027,13 @@ class Node(value):
             childval = child.val
             if isinstance(childval, Decimal):
                 return childval
+            raise ValueError("Leaf {name} is not of type Decimal")
 
     def get_int(self, name) -> int:
-        child = self.get_leaf(name)
-        childval = child.val
-        if isinstance(childval, int):
+        childval = self.get_opt_int(name)
+        if childval is not None:
             return childval
-        raise ValueError("Leaf {name} is not of type int")
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_ints(self, name) -> list[int]:
         if isinstance(self, Container):
@@ -1054,6 +1054,7 @@ class Node(value):
             childval = child.val
             if isinstance(childval, int):
                 return childval
+            raise ValueError("Leaf {name} is not of type int")
 
     def get_opt_ints(self, name) -> list[int]:
         if isinstance(self, Container):
@@ -1069,11 +1070,10 @@ class Node(value):
         return []
 
     def get_u64(self, name) -> u64:
-        child = self.get_leaf(name)
-        childval = child.val
-        if isinstance(childval, u64):
+        childval = self.get_opt_u64(name)
+        if childval is not None:
             return childval
-        raise ValueError("Leaf {name} is not of type u64")
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_u64s(self, name) -> list[u64]:
         if isinstance(self, Container):
@@ -1093,6 +1093,7 @@ class Node(value):
             childval = child.val
             if isinstance(childval, u64):
                 return childval
+            raise ValueError("Leaf {name} is not of type u64")
 
     def get_opt_u64s(self, name) -> list[u64]:
         if isinstance(self, Container):
@@ -1107,11 +1108,10 @@ class Node(value):
         return []
 
     def get_str(self, name) -> str:
-        child = self.get_leaf(name)
-        childval = child.val
-        if isinstance(childval, str):
+        childval = self.get_opt_str(name)
+        if childval is not None:
             return childval
-        raise ValueError("Leaf {name} value is not type str")
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_opt_str(self, name) -> ?str:
         child = self.get_opt_leaf(name)
@@ -1119,6 +1119,7 @@ class Node(value):
             childval = child.val
             if isinstance(childval, str):
                 return childval
+            raise ValueError("Leaf {name} value is not type str")
 
     def get_strs(self, name) -> list[str]:
         if isinstance(self, Container):
@@ -1145,11 +1146,10 @@ class Node(value):
         return []
 
     def get_bytes(self, name) -> bytes:
-        child = self.get_leaf(name)
-        childval = child.val
-        if isinstance(childval, bytes):
+        childval = self.get_opt_bytes(name)
+        if childval is not None:
             return childval
-        raise ValueError("Leaf {name} value is not type bytes")
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_opt_bytes(self, name) -> ?bytes:
         child = self.get_opt_leaf(name)
@@ -1157,6 +1157,7 @@ class Node(value):
             childval = child.val
             if isinstance(childval, bytes):
                 return childval
+            raise ValueError("Leaf {name} value is not type bytes")
 
     def get_bytess(self, name) -> list[bytes]:
         if isinstance(self, Container):
@@ -1231,7 +1232,10 @@ class Node(value):
         return []
 
     def get_value(self, name) -> value:
-        return adata_val(self.get_leaf(name).val)
+        childval = self.get_opt_value(name)
+        if childval is not None:
+            return childval
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_opt_value(self, name) -> ?value:
         child = self.get_opt_leaf(name)
@@ -1253,11 +1257,10 @@ class Node(value):
         return []
 
     def get_Identityref(self, name) -> Identityref:
-        child = self.get_leaf(name)
-        childval = child.val
-        if isinstance(childval, Identityref):
+        childval = self.get_opt_Identityref(name)
+        if childval is not None:
             return childval
-        raise ValueError("Leaf {name} value is not type Identityref")
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_opt_Identityref(self, name) -> ?Identityref:
         child = self.get_opt_leaf(name)
@@ -1265,6 +1268,7 @@ class Node(value):
             childval = child.val
             if isinstance(childval, Identityref):
                 return childval
+            raise ValueError("Leaf {name} value is not type Identityref")
 
     def get_Identityrefs(self, name) -> list[Identityref]:
         if isinstance(self, Container):
@@ -1291,15 +1295,18 @@ class Node(value):
         return []
 
     def get_bits(self, name) -> iset[str]:
-        bits = as_bits(self.get_leaf(name).val)
-        if bits is not None:
-            return iset(bits)
-        raise ValueError("Leaf {name} value is not type bits")
+        childval = self.get_opt_bits(name)
+        if childval is not None:
+            return childval
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
 
     def get_opt_bits(self, name) -> ?iset[str]:
-        bits = as_bits(self.get_opt_leaf(name)?.val)
-        if bits is not None:
-            return iset(bits)
+        child = self.get_opt_leaf(name)
+        if child is not None:
+            bits = as_bits(child.val)
+            if bits is not None:
+                return iset(bits)
+            raise ValueError("Leaf {name} value is not type bits")
 
     def get_bitss(self, name) -> list[iset[str]]:
         if isinstance(self, Container):
