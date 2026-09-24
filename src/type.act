@@ -53,7 +53,7 @@ def _div_pow10(s: int, k: int) -> int:
     return s // 10**k
 
 
-class Decimal(object):
+class Decimal(atom):
     significand: int
     exponent: int
 
