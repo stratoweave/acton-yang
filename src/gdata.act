@@ -2822,6 +2822,42 @@ def _filter_list_entry(elem: Node, flist: list[FNode], keys: list[Id]) -> ?Node:
     return None
 
 
+def filter_exact_list_key(filt: FNode, keys: list[Id]) -> ?str:
+    """The key_str of the only list entry that filt can match, or None if
+    filt does not match every key leaf to a plain value"""
+    leaves: dict[Id, Node] = {}
+    for key in keys:
+        found = False
+        for child in filt.children:
+            vm = child.value_match
+            if child.name == key and vm is not None and len(child.children) == 0:
+                if isinstance(vm, ValueMatch):
+                    return None
+                leaves[key] = Leaf(vm)
+                found = True
+                break
+        if not found:
+            return None
+    return Container(leaves).key_str(keys)
+
+
+def _list_filters_by_key(flist: list[FNode], keys: list[Id]) -> ?dict[str, list[FNode]]:
+    """flist grouped by the key_str of the only entry each filter can match,
+    or None if any filter can match more than one entry"""
+    by_key: dict[str, list[FNode]] = {}
+    for f in flist:
+        k = filter_exact_list_key(f, keys)
+        if k is not None:
+            kflist = by_key.get(k)
+            if kflist is not None:
+                kflist.append(f)
+            else:
+                by_key[k] = [f]
+        else:
+            return None
+    return by_key
+
+
 def _filter_list(data: Node, flist: list[FNode]) -> (node: ?Node, select: bool):
     """Apply list predicates to produce a filtered list result."""
     if len(flist) == 0:
@@ -2834,10 +2870,19 @@ def _filter_list(data: Node, flist: list[FNode]) -> (node: ?Node, select: bool):
             return (node=data, select=True)
     if isinstance(data, List):
         new_elements: dict[str, Node] = {}
-        for k, elem in data.elements.items():
-            res = _filter_list_entry(elem, flist, data.keys)
-            if res is not None:
-                new_elements[k] = res
+        by_key = _list_filters_by_key(flist, data.keys)
+        if by_key is not None:
+            for k, kflist in by_key.items():
+                elem = data.elements.get(k)
+                if elem is not None:
+                    res = _filter_list_entry(elem, kflist, data.keys)
+                    if res is not None:
+                        new_elements[k] = res
+        else:
+            for k, elem in data.elements.items():
+                res = _filter_list_entry(elem, flist, data.keys)
+                if res is not None:
+                    new_elements[k] = res
         if len(new_elements) == 0:
             return (node=None, select=False)
         if isinstance(data, OList):
@@ -3029,15 +3074,34 @@ def _prune_list(data: Node, flist: list[FNode]) -> (node: ?Node, matched: bool, 
     matched_any = False
     if isinstance(data, List):
         new_elements: dict[str, Node] = {}
-        for k, elem in data.elements.items():
-            res = _prune_list_entry(elem, flist, data.keys)
-            if res is not None:
+        by_key = _list_filters_by_key(flist, data.keys)
+        if by_key is not None:
+            pruned: dict[str, ?Node] = {}
+            for k, kflist in by_key.items():
+                elem = data.elements.get(k)
+                if elem is not None:
+                    res = _prune_list_entry(elem, kflist, data.keys)
+                    if res is not None:
+                        pruned[k] = res.node
+            if len(pruned) > 0:
                 matched_any = True
-                res_node = res.node
-                if res_node is not None:
-                    new_elements[k] = res_node
-            else:
-                new_elements[k] = elem
+                for k, elem in data.elements.items():
+                    if k in pruned:
+                        res_node = pruned[k]
+                        if res_node is not None:
+                            new_elements[k] = res_node
+                    else:
+                        new_elements[k] = elem
+        else:
+            for k, elem in data.elements.items():
+                res = _prune_list_entry(elem, flist, data.keys)
+                if res is not None:
+                    matched_any = True
+                    res_node = res.node
+                    if res_node is not None:
+                        new_elements[k] = res_node
+                else:
+                    new_elements[k] = elem
         if not matched_any:
             return (node=data, matched=False, select=False)
         if len(new_elements) == 0:
