@@ -2711,20 +2711,15 @@ def _filter_container_result(data: Node, children: dict[Id, Node]) -> Node:
 
 def _filter_leaf(data: Leaf, flist: list[FNode]) -> (node: ?Node, select: bool):
     """Apply leaf filters and determine selection status."""
-    matched = False
     select = False
     for f in flist:
         if len(f.children) > 0:
             raise ValueError("Leaf filter cannot have children")
         if f.value_match is None:
-            matched = True
             select = True
         else:
-            vm = expect(f.value_match, "leaf")
-            if _match_value(vm, data.val):
-                matched = True
-    if not matched:
-        return (node=None, select=False)
+            if not _match_value(f.value_match!, data.val):
+                return (node=None, select=False)
     return (node=data, select=select)
 
 
@@ -2871,20 +2866,15 @@ def filter(data: ?Node, filt: ?FNode=None) -> ?Node:
 
 def _prune_leaf(data: Leaf, flist: list[FNode]) -> (node: ?Node, matched: bool, select: bool):
     """Apply leaf filters and determine pruning."""
-    matched = False
     select = False
     for f in flist:
         if len(f.children) > 0:
             raise ValueError("Leaf filter cannot have children")
         if f.value_match is None:
-            matched = True
             select = True
         else:
-            vm = expect(f.value_match, "leaf")
-            if _match_value(vm, data.val):
-                matched = True
-    if not matched:
-        return (node=data, matched=False, select=False)
+            if not _match_value(f.value_match!, data.val):
+                return (node=data, matched=False, select=False)
     if select:
         return (node=None, matched=True, select=True)
     # Predicate-only match, let parent decide removal
@@ -5528,6 +5518,39 @@ def _test_filter_container_leaf_content_match():
             }, ns=NS_acme, module="acme"),
         }).prsrc(deterministic=True)
     )
+
+
+def _test_filter_leaf_content_match_and_select():
+    """A failing content match excludes its parent, even if a selection
+    node is included."""
+    data = Container({
+        Id(NS_acme, "foo"): Container({
+            Id(NS_acme, "l1"): Leaf(u64(1)),
+        }, ns=NS_acme, module="acme"),
+    })
+    filt = FNode(None, None, [
+        FNode(Id(NS_acme, "foo"), children=[
+            FNode(Id(NS_acme, "l1"), value_match=u64(2)),
+            FNode(Id(NS_acme, "l1")),
+        ]),
+    ])
+    testing.assertNone(filter(data, filt))
+
+
+def _test_filter_leaf_content_matches_and():
+    """Content match nodes for the same leaf must all match."""
+    data = Container({
+        Id(NS_acme, "foo"): Container({
+            Id(NS_acme, "l1"): Leaf(u64(1)),
+        }, ns=NS_acme, module="acme"),
+    })
+    filt = FNode(None, None, [
+        FNode(Id(NS_acme, "foo"), children=[
+            FNode(Id(NS_acme, "l1"), value_match=u64(1)),
+            FNode(Id(NS_acme, "l1"), value_match=u64(2)),
+        ]),
+    ])
+    testing.assertNone(filter(data, filt))
 
 
 def _test_filter_container_leaf_select():
