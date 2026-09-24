@@ -158,16 +158,16 @@ class basics__c(yadata.MNode):
     l_str_def_quoted: str
     l_uint64_def: u64
     l_decimal64_def: Decimal
-    l_union_def_str: value
-    l_union_def_int: value
-    l_union_def_float: value
-    l_union_def_bool: value
-    l_union_def_enumeration: value
+    l_union_def_str: atom
+    l_union_def_int: atom
+    l_union_def_float: atom
+    l_union_def_bool: atom
+    l_union_def_enumeration: atom
     l_binary_def: bytes
     l_identityref_def: Identityref
     l_bits_def: iset[str]
 
-    mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?value=None, l_union_def_int: ?value=None, l_union_def_float: ?value=None, l_union_def_bool: ?value=None, l_union_def_enumeration: ?value=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None, l_bits_def: ?iset[str]=None) -> None:
+    mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?atom=None, l_union_def_int: ?atom=None, l_union_def_float: ?atom=None, l_union_def_bool: ?atom=None, l_union_def_enumeration: ?atom=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None, l_bits_def: ?iset[str]=None) -> None:
         self.l_str_def = l_str_def if l_str_def is not None else "foo"
         self.l_str_def_quoted = l_str_def_quoted if l_str_def_quoted is not None else "\"foo\""
         self.l_uint64_def = l_uint64_def if l_uint64_def is not None else u64(1234567890)
@@ -187,7 +187,7 @@ class basics__c(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> basics__c:
         if n is not None:
-            return basics__c(l_str_def=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(ygdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(ygdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_enumeration=n.get_opt_value(ygdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(ygdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_basics, 'l_identityref_def')), l_bits_def=n.get_opt_bits(ygdata.Id(NS_basics, 'l_bits_def')))
+            return basics__c(l_str_def=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(ygdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(ygdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_enumeration=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(ygdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_basics, 'l_identityref_def')), l_bits_def=n.get_opt_bits(ygdata.Id(NS_basics, 'l_bits_def')))
         return basics__c()
 
     mut def copy(self) -> basics__c:

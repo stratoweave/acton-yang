@@ -298,6 +298,14 @@ def adata_val(v: value) -> value:
     return v
 
 
+def adata_atom(v: value) -> atom:
+    if isinstance(v, atom):
+        return v
+    if isinstance(v, Present):
+        return True
+    raise ValueError("Value is not an atom: {type(v)}")
+
+
 def yang_str(v) -> str:
     if isinstance(v, bytes):
         s = base64.encode(v).decode()
@@ -1229,6 +1237,31 @@ class Node(value):
                     if isinstance(v, bool):
                         cvals.append(v)
                 return cvals
+        return []
+
+    def get_atom(self, name) -> atom:
+        childval = self.get_opt_atom(name)
+        if childval is not None:
+            return childval
+        raise ValueError("Cannot find leaf child in {self} with name: {name}")
+
+    def get_opt_atom(self, name) -> ?atom:
+        child = self.get_opt_leaf(name)
+        if child is not None:
+            return adata_atom(child.val)
+
+    def get_atoms(self, name) -> list[atom]:
+        if isinstance(self, Container):
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                return [adata_atom(e.val) for e in child.entries]
+        raise ValueError("Cannot find leaf-list child with name {name}")
+
+    def get_opt_atoms(self, name) -> list[atom]:
+        if isinstance(self, Container):
+            child = self.children.get(name)
+            if isinstance(child, LeafList):
+                return [adata_atom(e.val) for e in child.entries]
         return []
 
     def get_value(self, name) -> value:

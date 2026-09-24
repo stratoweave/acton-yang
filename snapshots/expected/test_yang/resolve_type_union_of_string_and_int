@@ -32,9 +32,9 @@ NS_foo: str = 'http://example.com/foo'
 
 _breaker1: None = None
 class root(yadata.MNode):
-    l1: value
+    l1: atom
 
-    mut def __init__(self, l1: ?value=None) -> None:
+    mut def __init__(self, l1: ?atom=None) -> None:
         self.l1 = l1 if l1 is not None else 42
 
     mut def to_gdata(self) -> ygdata.Node:
@@ -43,7 +43,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(l1=n.get_opt_value(ygdata.Id(NS_foo, 'l1')))
+            return root(l1=n.get_opt_atom(ygdata.Id(NS_foo, 'l1')))
         return root()
 
     mut def copy(self) -> root:
