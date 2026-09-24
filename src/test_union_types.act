@@ -1,0 +1,150 @@
+import testing
+
+import gdata as ygdata
+import lib as yang
+import schema as yschema
+from identityref import Identityref
+from type import Decimal
+
+
+def _test_union_atom_mapping():
+    root = yang.compile([r"""module unions {
+  yang-version 1.1;
+  namespace "urn:test:unions";
+  prefix u;
+  identity base;
+  typedef scalars {
+    type union {
+      type binary;
+      type boolean;
+      type decimal64 { fraction-digits 2; }
+      type enumeration { enum unlimited; }
+      type identityref { base base; }
+      type instance-identifier;
+      type int32;
+      type uint32;
+      type string;
+      type empty;
+    }
+  }
+  leaf scalar { type scalars; }
+  leaf nested {
+    type union { type scalars; type int64; }
+  }
+  leaf referenced {
+    type union {
+      type leafref { path "../scalar"; }
+      type string;
+    }
+  }
+  leaf-list values { type scalars; }
+}
+"""])
+    for name in ["scalar", "nested", "referenced"]:
+        leaf = root.get(name)
+        if isinstance(leaf, yschema.DLeaf):
+            testing.assertEqual(yschema.yang_type_to_acton_type(leaf.type), "atom")
+            testing.assertEqual(yschema.yang_leaf_to_acton_type(leaf, None), "?atom")
+            testing.assertEqual(yschema.taker_name(leaf, None), "get_opt_atom")
+        else:
+            testing.error("Expected a leaf")
+    values = root.get("values")
+    if isinstance(values, yschema.DLeafList):
+        testing.assertEqual(yschema.yang_leaflist_to_acton_type(values), "list[atom]")
+        testing.assertEqual(yschema.taker_name(values, None), "get_opt_atoms")
+    else:
+        testing.error("Expected a leaf-list")
+
+
+def _test_union_bits_mapping():
+    root = yang.compile([r"""module unions {
+  yang-version 1.1;
+  namespace "urn:test:unions";
+  prefix u;
+  leaf bits { type bits { bit one; } }
+  leaf bits_only {
+    type union {
+      type bits { bit one; }
+      type bits { bit two; }
+    }
+  }
+  leaf mixed {
+    type union {
+      type int8;
+      type union { type bits { bit one; } type string; }
+    }
+  }
+  leaf bits_ref {
+    type union {
+      type string;
+      type leafref { path "../bits"; }
+    }
+  }
+  leaf union_ref {
+    type union {
+      type string;
+      type leafref { path "../mixed"; }
+    }
+  }
+}
+"""])
+    for name in ["bits", "bits_only"]:
+        leaf = root.get(name)
+        if isinstance(leaf, yschema.DLeaf):
+            testing.assertEqual(yschema.yang_type_to_acton_type(leaf.type), "iset[str]")
+        else:
+            testing.error("Expected a leaf")
+    for name in ["mixed", "bits_ref", "union_ref"]:
+        leaf = root.get(name)
+        if isinstance(leaf, yschema.DLeaf):
+            testing.assertEqual(yschema.yang_type_to_acton_type(leaf.type), "value")
+            testing.assertEqual(yschema.taker_name(leaf, None), "get_opt_value")
+        else:
+            testing.error("Expected a leaf")
+
+
+def _expect_value_error[A](f: () -> A):
+    try:
+        f()
+    except ValueError:
+        return
+    testing.error("Expected ValueError")
+
+
+def _test_atom_getters():
+    leaf = ygdata.Id("urn:test", "leaf")
+    entries = ygdata.Id("urn:test", "entries")
+    missing = ygdata.Id("urn:test", "missing")
+    values: list[atom] = [1, u64(1), True, "one", b"one", Decimal(10, -1),
+                         Identityref("one", "urn:test", "test", "t")]
+    node = ygdata.Container({entries: ygdata.LeafList([ygdata.LeafListEntryMerge(v) for v in values])})
+    testing.assertEqual(node.get_atoms(entries), values)
+    testing.assertEqual(node.get_opt_atoms(entries), values)
+    for v in values:
+        node = ygdata.Container({leaf: ygdata.Leaf(v)})
+        testing.assertEqual(node.get_atom(leaf), v)
+        testing.assertEqual(node.get_opt_atom(leaf), v)
+    node = ygdata.Container({
+        leaf: ygdata.Leaf(ygdata.Present()),
+        entries: ygdata.LeafList([ygdata.LeafListEntryMerge(ygdata.Present())]),
+    })
+    testing.assertEqual(node.get_atom(leaf), True)
+    testing.assertEqual(node.get_atoms(entries), [True])
+    testing.assertNone(node.get_opt_atom(missing))
+    testing.assertEqual(node.get_opt_atoms(missing), [])
+    _expect_value_error(lambda: node.get_atom(missing))
+    _expect_value_error(lambda: node.get_atoms(missing))
+
+
+def _test_atom_getters_reject_bits():
+    leaf = ygdata.Id("urn:test", "leaf")
+    entries = ygdata.Id("urn:test", "entries")
+    node = ygdata.Container({
+        leaf: ygdata.Leaf(["one"]),
+        entries: ygdata.LeafList([ygdata.LeafListEntryMerge(["one"])]),
+    })
+    testing.assertEqual(node.get_bits(leaf), iset(["one"]))
+    _expect_value_error(lambda: node.get_atom(leaf))
+    _expect_value_error(lambda: node.get_opt_atom(leaf))
+    _expect_value_error(lambda: node.get_atoms(entries))
+    _expect_value_error(lambda: node.get_opt_atoms(entries))

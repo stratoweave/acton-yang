@@ -731,6 +731,26 @@ def _test_list_get_compound_key():
 
     testing.assertNone(r.li_union.get(("z", u64(1), "hi".encode())))
 
+def _test_list_indexed_union_key():
+    r = yang_foo_root()
+    for i in range(8):
+        r.li_union.create(("indexed", u64(i), b"key"), checker=str(i))
+    r.li_union.create(("indexed", "unlimited", b"key"), checker="enum")
+    r.li_union.create(("indexed", b"one", b"key"), checker="binary")
+    testing.assertEqual(len(r.li_union), 10)
+    for i in range(8):
+        testing.assertEqual(r.li_union[(k1="indexed", k2=u64(i), k3=b"key")].checker, str(i))
+    testing.assertEqual(r.li_union[(k1="indexed", k2="unlimited", k3=b"key")].checker, "enum")
+    testing.assertEqual(r.li_union[(k1="indexed", k2=b"one", k3=b"key")].checker, "binary")
+    key = (k1="indexed", k2=u64(3), k3=b"key")
+    r.li_union[key] = yang_foo.foo__li_union_entry(k1="indexed", k2=u64(3), k3=b"key", checker="replaced")
+    testing.assertEqual(r.li_union[key].checker, "replaced")
+    testing.assertEqual(len(r.li_union), 10)
+    del r.li_union[key]
+    testing.assertNone(r.li_union.get(key))
+    testing.assertEqual(len(r.li_union), 9)
+    testing.assertEqual(r.li_union[(k1="indexed", k2=u64(4), k3=b"key")].checker, "4")
+
 def _test_list_ref_key():
     """A compound key whose parts are identityref, instance-identifier and leafref"""
     r = yang_foo_root()

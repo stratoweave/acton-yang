@@ -1681,11 +1681,11 @@ def _test_resolve_type_union_of_intX():
 
     if isinstance(l3, yschema.DLeaf):
         acton_type = yschema.yang_leaf_to_acton_type(l3, None)
-        testing.assertEqual(acton_type, "?value")
+        testing.assertEqual(acton_type, "?atom")
 
     if isinstance(l4, yschema.DLeaf):
         acton_type = yschema.yang_leaf_to_acton_type(l4, None)
-        testing.assertEqual(acton_type, "?value")
+        testing.assertEqual(acton_type, "?atom")
     return root.prdaclass()
 
 def _test_resolve_type_union_of_string_and_int():
