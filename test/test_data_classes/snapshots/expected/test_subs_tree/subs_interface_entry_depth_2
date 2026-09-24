@@ -56,31 +56,6 @@ Container({
           Id('http://example.com/filter-test', 'out-octets'): Leaf(u64(5678))
         }),
         Id('http://example.com/filter-test', 'type'): Leaf('ethernetCsmacd')
-      }),
-      Container({
-        Id('http://example.com/filter-test', 'address'): List([Id('http://example.com/filter-test', 'ip')], elements=[
-          Container({
-            Id('http://example.com/filter-test', 'ip'): Leaf('10.0.0.2'),
-            Id('http://example.com/filter-test', 'prefix-length'): Leaf(u64(25))
-          })
-        ]),
-        Id('http://example.com/filter-test', 'admin-status'): Leaf('down'),
-        Id('http://example.com/filter-test', 'description'): Leaf('Server'),
-        Id('http://example.com/filter-test', 'enabled'): Leaf(False),
-        Id('http://example.com/filter-test', 'ipv4'): Container({
-          Id('http://example.com/filter-test', 'mtu'): Leaf(u64(9000))
-        }),
-        Id('http://example.com/filter-test', 'ipv6'): Container({
-          Id('http://example.com/filter-test', 'mtu'): Leaf(u64(9000))
-        }),
-        Id('http://example.com/filter-test', 'last-change'): Leaf('2026-04-19T07:30:00Z'),
-        Id('http://example.com/filter-test', 'name'): Leaf('eth1'),
-        Id('http://example.com/filter-test', 'oper-status'): Leaf('lower-layer-down'),
-        Id('http://example.com/filter-test', 'statistics'): Container({
-          Id('http://example.com/filter-test', 'in-octets'): Leaf(u64(42)),
-          Id('http://example.com/filter-test', 'out-octets'): Leaf(u64(84))
-        }),
-        Id('http://example.com/filter-test', 'type'): Leaf('ethernetCsmacd')
       })
     ])
   }, ns='http://example.com/filter-test', module='filter-test')
@@ -108,29 +83,6 @@ Filtered data XML:
     <statistics>
       <in-octets>1234</in-octets>
       <out-octets>5678</out-octets>
-    </statistics>
-    <type>ethernetCsmacd</type>
-  </interface>
-  <interface>
-    <name>eth1</name>
-    <address>
-      <ip>10.0.0.2</ip>
-      <prefix-length>25</prefix-length>
-    </address>
-    <admin-status>down</admin-status>
-    <description>Server</description>
-    <enabled>false</enabled>
-    <ipv4>
-      <mtu>9000</mtu>
-    </ipv4>
-    <ipv6>
-      <mtu>9000</mtu>
-    </ipv6>
-    <last-change>2026-04-19T07:30:00Z</last-change>
-    <oper-status>lower-layer-down</oper-status>
-    <statistics>
-      <in-octets>42</in-octets>
-      <out-octets>84</out-octets>
     </statistics>
     <type>ethernetCsmacd</type>
   </interface>
