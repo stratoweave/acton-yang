@@ -1399,11 +1399,11 @@ class foo__nested(yadata.MNode):
 _breaker30: None = None
 class foo__li_union_entry(yadata.MNode):
     k1: str
-    k2: value
+    k2: atom
     k3: bytes
-    checker: ?value
+    checker: ?atom
 
-    mut def __init__(self, k1: str, k2: value, k3: bytes, checker: ?value) -> None:
+    mut def __init__(self, k1: str, k2: atom, k3: bytes, checker: ?atom) -> None:
         self.k1 = k1
         self.k2 = k2
         self.k3 = k3
@@ -1414,40 +1414,18 @@ class foo__li_union_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> foo__li_union_entry:
-        return foo__li_union_entry(k1=n.get_str(ygdata.Id(NS_foo, 'k1')), k2=n.get_value(ygdata.Id(NS_foo, 'k2')), k3=n.get_bytes(ygdata.Id(NS_foo, 'k3')), checker=n.get_opt_value(ygdata.Id(NS_foo, 'checker')))
+        return foo__li_union_entry(k1=n.get_str(ygdata.Id(NS_foo, 'k1')), k2=n.get_atom(ygdata.Id(NS_foo, 'k2')), k3=n.get_bytes(ygdata.Id(NS_foo, 'k3')), checker=n.get_opt_atom(ygdata.Id(NS_foo, 'checker')))
 
     mut def copy(self) -> foo__li_union_entry:
         """Create a deep copy of this adata object"""
         return foo__li_union_entry.from_gdata(self.to_gdata())
 
 _breaker31: None = None
-class foo__li_union(yadata.MList[foo__li_union_entry]):
+class foo__li_union(yadata.MKeyedList[(k1: str, k2: atom, k3: bytes), foo__li_union_entry]):
     mut def __init__(self, elements: list[foo__li_union_entry]=[]) -> None:
-        self._elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: (k1=e.k1, k2=e.k2, k3=e.k3), elements)
 
-    pure def get(self, key: (k1: str, k2: value, k3: bytes)) -> ?foo__li_union_entry:
-        (k1=k1, k2=k2, k3=k3) = key
-        for e in self:
-            if e.k1 != k1:
-                continue
-            e_k2 = e.k2
-            k2_match = False
-            if isinstance(e_k2, u64) and isinstance(k2, u64):
-                if e_k2 == k2:
-                    k2_match = True
-            elif isinstance(e_k2, str) and isinstance(k2, str):
-                if e_k2 == k2:
-                    k2_match = True
-            elif isinstance(e_k2, bytes) and isinstance(k2, bytes):
-                if e_k2 == k2:
-                    k2_match = True
-            if not k2_match:
-                continue
-            if e.k3 != k3:
-                continue
-            return e
-
-    mut def create(self, key: (k1: str, k2: value, k3: bytes), checker: ?value=None) -> foo__li_union_entry:
+    mut def create(self, key: (k1: str, k2: atom, k3: bytes), checker: ?atom=None) -> foo__li_union_entry:
         e = self.get(key)
         if e is not None:
             if checker is not None:

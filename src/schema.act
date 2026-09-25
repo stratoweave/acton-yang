@@ -842,9 +842,8 @@ class DNodeInner(DNode):
             # subclass MKeyedList[K, T], where K is the Acton type for the key
             # (scalar value or tuple) and T is the adata entry type. MKeyedList
             # keeps a dict[K, int] index, so the key has to be usable as a dict
-            # key. Every Acton type we map a YANG type to is Hashable except
-            # "value" (unions), so for a list with a union key we must use
-            # MList[T] generate the .get() method here, and also lose out on
+            # key. Mixed unions containing bits still map to value, so those
+            # lists use MList[T] and a generated .get() method instead of the
             # Indexed[K, T] protocol.
             key_acton_types = [yang_type_to_acton_type(list_key_types[k]) for k in list_key_args]
             key_impl_hash = len(list_key_args) > 0 and "value" not in key_acton_types
@@ -885,7 +884,7 @@ class DNodeInner(DNode):
                 for us_key in list_key_args:
                     key_dtype = list_key_types[us_key]
                     if isinstance(key_dtype, DTypeUnion):
-                        # Union keys are Acton "value"-typed and have no Eq.
+                        # Value-typed union keys have no Eq.
                         # Narrow with isinstance per union member; if no type
                         # pair matched (or values differed), treat as mismatch.
                         # TODO: use Acton unions
@@ -4466,9 +4465,11 @@ def yang_type_to_acton_type(t: ?DType) -> str:
             if len(unique_acton_types) == 1:
                 return unique_acton_types[0]
 
-            # TODO: use atom when union consists of types that we represent with Acton built-in types
-            # TODO: use Acton union
-            return "value"
+            # Bits use iset[str], which is not an atom. A referenced union
+            # containing bits may already have been mapped to value.
+            if "iset[str]" in unique_acton_types or "value" in unique_acton_types:
+                return "value"
+            return "atom"
         elif isinstance(t, DTypeLeafref):
             target_type = t.target_type
             if target_type is not None:

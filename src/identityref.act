@@ -10,7 +10,7 @@ class PartialIdentityref:
         self.mod = mod
         self.pfx = pfx
 
-class Identityref:
+class Identityref(atom):
     val: str
     ns: str
     mod: str

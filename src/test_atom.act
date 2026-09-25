@@ -1,0 +1,117 @@
+import testing
+
+from identityref import Identityref
+from type import Decimal
+
+
+class OtherAtom(atom):
+    def __init__(self):
+        pass
+
+
+def _check_widening[A(atom, Hashable)](a: A, b: A):
+    left: atom = a
+    right: atom = b
+    testing.assertEqual(left, right)
+    testing.assertEqual(hash(left), hash(a))
+    testing.assertEqual(hash(right), hash(b))
+    testing.assertEqual(seed_hash(u64(17), left), seed_hash(u64(17), a))
+    values: set[A] = {a}
+    widened: set[atom] = values
+    testing.assertTrue(right in widened)
+    entries: dict[A, str] = {a: "found"}
+    widened_entries: dict[atom, str] = entries
+    testing.assertEqual(widened_entries[right], "found")
+    widened_entries[right] = "updated"
+    testing.assertEqual(entries[b], "updated")
+    testing.assertEqual(len(entries), 1)
+
+
+def _test_mapped_types():
+    a: list[atom] = [int(1), u64(1), True, "1", b"1", Decimal(10, -1),
+                     Identityref("one", "urn:test", "test", "t")]
+    b: list[atom] = [int("1"), u64("1"), bool(1), str(1), bytes([49]), Decimal(1, 0),
+                     Identityref("one", "urn:test", "test", "t")]
+    entries: dict[atom, int] = {}
+    values: set[atom] = set()
+    for i in range(len(a)):
+        testing.assertEqual(a[i], b[i])
+        testing.assertFalse(a[i] != b[i])
+        testing.assertEqual(hash(a[i]), hash(b[i]))
+        entries[a[i]] = i
+        values.add(a[i])
+        values.add(b[i])
+        for j in range(len(a)):
+            if i != j:
+                testing.assertNotEqual(a[i], b[j])
+    testing.assertEqual(len(entries), len(a))
+    testing.assertEqual(len(values), len(a))
+    for i in range(len(a)):
+        testing.assertEqual(entries[b[i]], i)
+        testing.assertTrue(b[i] in values)
+
+
+def _test_widening():
+    _check_widening(int(1), int("1"))
+    _check_widening(u64(1), u64("1"))
+    _check_widening(True, bool(1))
+    _check_widening("1", str(1))
+    _check_widening(b"\x00\xff", bytes([0, 255]))
+    _check_widening(Decimal(314, -2), Decimal(3140, -3))
+    _check_widening(Identityref("one", "urn:test", "test", "t"),
+                    Identityref("one", "urn:test", "test", "t"))
+
+
+def _test_decimal_scales():
+    _check_widening(Decimal(0, 0), Decimal(0, -18))
+    _check_widening(Decimal(-314, -2), Decimal(-3140, -3))
+    entries: dict[Decimal, int] = {Decimal(i, 0): i for i in range(8)}
+    widened: dict[atom, int] = entries
+    for i in range(8):
+        key: atom = Decimal(i * 10, -1)
+        testing.assertEqual(widened[key], i)
+        widened[key] = i + 1
+        testing.assertEqual(entries[Decimal(i, 0)], i + 1)
+    testing.assertEqual(len(entries), 8)
+
+
+def _test_identity_fields():
+    reference: atom = Identityref("one", "urn:test", "test", "t")
+    different: list[atom] = [Identityref("two", "urn:test", "test", "t"),
+                             Identityref("one", "urn:other", "test", "t"),
+                             Identityref("one", "urn:test", "other", "t"),
+                             Identityref("one", "urn:test", "test", "other")]
+    for item in different:
+        testing.assertNotEqual(reference, item)
+        testing.assertNotEqual(item, reference)
+    values = set(different)
+    values.add(reference)
+    testing.assertEqual(len(values), 5)
+
+
+def _expect_value_error[A](f: () -> A):
+    try:
+        f()
+    except ValueError as e:
+        testing.assertEqual(e.error_message, "Unsupported atom type")
+        return
+    raise AssertionError("Expected ValueError for an unsupported atom type")
+
+
+def _test_unsupported_atoms():
+    other: atom = OtherAtom()
+    known: list[atom] = [1, u64(1), True, "1", b"1", Decimal(1, 0),
+                         Identityref("one", "urn:test", "test", "t")]
+    _expect_value_error(lambda: other == other)
+    _expect_value_error(lambda: hash(other))
+    for item in known:
+        _expect_value_error(lambda: other == item)
+        _expect_value_error(lambda: item == other)
+        _expect_value_error(lambda: other != item)
+        _expect_value_error(lambda: item != other)
+    h = hasher()
+    "prefix".hash(h)
+    _expect_value_error(lambda: other.hash(h))
+    expected = hasher()
+    "prefix".hash(expected)
+    testing.assertEqual(h.finalize(), expected.finalize())

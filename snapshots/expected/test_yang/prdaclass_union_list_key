@@ -42,10 +42,10 @@ NS_foo: str = 'http://example.com/foo'
 _breaker1: None = None
 class foo__c1__l1_entry(yadata.MNode):
     k1: str
-    k2: value
+    k2: atom
     l1: str
 
-    mut def __init__(self, k1: str, k2: value, l1: str) -> None:
+    mut def __init__(self, k1: str, k2: atom, l1: str) -> None:
         self.k1 = k1
         self.k2 = k2
         self.l1 = l1
@@ -55,35 +55,18 @@ class foo__c1__l1_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> foo__c1__l1_entry:
-        return foo__c1__l1_entry(k1=n.get_str(ygdata.Id(NS_foo, 'k1')), k2=n.get_value(ygdata.Id(NS_foo, 'k2')), l1=n.get_str(ygdata.Id(NS_foo, 'l1')))
+        return foo__c1__l1_entry(k1=n.get_str(ygdata.Id(NS_foo, 'k1')), k2=n.get_atom(ygdata.Id(NS_foo, 'k2')), l1=n.get_str(ygdata.Id(NS_foo, 'l1')))
 
     mut def copy(self) -> foo__c1__l1_entry:
         """Create a deep copy of this adata object"""
         return foo__c1__l1_entry.from_gdata(self.to_gdata())
 
 _breaker2: None = None
-class foo__c1__l1(yadata.MList[foo__c1__l1_entry]):
+class foo__c1__l1(yadata.MKeyedList[(k1: str, k2: atom), foo__c1__l1_entry]):
     mut def __init__(self, elements: list[foo__c1__l1_entry]=[]) -> None:
-        self._elements = elements
+        yadata.MKeyedList.__init__(self, lambda e: (k1=e.k1, k2=e.k2), elements)
 
-    pure def get(self, key: (k1: str, k2: value)) -> ?foo__c1__l1_entry:
-        (k1=k1, k2=k2) = key
-        for e in self:
-            if e.k1 != k1:
-                continue
-            e_k2 = e.k2
-            k2_match = False
-            if isinstance(e_k2, u64) and isinstance(k2, u64):
-                if e_k2 == k2:
-                    k2_match = True
-            elif isinstance(e_k2, str) and isinstance(k2, str):
-                if e_k2 == k2:
-                    k2_match = True
-            if not k2_match:
-                continue
-            return e
-
-    mut def create(self, key: (k1: str, k2: value), l1: str) -> foo__c1__l1_entry:
+    mut def create(self, key: (k1: str, k2: atom), l1: str) -> foo__c1__l1_entry:
         e = self.get(key)
         if e is not None:
             e.l1 = l1

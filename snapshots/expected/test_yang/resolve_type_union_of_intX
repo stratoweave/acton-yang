@@ -40,10 +40,10 @@ _breaker1: None = None
 class root(yadata.MNode):
     l1: ?int
     l2: ?u64
-    l3: ?value
-    l4: ?value
+    l3: ?atom
+    l4: ?atom
 
-    mut def __init__(self, l1: ?int, l2: ?u64, l3: ?value, l4: ?value) -> None:
+    mut def __init__(self, l1: ?int, l2: ?u64, l3: ?atom, l4: ?atom) -> None:
         self.l1 = l1
         self.l2 = l2
         self.l3 = l3
@@ -55,7 +55,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(l1=n.get_opt_int(ygdata.Id(NS_foo, 'l1')), l2=n.get_opt_u64(ygdata.Id(NS_foo, 'l2')), l3=n.get_opt_value(ygdata.Id(NS_foo, 'l3')), l4=n.get_opt_value(ygdata.Id(NS_foo, 'l4')))
+            return root(l1=n.get_opt_int(ygdata.Id(NS_foo, 'l1')), l2=n.get_opt_u64(ygdata.Id(NS_foo, 'l2')), l3=n.get_opt_atom(ygdata.Id(NS_foo, 'l3')), l4=n.get_opt_atom(ygdata.Id(NS_foo, 'l4')))
         return root()
 
     mut def copy(self) -> root:
