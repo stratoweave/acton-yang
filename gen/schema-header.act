@@ -4348,19 +4348,12 @@ def is_optional_arg_yang_leaf(leaf: DNodeLeaf, key_names: ?list[str], loose: boo
     return optional
 
 def yang_leaf_to_acton_type(leaf: DNodeLeaf, key_names: ?list[str], loose: bool=False) -> str:
-    optional = is_optional_yang_leaf(leaf, key_names, loose)
-    optional_str = "?" if optional else ""
-    t = yang_type_to_acton_type(leaf.type)
-    return optional_str + t
+    optional_str = "?" if is_optional_yang_leaf(leaf, key_names, loose) else ""
+    return optional_str + yang_type_to_acton_type(leaf.type)
 
 def yang_leaf_to_acton_arg_type(leaf: DNodeLeaf, key_names: ?list[str], loose: bool=False) -> str:
-    optional = is_optional_yang_leaf(leaf, key_names, loose)
-    if isinstance(leaf, DLeaf):
-        if leaf.default is not None:
-            optional = True
-    optional_str = "?" if optional else ""
-    t = yang_type_to_acton_type(leaf.type)
-    return optional_str + t
+    optional_str = "?" if is_optional_arg_yang_leaf(leaf, key_names, loose) else ""
+    return optional_str + yang_type_to_acton_type(leaf.type)
 
 def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
     def iset_to_bits(acton_type: str) -> str:
