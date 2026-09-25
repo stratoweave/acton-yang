@@ -142,8 +142,9 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, sch
         elif isinstance(schema_type, yschema.DTypeIdentityref):
             if isinstance(leaf_value, str):
                 partial = Identityref.from_json(leaf_value)
-                res = yschema.complete_identityref(partial, root.identities, schema_node.module)
-                val = res.0
+                if partial is not None:
+                    res = yschema.complete_identityref(partial, root.identities, schema_node.module)
+                    val = res.0
             else:
                 val = leaf_value
         elif isinstance(schema_type, yschema.DTypeLeafref):

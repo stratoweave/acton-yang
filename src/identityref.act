@@ -29,7 +29,7 @@ class Identityref(atom):
         return str(self)
 
     @staticmethod
-    def from_json(val):
+    def from_json(val) -> ?PartialIdentityref:
         """Create PartialIdentityref from JSON-encoded value
         """
         parts = val.split(":")
@@ -37,10 +37,9 @@ class Identityref(atom):
             return PartialIdentityref(parts[0])
         elif len(parts) == 2:
             return PartialIdentityref(parts[1], mod=parts[0])
-        raise ValueError("Invalid identityref format: {val}")
 
     @staticmethod
-    def from_xml(val: str, nsdefs: list[(?str, str)]):
+    def from_xml(val: str, nsdefs: list[(?str, str)]) -> ?PartialIdentityref:
         parts = val.strip().split(":")
         if len(parts) == 1:
             return PartialIdentityref(parts[0])
@@ -48,7 +47,6 @@ class Identityref(atom):
             for nsname, nsuri in nsdefs:
                 if nsname == parts[0]:
                     return PartialIdentityref(parts[1], ns=nsuri)
-        raise ValueError("Namespace {parts[0]} not defined in node: {nsdefs}")
 
     @staticmethod
     def from_adata(val) -> ?PartialIdentityref:

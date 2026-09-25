@@ -230,8 +230,9 @@ def try_parse_xml_value(text_value: ?str, schema_node: yschema.DNodeLeaf, schema
                 pass
         elif isinstance(schema_type, yschema.DTypeIdentityref):
             partial = Identityref.from_xml(text_value, nsdefs)
-            res = yschema.complete_identityref(partial, root.identities, schema_node.module)
-            val = res.0
+            if partial is not None:
+                res = yschema.complete_identityref(partial, root.identities, schema_node.module)
+                val = res.0
         elif isinstance(schema_type, yschema.DTypeLeafref):
             target_type = schema_type.target_type
             if target_type is not None:
