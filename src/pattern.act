@@ -93,127 +93,16 @@ BLOCK_PCRE = {
     "Specials": [r"\x{FEFF}", r"\x{FFF0}", "-", r"\x{FFFD}"]
 }
 
-CATEGORY_OR_BLOCK_NAME_RE = \
-    "BasicLatin|" \
-    "Latin-1Supplement|" \
-    "LatinExtended-A|" \
-    "LatinExtended-B|" \
-    "IPAExtensions|" \
-    "SpacingModifierLetters|" \
-    "CombiningDiacriticalMarks|" \
-    "GreekExtended|" \
-    "Greek|" \
-    "Cyrillic|" \
-    "Armenian|" \
-    "Hebrew|" \
-    "ArabicPresentationForms-A|" \
-    "ArabicPresentationForms-B|" \
-    "Arabic|" \
-    "Syriac|" \
-    "Thaana|" \
-    "Devanagari|" \
-    "Bengali|" \
-    "Gurmukhi|" \
-    "Gujarati|" \
-    "Oriya|" \
-    "Tamil|" \
-    "Telugu|" \
-    "Kannada|" \
-    "Malayalam|" \
-    "Sinhala|" \
-    "Thai|" \
-    "Lao|" \
-    "Tibetan|" \
-    "Myanmar|" \
-    "Georgian|" \
-    "HangulJamo|" \
-    "Ethiopic|" \
-    "Cherokee|" \
-    "UnifiedCanadianAboriginalSyllabics|" \
-    "Ogham|" \
-    "Runic|" \
-    "Khmer|" \
-    "Mongolian|" \
-    "LatinExtendedAdditional|" \
-    "GeneralPunctuation|" \
-    "SuperscriptsandSubscripts|" \
-    "CurrencySymbols|" \
-    "CombiningMarksforSymbols|" \
-    "LetterlikeSymbols|" \
-    "NumberForms|" \
-    "Arrows|" \
-    "MathematicalOperators|" \
-    "MiscellaneousTechnical|" \
-    "ControlPictures|" \
-    "OpticalCharacterRecognition|" \
-    "EnclosedAlphanumerics|" \
-    "BoxDrawing|" \
-    "BlockElements|" \
-    "GeometricShapes|" \
-    "MiscellaneousSymbols|" \
-    "Dingbats|" \
-    "BraillePatterns|" \
-    "CJKRadicalsSupplement|" \
-    "KangxiRadicals|" \
-    "IdeographicDescriptionCharacters|" \
-    "CJKSymbolsandPunctuation|" \
-    "Hiragana|" \
-    "Katakana|" \
-    "BopomofoExtended|" \
-    "Bopomofo|" \
-    "HangulCompatibilityJamo|" \
-    "Kanbun|" \
-    "EnclosedCJKLettersandMonths|" \
-    "CJKCompatibilityIdeographs|" \
-    "CJKCompatibilityForms|" \
-    "CJKCompatibility|" \
-    "CJKUnifiedIdeographsExtensionA|" \
-    "CJKUnifiedIdeographs|" \
-    "YiSyllables|" \
-    "YiRadicals|" \
-    "HangulSyllables|" \
-    "PrivateUse|" \
-    "AlphabeticPresentationForms|" \
-    "CombiningHalfMarks|" \
-    "SmallFormVariants|" \
-    "HalfwidthandFullwidthForms|" \
-    "Specials" \
-    "Lu|" \
-    "Ll|" \
-    "Lt|" \
-    "Lm|" \
-    "Lo|" \
-    "L|" \
-    "Mn|" \
-    "Mc|" \
-    "Me|" \
-    "M|" \
-    "Nd|" \
-    "Nl|" \
-    "No|" \
-    "N|" \
-    "Pc|" \
-    "Pd|" \
-    "Ps|" \
-    "Pe|" \
-    "Pi|" \
-    "Pf|" \
-    "Po|" \
-    "P|" \
-    "Zs|" \
-    "Zl|" \
-    "Zp|" \
-    "Z|" \
-    "Sm|" \
-    "Sc|" \
-    "Sk|" \
-    "So|" \
-    "S|" \
-    "Cc|" \
-    "Cf|" \
-    "Co|" \
-    "Cn|" \
-    "C"
+# IsCategory names, written \p{Cat}. A block is written \p{IsBlock}, see BLOCK_PCRE
+CATEGORIES = {
+    "L", "Lu", "Ll", "Lt", "Lm", "Lo",
+    "M", "Mn", "Mc", "Me",
+    "N", "Nd", "Nl", "No",
+    "P", "Pc", "Pd", "Ps", "Pe", "Pi", "Pf", "Po",
+    "Z", "Zs", "Zl", "Zp",
+    "S", "Sm", "Sc", "Sk", "So",
+    "C", "Cc", "Cf", "Co", "Cn"
+}
 
 STATE_INIT = 0
 STATE_BEGIN = 1
@@ -275,16 +164,6 @@ class _XmlRegexToRe(object):
         s = self.get_slice_while(predicate)
         self.i = s.1
         return self.input[s.0:s.1]
-
-    def try_get_substr_re(self, pattern) -> ?str:
-        m = re.match(pattern, self.input, start_pos=self.i)
-        # print("DEBUG81", self.input, self.i)
-        if m is not None:
-            s = self.input[self.i:m.end_pos]
-            self.i = m.end_pos
-            # print("DEBUG82", self.i, "\'{s}\'", self.input[self.i:])
-            return s
-        return None
 
     def try_get_char_in(self, chars) -> ?str:
         return self.try_get_char_if(lambda c: c in chars)
@@ -449,28 +328,18 @@ class _XmlRegexToRe(object):
                     # catEsc & complEsc
                     if c1 in "pP":
                         # print("DEBUG48.3", self.i, c1)
-                        if self.try_get_char_in(r'{') is not None:
-                            category = self.try_get_unicode_category_or_block()
-                            if category is not None:
-                                # print("DEBUG48.4", self.i, category)
-                                if self.try_get_char_in(r'}') is None:
-                                    self.raise_error("Missing closing brace")
-                                try:
-                                    block_pcre2 = BLOCK_PCRE[category]
-                                except KeyError:
-                                    return ["\\{c1}{{{category}}}"], BP_ATOMIC
-                                else:
-                                    if c1 == 'P':
-                                        elems = ["[^"]
-                                        elems.extend(block_pcre2)
-                                        elems.append("]")
-                                        return elems, BP_ATOMIC
-                                    else:
-                                        elems = ["["]
-                                        elems.extend(block_pcre2)
-                                        elems.append("]")
-                                        return elems, BP_ATOMIC
-                            self.raise_error("Invalid unicode category")
+                        name = self.parse_char_prop()
+                        if name.startswith("Is"):
+                            block_pcre2 = BLOCK_PCRE.get(name[2:])
+                            if block_pcre2 is not None:
+                                elems = ["[^" if c1 == 'P' else "["]
+                                elems.extend(block_pcre2)
+                                elems.append("]")
+                                return elems, BP_ATOMIC
+                            self.raise_error("Invalid unicode block")
+                        if name in CATEGORIES:
+                            return ["\\{c1}{{{name}}}"], BP_ATOMIC
+                        self.raise_error("Invalid unicode category")
                 self.raise_error("Missing/invalid character after escape \\")
             if c == '(':
                 self.i += 1
@@ -652,25 +521,21 @@ class _XmlRegexToRe(object):
                             state = _update_state_on_multi_char(state)
                         # catEsc & complEsc expansion
                         elif c1 in "pP":
-                            if self.try_get_char_in(r'{') is not None:
-                                category = self.try_get_unicode_category_or_block()
-                                if category is not None:
-                                    if self.try_get_char_in(r'}') is None:
-                                        self.raise_error("Missing closing brace")
-                                    try:
-                                        block_pcre2 = BLOCK_PCRE[category]
-                                    except KeyError:
-                                        builder.simple_part("\\{c1}{{{category}}}")
+                            name = self.parse_char_prop()
+                            if name.startswith("Is"):
+                                block_pcre2 = BLOCK_PCRE.get(name[2:])
+                                if block_pcre2 is not None:
+                                    if c1 == 'P':
+                                        builder.expansion_complement(block_pcre2)
                                     else:
-                                        if c1 == 'P':
-                                            builder.expansion_complement(block_pcre2)
-                                        else:
-                                            builder.expansion(block_pcre2)
-                                    state = _update_state_on_multi_char(state)
+                                        builder.expansion(block_pcre2)
                                 else:
-                                    self.raise_error("Invalid unicode category")
+                                    self.raise_error("Invalid unicode block")
+                            elif name in CATEGORIES:
+                                builder.simple_part("\\{c1}{{{name}}}")
                             else:
-                                self.raise_error("Invalid unicode category syntax")
+                                self.raise_error("Invalid unicode category")
+                            state = _update_state_on_multi_char(state)
                         else:
                             self.raise_error("Invalid character after escape \\")
                     else:
@@ -697,8 +562,14 @@ class _XmlRegexToRe(object):
         # and deduces that the default return None is possible
         return [], BP_NONE
 
-    def try_get_unicode_category_or_block(self) -> ?str:
-        return self.try_get_substr_re(CATEGORY_OR_BLOCK_NAME_RE)
+    def parse_char_prop(self) -> str:
+        # The charProp name between the braces of catEsc \p{..} and complEsc \P{..}
+        if self.try_get_char_in(r'{') is None:
+            self.raise_error("Invalid unicode category syntax")
+        name = self.get_substr_while(lambda c: c != r'}')
+        if self.try_get_char_in(r'}') is None:
+            self.raise_error("Missing closing brace")
+        return name
 
     def raise_error(self, message: str, index: ?int):
         i = index if index is not None else self.i - 1
@@ -915,10 +786,11 @@ def _test_w3cregex_to_re_search_multichar():
 def _test_w3cregex_to_re_search_escape_unicode_category():
     testing.assertEqual(w3cregex_to_re_search(r"\p{L}"), r"\p{L}")
     testing.assertEqual(w3cregex_to_re_search(r"\P{L}"), r"\P{L}")
+    testing.assertEqual(w3cregex_to_re_search(r"é\p{L}"), r"é\p{L}")
 
 def _test_w3cregex_to_re_search_escape_unicode_block():
-    testing.assertEqual(w3cregex_to_re_search(r"\p{MathematicalOperators}"), r"[\x{2200}-\x{22FF}]")
-    testing.assertEqual(w3cregex_to_re_search(r"\P{MathematicalOperators}"), r"[^\x{2200}-\x{22FF}]")
+    testing.assertEqual(w3cregex_to_re_search(r"\p{IsMathematicalOperators}"), r"[\x{2200}-\x{22FF}]")
+    testing.assertEqual(w3cregex_to_re_search(r"\P{IsMathematicalOperators}"), r"[^\x{2200}-\x{22FF}]")
 
 def _test_w3cregex_to_re_search_group_escape():
     testing.assertEqual(w3cregex_to_re_search(r"[\n\r\t\\\\\|\.\-\^\?\*\+\{\{\}\}\(\)\[\]]"), r"[\n\r\t\\\\\|\.\-\^\?\*\+\{\{\}\}\(\)\[\]]")
@@ -973,10 +845,10 @@ def _test_w3cregex_to_re_search_group_escape_unicode_category():
     testing.assertEqual(w3cregex_to_re_search(r"[\P{L}\P{No}]"), r"[\P{L}\P{No}]")
 
 def _test_w3cregex_to_re_search_group_escape_unicode_block():
-    testing.assertEqual(w3cregex_to_re_search(r"[\p{MathematicalOperators}]"), r"[\x{2200}-\x{22FF}]")
-    testing.assertEqual(w3cregex_to_re_search(r"[\P{MathematicalOperators}]"), r"[^\x{2200}-\x{22FF}]")
-    testing.assertEqual(w3cregex_to_re_search(r"[\p{MathematicalOperators}\p{MiscellaneousTechnical}]"), r"[\x{2200}-\x{22FF}\x{2300}-\x{23FF}]")
-    testing.assertEqual(w3cregex_to_re_search(r"[\P{MathematicalOperators}\P{MiscellaneousTechnical}]"), r"[^\x{2200}-\x{22FF}]|[^\x{2300}-\x{23FF}]")
+    testing.assertEqual(w3cregex_to_re_search(r"[\p{IsMathematicalOperators}]"), r"[\x{2200}-\x{22FF}]")
+    testing.assertEqual(w3cregex_to_re_search(r"[\P{IsMathematicalOperators}]"), r"[^\x{2200}-\x{22FF}]")
+    testing.assertEqual(w3cregex_to_re_search(r"[\p{IsMathematicalOperators}\p{IsMiscellaneousTechnical}]"), r"[\x{2200}-\x{22FF}\x{2300}-\x{23FF}]")
+    testing.assertEqual(w3cregex_to_re_search(r"[\P{IsMathematicalOperators}\P{IsMiscellaneousTechnical}]"), r"[^\x{2200}-\x{22FF}]|[^\x{2300}-\x{23FF}]")
 
 def _test_w3cregex_to_re_search_cisci_xr():
     testing.assertEqual(w3cregex_to_re_search(r"[\w\-\.:,_@#%$\+=\| ;]+"), r"([\-\.:,_@#%$\+=\| ;]|(?![\p{P}\p{Z}\p{C}])[\x{0000}-\x{10FFFF}])+")
