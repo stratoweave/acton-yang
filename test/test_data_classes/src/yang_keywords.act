@@ -162,7 +162,7 @@ class keywords__import(yadata.MKeyedList[(from: str, type: str), keywords__impor
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[keywords__import_entry]:
         if n is not None:
-            return [keywords__import_entry.from_gdata(e) for e in n.elements]
+            return [keywords__import_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> keywords__import:

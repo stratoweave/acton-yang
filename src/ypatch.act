@@ -42,7 +42,7 @@ import gdata
 import restconf
 import schema as yschema
 from restconf import resolve_path
-from data import fqname, fq_list_keys, user_order, PathElement
+from data import fqname, single_entry_list, user_order, PathElement
 from xml import try_parse_xml_value
 
 
@@ -236,7 +236,7 @@ def diff_to_edits(d: ?gdata.Node) -> list[Edit]:
                     ev = value_elem(name, gdata.Leaf(ent.val, ns=node.ns, module=node.module))
                     acc.append((op=OP_MERGE, target=sel, value=ev))
         elif isinstance(node, gdata.List):
-            for elem in node.elements:
+            for elem in gdata.list_entries(node, False):
                 sel = target + key_pred(elem, node.keys)
                 if isinstance(elem, gdata.Absent):
                     acc.append((op=OP_REMOVE, target=sel, value=None))
@@ -353,8 +353,7 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
                         if kv is not None:
                             element_children[gdata.Id(s.namespace, key_name)] = gdata.Leaf(kv)
                 element_children[fqname(child_node)] = inner
-                inner = gdata.List(fq_list_keys(s), [gdata.Container(element_children)],
-                                   user_order(s.ordered_by), ns=sns, module=smod)
+                inner = single_entry_list(s, gdata.Container(element_children), ns=sns, module=smod)
             else:
                 # Carry the schema presence: gdata.patch takes a container whose
                 # presence differs from the datastore as a schema mismatch.

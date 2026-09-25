@@ -130,6 +130,13 @@ def user_order(ordered_by):
     return True if ordered_by == "user" else False
 
 
+def single_entry_list(s: yschema.DList, entry: ygdata.Node, ns: ?str=None, module: ?str=None) -> ygdata.List:
+    """The gdata node for schema list s, which has keys, holding only entry"""
+    if s.ordered_by == "user":
+        return ygdata.OList(fq_list_keys(s), [entry], ns=ns, module=module)
+    return ygdata.List(fq_list_keys(s), [entry], ns=ns, module=module)
+
+
 def parse_qualified_name(name: str) -> (str, ?str):
     if ":" in name:
         parts = name.split(":", 1)
@@ -260,6 +267,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
 
         elif isinstance(child, yschema.DList):
             list_val = data.take_list(child, usname(child), s.namespace != child.namespace, spath)
+            list_keys = fq_list_keys(child)
             list_elements = []
 
             for element in list_val:
@@ -267,9 +275,9 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 element_data = type_narrower(element.val)
                 element_gdata = from_data_recursive(root, child, element_data, type_narrower, loose, set_ns=False, root_path=root_path, spath=path_with_child(element.key), skip_nonkeys=do_skip)
                 if element.op == OP_REMOVE:
-                    list_elements.append(ygdata.Absent(element_gdata.key_children(fq_list_keys(child))))
+                    list_elements.append(ygdata.Absent(element_gdata.key_children(list_keys)))
                 elif element.op == OP_DELETE:
-                    list_elements.append(ygdata.Delete(element_gdata.key_children(fq_list_keys(child))))
+                    list_elements.append(ygdata.Delete(element_gdata.key_children(list_keys)))
                 elif element.op == OP_CREATE:
                     list_elements.append(ygdata.Create(element_gdata.children))
                 elif element.op == OP_REPLACE:
@@ -277,8 +285,13 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 else:
                     list_elements.append(element_gdata)
             if len(list_elements) > 0:
-                list_gdata = ygdata.List(fq_list_keys(child), list_elements, user_order=user_order(child.ordered_by), ns=ns, module=mod)
-                children[fqname(child)] = list_gdata
+                if len(list_keys) == 0:
+                    children[fqname(child)] = ygdata.KeylessList(list_elements, ns=ns, module=mod)
+                else:
+                    if child.ordered_by == "user":
+                        children[fqname(child)] = ygdata.OList(list_keys, list_elements, ns=ns, module=mod)
+                    else:
+                        children[fqname(child)] = ygdata.List(list_keys, list_elements, ns=ns, module=mod)
 
         elif isinstance(child, yschema.DLeafList):
             leaflist_val = data.take_leaflist(root, child, usname(child), s.namespace != child.namespace, spath)
@@ -553,11 +566,17 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                 else:
                     res.extend(_pradata_recursive(child, container, "{self_name}.{usname(child)}", loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names).splitlines())
         elif isinstance(child, yschema.DList):
-            glist = node.get_opt_list(fqname(child))
+            if len(child.key) > 0:
+                glist = node.get_opt_list(fqname(child))
+            else:
+                glist = node.get_opt_keyless_list(fqname(child))
+            entries = None
             if glist is not None:
+                entries = ygdata.list_entries(glist, False)
+            if entries is not None and len(entries) > 0:
                 list_path_key = pname(path_with_child())
                 list_element_var = path_local_var(list_path_key, "{usname(child)}_element")
-                for element in glist.elements:
+                for element in entries:
                     res.append("")
                     res.append("# List {format_schema_path(path_with_child())} element: {element.key_str(fq_list_keys(child))}")
 
@@ -656,8 +675,8 @@ def _prpaths_recursive(s: yschema.DNodeInner, node: ygdata.Node, spath: list[ysc
                         emit_path(child_spath)
                     has_value_nodes = True
             elif isinstance(schild, yschema.DList):
-                if isinstance(gchild, ygdata.List):
-                    for element in gchild.elements:
+                if isinstance(gchild, ygdata.List) or isinstance(gchild, ygdata.KeylessList):
+                    for element in ygdata.list_entries(gchild, False):
                         if isinstance(element, ygdata.Container):
                             if _prpaths_recursive(schild, element, child_spath, seen_paths, out):
                                 has_value_nodes = True

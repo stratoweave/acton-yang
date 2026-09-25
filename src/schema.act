@@ -947,9 +947,17 @@ class DNodeInner(DNode):
 #                # .from_gdata()
 #                # TODO: should .from_gdata() not take a specific data node instead, like Container instead of ygdata.Node?
                 res.append("    @staticmethod")
-                res.append("    mut def from_gdata(n: ?ygdata.List) -> list[{pname()}_entry]:")
-                res.append("        if n is not None:")
-                res.append("            return [{pname()}_entry.from_gdata(e) for e in n.elements]")
+                if len(list_key_args) > 0:
+                    res.append("    mut def from_gdata(n: ?ygdata.List) -> list[{pname()}_entry]:")
+                    res.append("        if n is not None:")
+                    if self.ordered_by == "user":
+                        res.append("            return [{pname()}_entry.from_gdata(e) for e in ygdata.list_entries(n, False)]")
+                    else:
+                        res.append("            return [{pname()}_entry.from_gdata(e) for e in n.elements.values()]")
+                else:
+                    res.append("    mut def from_gdata(n: ?ygdata.KeylessList) -> list[{pname()}_entry]:")
+                    res.append("        if n is not None:")
+                    res.append("            return [{pname()}_entry.from_gdata(e) for e in n.elements]")
                 res.append("        return []")
                 #res.append("        return list(map(lambda x: %s_entry.from_gdata(x), n.elements))" % pname())
                 # TODO: trying to use list(map(lambda)) here results in an error,
@@ -2024,7 +2032,8 @@ class DRoot(DNodeInner):
             res.append('    """The one entry of a list on a delivery\'s spine."""')
             res.append("    if isinstance(n, ygdata.List):")
             res.append("        if len(n.elements) == 1:")
-            res.append("            return n.elements[0]")
+            res.append("            for e in n.elements.values():")
+            res.append("                return e")
             res.append('    raise ValueError("a rooted delivery without its " + what + " entry")')
             res.append("")
             res.append("def _present(n: ?ygdata.Node) -> ?ygdata.Node:")
@@ -4365,7 +4374,8 @@ def taker_name(n: DNode, key_names: ?list[str], loose: bool=False) -> str:
     if isinstance(n, DList):
         optional = loose or n.min_elements == 0
         optional_str = "opt_" if optional else ""
-        return taker_prefix + optional_str + "list"
+        keyless_str = "keyless_" if len(n.key) == 0 else ""
+        return taker_prefix + optional_str + keyless_str + "list"
     if isinstance(n, DLeaf):
         optional = is_optional_arg_yang_leaf(n, key_names, loose)
         optional_str = "opt_" if optional else ""

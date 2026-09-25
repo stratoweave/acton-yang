@@ -22,7 +22,7 @@ import data as ydata
 import gdata as ygdata
 import schema as yschema
 from data import from_data_recursive, YangData, PathElement, YangValidationError, format_schema_path
-from data import fqname, fq_list_keys, parse_qualified_name, user_order
+from data import fqname, single_entry_list, parse_qualified_name
 from data import OP_MERGE, OP_REPLACE, OP_REMOVE
 from json import try_parse_json_value
 from xml import xml_node_ns, NETCONF_NS, NETCONF_OPS
@@ -151,7 +151,7 @@ def _from_unwrapped_body[A(YangData)](root: yschema.DRoot, data: ?A, type_narrow
                     key_val = keys.get(key_name)
                     if key_val is not None:
                         element_children[ygdata.Id(last_node.namespace, key_name)] = ygdata.Leaf(key_val)
-                inner = ygdata.List(fq_list_keys(last_node), [ygdata.Absent(element_children)], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+                inner = single_entry_list(last_node, ygdata.Absent(element_children), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
             elif op == OP_MERGE or op == OP_REPLACE:
                 if data is None:
                     raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
@@ -167,7 +167,7 @@ def _from_unwrapped_body[A(YangData)](root: yschema.DRoot, data: ?A, type_narrow
                     wrapped: ygdata.Node = ygdata.Replace(element_gdata.children)
                 else:
                     wrapped = element_gdata
-                inner = ygdata.List(fq_list_keys(last_node), [wrapped], user_order(last_node.ordered_by), ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
+                inner = single_entry_list(last_node, wrapped, ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
             else:
                 raise ValueError("Invalid operation at {format_schema_path(path_elements)}: {op}")
         else:
@@ -198,7 +198,7 @@ def _from_unwrapped_body[A(YangData)](root: yschema.DRoot, data: ?A, type_narrow
                     if key_val is not None:
                         element_children[ygdata.Id(s.namespace, key_name)] = ygdata.Leaf(key_val)
                 element_children[fqname(child_node)] = inner
-                inner = ygdata.List(fq_list_keys(s), [ygdata.Container(element_children)], user_order(s.ordered_by), ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
+                inner = single_entry_list(s, ygdata.Container(element_children), ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
             else:
                 raise ValueError("Invalid path invariant at {format_schema_path(path_elements[:i+1])}: ancestor list is missing key values")
         else:

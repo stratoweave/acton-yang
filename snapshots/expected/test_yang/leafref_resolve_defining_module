@@ -83,7 +83,7 @@ class other_module__other_network_instances__network_instance(yadata.MKeyedList[
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[other_module__other_network_instances__network_instance_entry]:
         if n is not None:
-            return [other_module__other_network_instances__network_instance_entry.from_gdata(e) for e in n.elements]
+            return [other_module__other_network_instances__network_instance_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> other_module__other_network_instances__network_instance:
@@ -176,7 +176,7 @@ class base_module__base_network_instances__network_instance(yadata.MKeyedList[st
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[base_module__base_network_instances__network_instance_entry]:
         if n is not None:
-            return [base_module__base_network_instances__network_instance_entry.from_gdata(e) for e in n.elements]
+            return [base_module__base_network_instances__network_instance_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> base_module__base_network_instances__network_instance:

@@ -293,7 +293,7 @@ class filter_test__interfaces__interface__address(yadata.MKeyedList[str, filter_
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[filter_test__interfaces__interface__address_entry]:
         if n is not None:
-            return [filter_test__interfaces__interface__address_entry.from_gdata(e) for e in n.elements]
+            return [filter_test__interfaces__interface__address_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> filter_test__interfaces__interface__address:
@@ -374,7 +374,7 @@ class filter_test__interfaces__interface(yadata.MKeyedList[str, filter_test__int
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[filter_test__interfaces__interface_entry]:
         if n is not None:
-            return [filter_test__interfaces__interface_entry.from_gdata(e) for e in n.elements]
+            return [filter_test__interfaces__interface_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> filter_test__interfaces__interface:
@@ -447,7 +447,8 @@ def _one(n: ?ygdata.Node, what: str) -> ygdata.Node:
     """The one entry of a list on a delivery's spine."""
     if isinstance(n, ygdata.List):
         if len(n.elements) == 1:
-            return n.elements[0]
+            for e in n.elements.values():
+                return e
     raise ValueError("a rooted delivery without its " + what + " entry")
 
 def _present(n: ?ygdata.Node) -> ?ygdata.Node:

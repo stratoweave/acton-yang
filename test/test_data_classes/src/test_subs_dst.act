@@ -376,14 +376,14 @@ def _test_spines_and_gone():
         testing.assertTrue(isinstance(ifaces, gdata.List))
         if isinstance(ifaces, gdata.List):
             testing.assertEqual(len(ifaces.elements), 1)
-            entry = ifaces.elements[0]
+            entry = list(ifaces.elements.values())[0]
             testing.assertEqual(sorted([k.name for k in entry.children.keys()]), ["address", "name"])
         g = gdata.gone(spine, names)!
         addr = g.children[names[0]].children[names[1]]
         if isinstance(addr, gdata.List):
-            inner = addr.elements[0].children[names[2]]
+            inner = list(addr.elements.values())[0].children[names[2]]
             if isinstance(inner, gdata.List):
-                testing.assertTrue(isinstance(inner.elements[0], gdata.Absent))
+                testing.assertTrue(isinstance(list(inner.elements.values())[0], gdata.Absent))
 
 
 actor _test_synced_covers_the_whole_declaration(t: testing.AsyncT):

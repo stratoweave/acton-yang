@@ -584,7 +584,10 @@ class Node(value):
             if node_type == "Container":
                 return Container.from_json(data)
             if node_type == "List":
-                return List.from_json(data)
+                keys_data = data.get("keys")
+                if isinstance(keys_data, list) and len(keys_data) > 0:
+                    return List.from_json(data)
+                return KeylessList.from_json(data)
             if node_type == "Leaf":
                 return Leaf.from_json(data)
             if node_type == "LeafList":
@@ -682,22 +685,18 @@ class Node(value):
                     ",\n".join(child_strs),
                     "{_ind(indent)}}}{args_str})"
                 ])
-        elif isinstance(self, List):
-            keys_arg = [repr(self.keys)]
-            order_args = ["user_order=True"] if self.user_order else []
-            args = keys_arg + base_args + order_args
-            if len(self.elements) == 0:
-                return "List({", ".join(args)})"
-            else:
-                # Only sort if deterministic=True and not user_order
-                elems = self.elements if (self.user_order or not deterministic) else sorted_elements(self.elements, self.keys)
-                elem_strs = [_ind(indent+1) + elem.prsrc(deterministic, indent+1) for elem in elems]
-                args_with_elements = args + ["elements=["]
-                return "\n".join([
-                    "List({", ".join(args_with_elements)}",
-                    ",\n".join(elem_strs),
-                    _ind(indent) + "])"
-                ])
+        elif isinstance(self, List) or isinstance(self, KeylessList):
+            sname = "OList" if isinstance(self, OList) else "List" if isinstance(self, List) else "KeylessList"
+            key_args = [repr(self.keys)] if isinstance(self, List) else []
+            entries = list_entries(self, deterministic)
+            if len(entries) == 0:
+                return "{sname}({", ".join(key_args + base_args)})"
+            elem_strs = [_ind(indent+1) + elem.prsrc(deterministic, indent+1) for elem in entries]
+            return "\n".join([
+                "{sname}({", ".join(key_args + base_args + ["elements=["])}",
+                ",\n".join(elem_strs),
+                _ind(indent) + "])"
+            ])
         elif isinstance(self, Container):
             sname = "Container"
             presence_args = ["presence=True"] if self.presence else []
@@ -801,13 +800,9 @@ class Node(value):
                         else:
                             raise ValueError("Unsupported leaf-list {nm} ({entry.val}) operation: {type(entry)}")
                     child_dict[fmt_json_name(nm, child.module)] = vals
-                elif isinstance(child, List):
+                elif isinstance(child, List) or isinstance(child, KeylessList):
                     elems = []
-                    if child.user_order or not deterministic:
-                        iter_elems = child.elements
-                    else:
-                        iter_elems = sorted_elements(child.elements, child.keys)
-                    for elem in iter_elems:
+                    for elem in list_entries(child, deterministic):
                         if isinstance(elem, Container):
                             elems.append(elem.to_yang_dict(pretty, deterministic))
                         elif isinstance(elem, Absent):
@@ -852,8 +847,11 @@ class Node(value):
                     elif isinstance(self, Container) and child.presence:
                         children.append(xml.Node(local_name, nsdefs=_nsq(child.ns)))
 
+                elif isinstance(child, KeylessList):
+                    for elem in list_entries(child, deterministic):
+                        children.append(xml.Node(local_name, nsdefs=_nsq(child.ns), children=elem._to_xml_rec(deterministic=deterministic)))
                 elif isinstance(child, List):
-                    for elem in child.elements if child.user_order or not deterministic else sorted_elements(child.elements, child.keys):
+                    for elem in list_entries(child, deterministic):
                         # Determine NETCONF operation for list element based on node type
                         skip_nonkeys = False
                         if isinstance(elem, Absent) or parent_absent:
@@ -991,6 +989,18 @@ class Node(value):
         if isinstance(self, Container):
             child = self.children.get(name)
             if isinstance(child, List):
+                return child
+
+    def get_keyless_list(self, name) -> KeylessList:
+        l = self.get_opt_keyless_list(name)
+        if l is not None:
+            return l
+        raise ValueError("Cannot find keyless list child with name {name}")
+
+    def get_opt_keyless_list(self, name) -> ?KeylessList:
+        if isinstance(self, Container):
+            child = self.children.get(name)
+            if isinstance(child, KeylessList):
                 return child
 
     def get_bool(self, name) -> bool:
@@ -1406,19 +1416,30 @@ extension Node(Eq):
                     return False
             return True
 
-        if isinstance(self, List) and isinstance(other, List):
-            if self.keys != other.keys:
+        if isinstance(self, OList) and isinstance(other, OList):
+            if self.keys != other.keys or self.order != other.order:
                 return False
+            for k in self.order:
+                if self.elements[k] != other.elements[k]:
+                    return False
+            return True
+
+        if isinstance(self, List) and isinstance(other, List):
+            if isinstance(self, OList) or isinstance(other, OList):
+                return False
+            if self.keys != other.keys or len(self.elements) != len(other.elements):
+                return False
+            for k, e1 in self.elements.items():
+                e2 = other.elements.get(k)
+                if e2 is None or e1 != e2:
+                    return False
+            return True
+
+        if isinstance(self, KeylessList) and isinstance(other, KeylessList):
             if len(self.elements) != len(other.elements):
                 return False
             for i in range(len(self.elements)):
-                e1 = self.elements[i]
-                e2 = other.elements[i]
-                if not self.user_order and e1.key_str(self.keys) != e2.key_str(other.keys):
-                    for e2 in other.elements:
-                        if e1.key_str(self.keys) == e2.key_str(other.keys):
-                            break
-                if e1 != e2:
+                if self.elements[i] != other.elements[i]:
                     return False
             return True
 
@@ -1462,14 +1483,13 @@ extension Node(Eq):
 
 
 class List(Node):
+    """A list with keys, ordered by the system"""
     keys: list[Id] # name of the key leafs
-    elements: list[Node]
-    user_order: bool
+    elements: dict[str, Node] # entries by their key_str
 
-    def __init__(self, keys: list[Id], elements: list[Node]=[], user_order=False, ns: ?str=None, module: ?str=None, txid: ?str=None):
+    def __init__(self, keys: list[Id], elements: list[Node]=[], ns: ?str=None, module: ?str=None, txid: ?str=None, by_key: ?dict[str, Node]=None):
         self.keys = keys
-        self.elements = elements
-        self.user_order = user_order
+        self.elements = by_key if by_key is not None else {e.key_str(keys): e for e in elements}
         self.ns = ns
         self.module = module
         self.txid = txid
@@ -1477,6 +1497,7 @@ class List(Node):
 
     @staticmethod
     def from_json(data: value) -> List:
+        """The List, or OList if user_order is true, in the gdata JSON form data"""
         if isinstance(data, dict):
             node_type = data.get("type")
             if node_type != "List":
@@ -1490,8 +1511,6 @@ class List(Node):
                         keys.append(Id.from_json(key_data))
                     else:
                         raise ValueError("Invalid gdata list key encoding: {key_data}")
-            elif keys_data is not None:
-                raise ValueError("Invalid gdata list keys encoding: {keys_data}")
             elements: list[Node] = []
             elements_data = data.get("elements")
             if isinstance(elements_data, list):
@@ -1502,40 +1521,89 @@ class List(Node):
                         raise ValueError("Invalid gdata list element encoding: {element_data}")
             else:
                 raise ValueError("Invalid gdata list elements encoding: {elements_data}")
-            user_order = False
-            user_order_data = data.get("user_order")
-            if isinstance(user_order_data, bool):
-                user_order = user_order_data
-            return List(keys=keys, elements=elements, user_order=user_order, ns=ns, module=module, txid=txid)
+            user_order = data.get("user_order")
+            if isinstance(user_order, bool) and user_order:
+                return OList(keys, elements, ns=ns, module=module, txid=txid)
+            return List(keys, elements, ns=ns, module=module, txid=txid)
         raise ValueError("Expected dict for List, got {type(data)}")
 
     def to_json(self) -> dict[str, ?value]:
         result = base_node_json(self, "List")
         result["keys"] = [key.to_json() for key in self.keys]
-        if self.user_order:
+        if isinstance(self, OList):
             result["user_order"] = True
-        result["elements"] = [element.to_json() for element in self.elements]
+        result["elements"] = [element.to_json() for element in list_entries(self, False)]
         return result
 
     def get_opt_list_entry(self, key: str) -> ?Node:
-        """Get a list entry by key value
+        """Get a list entry by its key_str
 
         Returns None if the entry is not found.
         """
-        for elem in self.elements:
-            if elem.key_str(self.keys) == key:
-                return elem
-        return None
+        return self.elements.get(key)
 
     def get_list_entry(self, key: str) -> Node:
-        """Get a list entry by key value
+        """Get a list entry by its key_str
 
         Raises ValueError if the entry is not found.
         """
-        elem = self.get_opt_list_entry(key)
+        elem = self.elements.get(key)
         if elem is not None:
             return elem
         raise ValueError("Cannot find list entry with key {key}")
+
+
+class OList(List):
+    """A list with keys, ordered by the user"""
+    order: list[str] # key_str of the entries, in the order of the list
+
+    def __init__(self, keys: list[Id], elements: list[Node]=[], ns: ?str=None, module: ?str=None, txid: ?str=None, by_key_order: ?(dict[str, Node], list[str])=None):
+        self.keys = keys
+        self.elements = by_key_order.0 if by_key_order is not None else {e.key_str(keys): e for e in elements}
+        self.order = by_key_order.1 if by_key_order is not None else list(self.elements.keys())
+        self.ns = ns
+        self.module = module
+        self.txid = txid
+        self.children = {}
+
+
+class KeylessList(Node):
+    """A list without keys"""
+    elements: list[Node]
+
+    def __init__(self, elements: list[Node]=[], ns: ?str=None, module: ?str=None, txid: ?str=None):
+        self.elements = elements
+        self.ns = ns
+        self.module = module
+        self.txid = txid
+        self.children = {}
+
+    @staticmethod
+    def from_json(data: value) -> KeylessList:
+        """The KeylessList in the gdata JSON form data: a List with no keys"""
+        if isinstance(data, dict):
+            ns, module, txid = node_meta_from_json(data)
+            elements: list[Node] = []
+            elements_data = data.get("elements")
+            if isinstance(elements_data, list):
+                for element_data in elements_data:
+                    if isinstance(element_data, dict):
+                        elements.append(Node.from_json(element_data))
+                    else:
+                        raise ValueError("Invalid gdata list element encoding: {element_data}")
+            else:
+                raise ValueError("Invalid gdata list elements encoding: {elements_data}")
+            return KeylessList(elements, ns=ns, module=module, txid=txid)
+        raise ValueError("Expected dict for KeylessList, got {type(data)}")
+
+    def to_json(self) -> dict[str, ?value]:
+        result = base_node_json(self, "List")
+        result["keys"] = []
+        result["elements"] = [element.to_json() for element in self.elements]
+        return result
+
+
+
 
 class Container(Node):
     def __init__(self, children: dict[Id, Node]={}, presence: bool=False, ns: ?str=None, module: ?str=None, txid: ?str=None):
@@ -2093,10 +2161,44 @@ extension FNode(Hashable):
         for c in self.children:
             c.hash(hasher)
 
-def sorted_elements(elements, key_names: list[Id]):
-    keys = list(map(lambda elem: elem.key_str(key_names), elements))
-    key_map = dict(zip(keys, elements))
-    return [key_map[key] for key in sorted(keys)]
+def list_entries(lst: Node, deterministic: bool) -> list[Node]:
+    """List entries in (maybe) deterministic order
+
+    Depending on the lst:
+    - OList: in the order of the list
+    - List: sorted by key_str if deterministic
+    - KeylessList: sorted by prsrc output if deterministic
+    """
+    if isinstance(lst, OList):
+        return [lst.elements[k] for k in lst.order]
+    if isinstance(lst, List):
+        if deterministic:
+            return [lst.elements[k] for k in sorted(lst.elements.keys())]
+        return list(lst.elements.values())
+    if isinstance(lst, KeylessList):
+        if deterministic:
+            by_src: dict[str, list[Node]] = {}
+            for e in lst.elements:
+                src = e.prsrc(deterministic=True)
+                same = by_src.get(src)
+                if same is not None:
+                    same.append(e)
+                else:
+                    by_src[src] = [e]
+            res: list[Node] = []
+            for src in sorted(by_src.keys()):
+                res.extend(by_src[src])
+            return res
+        return lst.elements
+    raise ValueError("Not a list: {type(lst)}")
+
+
+pure def list_like(like: List, elements: dict[str, Node], order: list[str]) -> List:
+    """A new list instance of the same type, with new elements and order."""
+    if isinstance(like, OList):
+        return OList(like.keys, ns=like.ns, module=like.module, by_key_order=(elements, order))
+    return List(like.keys, ns=like.ns, module=like.module, by_key=elements)
+
 
 def vals_equal(a: value, b: value) -> bool:
     # Compare known leaf value types
@@ -2245,7 +2347,10 @@ def _merge_rec(a: Node, b: Node, path: list[_PathElement]) -> Node:
         while i < len(a_keys) and j < len(b_keys):
             ak = a_keys[i]
             bk = b_keys[j]
-            if ak == bk:
+            if bk in result:
+                # Merged already, at its place in a
+                j += 1
+            elif ak == bk:
                 # Overlapping key
                 merged_child = _merge_rec(a_children[ak], b_children[bk], path + [_PathElement(ak)])
                 result[ak] = merged_child
@@ -2293,12 +2398,8 @@ def _merge_rec(a: Node, b: Node, path: list[_PathElement]) -> Node:
         while j < len(b_keys):
             bk = b_keys[j]
             if bk not in a_children:
-                # New child from b
+                # New child from b; children in both were merged above
                 result[bk] = b_children[bk]
-            else:
-                # Already handled overlap above, but if we got here, let's be safe:
-                merged_child = _merge_rec(a_children[bk], b_children[bk], path + [_PathElement(bk)])
-                result[bk] = merged_child
             j += 1
 
         return result
@@ -2334,82 +2435,29 @@ def _merge_rec(a: Node, b: Node, path: list[_PathElement]) -> Node:
     elif isinstance(a, List) and isinstance(b, List):
         if a.keys != b.keys:
             raise ValueError("Cannot merge lists with different keys at {_format_gdata_path(path)}: {str(a.keys)} != {str(b.keys)}")
-        if a.user_order != b.user_order:
-            raise ValueError("Cannot merge lists with different user_order at {_format_gdata_path(path)}")
-
-        if a.user_order:
-            # user_order = True
-            # Two-pointer approach for merging list elements
-            # This preserves the order from 'a' as baseline and inserts 'b' elements accordingly.
-            new_elements: list[Node] = []
-
-            old_map = {e.key_str(a.keys): e for e in a.elements}
-
-            # Start with elements from a, merge if present in b
-            for a_elem in a.elements:
-                found = False
-                for b_elem in b.elements:
-                    if b_elem.key_str(b.keys) == a_elem.key_str(a.keys):
-                        key_values = a_elem.key_values(a.keys)
-                        merged_elem = _merge_rec(a_elem, b_elem, path + [_PathElement(keys=key_values)])
-                        if isinstance(merged_elem, Container):
-                            new_elements.append(merged_elem)
-                        else:
-                            raise ValueError("merge did not return a Container where one was expected at {_format_gdata_path(path)}")
-                        found = True
-                        break
-                if not found:
-                    # not in b, just add a_elem
-                    new_elements.append(a_elem)
-
-            # Add elements from b that are not in a
-            # Insert them in a stable manner at the end to preserve 'a' order
-            # If we want a more sophisticated merging of order, we could try to insert them
-            # relative to keys present in both.
-            # For now, we just append them at the end.
-            existing_keys = {}
-            for e in new_elements:
-                existing_keys[e.key_str(a.keys)] = True
-            for b_elem in b.elements:
-                bk = b_elem.key_str(b.keys)
-                if bk not in existing_keys:
-                    new_elements.append(b_elem)
-                    existing_keys[bk] = True
-
-            return List(a.keys, new_elements, user_order=a.user_order, ns=a.ns, module=a.module)
-        else:
-            # user_order = False
-            # Keep the original merging logic since it sorts by keys, not order
-            all_elements: dict[str, list[Node]] = {}
-
-            for elem in a.elements:
-                key_str = elem.key_str(a.keys)
-                if key_str not in all_elements:
-                    all_elements[key_str] = []
-                all_elements[key_str].append(elem)
-            for elem in b.elements:
-                key_str = elem.key_str(b.keys)
-                if key_str not in all_elements:
-                    all_elements[key_str] = []
-                all_elements[key_str].append(elem)
-
-            new_elements: list[Node] = []
-            # sort keys lex order as before
-            sorted_keys = sorted(all_elements.keys())
-
-            for key_str in sorted_keys:
-                elems = all_elements[key_str]
-                new_elem = elems[0]
-                if len(elems) > 1:
-                    key_values = new_elem.key_values(a.keys)
-                    for elem in elems[1:]:
-                        new_elem = _merge_rec(new_elem, elem, path + [_PathElement(keys=key_values)])
-                if isinstance(new_elem, Container):
-                    new_elements.append(new_elem)
+        # Entries of a keep their place, entries only in b follow them
+        elements: dict[str, Node] = {}
+        for k, a_elem in a.elements.items():
+            b_elem = b.elements.get(k)
+            if b_elem is not None:
+                merged_elem = _merge_rec(a_elem, b_elem, path + [_PathElement(keys=a_elem.key_values(a.keys))])
+                if isinstance(merged_elem, Container):
+                    elements[k] = merged_elem
                 else:
-                    raise ValueError("unreachable, new_elem should always be a Container at {_format_gdata_path(path)}")
+                    raise ValueError("merge did not return a Container where one was expected at {_format_gdata_path(path)}")
+            else:
+                elements[k] = a_elem
+        for k, b_elem in b.elements.items():
+            if k not in a.elements:
+                elements[k] = b_elem
+        if isinstance(a, OList) and isinstance(b, OList):
+            order = a.order + [k for k in b.order if k not in a.elements]
+            return OList(a.keys, ns=a.ns, module=a.module, by_key_order=(elements, order))
+        return List(a.keys, ns=a.ns, module=a.module, by_key=elements)
 
-            return List(a.keys, new_elements, ns=a.ns, module=a.module)
+    elif isinstance(a, KeylessList) and isinstance(b, KeylessList):
+        # Entries without keys cannot be matched up, so all are kept
+        return KeylessList(a.elements + b.elements, ns=a.ns, module=a.module)
 
     elif isinstance(a, Absent) and isinstance(b, Absent):
         # Both absent is odd in a merge scenario, but let's just return absent
@@ -2471,57 +2519,34 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
         return None
 
     # Helper function for diffing system-ordered lists (order doesn't matter)
-    def diff_system_ordered_list_elements(old_list: List, new_list: List) -> ?list[Node]:
-        if old_list.keys != new_list.keys:
-            raise ValueError("List keys differ at {_format_gdata_path(path)}: {str(old_list.keys)} != {str(new_list.keys)}")
-
-        # Map elements by key for both lists
-        old_map = {e.key_str(old_list.keys): e for e in old_list.elements}
-        new_map = {e.key_str(new_list.keys): e for e in new_list.elements}
-
-        result: list[Node] = []
-
-        # Check all keys (union of both sets)
-        all_keys = set(old_map.keys()) | set(new_map.keys())
-
-        # Sort keys for consistent output
-        for key in sorted(all_keys):
-            if key in old_map and key in new_map:
-                # Element exists in both - check for differences
-                key_values = old_map[key].key_values(old_list.keys)
-                elem_diff = diff_list_element(old_map[key], new_map[key], old_list.keys, path + [_PathElement(keys=key_values)])
+    def diff_system_ordered_list_elements(old_list: List, new_list: List) -> dict[str, Node]:
+        result: dict[str, Node] = {}
+        for k, oe in old_list.elements.items():
+            ne = new_list.elements.get(k)
+            if ne is not None:
+                elem_diff = diff_list_element(oe, ne, old_list.keys, path + [_PathElement(keys=oe.key_values(old_list.keys))])
                 if elem_diff is not None:
-                    result.append(elem_diff)
-            elif key in old_map:
-                # Element only in old - mark as absent
-                oe = old_map[key]
-                result.append(Absent(oe.key_children(old_list.keys)))
+                    result[k] = elem_diff
             else:
-                # Element only in new - add it
-                ne = new_map[key]
-                result.append(ne)
-
-        if len(result) == 0:
-            return None
+                # Element only in old - mark as absent
+                result[k] = Absent(oe.key_children(old_list.keys))
+        for k, ne in new_list.elements.items():
+            if k not in old_list.elements:
+                result[k] = ne
         return result
 
     # Helper function for diffing user-ordered lists (order matters)
-    def diff_user_ordered_list_elements(old_list: List, new_list: List) -> ?list[Node]:
-
-        if old_list.keys != new_list.keys:
-            raise ValueError("List keys differ at {_format_gdata_path(path)}: {str(old_list.keys)} != {str(new_list.keys)}")
-
-        # Map old elements by key
-        old_map = {e.key_str(old_list.keys): e for e in old_list.elements}
-        old_key_order = [e.key_str(old_list.keys) for e in old_list.elements]
-
-        new_map = {e.key_str(new_list.keys): e for e in new_list.elements}
-        new_key_order = [e.key_str(new_list.keys) for e in new_list.elements]
+    def diff_user_ordered_list_elements(old_list: OList, new_list: OList) -> OList:
+        result: dict[str, Node] = {}
+        order: list[str] = []
+        old_map = old_list.elements
+        old_key_order = old_list.order
+        new_map = new_list.elements
+        new_key_order = new_list.order
 
         # We'll do the two-pointer approach on these key orders
         i = 0
         j = 0
-        result: list[Node] = []
 
         while i < len(old_key_order) and j < len(new_key_order):
             ok = old_key_order[i]
@@ -2532,7 +2557,8 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
                 key_values = old_map[ok].key_values(old_list.keys)
                 elem_diff = diff_list_element(old_map[ok], new_map[nk], old_list.keys, path + [_PathElement(keys=key_values)])
                 if elem_diff is not None:
-                    result.append(elem_diff)
+                    result[ok] = elem_diff
+                    order.append(ok)
                 i += 1
                 j += 1
             else:
@@ -2541,14 +2567,13 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
 
                 if not ok_in_new:
                     # old element not in new => absent
-                    oe = old_map[ok]
-                    result.append(Absent(oe.key_children(old_list.keys)))
+                    result[ok] = Absent(old_map[ok].key_children(old_list.keys))
+                    order.append(ok)
                     i += 1
                 elif not nk_in_old:
                     # new element not in old => new element
-                    # Insert the new element now
-                    ne = new_map[nk]
-                    result.append(ne)
+                    result[nk] = new_map[nk]
+                    order.append(nk)
                     j += 1
                 else:
                     # Complex reordering scenario
@@ -2558,21 +2583,18 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
         while i < len(old_key_order):
             ok = old_key_order[i]
             if ok not in new_map:
-                oe = old_map[ok]
-                result.append(Absent(oe.key_children(old_list.keys)))
+                result[ok] = Absent(old_map[ok].key_children(old_list.keys))
+                order.append(ok)
             i += 1
 
         # Remaining new elements are new
         while j < len(new_key_order):
             nk = new_key_order[j]
             if nk not in old_map:
-                ne = new_map[nk]
-                result.append(ne)
+                result[nk] = new_map[nk]
+                order.append(nk)
             j += 1
-
-        if len(result) == 0:
-            return None
-        return result
+        return OList(new_list.keys, ns=new_list.ns, module=new_list.module, by_key_order=(result, order))
 
     def diff_system_ordered_leaflist_values(old_entries: list[LeafListEntry], new_entries: list[LeafListEntry]) -> list[LeafListEntry]:
         new_remaining = list(new_entries)
@@ -2637,16 +2659,24 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
         return Container(children=diff_children, presence=new.presence, ns=new.ns, module=new.module)
 
     elif isinstance(old, List) and isinstance(new, List):
-        if old.user_order != new.user_order:
-            raise ValueError("Cannot diff lists with different ordering types at {_format_gdata_path(path)}")
-
-        if old.user_order:
-            result = diff_user_ordered_list_elements(old, new)
-        else:
-            result = diff_system_ordered_list_elements(old, new)
-        if result is None:
+        if old.keys != new.keys:
+            raise ValueError("List keys differ at {_format_gdata_path(path)}: {str(old.keys)} != {str(new.keys)}")
+        if isinstance(old, OList) and isinstance(new, OList):
+            ordered_diff = diff_user_ordered_list_elements(old, new)
+            if len(ordered_diff.elements) == 0:
+                return None
+            return ordered_diff
+        elements = diff_system_ordered_list_elements(old, new)
+        if len(elements) == 0:
             return None
-        return List(new.keys, elements=result, user_order=new.user_order, ns=new.ns, module=new.module)
+        return List(new.keys, ns=new.ns, module=new.module, by_key=elements)
+
+    elif isinstance(old, KeylessList) and isinstance(new, KeylessList):
+        # Entries without keys cannot be matched up, so a changed list is
+        # replaced as a whole
+        if old == new:
+            return None
+        return new
 
     elif isinstance(old, Leaf) and isinstance(new, Leaf):
         if vals_equal(old.val, new.val):
@@ -2816,7 +2846,52 @@ def _filter_list_element(elem: Node, fnode: FNode, keys: list[Id]) -> ?Node:
     return _filter_container_result(elem, selected_children)
 
 
-def _filter_list(data: List, flist: list[FNode]) -> (node: ?Node, select: bool):
+def _filter_list_entry(elem: Node, flist: list[FNode], keys: list[Id]) -> ?Node:
+    """Filter a list element against the first list element predicate it matches."""
+    for f in flist:
+        res = _filter_list_element(elem, f, keys)
+        if res is not None:
+            return res
+    return None
+
+
+def filter_exact_list_key(filt: FNode, keys: list[Id]) -> ?str:
+    """The key_str of the only list entry that filt can match, or None if
+    filt does not match every key leaf to a plain value"""
+    leaves: dict[Id, Node] = {}
+    for key in keys:
+        found = False
+        for child in filt.children:
+            vm = child.value_match
+            if child.name == key and vm is not None and len(child.children) == 0:
+                if isinstance(vm, ValueMatch):
+                    return None
+                leaves[key] = Leaf(vm)
+                found = True
+                break
+        if not found:
+            return None
+    return Container(leaves).key_str(keys)
+
+
+def _list_filters_by_key(flist: list[FNode], keys: list[Id]) -> ?dict[str, list[FNode]]:
+    """flist grouped by the key_str of the only entry each filter can match,
+    or None if any filter can match more than one entry"""
+    by_key: dict[str, list[FNode]] = {}
+    for f in flist:
+        k = filter_exact_list_key(f, keys)
+        if k is not None:
+            kflist = by_key.get(k)
+            if kflist is not None:
+                kflist.append(f)
+            else:
+                by_key[k] = [f]
+        else:
+            return None
+    return by_key
+
+
+def _filter_list(data: Node, flist: list[FNode]) -> (node: ?Node, select: bool):
     """Apply list predicates to produce a filtered list result."""
     if len(flist) == 0:
         return (node=data, select=True)
@@ -2826,20 +2901,36 @@ def _filter_list(data: List, flist: list[FNode]) -> (node: ?Node, select: bool):
     for f in flist:
         if len(f.children) == 0:
             return (node=data, select=True)
-    new_elements: list[Node] = []
-    seen = {}
-    for elem in data.elements:
-        for f in flist:
-            res = _filter_list_element(elem, f, data.keys)
+    if isinstance(data, List):
+        new_elements: dict[str, Node] = {}
+        by_key = _list_filters_by_key(flist, data.keys)
+        if by_key is not None:
+            for k, kflist in by_key.items():
+                elem = data.elements.get(k)
+                if elem is not None:
+                    res = _filter_list_entry(elem, kflist, data.keys)
+                    if res is not None:
+                        new_elements[k] = res
+        else:
+            for k, elem in data.elements.items():
+                res = _filter_list_entry(elem, flist, data.keys)
+                if res is not None:
+                    new_elements[k] = res
+        if len(new_elements) == 0:
+            return (node=None, select=False)
+        if isinstance(data, OList):
+            return (node=OList(data.keys, ns=data.ns, module=data.module, by_key_order=(new_elements, [k for k in data.order if k in new_elements])), select=True)
+        return (node=List(data.keys, ns=data.ns, module=data.module, by_key=new_elements), select=True)
+    if isinstance(data, KeylessList):
+        new_elements: list[Node] = []
+        for elem in data.elements:
+            res = _filter_list_entry(elem, flist, [])
             if res is not None:
-                k = elem.key_str(data.keys)
-                if k not in seen:
-                    new_elements.append(res)
-                    seen[k] = True
-                break
-    if len(new_elements) == 0:
-        return (node=None, select=False)
-    return (node=List(data.keys, elements=new_elements, user_order=data.user_order, ns=data.ns, module=data.module), select=True)
+                new_elements.append(res)
+        if len(new_elements) == 0:
+            return (node=None, select=False)
+        return (node=KeylessList(new_elements, ns=data.ns, module=data.module), select=True)
+    raise ValueError("Unsupported list node type in filter: {type(data)}")
 
 
 def _filter_container_children(data: Node, fchildren: list[FNode]) -> ?Node:
@@ -2879,7 +2970,7 @@ def _filter_child(data: Node, flist: list[FNode]) -> (node: ?Node, select: bool)
         if res is None:
             return (node=None, select=False)
         return (node=res, select=True)
-    if isinstance(data, List):
+    if isinstance(data, List) or isinstance(data, KeylessList):
         return _filter_list(data, flist)
     if isinstance(data, LeafList):
         return _filter_leaflist(data, flist)
@@ -2993,7 +3084,16 @@ def _prune_list_element(elem: Node, fnode: FNode, keys: list[Id]) -> (node: ?Nod
     return (node=_filter_container_result(elem, pruned_children), matched=True, select=True)
 
 
-def _prune_list(data: List, flist: list[FNode]) -> (node: ?Node, matched: bool, select: bool):
+def _prune_list_entry(elem: Node, flist: list[FNode], keys: list[Id]) -> ?(node: ?Node, matched: bool, select: bool):
+    """Prune a list element by the first list element predicate it matches,
+    or give None if it matches none."""
+    for f in flist:
+        res = _prune_list_element(elem, f, keys)
+        if res.matched:
+            return res
+
+
+def _prune_list(data: Node, flist: list[FNode]) -> (node: ?Node, matched: bool, select: bool):
     """Apply list predicates to prune matching list elements."""
     if len(flist) == 0:
         return (node=data, matched=False, select=False)
@@ -3004,26 +3104,61 @@ def _prune_list(data: List, flist: list[FNode]) -> (node: ?Node, matched: bool, 
         if len(f.children) == 0:
             # Wildcard select list => prune entire list
             return (node=None, matched=True, select=True)
-    new_elements: list[Node] = []
     matched_any = False
-    for elem in data.elements:
-        matched_elem = False
-        for f in flist:
-            res = _prune_list_element(elem, f, data.keys)
-            if res.matched:
+    if isinstance(data, List):
+        new_elements: dict[str, Node] = {}
+        by_key = _list_filters_by_key(flist, data.keys)
+        if by_key is not None:
+            pruned: dict[str, ?Node] = {}
+            for k, kflist in by_key.items():
+                elem = data.elements.get(k)
+                if elem is not None:
+                    res = _prune_list_entry(elem, kflist, data.keys)
+                    if res is not None:
+                        pruned[k] = res.node
+            if len(pruned) > 0:
                 matched_any = True
-                matched_elem = True
-                if res.node is not None:
-                    new_elements.append(expect(res.node, "pruned list element"))
-                # If res.node is None, element is pruned
-                break
-        if not matched_elem:
-            new_elements.append(elem)
-    if not matched_any:
-        return (node=data, matched=False, select=False)
-    if len(new_elements) == 0:
-        return (node=None, matched=True, select=True)
-    return (node=List(data.keys, elements=new_elements, user_order=data.user_order, ns=data.ns, module=data.module), matched=True, select=True)
+                for k, elem in data.elements.items():
+                    if k in pruned:
+                        res_node = pruned[k]
+                        if res_node is not None:
+                            new_elements[k] = res_node
+                    else:
+                        new_elements[k] = elem
+        else:
+            for k, elem in data.elements.items():
+                res = _prune_list_entry(elem, flist, data.keys)
+                if res is not None:
+                    matched_any = True
+                    res_node = res.node
+                    if res_node is not None:
+                        new_elements[k] = res_node
+                else:
+                    new_elements[k] = elem
+        if not matched_any:
+            return (node=data, matched=False, select=False)
+        if len(new_elements) == 0:
+            return (node=None, matched=True, select=True)
+        if isinstance(data, OList):
+            return (node=OList(data.keys, ns=data.ns, module=data.module, by_key_order=(new_elements, [k for k in data.order if k in new_elements])), matched=True, select=True)
+        return (node=List(data.keys, ns=data.ns, module=data.module, by_key=new_elements), matched=True, select=True)
+    if isinstance(data, KeylessList):
+        new_elements: list[Node] = []
+        for elem in data.elements:
+            res = _prune_list_entry(elem, flist, [])
+            if res is not None:
+                matched_any = True
+                res_node = res.node
+                if res_node is not None:
+                    new_elements.append(res_node)
+            else:
+                new_elements.append(elem)
+        if not matched_any:
+            return (node=data, matched=False, select=False)
+        if len(new_elements) == 0:
+            return (node=None, matched=True, select=True)
+        return (node=KeylessList(new_elements, ns=data.ns, module=data.module), matched=True, select=True)
+    raise ValueError("Unsupported list node type in prune: {type(data)}")
 
 
 def _prune_container_children(data: Node, fchildren: list[FNode]) -> (node: ?Node, matched: bool, select: bool):
@@ -3072,7 +3207,7 @@ def _prune_child(data: Node, flist: list[FNode]) -> (node: ?Node, matched: bool,
         if not res.matched:
             return (node=data, matched=False, select=False)
         return (node=res.node, matched=True, select=True)
-    if isinstance(data, List):
+    if isinstance(data, List) or isinstance(data, KeylessList):
         return _prune_list(data, flist)
     if isinstance(data, LeafList):
         return _prune_leaflist(data, flist)
@@ -3127,7 +3262,9 @@ def _patch_rec(old: ?Node, p: ?Node, path: list[_PathElement]) -> ?Node:
             empty = Container({}, presence=p.presence, ns=p.ns, module=p.module)
             return _patch_rec(empty, p, path)
         if isinstance(p, List):
-            return _patch_rec(List(p.keys, elements=[], user_order=p.user_order, ns=p.ns, module=p.module), p, path)
+            return _patch_rec(list_like(p, {}, []), p, path)
+        if isinstance(p, KeylessList):
+            return p
         if isinstance(p, LeafList):
             return _patch_rec(LeafList([], user_order=p.user_order, ns=p.ns, module=p.module), p, path)
         if isinstance(p, Leaf):
@@ -3206,74 +3343,55 @@ def _patch_rec(old: ?Node, p: ?Node, path: list[_PathElement]) -> ?Node:
         if old.keys != p.keys:
             raise ValueError("List keys differ at {_format_gdata_path(path)}: {str(old.keys)} != {str(p.keys)}")
 
-        old_map = {e.key_str(old.keys): e for e in old.elements}
+        # Entries of old keep their place, new entries follow in patch order
+        elements: dict[str, Node] = {}
+        for k, e in old.elements.items():
+            elements[k] = e
 
-        # Apply patch elements
-        patch_elems = p.elements
-        for pelem in patch_elems:
+        for k, pelem in p.elements.items():
             if isinstance(pelem, Absent):
                 # Remove this element if it exists
-                k = pelem.key_str(p.keys)
-                if k in old_map:
-                    del old_map[k]
+                if k in elements:
+                    del elements[k]
             elif isinstance(pelem, Delete):
                 # Delete this element if it exists, otherwise error
-                k = pelem.key_str(p.keys)
-                if k in old_map:
-                    del old_map[k]
+                if k in elements:
+                    del elements[k]
                 else:
                     # TODO: structured error (error-tag, ...)
                     pelem_path = path + [_PathElement(keys=pelem.key_values(p.keys))]
                     raise ValueError("data-missing: list element does not exist at {_format_gdata_path(pelem_path)}")
             else:
-                # pelem is a ListElement
-                k = pelem.key_str(p.keys)
-                if k in old_map:
+                oelem = elements.get(k)
+                elem_path = path + [_PathElement(keys=pelem.key_values(p.keys))]
+                if oelem is not None:
                     # Patch existing element
-                    key_values = old_map[k].key_values(old.keys)
-                    res = _patch_rec(old_map[k], pelem, path + [_PathElement(keys=key_values)])
+                    res = _patch_rec(oelem, pelem, elem_path)
                     if res is not None and isinstance(res, Container):
-                        old_map[k] = res
+                        elements[k] = res
                     else:
                         # Remove the element
-                        del old_map[k]
+                        del elements[k]
                 else:
                     # New element: apply patch against an empty base so nested
                     # ops are sanitized (remove->noop, create->merge,
                     # delete->data-missing). Yields a "declarative" gdata tree
                     # without imperative operations.
-                    elem_path = path + [_PathElement(keys=pelem.key_values(p.keys))]
                     res = _patch_rec(None, pelem, elem_path)
                     if res is not None and isinstance(res, Container):
-                        old_map[k] = res
+                        elements[k] = res
 
-        # Rebuild elements in final order
-        # Start with old's original order for unchanged and patched elements
-        final_key_order = []
-        chosen = {}
-        for e in old.elements:
-            k = e.key_str(old.keys)
-            if k in old_map:
-                final_key_order.append(k)
-                chosen[k] = True
-
-        # Now check if patch introduced new elements not in old.
-        # Add them in the order they appear in patch.
-        for pelem in patch_elems:
-            if isinstance(pelem, Absent):
-                continue
-            k = pelem.key_str(p.keys)
-            if k in old_map and k not in chosen:
-                final_key_order.append(k)
-                chosen[k] = True
-
-        new_elements: list[Node] = []
-        for k in final_key_order:
-            new_elements.append(old_map[k])
-
-        if len(new_elements) == 0:
+        if len(elements) == 0:
             return None
-        return List(old.keys, elements=new_elements, user_order=old.user_order, ns=old.ns, module=old.module)
+        if isinstance(old, OList) and isinstance(p, OList):
+            order = [k for k in old.order if k in elements] + [k for k in p.order if k in elements and k not in old.elements]
+            return OList(old.keys, ns=old.ns, module=old.module, by_key_order=(elements, order))
+        return List(old.keys, ns=old.ns, module=old.module, by_key=elements)
+
+    elif isinstance(old, KeylessList) and isinstance(p, KeylessList):
+        # Entries without keys cannot be matched up, so the patch replaces
+        # the list as a whole
+        return p
 
     elif isinstance(old, Leaf) and isinstance(p, Leaf):
         # Patch leaf replaces old leaf value
@@ -3462,20 +3580,6 @@ def check_rooted(filt: ?FNode, names: list[Id]) -> None:
         branches = sel[0].children
 
 
-def _key_str(keys: dict[Id, Node]) -> str:
-    parts: list[str] = []
-    for v in keys.values():
-        if isinstance(v, Leaf):
-            parts.append(yang_str(v.val).replace("\\", "\\\\").replace(",", "\\,").replace("/", "\\/"))
-    return ",".join(parts)
-
-def _entry_keys(lst: List, e: Node) -> dict[Id, Node]:
-    keys: dict[Id, Node] = {}
-    for k in lst.keys:
-        if k in e.children:
-            keys[k] = e.children[k]
-    return keys
-
 def instances(tree: ?Node, names: list[Id]) -> list[(str, Node, Node)]:
     """Every instance of the node at the end of names below tree, each as a
     key that tells instances apart, a spine, and the instance: the spine is
@@ -3487,19 +3591,16 @@ def _instances(tree: ?Node, names: list[Id], above: str) -> list[(str, Node, Nod
     res: list[(str, Node, Node)] = []
     if tree is not None:
         if isinstance(tree, List):
-            if len(tree.keys) == 0:
-                raise ValueError("a destination cannot be rooted at or below a keyless list")
-            for e in tree.elements:
-                keys = _entry_keys(tree, e)
-                key = above + _key_str(keys)
+            for k, e in tree.elements.items():
+                key = above + k.replace("/", "\\/")
                 if len(names) == 0:
-                    res.append((key, List(tree.keys, [e], ns=tree.ns, module=tree.module), e))
+                    res.append((key, list_like(tree, {k: e}, [k]), e))
                 else:
                     for i in _instances(e.children.get(names[0]), names[1:], key + "/"):
-                        children = dict(keys.items())
+                        children = {kn: v for kn, v in e.key_children(tree.keys).items()}
                         children[names[0]] = i.1
                         entry = Container(children, ns=e.ns, module=e.module)
-                        res.append((i.0, List(tree.keys, [entry], ns=tree.ns, module=tree.module), i.2))
+                        res.append((i.0, list_like(tree, {k: entry}, [k]), i.2))
         elif len(names) == 0:
             res.append((above, tree, tree))
         else:
@@ -3512,17 +3613,16 @@ def gone(spine: Node, names: list[Id]) -> ?Node:
     a list entry, nothing in place of a container."""
     if isinstance(spine, List):
         if len(spine.elements) == 1:
-            e = spine.elements[0]
-            keys = _entry_keys(spine, e)
-            if len(names) == 0:
-                return List(spine.keys, [Absent(keys)], ns=spine.ns, module=spine.module)
-            children = dict(keys.items())
-            child = e.children.get(names[0])
-            if child is not None:
-                below = gone(child, names[1:])
-                if below is not None:
-                    children[names[0]] = below
-            return List(spine.keys, [Container(children, ns=e.ns, module=e.module)], ns=spine.ns, module=spine.module)
+            for k, e in spine.elements.items():
+                if len(names) == 0:
+                    return list_like(spine, {k: Absent(e.key_children(spine.keys))}, [k])
+                children = {kn: v for kn, v in e.key_children(spine.keys).items()}
+                child = e.children.get(names[0])
+                if child is not None:
+                    below = gone(child, names[1:])
+                    if below is not None:
+                        children[names[0]] = below
+                return list_like(spine, {k: Container(children, ns=e.ns, module=e.module)}, [k])
         return spine
     if len(names) == 0:
         return None
@@ -3880,7 +3980,7 @@ def _test_merge1():
     testing.assertEqual(res.prsrc(deterministic=True), exp.prsrc(deterministic=True))
 
 def _test_merge_list1():
-    y1 = List([Id(NS_acme, "name")], [
+    y1 = OList([Id(NS_acme, "name")], [
         Container({
             Id(NS_acme, "name"): Leaf("first"),
             Id(NS_acme, "n1"): Leaf(u64(1))
@@ -3901,9 +4001,9 @@ def _test_merge_list1():
             Id(NS_acme, "name"): Leaf("last"),
             Id(NS_acme, "n1"): Leaf(u64(1))
         }),
-    ], user_order=True, ns="http://example.com/acme", module="acme")
+    ], ns="http://example.com/acme", module="acme")
 
-    y2 = List([Id(NS_acme, "name")], [
+    y2 = OList([Id(NS_acme, "name")], [
         Container({
             Id(NS_acme, "name"): Leaf("breaker")
         }),
@@ -3922,9 +4022,9 @@ def _test_merge_list1():
         Container({
             Id(NS_acme, "name"): Leaf("last")
         })
-    ], user_order=True, ns="http://example.com/acme", module="acme")
+    ], ns="http://example.com/acme", module="acme")
 
-    exp = List([Id(NS_acme, "name")], [
+    exp = OList([Id(NS_acme, "name")], [
         Container({
             Id(NS_acme, "name"): Leaf("first"),
             Id(NS_acme, "n1"): Leaf(u64(1))
@@ -3954,7 +4054,7 @@ def _test_merge_list1():
             Id(NS_acme, "name"): Leaf("third"),
             Id(NS_acme, "n1"): Leaf(u64(1))
         }),
-    ], user_order=True, ns="http://example.com/acme", module="acme")
+    ], ns="http://example.com/acme", module="acme")
 
     testing.assertEqual(exp, merge(y1, y2))
 
@@ -4073,7 +4173,7 @@ def _test_eq_list():
     testing.assertEqual(l1, l2)
 
 def _test_eq_list_user_order():
-    l1 = List([Id("", "name")], user_order=True, elements=[
+    l1 = OList([Id("", "x")], [
         Container({
             Id("", "x"): Leaf(u64(1))
         }),
@@ -4081,7 +4181,7 @@ def _test_eq_list_user_order():
             Id("", "x"): Leaf(u64(2))
         })
     ])
-    l2 = List([Id("", "name")], user_order=True, elements=[
+    l2 = OList([Id("", "x")], [
         Container({
             Id("", "x"): Leaf(u64(2))
         }),
@@ -4091,6 +4191,17 @@ def _test_eq_list_user_order():
     ])
     testing.assertEqual(l1, l1)
     testing.assertNotEqual(l1, l2)
+    testing.assertEqual(Node.from_json_str(l2.to_json_str()), l2)
+
+def _test_keyless_list_diff_patch():
+    def entry(v: int):
+        return Container({Id("", "x"): Leaf(v)})
+    old = Container({Id("", "kl"): KeylessList([entry(1), entry(2)])})
+    new = Container({Id("", "kl"): KeylessList([entry(2), entry(3)])})
+    testing.assertNone(diff(old, old))
+    d = diff(old, new)
+    testing.assertEqual(patch(old, d), new)
+    testing.assertEqual(Node.from_json_str(new.to_json_str()), new)
 
 def _test_vals_list_sorted():
     l1 = LeafList([LeafListEntryMerge("a"), LeafListEntryMerge("b"), LeafListEntryMerge("c")])
@@ -5020,7 +5131,7 @@ def _test_patch_list_elem_delete_missing_error():
 def _test_diff_system_ordered_list_no_diff():
     """Test that diff returns None for reordered elements in system-ordered lists.
 
-    System-ordered lists (user_order=False, which is the default) should not care about
+    System-ordered lists (List, as opposed to OList) should not care about
     element ordering. The system is free to reorder elements, so reordering should not
     generate any diff. The diff should be None when comparing two system-ordered lists
     with the same elements in different order.
@@ -5040,14 +5151,12 @@ def _test_diff_system_ordered_list_no_diff():
 
     old_list = List(
         keys=[Id("", "id")],
-        elements=[elem1, elem2, elem3],
-        user_order=False
+        elements=[elem1, elem2, elem3]
     )
 
     new_list = List(
         keys=[Id("", "id")],
-        elements=[elem2, elem1, elem3],
-        user_order=False
+        elements=[elem2, elem1, elem3]
     )
 
     result = diff(old_list, new_list)
@@ -5062,7 +5171,7 @@ def _test_diff_and_patch_large_tree():
                     Id("http://example.com/yang/mod1", "hostname"): Leaf("old-router"),
                     Id("http://example.com/yang/mod1", "motd"): Leaf("Welcome!")
                 }),
-                Id("http://example.com/yang/mod1", "interfaces"): List([Id("http://example.com/yang/mod1", "name")], elements=[
+                Id("http://example.com/yang/mod1", "interfaces"): List([Id("http://example.com/yang/mod1", "name")], [
                     Container({
                         Id("http://example.com/yang/mod1", "name"): Leaf("eth0"),
                         Id("http://example.com/yang/mod1", "desc"): Leaf("Uplink interface"),
@@ -5078,7 +5187,7 @@ def _test_diff_and_patch_large_tree():
         }),
         Id("http://example.com/yang/mod2", "mod2"): Container(children={
             Id("http://example.com/yang/mod2", "acl"): Container(children={
-                Id("http://example.com/yang/mod2", "rules"): List([Id("http://example.com/yang/mod2", "id")], elements=[
+                Id("http://example.com/yang/mod2", "rules"): List([Id("http://example.com/yang/mod2", "id")], [
                     Container({
                         Id("http://example.com/yang/mod2", "id"): Leaf(u64(10)),
                         Id("http://example.com/yang/mod2", "action"): Leaf("permit"),
@@ -5113,7 +5222,7 @@ def _test_diff_and_patch_large_tree():
                     # motd removed
                     Id("http://example.com/yang/mod1", "ntp-servers"): LeafList([LeafListEntryMerge("192.168.100.1"), LeafListEntryMerge("192.168.100.2")])
                 }),
-                Id("http://example.com/yang/mod1", "interfaces"): List([Id("http://example.com/yang/mod1", "name")], elements=[
+                Id("http://example.com/yang/mod1", "interfaces"): List([Id("http://example.com/yang/mod1", "name")], [
                     Container({
                         Id("http://example.com/yang/mod1", "name"): Leaf("eth0"),
                         Id("http://example.com/yang/mod1", "desc"): Leaf("Uplink interface"),
@@ -5130,7 +5239,7 @@ def _test_diff_and_patch_large_tree():
         }),
         Id("http://example.com/yang/mod2", "mod2"): Container(children={
             Id("http://example.com/yang/mod2", "acl"): Container(children={
-                Id("http://example.com/yang/mod2", "rules"): List([Id("http://example.com/yang/mod2", "id")], elements=[
+                Id("http://example.com/yang/mod2", "rules"): List([Id("http://example.com/yang/mod2", "id")], [
                     Container({
                         Id("http://example.com/yang/mod2", "id"): Leaf(u64(10)),
                         Id("http://example.com/yang/mod2", "action"): Leaf("permit"),
@@ -6325,7 +6434,7 @@ def _test_serialization_roundtrip_list():
     ns_list = "http://example.com/list"
     key_name = Id(ns_list, "key")
 
-    original = List([key_name], [
+    original = OList([key_name], [
         Container({
             key_name: Leaf("item1"),
             Id(ns_list, "value"): Leaf(100)
@@ -6334,7 +6443,7 @@ def _test_serialization_roundtrip_list():
             key_name: Leaf("item2"),
             Id(ns_list, "value"): Leaf(200)
         })
-    ], ns=ns_list, module="list", user_order=True)
+    ], ns=ns_list, module="list")
 
     return _serde_roundtrip_json(original)
 
@@ -6467,7 +6576,7 @@ def _test_serialization_roundtrip_complex():
 
     original = Container({
         Id(ns_network, "config"): Container({
-            Id(ns_network, "interfaces"): List([iface_name], [
+            Id(ns_network, "interfaces"): OList([iface_name], [
                 Container({
                     iface_name: Leaf("eth0"),
                     Id(ns_network, "ip"): Leaf("192.168.1.1"),
@@ -6484,7 +6593,7 @@ def _test_serialization_roundtrip_complex():
                     Id(ns_network, "mtu"): Leaf(u64(9000)),
                     Id(ns_network, "enabled"): Leaf(True),
                 })
-            ], user_order=True, ns=ns_network, module="network"),
+            ], ns=ns_network, module="network"),
             Id(ns_network, "routes"): List([route_dest], [
                 Container({
                     route_dest: Leaf("0.0.0.0/0"),

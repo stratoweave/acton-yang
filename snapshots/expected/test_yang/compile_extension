@@ -79,7 +79,7 @@ class foo__c1__things(yadata.MKeyedList[str, foo__c1__things_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[foo__c1__things_entry]:
         if n is not None:
-            return [foo__c1__things_entry.from_gdata(e) for e in n.elements]
+            return [foo__c1__things_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> foo__c1__things:

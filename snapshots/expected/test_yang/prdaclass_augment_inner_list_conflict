@@ -77,7 +77,7 @@ class base__c1__base_l1(yadata.MKeyedList[str, base__c1__base_l1_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[base__c1__base_l1_entry]:
         if n is not None:
-            return [base__c1__base_l1_entry.from_gdata(e) for e in n.elements]
+            return [base__c1__base_l1_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> base__c1__base_l1:
@@ -126,7 +126,7 @@ class base__c1__foo_l1(yadata.MKeyedList[str, base__c1__foo_l1_entry]):
     @staticmethod
     mut def from_gdata(n: ?ygdata.List) -> list[base__c1__foo_l1_entry]:
         if n is not None:
-            return [base__c1__foo_l1_entry.from_gdata(e) for e in n.elements]
+            return [base__c1__foo_l1_entry.from_gdata(e) for e in n.elements.values()]
         return []
 
     mut def copy(self) -> base__c1__foo_l1:
