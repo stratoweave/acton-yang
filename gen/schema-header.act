@@ -679,20 +679,15 @@ class DNodeInner(DNode):
             elif isinstance(child, DLeaf):
                 child_default = child.default
                 if not loose and child_default is not None:
-                    child_type = child.type
-                    if isinstance(child_type, DTypeIdentityref):
-                        root = spath[0]
-                        if isinstance(root, DRoot):
-                            _ref, identity, error = complete_identityref(Identityref.from_adata(child_default), root.identities, child.module)
-                            if identity is not None and is_derived_from(identity, child_type.identity_bases):
-                                default = safe_name("{identity.module}_{identity.name}", safe_kw=False)
-                                res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {default}")
-                            else:
-                                raise ValueError("Invalid default '{child_default}' for identityref leaf {self.name}.{child.name}: {error}")
+                    root = spath[0]
+                    if isinstance(root, DRoot):
+                        default = prsrc_default(child.type, child_default, root.identities, child.module)
+                        if default is not None:
+                            res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {default}")
                         else:
-                            raise ValueError("Expected DRoot at start of spath, got {type(root)}")
+                            raise ValueError("Invalid default '{child_default}' for leaf {self.name}.{child.name}, expected {child.type.format_hint()}")
                     else:
-                        res.append("        self.{usname(child)} = {usname(child)} if {usname(child)} is not None else {prsrc_literal(child_type.builtin_type, child_default)}")
+                        raise ValueError("Expected DRoot at start of spath, got {type(root)}")
                 else:
                     res.append("        self.{usname(child)} = {usname(child)}")
             elif isinstance(child, DLeafList):
@@ -4477,49 +4472,73 @@ def yang_type_to_acton_type(t: ?DType) -> str:
             return yang_typename_to_acton_type(t.builtin_type)
     raise ValueError("type not defined")
 
-def prsrc_literal(ytype: str, value: str) -> str:
-    if ytype == "boolean":
-        if value.lower() == "true":
-            return "True"
-        return "False"
-    elif ytype == "enumeration":
-        return '"' + value + '"'
-    elif ytype == "bits":
-        names = set(value.split(" "))
-        names.discard("")
-        return repr(names.freeze())
-    elif ytype == "identityref":
-        return value
-    elif ytype in SIGNED_INT_TYPES:
-        return str(value)
-    elif ytype in UNSIGNED_INT_TYPES:
-        return "u64(" + value + ")"
-    elif ytype == "decimal64":
-        a = Decimal.parse(value)
-        return repr(a)
-    elif ytype == "binary":
-        # Binary values are encoded as base64 strings in YANG and NETCONF, but
-        # stored as Acton bytes, so we need to decode it first
-        return "base64.decode('{value}'.encode())"
-    elif ytype == "string":
-        return '"' + value.replace('"', '\\"') + '"'
-    elif ytype == "union":
-        # Attempt to convert the default to one of Acton built-in types;
-        # numeric types can be converted to float, pass verbatim
-        # TODO: binary and other types?? The correct thing to do is to instead
-        # pass the entire list of resolved types from the union and try to
-        # convert to each in the order they are defined in the YANG model?
-        a = Decimal.try_parse(value)
-        if a is not None:
-            return value
-        # true, false is boolean,
-        if value.lower() == "true":
-            return str(True)
-        elif value.lower() == "false":
-            return str(False)
-        # otherwise it is a string
-        return '"' + value.replace('"', '\\"') + '"'
-    raise ValueError("Unhandled prsrc literal of type {ytype}")
+def try_parse_default(t: DType, s: str) -> ?value:
+    """Parse the lexical representation of YANG (default) value into an Acton type"""
+    # Note: This looks very similar to xml.try_parse_xml_value (and
+    # json.try_parse_json_value), however there are subtle differences between
+    # parsing defaults vs. XML or JSON. The XML parser is also used for
+    # RESTCONF paths, XPath filters, ...
+    val: ?value = None
+    if isinstance(t, DTypeString) or isinstance(t, DTypeEnum) or isinstance(t, DTypeInstanceIdentifier):
+        val = s
+    elif isinstance(t, DTypeIntegerSigned):
+        try:
+            val = int(s)
+        except ValueError:
+            pass
+    elif isinstance(t, DTypeIntegerUnsigned):
+        try:
+            val = u64(s)
+        except ValueError:
+            pass
+    elif isinstance(t, DTypeDecimal64):
+        val = Decimal.try_parse(s)
+    elif isinstance(t, DTypeBoolean):
+        if s == "true":
+            val = True
+        elif s == "false":
+            val = False
+    elif isinstance(t, DTypeBinary):
+        try:
+            val = base64.decode(s.encode())
+        except ValueError:
+            pass
+    elif isinstance(t, DTypeBits):
+        try:
+            val = t.canonical_bits(s.split(" "))
+        except ValueError:
+            pass
+    if val is not None and t.validate_value(val):
+        return val
+
+def prsrc_default(t: DType, s: str, identities: list[DIdentity], module: str) -> ?str:
+    """Print Acton source for the default value of a leaf"""
+    if isinstance(t, DTypeUnion):
+        for member in t.types:
+            src = prsrc_default(member, s, identities, module)
+            if src is not None:
+                return src
+    elif isinstance(t, DTypeLeafref):
+        target_type = t.target_type
+        if target_type is not None:
+            return prsrc_default(target_type, s, identities, module)
+    elif isinstance(t, DTypeIdentityref):
+        partial = Identityref.from_adata(s)
+        if partial is not None:
+            _ref, identity, _error = complete_identityref(partial, identities, module)
+            if identity is not None and is_derived_from(identity, t.identity_bases):
+                return safe_name("{identity.module}_{identity.name}", safe_kw=False)
+    else:
+        val = try_parse_default(t, s)
+        if isinstance(val, u64):
+            return "u64({val})"
+        elif isinstance(val, list):
+            # TODO(acton#2969): drop the list[str] annotation once
+            # value-narrowing unboxes list elements.
+            bits: list[str] = val
+            return repr(iset(bits))
+        elif val is not None:
+            return repr(val)
 
 def safe_name(name: str, safe_kw=True) -> str:
     new = name.replace("-", "_").replace(".", "_")

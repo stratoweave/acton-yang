@@ -51,13 +51,12 @@ class Identityref(atom):
         raise ValueError("Namespace {parts[0]} not defined in node: {nsdefs}")
 
     @staticmethod
-    def from_adata(val):
+    def from_adata(val) -> ?PartialIdentityref:
         parts = val.split(":")
         if len(parts) == 1:
             return PartialIdentityref(parts[0])
         elif len(parts) == 2:
             return PartialIdentityref(parts[1], pfx=parts[0])
-        raise ValueError("Invalid identityref format: {val}")
 
 
 extension Identityref (Eq):

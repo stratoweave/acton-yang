@@ -57,7 +57,7 @@ class foo__c(yadata.MNode):
     l_identityref_def: Identityref
 
     mut def __init__(self, l_str_def: ?str=None, l_boolean_def: ?bool=None, l_identityref_def: ?Identityref=None) -> None:
-        self.l_str_def = l_str_def if l_str_def is not None else "foo"
+        self.l_str_def = l_str_def if l_str_def is not None else 'foo'
         self.l_boolean_def = l_boolean_def if l_boolean_def is not None else True
         self.l_identityref_def = l_identityref_def if l_identityref_def is not None else foo_id2
 

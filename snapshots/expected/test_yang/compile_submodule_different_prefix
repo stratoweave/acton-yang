@@ -54,7 +54,7 @@ class main_module__main_container__sub_group_container(yadata.MNode):
     sub_group_leaf: str
 
     mut def __init__(self, sub_group_leaf: ?str=None) -> None:
-        self.sub_group_leaf = sub_group_leaf if sub_group_leaf is not None else "from-submodule"
+        self.sub_group_leaf = sub_group_leaf if sub_group_leaf is not None else 'from-submodule'
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['main-module:main-container', 'sub-group-container'])
@@ -133,7 +133,7 @@ class main_module__main_container__group_container(yadata.MNode):
     augmented_in_group: ?str
 
     mut def __init__(self, group_leaf: ?str=None, augmented_in_group: ?str) -> None:
-        self.group_leaf = group_leaf if group_leaf is not None else "refined-default"
+        self.group_leaf = group_leaf if group_leaf is not None else 'refined-default'
         self.augmented_in_group = augmented_in_group
 
     mut def to_gdata(self) -> ygdata.Node:

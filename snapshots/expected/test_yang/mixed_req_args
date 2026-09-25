@@ -67,7 +67,7 @@ class foo__c__li_entry(yadata.MNode):
 
     mut def __init__(self, name: str, bar: foo__c__li__bar, foo: ?str=None) -> None:
         self.name = name
-        self.foo = foo if foo is not None else "banana"
+        self.foo = foo if foo is not None else 'banana'
         self.bar = bar
 
     mut def to_gdata(self) -> ygdata.Node:
