@@ -611,12 +611,12 @@ class Node(value):
         if len(key_names) == 1:
             val = self.get_leaf(key_names[0]).val
             key = val if isinstance(val, str) else str(val)
-            return key.replace(",", "\\,")
+            return key.replace("\\", "\\\\").replace(",", "\\,")
         parts: list[str] = []
         for kn in key_names:
             val = self.get_leaf(kn).val
             key = val if isinstance(val, str) else str(val)
-            parts.append(key.replace(",", "\\,"))
+            parts.append(key.replace("\\", "\\\\").replace(",", "\\,"))
         return ",".join(parts)
 
     def key_values(self, key_names: list[Id]) -> dict[str, value]:

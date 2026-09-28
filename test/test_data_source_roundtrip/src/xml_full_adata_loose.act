@@ -78,13 +78,13 @@ def adata():
     # List /special element: True
     special_element = ad.special.create(True)
     
-    # List /li-union element: first,4,b'Hello Acton \xf0\x9f\xab\xa1'
+    # List /li-union element: first,4,b'Hello Acton \\xf0\\x9f\\xab\\xa1'
     li_union_element = ad.li_union.create((k1='first', k2=u64(4), k3=b'Hello Acton \xf0\x9f\xab\xa1'), checker=u64(47))
     
-    # List /li-union element: second,unlimited,b'Hello Acton \xf0\x9f\xab\xa1'
+    # List /li-union element: second,unlimited,b'Hello Acton \\xf0\\x9f\\xab\\xa1'
     li_union_element = ad.li_union.create((k1='second', k2='unlimited', k3=b'Hello Acton \xf0\x9f\xab\xa1'), checker=u64(1514))
     
-    # List /li-union element: third,b'hi',b'Hello Acton \xf0\x9f\xab\xa1'
+    # List /li-union element: third,b'hi',b'Hello Acton \\xf0\\x9f\\xab\\xa1'
     li_union_element = ad.li_union.create((k1='third', k2=b'hi', k3=b'Hello Acton \xf0\x9f\xab\xa1'), checker='Frank')
     
     # List /li-ref element: Identityref('fooy'\, ns='http://example.com/foo'\, mod='foo'\, pfx='f'),/foo:c1/foo:li[foo:name='tuta'],tuta
