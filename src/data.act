@@ -559,7 +559,8 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                 list_element_var = path_local_var(list_path_key, "{usname(child)}_element")
                 for element in glist.elements:
                     res.append("")
-                    res.append("# List {format_schema_path(path_with_child())} element: {element.key_str(fq_list_keys(child))}")
+                    key_reprs = ", ".join([repr(element.get_leaf(k).val) for k in fq_list_keys(child)])
+                    res.append("# List {format_schema_path(path_with_child())} element: {key_reprs}")
 
                     # Build the list of arguments for create() method
                     non_optional_args, non_optional_containers = _find_non_optional_subtree(child, path_with_child(), element, ["element"])

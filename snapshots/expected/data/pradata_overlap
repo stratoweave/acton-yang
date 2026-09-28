@@ -7,14 +7,14 @@ c1_a_b = test__c1__a__b('inner')
 c1_a = test__c1__a(c1_a_b)
 c1 = ad.create_c1(c1_a, c1_a_b_2)
 
-# List /c1/l1 element: outer-1
+# List /c1/l1 element: 'outer-1'
 l1_element = c1.l1.create('outer-1')
 
-# List /c1/l1 element: outer-2
+# List /c1/l1 element: 'outer-2'
 l1_element = c1.l1.create('outer-2')
 
 # P-container: /c1/c1
 c1_2 = c1.create_c1()
 
-# List /c1/c1/l1 element: inner-1
+# List /c1/c1/l1 element: 'inner-1'
 l1_element_2 = c1_2.l1.create('inner-1')
