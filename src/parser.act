@@ -65,7 +65,7 @@ def skip_whitespace_and_comments(state: TokenizerState) -> None:
                 continue
             elif buf[i+1] == '*':
                 # Block comment
-                j = buf.find('*/', i + 1)
+                j = buf.find('*/', i + 2)
                 while j == -1:
                     readline(state)
                     j = state.buf.find('*/')
@@ -324,6 +324,12 @@ def _test_tokenizer_skip_block_comment():
     state = TokenizerState("/* block\n   comment */module;")
     skip_whitespace_and_comments(state)
     testing.assertEqual("module", parse_keyword(state).0, "Should skip block comment")
+
+def _test_tokenizer_skip_block_comment_slash():
+    """Test that the '/' after '/*' does not close the block comment"""
+    state = TokenizerState("/*/ block\n   comment */module;")
+    skip_whitespace_and_comments(state)
+    testing.assertEqual("module", parse_keyword(state).0, "Should skip block comment starting with /*/")
 
 def _test_tokenizer_get_keyword_simple():
     """Test simple keyword parsing"""
