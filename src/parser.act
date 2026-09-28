@@ -15,16 +15,14 @@ class TokenizerState(object):
     line_num: int
     is_1_1: bool
     strict_quoting: bool
-    errors: list[str]
 
-    def __init__(self, text: str, line_num: int=0, strict_quoting: bool=True):
+    def __init__(self, text: str, strict_quoting: bool=True):
         self.lines = text.splitlines(True)
         self.buf = ''
         self.offset = 0
-        self.line_num = line_num
+        self.line_num = 0
         self.is_1_1 = False
         self.strict_quoting = strict_quoting
-        self.errors = []
 
 # Pure parsing functions that mutate state in place
 
