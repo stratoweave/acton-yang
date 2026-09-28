@@ -10,6 +10,7 @@ class EOF(Exception):
 # Mutable parser state representation
 class TokenizerState(object):
     lines: list[str]
+    line_idx: int
     buf: str
     offset: int
     line_num: int
@@ -19,6 +20,7 @@ class TokenizerState(object):
 
     def __init__(self, text: str, line_num: int=0, strict_quoting: bool=True):
         self.lines = text.splitlines(True)
+        self.line_idx = 0
         self.buf = ''
         self.offset = 0
         self.line_num = line_num
@@ -30,9 +32,10 @@ class TokenizerState(object):
 
 def readline(state: TokenizerState) -> None:
     """Read next line from input, mutating state"""
-    if len(state.lines) == 0:
+    if state.line_idx >= len(state.lines):
         raise EOF()
-    state.buf = state.lines.pop(0)
+    state.buf = state.lines[state.line_idx]
+    state.line_idx += 1
     state.line_num += 1
     state.offset = 0
 
