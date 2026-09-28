@@ -848,20 +848,26 @@ def basics_leaf_defaults(r):
     else:
         raise ValueError("Expected str, got {type(uds)}")
     udi = r.c.l_union_def_int
-    if isinstance(udi, int):
-        testing.assertEqual(udi, 1234567890)
+    if isinstance(udi, u64):
+        testing.assertEqual(udi, u64(1234567890))
     else:
-        raise ValueError("Expected int, got {type(udi)}")
+        raise ValueError("Expected u64, got {type(udi)}")
     udf = r.c.l_union_def_float
-    if isinstance(udf, float):
-        testing.assertEqual(udf, 1.23)
+    if isinstance(udf, Decimal):
+        testing.assertEqual(udf, Decimal(123, -2))
     else:
-        raise ValueError("Expected float, got {type(udf)}")
+        raise ValueError("Expected Decimal, got {type(udf)}")
     udb = r.c.l_union_def_bool
     if isinstance(udb, bool):
         testing.assertEqual(udb, False)
     else:
         raise ValueError("Expected bool, got {type(udb)}")
+    # The first member type the default is valid for wins, so 42 is a string
+    udm = r.c.l_union_def_member_order
+    if isinstance(udm, str):
+        testing.assertEqual(udm, "42")
+    else:
+        raise ValueError("Expected str, got {type(udm)}")
     ude = r.c.l_union_def_enumeration
     if isinstance(ude, str):
         testing.assertEqual(ude, "unlimited")

@@ -33,10 +33,11 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='basics', namespace='http://ex
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_str_def_quoted', config=True, default='"foo"', mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_uint64_def', config=True, default='1234567890', mandatory=False, type=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_decimal64_def', config=True, default='1.23', mandatory=False, type=DTypeDecimal64(name='decimal64', description=None, reference=None, exts=[], builtin_type='decimal64', default=None, fraction_digits=2, ranges=Ranges([(Decimal(-9223372036854775807 - 1, -2), Decimal(9223372036854775807, -2))]))),
-    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_str', config=True, default='foo', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))])),
-    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_int', config=True, default='1234567890', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))])),
-    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_float', config=True, default='1.23', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), DTypeDecimal64(name='decimal64', description=None, reference=None, exts=[], builtin_type='decimal64', default=None, fraction_digits=2, ranges=Ranges([(Decimal(-9223372036854775807 - 1, -2), Decimal(9223372036854775807, -2))]))])),
-    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_bool', config=True, default='false', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)])),
+    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_str', config=True, default='foo', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)])), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])])),
+    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_int', config=True, default='1234567890', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)])), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])])),
+    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_float', config=True, default='1.23', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeDecimal64(name='decimal64', description=None, reference=None, exts=[], builtin_type='decimal64', default=None, fraction_digits=2, ranges=Ranges([(Decimal(-9223372036854775807 - 1, -2), Decimal(9223372036854775807, -2))])), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])])),
+    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_bool', config=True, default='false', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])])),
+    DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_member_order', config=True, default='42', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_union_def_enumeration', config=True, default='unlimited', mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'unlimited':0}), DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)]))])),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_binary_def', config=True, default='SGVsbG8gQWN0b24g8J+roQ==', mandatory=False, type=DTypeBinary(name='binary', description=None, reference=None, exts=[], builtin_type='binary', default=None, length=None)),
     DLeaf(module='basics', namespace='http://example.com/basics', prefix='b', name='l_identityref_def', config=True, default='b:id2', mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_basics_id1], identities=_identities)),
@@ -85,33 +86,40 @@ SRC_YANG_0: str = r"""module basics {
         }
         leaf l_union_def_str {
             type union {
-                type string;
                 type uint64;
+                type string;
             }
             default "foo";
         }
         leaf l_union_def_int {
             type union {
-                type string;
                 type uint64;
+                type string;
             }
             default 1234567890;
         }
         leaf l_union_def_float {
             type union {
-                type string;
                 type decimal64 {
                     fraction-digits 2;
                 }
+                type string;
             }
             default 1.23;
         }
         leaf l_union_def_bool {
             type union {
-                type string;
                 type boolean;
+                type string;
             }
             default false;
+        }
+        leaf l_union_def_member_order {
+            type union {
+                type string;
+                type uint64;
+            }
+            default 42;
         }
         leaf l_union_def_enumeration {
             type union {
@@ -162,22 +170,24 @@ class basics__c(yadata.MNode):
     l_union_def_int: atom
     l_union_def_float: atom
     l_union_def_bool: atom
+    l_union_def_member_order: atom
     l_union_def_enumeration: atom
     l_binary_def: bytes
     l_identityref_def: Identityref
     l_bits_def: iset[str]
 
-    mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?atom=None, l_union_def_int: ?atom=None, l_union_def_float: ?atom=None, l_union_def_bool: ?atom=None, l_union_def_enumeration: ?atom=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None, l_bits_def: ?iset[str]=None) -> None:
-        self.l_str_def = l_str_def if l_str_def is not None else "foo"
-        self.l_str_def_quoted = l_str_def_quoted if l_str_def_quoted is not None else "\"foo\""
+    mut def __init__(self, l_str_def: ?str=None, l_str_def_quoted: ?str=None, l_uint64_def: ?u64=None, l_decimal64_def: ?Decimal=None, l_union_def_str: ?atom=None, l_union_def_int: ?atom=None, l_union_def_float: ?atom=None, l_union_def_bool: ?atom=None, l_union_def_member_order: ?atom=None, l_union_def_enumeration: ?atom=None, l_binary_def: ?bytes=None, l_identityref_def: ?Identityref=None, l_bits_def: ?iset[str]=None) -> None:
+        self.l_str_def = l_str_def if l_str_def is not None else 'foo'
+        self.l_str_def_quoted = l_str_def_quoted if l_str_def_quoted is not None else '"foo"'
         self.l_uint64_def = l_uint64_def if l_uint64_def is not None else u64(1234567890)
         self.l_decimal64_def = l_decimal64_def if l_decimal64_def is not None else Decimal(123, -2)
-        self.l_union_def_str = l_union_def_str if l_union_def_str is not None else "foo"
-        self.l_union_def_int = l_union_def_int if l_union_def_int is not None else 1234567890
-        self.l_union_def_float = l_union_def_float if l_union_def_float is not None else 1.23
+        self.l_union_def_str = l_union_def_str if l_union_def_str is not None else 'foo'
+        self.l_union_def_int = l_union_def_int if l_union_def_int is not None else u64(1234567890)
+        self.l_union_def_float = l_union_def_float if l_union_def_float is not None else Decimal(123, -2)
         self.l_union_def_bool = l_union_def_bool if l_union_def_bool is not None else False
-        self.l_union_def_enumeration = l_union_def_enumeration if l_union_def_enumeration is not None else "unlimited"
-        self.l_binary_def = l_binary_def if l_binary_def is not None else base64.decode('SGVsbG8gQWN0b24g8J+roQ=='.encode())
+        self.l_union_def_member_order = l_union_def_member_order if l_union_def_member_order is not None else '42'
+        self.l_union_def_enumeration = l_union_def_enumeration if l_union_def_enumeration is not None else 'unlimited'
+        self.l_binary_def = l_binary_def if l_binary_def is not None else b'Hello Acton \xf0\x9f\xab\xa1'
         self.l_identityref_def = l_identityref_def if l_identityref_def is not None else basics_id2
         self.l_bits_def = l_bits_def if l_bits_def is not None else iset({'a', 'c'})
 
@@ -187,7 +197,7 @@ class basics__c(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> basics__c:
         if n is not None:
-            return basics__c(l_str_def=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(ygdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(ygdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_enumeration=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(ygdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_basics, 'l_identityref_def')), l_bits_def=n.get_opt_bits(ygdata.Id(NS_basics, 'l_bits_def')))
+            return basics__c(l_str_def=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def')), l_str_def_quoted=n.get_opt_str(ygdata.Id(NS_basics, 'l_str_def_quoted')), l_uint64_def=n.get_opt_u64(ygdata.Id(NS_basics, 'l_uint64_def')), l_decimal64_def=n.get_opt_Decimal(ygdata.Id(NS_basics, 'l_decimal64_def')), l_union_def_str=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_str')), l_union_def_int=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_int')), l_union_def_float=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_float')), l_union_def_bool=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_bool')), l_union_def_member_order=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_member_order')), l_union_def_enumeration=n.get_opt_atom(ygdata.Id(NS_basics, 'l_union_def_enumeration')), l_binary_def=n.get_opt_bytes(ygdata.Id(NS_basics, 'l_binary_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_basics, 'l_identityref_def')), l_bits_def=n.get_opt_bits(ygdata.Id(NS_basics, 'l_bits_def')))
         return basics__c()
 
     mut def copy(self) -> basics__c:
@@ -230,21 +240,25 @@ mut def src_schema() -> dict[str, SchemaNode]:
         Leaf('l_uint64_def', type=Type('uint64'), default='1234567890'),
         Leaf('l_decimal64_def', type=Type('decimal64', fraction_digits=2), default='1.23'),
         Leaf('l_union_def_str', type=Type('union', type=[
-        Type('string'),
-        Type('uint64')
+        Type('uint64'),
+        Type('string')
     ]), default='foo'),
         Leaf('l_union_def_int', type=Type('union', type=[
-        Type('string'),
-        Type('uint64')
+        Type('uint64'),
+        Type('string')
     ]), default='1234567890'),
         Leaf('l_union_def_float', type=Type('union', type=[
-        Type('string'),
-        Type('decimal64', fraction_digits=2)
+        Type('decimal64', fraction_digits=2),
+        Type('string')
     ]), default='1.23'),
         Leaf('l_union_def_bool', type=Type('union', type=[
-        Type('string'),
-        Type('boolean')
+        Type('boolean'),
+        Type('string')
     ]), default='false'),
+        Leaf('l_union_def_member_order', type=Type('union', type=[
+        Type('string'),
+        Type('uint64')
+    ]), default='42'),
         Leaf('l_union_def_enumeration', type=Type('union', type=[
         Type('enumeration', enum=[
                 Enum('unlimited')

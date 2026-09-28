@@ -1711,6 +1711,27 @@ def _test_resolve_type_union_of_string_and_int():
     root = yang.compile([ys])
     return root.prdaclass()
 
+def _test_prsrc_default_union_identityref_multi_colon():
+    """Union(identityref | string): a default with more than one colon resolves as string"""
+    ys = r"""module foo {
+  yang-version "1.1";
+  namespace "http://example.com/foo";
+  prefix "foo";
+  identity color;
+  leaf l1 {
+    type union {
+      type identityref { base color; }
+      type string;
+    }
+  }
+}"""
+    root = yang.compile([ys])
+    l1 = root.get("l1")
+    if isinstance(l1, yschema.DLeaf):
+        testing.assertEqual(yschema.prsrc_default(l1.type, "a:b:c", root.identities, "foo"), repr("a:b:c"))
+    else:
+        testing.error("Expected DLeaf for l1")
+
 def _test_prdaclass_union_list_key():
     ys = r"""module foo {
   yang-version "1.1";

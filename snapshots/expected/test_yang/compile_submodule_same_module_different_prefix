@@ -69,7 +69,7 @@ class parent__sub_container(yadata.MNode):
 
     mut def __init__(self, sub_leaf: ?str, shared_leaf: ?str=None) -> None:
         self.sub_leaf = sub_leaf
-        self.shared_leaf = shared_leaf if shared_leaf is not None else "from-shared"
+        self.shared_leaf = shared_leaf if shared_leaf is not None else 'from-shared'
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['parent:sub-container'])

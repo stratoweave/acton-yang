@@ -541,33 +541,40 @@ ys_basics = r"""module basics {
         }
         leaf l_union_def_str {
             type union {
-                type string;
                 type uint64;
+                type string;
             }
             default "foo";
         }
         leaf l_union_def_int {
             type union {
-                type string;
                 type uint64;
+                type string;
             }
             default 1234567890;
         }
         leaf l_union_def_float {
             type union {
-                type string;
                 type decimal64 {
                     fraction-digits 2;
                 }
+                type string;
             }
             default 1.23;
         }
         leaf l_union_def_bool {
             type union {
-                type string;
                 type boolean;
+                type string;
             }
             default false;
+        }
+        leaf l_union_def_member_order {
+            type union {
+                type string;
+                type uint64;
+            }
+            default 42;
         }
         leaf l_union_def_enumeration {
             type union {
