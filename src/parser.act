@@ -8,6 +8,10 @@ class EOF(Exception):
         self.error_message = "EOF"
 
 # Mutable parser state representation
+#
+# buf is the current line and offset is the cursor into it. The tokenizer
+# advances offset instead of slicing buf, so that consuming a token does not
+# copy the rest of the line.
 class TokenizerState(object):
     lines: list[str]
     line_idx: int
@@ -39,39 +43,37 @@ def readline(state: TokenizerState) -> None:
     state.line_num += 1
     state.offset = 0
 
-def set_buf(state: TokenizerState, i: int) -> None:
-    """Update buffer position, mutating state"""
-    state.offset = state.offset + i
-    state.buf = state.buf[i:]
+def _is_blank(c: str) -> bool:
+    """Return True if c is a whitespace character skipped between tokens"""
+    return c == ' ' or c == '\t' or c == '\n' or c == '\r'
 
 def skip_whitespace_and_comments(state: TokenizerState) -> None:
     """Skip whitespace and comments, mutating state"""
-    buflen = len(state.buf)
-
-    # Skip whitespace
     while True:
-        state.buf = state.buf.lstrip(" \t\r\n")
-        if state.buf == '':
+        buf = state.buf
+        buflen = len(buf)
+        i = state.offset
+        while i < buflen and _is_blank(buf[i]):
+            i += 1
+        if i == buflen:
             readline(state)
-            buflen = len(state.buf)
-        else:
-            state.offset += (buflen - len(state.buf))
-            break
+            continue
+        state.offset = i
 
-    # Skip comments
-    if len(state.buf) >= 2 and state.buf[0] == '/':
-        if state.buf[1] == '/':
-            # Line comment - skip to next line
-            readline(state)
-            skip_whitespace_and_comments(state)
-        elif state.buf[1] == '*':
-            # Block comment
-            i = state.buf.find('*/')
-            while i == -1:
+        if i + 1 < buflen and buf[i] == '/':
+            if buf[i+1] == '/':
+                # Line comment - skip to next line
                 readline(state)
-                i = state.buf.find('*/')
-            set_buf(state, i + 2)
-            skip_whitespace_and_comments(state)
+                continue
+            elif buf[i+1] == '*':
+                # Block comment
+                j = buf.find('*/', i + 1)
+                while j == -1:
+                    readline(state)
+                    j = state.buf.find('*/')
+                state.offset = j + 2
+                continue
+        return
 
 def _is_identifier_start(c: str) -> bool:
     """Return True if character can start a YANG identifier"""
@@ -84,7 +86,7 @@ def _is_identifier_char(c: str) -> bool:
 def _consume_identifier(buf: str, start: int=0) -> (str, int):
     """Consume an identifier from buf starting at start, returning (identifier, next_index)."""
     if start >= len(buf) or not _is_identifier_start(buf[start]):
-        raise ValueError(f"illegal keyword: {buf}")
+        raise ValueError(f"illegal keyword: {buf[start:]}")
 
     i = start + 1
     while i < len(buf) and _is_identifier_char(buf[i]):
@@ -96,117 +98,127 @@ def parse_keyword(state: TokenizerState) -> (str, ?str):
     """Parse a keyword, returning (identifier, prefix)"""
     skip_whitespace_and_comments(state)
     buf = state.buf
+    buflen = len(buf)
 
-    ident, idx = _consume_identifier(buf, 0)
+    ident, idx = _consume_identifier(buf, state.offset)
     prefix = None
-    if idx < len(buf) and buf[idx] == ':':
+    if idx < buflen and buf[idx] == ':':
         prefix = ident
         ident, idx = _consume_identifier(buf, idx + 1)
 
-    set_buf(state, idx)
+    state.offset = idx
 
     # Check separator
-    if len(state.buf) == 0:
+    if idx >= buflen:
         raise ValueError("expected separator, got: EOF")
-    if (state.buf[0].isspace() or
-        (len(state.buf) >= 2 and state.buf[0] == '/' and state.buf[1] in ['/', '*']) or
-        (state.buf[0] in [';', r'{'])):
+    c = buf[idx]
+    if (c.isspace() or c == ';' or c == r'{' or
+        (c == '/' and idx + 1 < buflen and (buf[idx+1] == '/' or buf[idx+1] == '*'))):
         return (ident, prefix)
 
-    raise ValueError(f"expected separator, got: {state.buf[:6]}...")
+    raise ValueError(f"expected separator, got: {buf[idx:idx+6]}...")
 
 def peek_char(state: TokenizerState) -> str:
     """Peek at next character without consuming"""
     skip_whitespace_and_comments(state)
-    if len(state.buf) == 0:
+    if state.offset >= len(state.buf):
         raise EOF()
-    return state.buf[0]
+    return state.buf[state.offset]
 
 def skip_char(state: TokenizerState) -> None:
     """Skip one character"""
     skip_whitespace_and_comments(state)
-    set_buf(state, 1)
+    state.offset += 1
 
 def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, str)]:
     """Parse string arguments, returning strings"""
     skip_whitespace_and_comments(state)
 
-    if state.buf[0] == ';' or state.buf[0] == r'{' or state.buf[0] == r'}':
-        raise ValueError(f"expected argument, got: {state.buf[0]}")
+    c = state.buf[state.offset]
+    if c == ';' or c == r'{' or c == r'}':
+        raise ValueError(f"expected argument, got: {c}")
 
-    if state.buf[0] == '"' or state.buf[0] == "'":
+    if c == '"' or c == "'":
         # Quoted string
-        quote_char = state.buf[0]
+        quote_char = c
         strs = []
         res = []
         indentpos = state.offset
-        i = 1
+        # base is where the string starts on the current line: at the opening
+        # quote on the first line, at the start of the line after that
+        base = state.offset
+        i = state.offset + 1
 
         while True:
-            buflen = len(state.buf)
+            buf = state.buf
+            buflen = len(buf)
             start = i
             while i < buflen:
-                if state.buf[i] == quote_char:
+                ci = buf[i]
+                if ci == quote_char:
                     # End of string
-                    res.append(state.buf[start:i])
+                    res.append(buf[start:i])
                     strs.append((''.join(res), quote_char))
-                    set_buf(state, i + 1)
+                    state.offset = i + 1
 
                     # Check for concatenation
                     skip_whitespace_and_comments(state)
-                    if state.buf[0] == '+':
-                        set_buf(state, 1)
+                    if state.buf[state.offset] == '+':
+                        state.offset += 1
                         skip_whitespace_and_comments(state)
                         nstrs = parse_strings(state, need_quote=True)
                         strs.extend(nstrs)
                     return strs
 
                 elif (quote_char == '"' and
-                      state.buf[i] == '\\' and i < (buflen - 1)):
+                      ci == '\\' and i < (buflen - 1)):
                     # Handle escape sequences
                     special = None
-                    if state.buf[i+1] == 'n':
+                    esc = buf[i+1]
+                    if esc == 'n':
                         special = '\n'
-                    elif state.buf[i+1] == 't':
+                    elif esc == 't':
                         special = '\t'
-                    elif state.buf[i+1] == '\"':
+                    elif esc == '\"':
                         special = '\"'
-                    elif state.buf[i+1] == '\\':
+                    elif esc == '\\':
                         special = '\\'
                     elif state.strict_quoting and state.is_1_1:
-                        raise ValueError(f"illegal escape: {state.buf[i+1]}")
+                        raise ValueError(f"illegal escape: {esc}")
                     elif state.strict_quoting:
-                        raise ValueError(f"illegal escape: {state.buf[i+1]}")
+                        raise ValueError(f"illegal escape: {esc}")
 
                     if special is not None:
-                        res.append(state.buf[start:i])
+                        res.append(buf[start:i])
                         res.append(special)
                         i = i + 1
                         start = i + 1
                 i = i + 1
 
             # End of line in string
-            if i > 2 and state.buf[i-2] == '\r':
+            if i - base > 2 and buf[i-2] == '\r':
                 j = i - 3
             else:
                 j = i - 2
             k = j
-            while j >= 0 and state.buf[j].isspace():
+            while j >= base and buf[j].isspace():
                 j = j - 1
             if j != k:
-                s = state.buf[start:j+1] + state.buf[k+1:i]
+                s = buf[start:j+1] + buf[k+1:i]
             else:
-                s = state.buf[start:i]
+                s = buf[start:i]
             res.append(s)
             readline(state)
+            base = 0
             i = 0
             indent = 0
             if quote_char == '"':
                 # Skip indentation
-                buflen = len(state.buf)
-                while (i < buflen and state.buf[i].isspace() and
+                buf = state.buf
+                buflen = len(buf)
+                while (i < buflen and buf[i].isspace() and
                        indent <= indentpos):
-                    if state.buf[i] == '\t':
+                    if buf[i] == '\t':
                         indent = indent + 8
                     else:
                         indent = indent + 1
@@ -219,24 +231,26 @@ def parse_strings(state: TokenizerState, need_quote: bool=False) -> list[(str, s
         return []  # Should never reach here
 
     elif need_quote == True:
-        raise ValueError(f"expected quoted string, got: {state.buf}")
+        raise ValueError(f"expected quoted string, got: {state.buf[state.offset:]}")
     else:
         # Unquoted string
-        buflen = len(state.buf)
-        i = 0
+        buf = state.buf
+        buflen = len(buf)
+        start = state.offset
+        i = start
         while i < buflen:
-            if (state.buf[i].isspace() or state.buf[i] == ';' or
-                state.buf[i] == '"' or state.buf[i] == "'" or
-                state.buf[i] == r'{' or state.buf[i] == r'}' or
-                (i + 1 < buflen and state.buf[i:i+2] in ['//', '/*', '*/'])):
-                res_str = state.buf[:i]
-                set_buf(state, i)
-                return [(res_str, '')]
+            ci = buf[i]
+            if (ci.isspace() or ci == ';' or ci == '"' or ci == "'" or
+                ci == r'{' or ci == r'}' or
+                (i + 1 < buflen and
+                 ((ci == '/' and (buf[i+1] == '/' or buf[i+1] == '*')) or
+                  (ci == '*' and buf[i+1] == '/')))):
+                state.offset = i
+                return [(buf[start:i], '')]
             i = i + 1
         # End of buffer reached
-        res_str = state.buf
-        set_buf(state, i)
-        return [(res_str, '')]
+        state.offset = i
+        return [(buf[start:], '')]
 
 # Parser functions
 
@@ -325,7 +339,7 @@ class YangTokenizer(object):
 
     def _sync_properties(self):
         """Sync properties from state"""
-        self.buf = self.state.buf
+        self.buf = self.state.buf[self.state.offset:]
         self.offset = self.state.offset
         self.is_1_1 = self.state.is_1_1
         self.strict_quoting = self.state.strict_quoting
