@@ -19,4 +19,6 @@ def _test_key_str():
     testing.assertEqual(data.key_str([first, number, second]), "a\\,b,42,")
     testing.assertEqual(data.key_str([number, first]), "42,a\\,b")
     testing.assertEqual(gdata.Container({first: gdata.Leaf("device-1")}).key_str([first]), "device-1")
-    testing.assertEqual(gdata.Container({first: gdata.Leaf("a\\,b")}).key_str([first]), "a\\\\,b")
+    testing.assertEqual(gdata.Container({first: gdata.Leaf("a\\,b")}).key_str([first]), "a\\\\\\,b")
+    testing.assertEqual(gdata.Container({first: gdata.Leaf("a\\"), second: gdata.Leaf("b,c")}).key_str([first, second]), "a\\\\,b\\,c")
+    testing.assertEqual(gdata.Container({first: gdata.Leaf("a,b\\"), second: gdata.Leaf("c")}).key_str([first, second]), "a\\,b\\\\,c")
