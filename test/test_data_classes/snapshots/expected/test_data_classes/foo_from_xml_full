@@ -5,7 +5,7 @@ Container({
     Id('http://example.com/foo', 'l_empty'): Leaf(Present()),
     Id('http://example.com/foo', 'l_empty_delete'): Absent(),
     Id('http://example.com/foo', 'l_decimal64'): Leaf(Decimal(314, -2)),
-    Id('http://example.com/foo', 'li'): List([Id('http://example.com/foo', 'name')], user_order=True, elements=[
+    Id('http://example.com/foo', 'li'): OList([Id('http://example.com/foo', 'name')], elements=[
       Container({
         Id('http://example.com/foo', 'name'): Leaf('tuta'),
         Id('http://example.com/foo', 'val'): Leaf('baba'),

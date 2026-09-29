@@ -645,7 +645,7 @@ def _test_json_path_list():
     # Should create a list with single element
     expected = ygdata.Container({
       ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-        ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+        ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], [
           ygdata.Container({
             ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test'),
             ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('data')
@@ -682,7 +682,7 @@ def _test_json_path_remove():
     # Should contain an Absent node with the key
     expected = ygdata.Container({
       ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-        ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+        ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], [
           ygdata.Absent({
             ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test')
           })
@@ -769,10 +769,10 @@ def _test_json_path_nested_lists():
     gd = from_json_path(s, {"y1:inner": [{"inner-key": "key2", "value": "test-value"}]}, ["y1:c1", "outer", "key1", "inner", "key2"])
     expected = ygdata.Container({
         ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], elements=[
+            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], [
                 ygdata.Container({
                     ygdata.Id("urn:example:y1", "outer-key"): ygdata.Leaf('key1'),
-                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], elements=[
+                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], [
                         ygdata.Container({
                             ygdata.Id("urn:example:y1", "inner-key"): ygdata.Leaf('key2'),
                             ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('test-value')
@@ -788,13 +788,13 @@ def _test_json_path_nested_lists():
     gd2 = from_json_path(s, {"y1:deep": [{"deep-key": "key3", "data": 42}]}, ["y1:c1", "outer", "key1", "inner", "key2", "deep", "key3"])
     expected2 = ygdata.Container({
         ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], elements=[
+            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], [
                 ygdata.Container({
                     ygdata.Id("urn:example:y1", "outer-key"): ygdata.Leaf('key1'),
-                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], elements=[
+                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], [
                         ygdata.Container({
                             ygdata.Id("urn:example:y1", "inner-key"): ygdata.Leaf('key2'),
-                            ygdata.Id("urn:example:y1", "deep"): ygdata.List([ygdata.Id("urn:example:y1", "deep-key")], elements=[
+                            ygdata.Id("urn:example:y1", "deep"): ygdata.List([ygdata.Id("urn:example:y1", "deep-key")], [
                                 ygdata.Container({
                                     ygdata.Id("urn:example:y1", "deep-key"): ygdata.Leaf('key3'),
                                     ygdata.Id("urn:example:y1", "data"): ygdata.Leaf(int(42))
@@ -832,7 +832,7 @@ def _test_json_path_coerces_list_keys_to_schema_types():
     gd = from_json_path(s, {"y1:item": [{"id": 42, "value": "typed"}]}, ["y1:c1", "item", "42"])
     expected = ygdata.Container({
         ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "item"): ygdata.List([ygdata.Id("urn:example:y1", "id")], elements=[
+            ygdata.Id("urn:example:y1", "item"): ygdata.List([ygdata.Id("urn:example:y1", "id")], [
                 ygdata.Container({
                     ygdata.Id("urn:example:y1", "id"): ygdata.Leaf(u64(42)),
                     ygdata.Id("urn:example:y1", "value"): ygdata.Leaf("typed")
@@ -1280,10 +1280,10 @@ def _test_netconf_delete_container():
     gd3 = from_json_path(s, path=["y1:c1", "outer", "key1", "inner", "key2"], op="remove")
     expected3 = ygdata.Container({
         ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], elements=[
+            ygdata.Id("urn:example:y1", "outer"): ygdata.List([ygdata.Id("urn:example:y1", "outer-key")], [
                 ygdata.Container({
                     ygdata.Id("urn:example:y1", "outer-key"): ygdata.Leaf('key1'),
-                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], elements=[
+                    ygdata.Id("urn:example:y1", "inner"): ygdata.List([ygdata.Id("urn:example:y1", "inner-key")], [
                         ygdata.Absent({
                             ygdata.Id("urn:example:y1", "inner-key"): ygdata.Leaf('key2')
                         })
@@ -1325,7 +1325,7 @@ def _test_json_path_container_list_container():
     gd = from_json_path(s, {"y1:bottom": {"data": "test", "value": 42}}, ["y1:top", "middle", "item1", "bottom"])
     expected = ygdata.Container({
         ygdata.Id("urn:example:y1", "top"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "middle"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+            ygdata.Id("urn:example:y1", "middle"): ygdata.List([ygdata.Id("urn:example:y1", "name")], [
                 ygdata.Container({
                     ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('item1'),
                     ygdata.Id("urn:example:y1", "bottom"): ygdata.Container({
@@ -1342,7 +1342,7 @@ def _test_json_path_container_list_container():
     gd2 = from_json_path(s, path=["y1:top", "middle", "item1", "bottom"], op="remove")
     expected2 = ygdata.Container({
         ygdata.Id("urn:example:y1", "top"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "middle"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+            ygdata.Id("urn:example:y1", "middle"): ygdata.List([ygdata.Id("urn:example:y1", "name")], [
                 ygdata.Container({
                     ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('item1'),
                     ygdata.Id("urn:example:y1", "bottom"): ygdata.Absent()
@@ -1565,7 +1565,7 @@ def _test_xml_path_list():
     gd = from_xml_path(s, body, ["y1:c1", "l1", "test"])
     expected = ygdata.Container({
         ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], [
                 ygdata.Container({
                     ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test'),
                     ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('data')
@@ -1595,7 +1595,7 @@ def _test_xml_path_remove_list_element():
     gd = from_xml_path(s, path=["y1:c1", "l1", "test"], op="remove")
     expected = ygdata.Container({
         ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], [
                 ygdata.Absent({
                     ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test')
                 })
@@ -1713,7 +1713,7 @@ def _test_json_path_replace_list_element():
     gd = from_json_path(s, {"y1:l1": [{"name": "test", "value": "data"}]}, ["y1:c1", "l1", "test"], "replace")
     expected = ygdata.Container({
         ygdata.Id("urn:example:y1", "c1"): ygdata.Container({
-            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], elements=[
+            ygdata.Id("urn:example:y1", "l1"): ygdata.List([ygdata.Id("urn:example:y1", "name")], [
                 ygdata.Replace({
                     ygdata.Id("urn:example:y1", "name"): ygdata.Leaf('test'),
                     ygdata.Id("urn:example:y1", "value"): ygdata.Leaf('data')
