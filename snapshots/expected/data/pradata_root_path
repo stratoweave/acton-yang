@@ -1,4 +1,6 @@
-# Top node: /outer/middle
+# YANG module (prefix) and namespace:
+#   test (test)  urn:example:test
+# Top node: /outer/middle (test)
 ad = test__outer__middle()
 
 # Container: /outer/middle/inner

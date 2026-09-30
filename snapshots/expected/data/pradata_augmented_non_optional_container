@@ -1,0 +1,9 @@
+# YANG module (prefix) and namespace:
+#   bar (b)  urn:example:bar
+#   foo (f)  urn:example:foo
+# Top node: /
+ad = root()
+
+# P-container: /pc (foo)
+pc_inner = foo__pc__inner('bar value')  # bar
+pc = ad.create_pc(pc_inner, l1='foo value')

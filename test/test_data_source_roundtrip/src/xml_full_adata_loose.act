@@ -4,10 +4,13 @@ from yang.type import Decimal
 
 
 def adata():
+    # YANG module (prefix) and namespace:
+    #   bar (bar)  http://example.com/bar
+    #   foo (f)    http://example.com/foo
     # Top node: /
     ad = root()
     
-    # Container: /c1
+    # Container: /c1 (foo)
     ad.c1.f_l1 = 'foo-foo'
     ad.c1.l3 = u64(18446744073709551615)
     ad.c1.l_empty = True
@@ -18,9 +21,9 @@ def adata():
     ad.c1.l_identityref = Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')
     ad.c1.ll_identityref = [Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar')]
     ad.c1.l4 = 'foo-qux'
-    ad.c1.bar_l1 = 'foo-bar'
-    ad.c1.l2 = 'bar'
-    ad.c1.l_leafref = 'tuta'
+    ad.c1.bar_l1 = 'foo-bar'  # bar
+    ad.c1.l2 = 'bar'  # bar
+    ad.c1.l_leafref = 'tuta'  # bar
     
     # List /c1/li element: 'tuta'
     li_element = ad.c1.li.create('tuta', val='baba')
@@ -28,20 +31,20 @@ def adata():
     # Container: /c1/li[name='tuta']/c4
     li_element.c4.l5 = 'riba>'
     
-    # P-container: /pc1
+    # P-container: /pc1 (foo)
     pc1 = ad.create_pc1()
     
     # Container: /pc1/foo
     pc1.foo.l1 = [b'Hello Acton \xf0\x9f\xab\xa1']
     
-    # P-container: /pc2
+    # P-container: /pc2 (foo)
     pc2 = ad.create_pc2()
     
     # Container: /pc2/foo
     pc2.foo.l_mandatory = 'baz'
     pc2.foo.l_empty_mandatory = True
     
-    # P-container: /pc3
+    # P-container: /pc3 (foo)
     pc3 = ad.create_pc3()
     
     # Container: /pc3/level1
@@ -56,49 +59,49 @@ def adata():
     pc3.level1.level2.level3.l3 = 'l3-baz'
     pc3.level1.level2.level3.l3_optional = 'l3-optional'
     
-    # Container: /c.dot
+    # Container: /c.dot (foo)
     ad.c_dot.l_dot1 = 'who put that here?!'
     
-    # Container: /cc
+    # Container: /cc (foo)
     ad.cc.cake = 'cake'
     
-    # Container: /f:conflict
+    # Container: /f:conflict (foo)
     ad.f_conflict.f_foo = 'foo-foo'
-    ad.f_conflict.bar_foo = 'foo-augmented-from-bar'
+    ad.f_conflict.bar_foo = 'foo-augmented-from-bar'  # bar
     
     # P-container: /f:conflict/f:inner
     f_inner = ad.f_conflict.create_f_inner()
     
-    # P-container: /f:conflict/bar:inner
+    # P-container: /f:conflict/bar:inner (bar)
     bar_inner = ad.f_conflict.create_bar_inner()
     
-    # List /special element: False
+    # List /special (foo) element: False
     special_element = ad.special.create(False)
     
-    # List /special element: True
+    # List /special (foo) element: True
     special_element = ad.special.create(True)
     
-    # List /li-union element: 'first', 4, b'Hello Acton \xf0\x9f\xab\xa1'
+    # List /li-union (foo) element: 'first', 4, b'Hello Acton \xf0\x9f\xab\xa1'
     li_union_element = ad.li_union.create((k1='first', k2=u64(4), k3=b'Hello Acton \xf0\x9f\xab\xa1'), checker=u64(47))
     
-    # List /li-union element: 'second', 'unlimited', b'Hello Acton \xf0\x9f\xab\xa1'
+    # List /li-union (foo) element: 'second', 'unlimited', b'Hello Acton \xf0\x9f\xab\xa1'
     li_union_element = ad.li_union.create((k1='second', k2='unlimited', k3=b'Hello Acton \xf0\x9f\xab\xa1'), checker=u64(1514))
     
-    # List /li-union element: 'third', b'hi', b'Hello Acton \xf0\x9f\xab\xa1'
+    # List /li-union (foo) element: 'third', b'hi', b'Hello Acton \xf0\x9f\xab\xa1'
     li_union_element = ad.li_union.create((k1='third', k2=b'hi', k3=b'Hello Acton \xf0\x9f\xab\xa1'), checker='Frank')
     
-    # List /li-ref element: Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f'), "/foo:c1/foo:li[foo:name='tuta']", 'tuta'
+    # List /li-ref (foo) element: Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f'), "/foo:c1/foo:li[foo:name='tuta']", 'tuta'
     li_ref_element = ad.li_ref.create((k_idref=Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f'), k_iid="/foo:c1/foo:li[foo:name='tuta']", k_leafref='tuta'), val='v1')
     
-    # List /li-ref element: Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar'), "/foo:c1/foo:li[foo:name='tuta']/foo:val", 'tuta'
+    # List /li-ref (foo) element: Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar'), "/foo:c1/foo:li[foo:name='tuta']/foo:val", 'tuta'
     li_ref_element = ad.li_ref.create((k_idref=Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar'), k_iid="/foo:c1/foo:li[foo:name='tuta']/foo:val", k_leafref='tuta'), val='v2')
     
-    # Container: /c2
+    # Container: /c2 (foo)
     ad.c2.l1 = 'foo-qux'
     
-    # Container: /test-idref
+    # Container: /test-idref (bar)
     ad.test_idref.idref = [Identityref('bary', ns='http://example.com/bar', mod='bar', pfx='bar'), Identityref('fooy', ns='http://example.com/foo', mod='foo', pfx='f')]
     
-    # Container: /bar:conflict
+    # Container: /bar:conflict (bar)
     ad.bar_conflict.foo = 'foo-bar'
     return ad

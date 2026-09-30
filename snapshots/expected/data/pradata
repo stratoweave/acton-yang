@@ -1,7 +1,9 @@
+# YANG module (prefix) and namespace:
+#   test (test)  urn:example:test
 # Top node: /
 ad = root()
 
-# Container: /c1
+# Container: /c1 (test)
 ad.c1.optional_leaf = 42
 ad.c1.empty_yes = True
 ad.c1.empty_no = False
@@ -19,4 +21,4 @@ li1_element = ad.c1.li1.create((name='item2', extra_key=2), value=200)
 
 # Container: /c1/li1[name='item2',extra-key='2']/c3
 li1_element.c3.nested_leaf = 'birb'
-ad.top_level_leaf = 'root value'
+ad.top_level_leaf = 'root value'  # test
