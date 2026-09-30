@@ -742,7 +742,9 @@ def _test_list_indexed_union_key():
         testing.assertEqual(r.li_union[(k1="indexed", k2=u64(i), k3=b"key")].checker, str(i))
     testing.assertEqual(r.li_union[(k1="indexed", k2="unlimited", k3=b"key")].checker, "enum")
     testing.assertEqual(r.li_union[(k1="indexed", k2=b"one", k3=b"key")].checker, "binary")
-    key = (k1="indexed", k2=u64(3), k3=b"key")
+    # Explicit type annotation for key tuple to speed up solver
+    # TODO: remove this once solver is refactored
+    key: (k1: str, k2: atom, k3: bytes) = (k1="indexed", k2=u64(3), k3=b"key")
     r.li_union[key] = yang_foo.foo__li_union_entry(k1="indexed", k2=u64(3), k3=b"key", checker="replaced")
     testing.assertEqual(r.li_union[key].checker, "replaced")
     testing.assertEqual(len(r.li_union), 10)
