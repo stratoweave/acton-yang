@@ -19,13 +19,13 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-container', config=True, presence=False, children=[
-    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-leaf', config=True, mandatory=False, type=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[])),
-    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='augmented-leaf', config=True, mandatory=False, type=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[]))
+    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='parent-leaf', config=True, is_key=False, mandatory=False, type=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[])),
+    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='augmented-leaf', config=True, is_key=False, mandatory=False, type=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[]))
 ])
 
 SRC_DNODE_CHILD_1: DContainer = DContainer(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-container', config=True, presence=False, children=[
-    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-leaf', config=True, mandatory=False, type=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[])),
-    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='shared-leaf', config=True, default='from-shared', mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='sub-leaf', config=True, is_key=False, mandatory=False, type=DTypeString(name='shared:shared-type', description=None, reference=None, exts=[], builtin_type='string', default=None, length=Ranges([(1, 100)]), patterns=[])),
+    DLeaf(module='parent', namespace='http://example.com/parent', prefix='parent', name='shared-leaf', config=True, default='from-shared', is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
 SRC_DNODE: DRoot = DRoot(

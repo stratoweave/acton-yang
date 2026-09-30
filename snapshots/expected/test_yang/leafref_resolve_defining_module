@@ -20,21 +20,21 @@ _identities: list[DIdentity] = []
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='other-module', namespace='http://example.com/other', prefix='other', name='network-instances', config=True, presence=False, children=[
     DList(module='other-module', namespace='http://example.com/other', prefix='other', name='network-instance', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='other-module', namespace='http://example.com/other', prefix='other', name='name', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='other-module', namespace='http://example.com/other', prefix='other', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
 SRC_DNODE_CHILD_1: DContainer = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instances', config=True, presence=False, children=[
     DList(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instance', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[
-            DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+            DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
         ])
     ])
 ])
 
 SRC_DNODE_CHILD_2: DContainer = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='uses-leafref', config=True, presence=False, children=[
-    DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='ni', config=True, mandatory=False, type=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep(None, 'network-instances', []), yxpath.NodeTestStep(None, 'network-instance', []), yxpath.NodeTestStep(None, 'config', []), yxpath.NodeTestStep(None, 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+    DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='ni', config=True, is_key=False, mandatory=False, type=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep(None, 'network-instances', []), yxpath.NodeTestStep(None, 'network-instance', []), yxpath.NodeTestStep(None, 'config', []), yxpath.NodeTestStep(None, 'name', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
 ])
 
 SRC_DNODE: DRoot = DRoot(

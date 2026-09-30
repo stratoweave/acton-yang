@@ -288,11 +288,6 @@ def is_derived_from(identity: DIdentity, bases: list[DIdentity]) -> bool:
     return True
 
 
-def list_keys(node: DNodeInner) -> ?list[str]:
-    if isinstance(node, DList):
-        return node.key
-
-
 def remap_path_prefix(path: str, old_prefix: str, new_prefix: str) -> str:
     """Remap prefix in augment/deviation paths from old to new prefix
 
