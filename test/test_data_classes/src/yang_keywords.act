@@ -36,8 +36,15 @@ SRC_DNODE_CHILD_1: DList = DList(module='keywords', namespace='http://example.co
     DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='class', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
+SRC_DNODE_CHILD_2: DContainer = DContainer(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='C', config=True, presence=False, children=[
+    DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='B4', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DList(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='L', key=['K'], config=True, min_elements=0, ordered_by='system', children=[
+        DLeaf(module='keywords', namespace='http://example.com/keywords', prefix='kw', name='K', config=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    ])
+])
+
 SRC_DNODE: DRoot = DRoot(
-    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1],
+    children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2],
     identities=[],
     rpcs=[],
     module_metadata={'http://example.com/keywords':('keywords', None)},
@@ -77,6 +84,18 @@ SRC_YANG_0: str = r"""module keywords {
         }
         leaf class {
             type string;
+        }
+    }
+    // Names reserved for type variables
+    container C {
+        leaf B4 {
+            type string;
+        }
+        list L {
+            key "K";
+            leaf K {
+                type string;
+            }
         }
     }
 }"""
@@ -177,13 +196,87 @@ class keywords__import(yadata.MKeyedList[(from: str, type: str), keywords__impor
 
 
 _breaker4: None = None
+class keywords__C__L_entry(yadata.MNode):
+    K_: str
+
+    mut def __init__(self, K_: str) -> None:
+        self.K_ = K_
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['keywords:C', 'L'])
+
+    @staticmethod
+    mut def from_gdata(n: ygdata.Node) -> keywords__C__L_entry:
+        return keywords__C__L_entry(K_=n.get_str(ygdata.Id(NS_keywords, 'K')))
+
+    mut def copy(self) -> keywords__C__L_entry:
+        """Create a deep copy of this adata object"""
+        return keywords__C__L_entry.from_gdata(self.to_gdata())
+
+_breaker5: None = None
+class keywords__C__L(yadata.MKeyedList[str, keywords__C__L_entry]):
+    mut def __init__(self, elements: list[keywords__C__L_entry]=[]) -> None:
+        yadata.MKeyedList.__init__(self, lambda e: e.K_, elements)
+
+    mut def create(self, key: str) -> keywords__C__L_entry:
+        e = self.get(key)
+        if e is not None:
+            return e
+        K_ = key
+        res = keywords__C__L_entry(K_=K_)
+        self._append(res)
+        return res
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.List) -> list[keywords__C__L_entry]:
+        if n is not None:
+            return [keywords__C__L_entry.from_gdata(e) for e in n.entries()]
+        return []
+
+    mut def copy(self) -> keywords__C__L:
+        """Create a deep copy of this list object"""
+        # Copy each element in the list
+        copied_elements = []
+        for e in self:
+            ce = e.copy()
+            if ce is not None:
+                copied_elements.append(ce)
+        return keywords__C__L(elements=copied_elements)
+
+
+_breaker6: None = None
+class keywords__C(yadata.MNode):
+    B4_: ?str
+    L_: keywords__C__L
+
+    mut def __init__(self, B4_: ?str, L_: list[keywords__C__L_entry]=[]) -> None:
+        self.B4_ = B4_
+        self.L_ = keywords__C__L(elements=L_)
+
+    mut def to_gdata(self) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['keywords:C'])
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> keywords__C:
+        if n is not None:
+            return keywords__C(B4_=n.get_opt_str(ygdata.Id(NS_keywords, 'B4')), L_=keywords__C__L.from_gdata(n.get_opt_list(ygdata.Id(NS_keywords, 'L'))))
+        return keywords__C()
+
+    mut def copy(self) -> keywords__C:
+        """Create a deep copy of this adata object"""
+        return keywords__C.from_gdata(self.to_gdata())
+
+
+_breaker7: None = None
 class root(yadata.MNode):
     class: keywords__class
     import: keywords__import
+    C_: keywords__C
 
-    mut def __init__(self, class: ?keywords__class=None, import: list[keywords__import_entry]=[]) -> None:
+    mut def __init__(self, class: ?keywords__class=None, import: list[keywords__import_entry]=[], C_: ?keywords__C=None) -> None:
         self.class = class if class is not None else keywords__class()
         self.import = keywords__import(elements=import)
+        self.C_ = C_ if C_ is not None else keywords__C()
 
     mut def to_gdata(self) -> ygdata.Node:
         return yadata.from_adata(SRC_DNODE, self, loose=False)
@@ -191,7 +284,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(class=keywords__class.from_gdata(n.get_opt_cnt(ygdata.Id(NS_keywords, 'class'))), import=keywords__import.from_gdata(n.get_opt_list(ygdata.Id(NS_keywords, 'import'))))
+            return root(class=keywords__class.from_gdata(n.get_opt_cnt(ygdata.Id(NS_keywords, 'class'))), import=keywords__import.from_gdata(n.get_opt_list(ygdata.Id(NS_keywords, 'import'))), C_=keywords__C.from_gdata(n.get_opt_cnt(ygdata.Id(NS_keywords, 'C'))))
         return root()
 
     mut def copy(self) -> root:
@@ -217,6 +310,12 @@ mut def src_schema() -> dict[str, SchemaNode]:
         Leaf('from', type=Type('string')),
         Leaf('type', type=Type('string')),
         Leaf('class', type=Type('string'))
+    ]),
+    Container('C', children=[
+        Leaf('B4', type=Type('string')),
+        List('L', key='K', children=[
+            Leaf('K', type=Type('string'))
+        ])
     ])
 ])
     return res
