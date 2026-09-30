@@ -366,10 +366,10 @@ def repr_adata(v: value) -> str:
 
 
 def pradata(root: yschema.DRoot, node: ygdata.Node, self_name: str="ad", loose: bool=False, root_path: list[str]=[]):
-    return _pradata_recursive(root, node, self_name, loose, top=True, root_path=root_path, spath=[PathElement(root)], path_var_names={}, reserved_names=set([self_name]), create_consumed_leaves=set())
+    return "\n".join(_pradata_recursive(root, node, self_name, loose, top=True, root_path=root_path, spath=[PathElement(root)], path_var_names={}, reserved_names=set([self_name]), create_consumed_leaves=set()))
 
 
-def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str, loose: bool=False, top: bool=False, list_element: bool=False, root_path: list[str]=[], spath: list[PathElement]=[], path_var_names: dict[str, str], reserved_names: set[str], create_consumed_leaves: set[str]=set()):
+def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str, loose: bool=False, top: bool=False, list_element: bool=False, root_path: list[str]=[], spath: list[PathElement]=[], path_var_names: dict[str, str], reserved_names: set[str], create_consumed_leaves: set[str]=set()) -> list[str]:
 
     # `path_var_names` maps schema path -> local variable name.
     # `reserved_names` is the set of names already taken in generated code.
@@ -559,9 +559,9 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                     pc_args_str = ", ".join(pc_args + pc_opt_leaf_args)
                     res.append("{child_var} = {self_name}.create_{usname(child)}({pc_args_str})")
                     # Recursive call to pradata() for the P-container, to fill in the rest of the optional children
-                    res.extend(_pradata_recursive(child, container, child_var, loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, create_consumed_leaves=pc_consumed_leaf_args).splitlines())
+                    res.extend(_pradata_recursive(child, container, child_var, loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, create_consumed_leaves=pc_consumed_leaf_args))
                 else:
-                    res.extend(_pradata_recursive(child, container, "{self_name}.{usname(child)}", loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names).splitlines())
+                    res.extend(_pradata_recursive(child, container, "{self_name}.{usname(child)}", loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names))
         elif isinstance(child, yschema.DList):
             if len(child.key) > 0:
                 glist = node.get_opt_list(fqname(child))
@@ -595,7 +595,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                     create_args_str = ", ".join(create_call_args)
                     res.append("{list_element_var} = {self_name}.{usname(child)}.create({create_args_str})")
                     # Recursive call to pradata() for the list element
-                    res.extend(_pradata_recursive(child, element, list_element_var, loose, list_element=True, root_path=root_path, spath=path_with_child(element.key_values(fq_list_keys(child))), path_var_names=path_var_names, reserved_names=reserved_names, create_consumed_leaves=list_consumed_leaf_args).splitlines())
+                    res.extend(_pradata_recursive(child, element, list_element_var, loose, list_element=True, root_path=root_path, spath=path_with_child(element.key_values(fq_list_keys(child))), path_var_names=path_var_names, reserved_names=reserved_names, create_consumed_leaves=list_consumed_leaf_args))
         else:
             raise ValueError("Unhandled child type in .pradata() at {format_schema_path(path_with_child())}: {type(child)}")
 
@@ -608,7 +608,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
             res = ["", "# Container: {format_schema_path(spath)}"] + leaves + res
         else:
             res = leaves + res
-    return "\n".join(res)
+    return res
 
 
 def prpaths(root: yschema.DRoot, node: ygdata.Node) -> list[str]:
