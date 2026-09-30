@@ -4545,7 +4545,8 @@ def prsrc_default(t: DType, s: str, identities: list[DIdentity], module: str) ->
 
 def safe_name(name: str, safe_kw=True) -> str:
     new = name.replace("-", "_").replace(".", "_")
-    if safe_kw and new in _reserved_keywords:
+    tvar_name = new[0].isupper() and (len(new) == 1 or new[1:].isdecimal())
+    if safe_kw and (new in _reserved_keywords or tvar_name):
         new += "_"
     return new
 

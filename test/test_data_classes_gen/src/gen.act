@@ -606,7 +606,7 @@ ys_basics = r"""module basics {
     }
 }"""
 
-# soft keywords
+# soft keywords and names reserved for type variables
 ys_keywords = r"""module keywords {
     yang-version "1.1";
     namespace "http://example.com/keywords";
@@ -641,6 +641,18 @@ ys_keywords = r"""module keywords {
         }
         leaf class {
             type string;
+        }
+    }
+    // Names reserved for type variables
+    container C {
+        leaf B4 {
+            type string;
+        }
+        list L {
+            key "K";
+            leaf K {
+                type string;
+            }
         }
     }
 }"""
