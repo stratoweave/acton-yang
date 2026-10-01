@@ -1,7 +1,9 @@
+# YANG module (prefix) and namespace:
+#   test (test)  urn:example:test
 # Top node: /
 ad = root()
 
-# P-container: /c1
+# P-container: /c1 (test)
 c1_a_b_2 = test__c1__a_b('flat')
 c1_a_b = test__c1__a__b('inner')
 c1_a = test__c1__a(c1_a_b)
