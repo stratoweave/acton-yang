@@ -5,6 +5,7 @@ from identityref import Identityref
 
 SIGNED_INT_TYPES = {"int8", "int16", "int32", "int64"}
 UNSIGNED_INT_TYPES = {"uint8", "uint16", "uint32", "uint64"}
+LENGTH_TYPES = {"string", "binary"}
 
 MAX_INT = 9223372036854775807
 MIN_INT = -9223372036854775807 - 1

@@ -98,7 +98,7 @@ import xpath
 from identityref import Identityref, PartialIdentityref
 from pattern import YangPattern
 from type import Decimal, Ranges, RangesBuilder
-from type import SIGNED_INT_TYPES, UNSIGNED_INT_TYPES
+from type import SIGNED_INT_TYPES, UNSIGNED_INT_TYPES, LENGTH_TYPES
 
 RECURSION_LIMIT = 512
 
@@ -3062,6 +3062,9 @@ class DTypeResolver(object):
             # length
             _length = t.length
             if _length is not None:
+                builtin_type = self.builtin_type
+                if builtin_type is not None and builtin_type not in LENGTH_TYPES:
+                    raise ValueError("The length statement is only valid for string and binary types, not \"{builtin_type}\" in type \"{t.name}\"")
                 _last_length = self.length
                 base_length = _last_length if _last_length is not None else Ranges([(0, MAX_LENGTH_STMT)])
                 try:
@@ -3143,6 +3146,8 @@ class DTypeResolver(object):
                     else:
                         raise ValueError("Internal error: missing builtin ({self.builtin_type}) base range for {t.name}")
                     self.u64_ranges = new_integer_ranges
+                else:
+                    raise ValueError("The range statement is only valid for numeric types, not \"{self.builtin_type}\" in type \"{t.name}\"")
 
             # require_instance
             _require_instance = t.require_instance
