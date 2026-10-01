@@ -2466,6 +2466,9 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
     if old is None:
         return new
 
+    if old is not None and _same_node(old, new):
+        return None
+
     # old is empty leaf, new is an explicit remove: Leaf -> Absent: Absent
     if isinstance(old, Leaf) and isinstance(new, Absent):
         return new
