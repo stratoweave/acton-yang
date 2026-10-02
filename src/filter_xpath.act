@@ -290,7 +290,16 @@ def filter_child_parts(parent: yschema.DNodeInner, children: list[ygdata.FNode])
     return (predicates=predicates, selections=selections)
 
 
-def render_xpath(schema_node: yschema.DNode, fnode: ygdata.FNode, base_path: str, spath: list[PathElement], deterministic: bool) -> list[str]:
+def bind_prefix(nsdefs: dict[str, str], n: yschema.DNode, spath: list[PathElement]):
+    if n.prefix == "":
+        return
+    if n.prefix in nsdefs and nsdefs[n.prefix] != n.namespace:
+        raise ValueError("XPath prefix {n.prefix} at {format_schema_path(spath)} is bound to both {nsdefs[n.prefix]} and {n.namespace}")
+    nsdefs[n.prefix] = n.namespace
+
+
+def render_xpath(schema_node: yschema.DNode, fnode: ygdata.FNode, base_path: str, spath: list[PathElement], deterministic: bool, nsdefs: dict[str, str]) -> list[str]:
+    bind_prefix(nsdefs, schema_node, spath)
     segment = path_step_name(schema_node)
     value_match = fnode.value_match
     if value_match is not None:
@@ -313,6 +322,7 @@ def render_xpath(schema_node: yschema.DNode, fnode: ygdata.FNode, base_path: str
             if len(pred.children) > 0:
                 raise ValueError("Leaf predicate FNode cannot have children")
             pred_value = pred.value_match!
+            bind_prefix(nsdefs, pred_schema, spath + [PathElement(pred_schema)])
             segment += "[{path_step_name(pred_schema)}={value_match_literal(pred_value)}]"
         selections = parts.selections
 
@@ -322,34 +332,31 @@ def render_xpath(schema_node: yschema.DNode, fnode: ygdata.FNode, base_path: str
 
     res: list[str] = []
     for child_schema, child in selections:
-        res.extend(render_xpath(child_schema, child, path, spath + [PathElement(child_schema)], deterministic))
+        res.extend(render_xpath(child_schema, child, path, spath + [PathElement(child_schema)], deterministic, nsdefs))
     return res
 
 
-def to_xpaths(root: yschema.DRoot, filt: ygdata.FNode, deterministic: bool=True) -> list[str]:
+def to_xpaths(root: yschema.DRoot, filt: ygdata.FNode, deterministic: bool=True) -> (paths: list[str], nsdefs: list[(?str, str)]):
     if filt.name is None and len(filt.children) == 0:
-        return ["/"]
+        return (paths=["/"], nsdefs=[])
 
     paths: list[str] = []
+    bound: dict[str, str] = {}
     if filt.name is None:
         for child in filt.children:
             schema = child_schema(root, child)
-            paths.extend(render_xpath(schema, child, "", [PathElement(root), PathElement(schema)], deterministic))
+            paths.extend(render_xpath(schema, child, "", [PathElement(root), PathElement(schema)], deterministic, bound))
     else:
         schema = child_schema(root, filt)
-        paths.extend(render_xpath(schema, filt, "", [PathElement(root), PathElement(schema)], deterministic))
+        paths.extend(render_xpath(schema, filt, "", [PathElement(root), PathElement(schema)], deterministic, bound))
 
+    nsdefs = [(pfx, ns) for pfx, ns in bound.items()]
     if deterministic:
-        return sorted(paths)
-    return paths
+        return (paths=sorted(paths), nsdefs=nsdefs)
+    return (paths=paths, nsdefs=nsdefs)
 
 
-def to_xpathstr(root: yschema.DRoot, filt: ygdata.FNode, deterministic: bool=True) -> str:
-    return "\n".join(to_xpaths(root, filt, deterministic))
-
-
-def test_schema_fixture() -> yschema.DRoot:
-    ys = r"""
+_TEST_SCHEMA_SRC = r"""
 module acme {
   namespace "http://example.com/acme";
   prefix a;
@@ -372,7 +379,10 @@ module acme {
   }
 }
 """
-    return yang.compile([ys])
+
+
+def test_schema_fixture() -> yschema.DRoot:
+    return yang.compile([_TEST_SCHEMA_SRC])
 
 
 def assert_fnode_equal(actual: ygdata.FNode, expected: ygdata.FNode) -> None:
@@ -445,7 +455,7 @@ def _test_leaflist_value_selector_roundtrip():
         ]),
     ])
     assert_fnode_equal(actual, expected)
-    testing.assertEqual(to_xpaths(root, actual), ["/a:foo/a:ll[.='2']"])
+    testing.assertEqual(to_xpaths(root, actual).paths, ["/a:foo/a:ll[.='2']"])
 
 
 def _test_wildcard_predicate():
@@ -460,7 +470,7 @@ def _test_wildcard_predicate():
         ]),
     ])
     assert_fnode_equal(actual, expected)
-    testing.assertEqual(to_xpaths(root, actual), ["/a:foo/a:l[a:name='eth*']"])
+    testing.assertEqual(to_xpaths(root, actual).paths, ["/a:foo/a:l[a:name='eth*']"])
 
 
 def _test_from_xpaths_merges_shared_ancestors():
@@ -468,7 +478,7 @@ def _test_from_xpaths_merges_shared_ancestors():
     paths = to_xpaths(root, from_xpaths(root, [
         "/a:foo/a:l[a:name='eth0']/a:v",
         "/a:foo/a:l[a:name='eth0']",
-    ]))
+    ])).paths
     testing.assertEqual(paths, ["/a:foo/a:l[a:name='eth0']"])
 
 
@@ -486,7 +496,7 @@ def _test_from_xpaths_merges_leaflist_value_selectors():
         ]),
     ])
     assert_fnode_equal(actual, expected)
-    testing.assertEqual(to_xpaths(root, actual), [
+    testing.assertEqual(to_xpaths(root, actual).paths, [
         "/a:foo/a:ll[.='2']",
         "/a:foo/a:ll[.='3']",
     ])
@@ -498,7 +508,7 @@ def _test_to_xpaths_roundtrip():
         "/a:foo/a:l[a:name='eth0']/a:v",
         "/a:foo/a:pairs[a:k1='1'][a:k2='2']/a:payload",
     ]
-    testing.assertEqual(to_xpaths(root, from_xpaths(root, paths)), sorted(paths))
+    testing.assertEqual(to_xpaths(root, from_xpaths(root, paths)).paths, sorted(paths))
 
 
 def _test_to_xpaths_sorts_predicates():
@@ -513,7 +523,7 @@ def _test_to_xpaths_sorts_predicates():
             ]),
         ]),
     ])
-    testing.assertEqual(to_xpaths(root, filt), ["/a:foo/a:pairs[a:k1='1'][a:k2='2']/a:payload"])
+    testing.assertEqual(to_xpaths(root, filt).paths, ["/a:foo/a:pairs[a:k1='1'][a:k2='2']/a:payload"])
 
 
 def _test_to_xpaths_accepts_named_fnode():
@@ -522,12 +532,67 @@ def _test_to_xpaths_accepts_named_fnode():
     filt = ygdata.FNode(ygdata.Id(ns, "foo"), children=[
         ygdata.FNode(ygdata.Id(ns, "l2")),
     ])
-    testing.assertEqual(to_xpaths(root, filt), ["/a:foo/a:l2"])
+    testing.assertEqual(to_xpaths(root, filt).paths, ["/a:foo/a:l2"])
 
 
 def _test_root_path_prints_root():
     root = test_schema_fixture()
-    testing.assertEqual(to_xpaths(root, from_xpath(root, "/")), ["/"])
+    res = to_xpaths(root, from_xpath(root, "/"))
+    testing.assertEqual(res.paths, ["/"])
+    testing.assertEqual(res.nsdefs, [])
+
+
+def _test_to_xpaths_nsdefs_use_module_prefixes():
+    ext = r"""
+module acme-ext {
+  namespace "http://example.com/acme-ext";
+  prefix ae;
+  import acme { prefix acme; }
+
+  augment "/acme:foo/acme:l" {
+    leaf tag { type string; }
+  }
+}
+"""
+    root = yang.compile([ext, _TEST_SCHEMA_SRC])
+    ns = "http://example.com/acme"
+    ext_ns = "http://example.com/acme-ext"
+    filt = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id(ns, "foo"), children=[
+            ygdata.FNode(ygdata.Id(ns, "l"), children=[
+                ygdata.FNode(ygdata.Id(ext_ns, "tag"), value_match="t"),
+                ygdata.FNode(ygdata.Id(ns, "v")),
+            ]),
+        ]),
+    ])
+    res = to_xpaths(root, filt)
+    testing.assertEqual(res.paths, ["/a:foo/a:l[ae:tag='t']/a:v"])
+    testing.assertEqual(res.nsdefs, [("a", ns), ("ae", ext_ns)])
+
+
+def _test_to_xpaths_rejects_prefix_bound_twice():
+    ext = r"""
+module acme-other {
+  namespace "http://example.com/acme-other";
+  prefix a;
+  import acme { prefix acme; }
+
+  augment "/acme:foo" {
+    leaf other { type string; }
+  }
+}
+"""
+    root = yang.compile([ext, _TEST_SCHEMA_SRC])
+    filt = ygdata.FNode(children=[
+        ygdata.FNode(ygdata.Id("http://example.com/acme", "foo"), children=[
+            ygdata.FNode(ygdata.Id("http://example.com/acme-other", "other")),
+        ]),
+    ])
+    try:
+        to_xpaths(root, filt)
+        testing.error("Expected prefix bound to two namespaces to fail")
+    except ValueError as e:
+        testing.assertIn("XPath prefix a at", e.error_message)
 
 
 def _test_rejects_relative_path():
@@ -638,4 +703,4 @@ def _test_render_wildcard_value_match():
             ]),
         ]),
     ])
-    testing.assertEqual(to_xpaths(root, filt), ["/a:foo/a:l[a:name='eth*']"])
+    testing.assertEqual(to_xpaths(root, filt).paths, ["/a:foo/a:l[a:name='eth*']"])
