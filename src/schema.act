@@ -1366,16 +1366,13 @@ class DModule(DNodeInner):
     revision: list[Revision]
     yang_version: float
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: ?float, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[]):
         self.module = module
         self.name = name
         self.gname = "Container"
         self.namespace = namespace
         self.prefix = prefix
-        if yang_version is not None:
-            self.yang_version = yang_version
-        else:
-            self.yang_version = 1.1
+        self.yang_version = yang_version
         self.config = True # module is not config in itself, but it is the root
                            # of the data tree and the default is config=True, so
                            # we set it here
@@ -1427,7 +1424,7 @@ class DList(DNodeInner):
     unique: list[str]
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by="system", reference=None, status=None, unique=[], when=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, unique=[], when=None, exts=[], children=[]):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -1475,7 +1472,7 @@ class DLeaf(DNodeLeaf):
     mandatory: bool
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory: bool=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -1524,7 +1521,7 @@ class DLeafList(DNodeLeaf):
     ordered_by: str
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by="system", reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, type: DType, units=None, when=None, exts=[]):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -3555,7 +3552,7 @@ class SchemaNode(object):
                 cexts.append(cext)
         return cexts
 
-    def expand_augments(self, context: Context, target_base: SchemaNode=self, in_uses=False, remap_imports):
+    def expand_augments(self, context: Context, target_base: SchemaNode, in_uses=False, remap_imports: ?list[(orig: str, alias: str)]=None):
         """Expand augment node"""
         def get_target(target_base, target: str) -> SchemaNode:
 
@@ -7177,6 +7174,7 @@ class Leaf(SchemaNodeOuter):
 
     def to_dnode(self, context: DTypeContext) -> DLeaf:
         dtype = self.type.to_dtype(context)
+        mandatory = self.mandatory
 
         new_default = self.default
         if new_default is None:
@@ -7203,7 +7201,7 @@ class Leaf(SchemaNodeOuter):
             description=self.description,
             if_feature=self.if_feature,
             is_key=is_key,
-            mandatory=self.mandatory,
+            mandatory=mandatory if mandatory is not None else False,
             must=[m.to_dmust() for m in self.must],
             reference=self.reference,
             status=self.status,
@@ -7424,6 +7422,7 @@ class LeafList(SchemaNodeOuter):
 
     def to_dnode(self, context: DTypeContext) -> DLeafList:
         dtype = self.type.to_dtype(context)
+        ordered_by = self.ordered_by
 
         new_units = self.units
         if new_units is None:
@@ -7441,7 +7440,7 @@ class LeafList(SchemaNodeOuter):
             max_elements=self.get_max_elements(),
             min_elements=self.get_min_elements(),
             must=[m.to_dmust() for m in self.must],
-            ordered_by=self.ordered_by,
+            ordered_by=ordered_by if ordered_by is not None else "system",
             reference=self.reference,
             status=self.status,
             type=dtype,
@@ -7728,6 +7727,7 @@ class List(SchemaNodeInner):
         return 0
 
     def to_dnode(self, context: DTypeContext) -> DList:
+        ordered_by = self.ordered_by
         new_dnode = DList(
             module=self.get_module_name(),
             namespace=self.get_namespace(),
@@ -7740,7 +7740,7 @@ class List(SchemaNodeInner):
             max_elements=self.get_max_elements(),
             min_elements=self.get_min_elements(),
             must=[m.to_dmust() for m in self.must],
-            ordered_by=self.ordered_by,
+            ordered_by=ordered_by if ordered_by is not None else "system",
             reference=self.reference,
             status=self.status,
             when=self.when,
@@ -8066,7 +8066,7 @@ class Module(SchemaNodeInner):
                      feature=self.feature,
                      exts=self.compile_exts(context))
         self.expand_children(context, new, new_mod, new_ns, new_pfx, remap_imports)
-        new.expand_augments(context, remap_imports=remap_imports)
+        new.expand_augments(context, new, remap_imports=remap_imports)
         return new
 
     def update_namespace_qualifiers(self, new_ns: str, new_pfx: str, new_mod: str) -> None:
@@ -9337,7 +9337,7 @@ class Submodule(SchemaNodeInner):
                         feature=self.feature,
                         exts=self.compile_exts(context))
         self.expand_children(context, new, new_mod, new_ns, new_pfx)
-        new.expand_augments(context)
+        new.expand_augments(context, new)
         return new
 
     def update_namespace_qualifiers(self, new_ns: str, new_pfx: str, new_mod: str) -> None:
@@ -11514,4 +11514,3 @@ def escape_as_fstr(s: str) -> str:
     copy_until(b, s_len)
 
     return "".join(parts)
-

@@ -44,14 +44,14 @@ def _test_union_atom_mapping():
         leaf = root.get(name)
         if isinstance(leaf, yschema.DLeaf):
             testing.assertEqual(yschema.yang_type_to_acton_type(leaf.type), "atom")
-            testing.assertEqual(yschema.yang_leaf_to_acton_type(leaf, None), "?atom")
-            testing.assertEqual(yschema.taker_name(leaf, None), "get_opt_atom")
+            testing.assertEqual(yschema.yang_leaf_to_acton_type(leaf, False), "?atom")
+            testing.assertEqual(yschema.taker_name(leaf, False), "get_opt_atom")
         else:
             testing.error("Expected a leaf")
     values = root.get("values")
     if isinstance(values, yschema.DLeafList):
         testing.assertEqual(yschema.yang_leaflist_to_acton_type(values), "list[atom]")
-        testing.assertEqual(yschema.taker_name(values, None), "get_opt_atoms")
+        testing.assertEqual(yschema.taker_name(values, False), "get_opt_atoms")
     else:
         testing.error("Expected a leaf-list")
 
@@ -98,7 +98,7 @@ def _test_union_bits_mapping():
         leaf = root.get(name)
         if isinstance(leaf, yschema.DLeaf):
             testing.assertEqual(yschema.yang_type_to_acton_type(leaf.type), "value")
-            testing.assertEqual(yschema.taker_name(leaf, None), "get_opt_value")
+            testing.assertEqual(yschema.taker_name(leaf, False), "get_opt_value")
         else:
             testing.error("Expected a leaf")
 

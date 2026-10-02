@@ -1489,7 +1489,9 @@ def _same_node(a: Node, b: Node) -> bool:
 
 
 class ListNode(Node):
-    entries: (deterministic: ?bool) -> list[Node]
+    def entries(self, deterministic: bool=False) -> list[Node]:
+        NotImplemented
+#    entries: (deterministic: ?bool) -> list[Node]       For now, compact signatures cannot express defaults.
     like: (entries: list[Node]) -> ListNode
 
 
@@ -2648,9 +2650,14 @@ def _diff_rec(old: ?Node, new: Node, path: list[_PathElement]) -> ?Node:
         if old.presence != new.presence:
             raise ValueError("Cannot diff containers with different presence at {_format_gdata_path(path)}")
         diff_children = diff_keyed_children(old.children, new.children)
-        if diff_children is None:
-            return None
-        return Container(children=diff_children, presence=new.presence, ns=new.ns, module=new.module)
+#        if diff_children is not None:
+#            return None
+#        return Container(children=diff_children, presence=new.presence, ns=new.ns, module=new.module)
+#       The above code must be rewritten as below, since the chilren parameter to Container.__init__
+#       has now type dict[Id, Node], not as before erroneously ?dict[Id, Node]
+        if diff_children is not None:
+            return Container(children=diff_children, presence=new.presence, ns=new.ns, module=new.module)
+        return None
 
     elif isinstance(old, List) and isinstance(new, List):
         if old.keys != new.keys:
