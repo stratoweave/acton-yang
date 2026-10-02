@@ -19,10 +19,10 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_CHILD_0: DList = DList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='id', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='id', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='bar', config=True, presence=False, children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='hi', config=True, is_key=False, mandatory=True, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='hi', config=True, is_key=False, mandatory=True, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
@@ -40,7 +40,7 @@ _breaker1: None = None
 class foo__l1__bar(yadata.MNode):
     hi: ?str
 
-    mut def __init__(self, hi: ?str) -> None:
+    mut def __init__(self, hi: ?str=None) -> None:
         self.hi = hi
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -63,7 +63,7 @@ class foo__l1_entry(yadata.MNode):
     id: ?str
     bar: foo__l1__bar
 
-    mut def __init__(self, name: str, id: ?str, bar: ?foo__l1__bar=None) -> None:
+    mut def __init__(self, name: str, id: ?str=None, bar: ?foo__l1__bar=None) -> None:
         self.name = name
         self.id = id
         self.bar = bar if bar is not None else foo__l1__bar()

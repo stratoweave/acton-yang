@@ -647,12 +647,10 @@ class DNodeInner(DNode):
                 else:
                     req_args.append("{usname(child)}: {pname(child)}")
             elif isinstance(child, DLeaf):
-                defval = ""
-                child_default = child.default
-                if not loose and child_default is not None:
-                    defval = "=None"
+                optional_arg = is_optional_arg_yang_leaf(child, loose)
+                defval = "=None" if optional_arg else ""
                 child_arg = "{usname(child)}: {yang_leaf_to_acton_arg_type(child, loose)}{defval}"
-                if is_optional_arg_yang_leaf(child, loose):
+                if optional_arg:
                     opt_args.append(child_arg)
                 else:
                     req_args.append(child_arg)
@@ -2437,7 +2435,7 @@ class DType(object):
         return "DType({self.format_common_params()})"
 
     def format_common_params(self) -> str:
-        return "name={repr(self.name)}, description={repr(self.description)}, reference={repr(self.reference)}, exts={repr(self.exts)}, builtin_type={repr(self.builtin_type)}, default={repr(self.default)}"
+        return "name={repr(self.name)}, description={repr(self.description)}, reference={repr(self.reference)}, units={repr(self.units)}, exts={repr(self.exts)}, builtin_type={repr(self.builtin_type)}, default={repr(self.default)}"
 
     def format_short_hint(self) -> str:
         return  self.builtin_type if self.builtin_type == self.name else "{self.builtin_type} {self.name}"

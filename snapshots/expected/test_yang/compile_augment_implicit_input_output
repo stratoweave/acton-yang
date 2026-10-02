@@ -22,18 +22,18 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://examp
 
 SRC_DNODE_RPC_0: DRpc = DRpc(module='foo', namespace='http://example.com/foo', prefix='foo', name='r1', input=DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c3', config=False, presence=False, children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ]), output=DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ]), children=[
     DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
         DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c3', config=False, presence=False, children=[
-            DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+            DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
         ])
     ]),
     DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
@@ -92,7 +92,7 @@ _breaker3: None = None
 class foo__r1__input__c3(yadata.MNode):
     l3: ?str
 
-    mut def __init__(self, l3: ?str) -> None:
+    mut def __init__(self, l3: ?str=None) -> None:
         self.l3 = l3
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -134,7 +134,7 @@ _breaker5: None = None
 class foo__r1__output(yadata.MNode):
     l4: ?str
 
-    mut def __init__(self, l4: ?str) -> None:
+    mut def __init__(self, l4: ?str=None) -> None:
         self.l4 = l4
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:

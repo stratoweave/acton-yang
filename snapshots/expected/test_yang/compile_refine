@@ -22,7 +22,7 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://examp
     DLeafList(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, description='refined description', default=[
 'a',
 'b'
-        ], min_elements=0, ordered_by='system', type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), exts=[
+        ], min_elements=0, ordered_by='system', type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), exts=[
             DExt(module='some-ext', namespace='http://example.com/some-ext', prefix='some', name='exty', arg='foo.bar', exts=[])
         ])
 ])

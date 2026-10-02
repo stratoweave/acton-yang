@@ -1490,7 +1490,7 @@ def _same_node(a: Node, b: Node) -> bool:
 
 class ListNode(Node):
     def entries(self, deterministic: bool=False) -> list[Node]:
-        NotImplemented
+        raise NotImplementedError("ListNode.entries")
 #    entries: (deterministic: ?bool) -> list[Node]       For now, compact signatures cannot express defaults.
     like: (entries: list[Node]) -> ListNode
 

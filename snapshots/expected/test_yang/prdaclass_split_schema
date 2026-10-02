@@ -19,8 +19,8 @@ _identities: list[DIdentity] = [
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='f', name='c1', config=True, presence=False, children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='lid', config=True, default='f:der_id', is_key=False, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_base_id], identities=_identities))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='l1', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='f', name='lid', config=True, default='f:der_id', is_key=False, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, units=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_foo_base_id], identities=_identities))
 ])
 
 SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='foo', namespace='http://example.com/foo', prefix='f', name='base_id')
@@ -103,7 +103,7 @@ class foo__c1(yadata.MNode):
     l1: ?str
     lid: Identityref
 
-    mut def __init__(self, l1: ?str, lid: ?Identityref=None) -> None:
+    mut def __init__(self, l1: ?str=None, lid: ?Identityref=None) -> None:
         self.l1 = l1
         self.lid = lid if lid is not None else foo_der_id
 

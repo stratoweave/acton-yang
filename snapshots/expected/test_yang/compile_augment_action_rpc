@@ -25,15 +25,15 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://examp
 ])
 
 SRC_DNODE_RPC_0: DRpc = DRpc(module='foo', namespace='http://example.com/foo', prefix='foo', name='reset', input=DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ]), output=DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-finished-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-finished-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ]), children=[
     DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ]),
     DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-finished-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='bar', namespace='http://example.com/bar', prefix='bar', name='reset-finished-at', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
@@ -146,7 +146,7 @@ _breaker5: None = None
 class foo__reset__input(yadata.MNode):
     reset_at: ?str
 
-    mut def __init__(self, reset_at: ?str) -> None:
+    mut def __init__(self, reset_at: ?str=None) -> None:
         self.reset_at = reset_at
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -167,7 +167,7 @@ _breaker6: None = None
 class foo__reset__output(yadata.MNode):
     reset_finished_at: ?str
 
-    mut def __init__(self, reset_finished_at: ?str) -> None:
+    mut def __init__(self, reset_finished_at: ?str=None) -> None:
         self.reset_finished_at = reset_finished_at
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:

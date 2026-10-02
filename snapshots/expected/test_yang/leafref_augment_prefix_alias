@@ -20,11 +20,11 @@ _identities: list[DIdentity] = []
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instances', config=True, presence=False, children=[
     DList(module='base-module', namespace='http://example.com/base', prefix='base', name='network-instance', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DContainer(module='base-module', namespace='http://example.com/base', prefix='base', name='state', config=True, presence=False, children=[
-            DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='id', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+            DLeaf(module='base-module', namespace='http://example.com/base', prefix='base', name='id', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
         ]),
-        DLeaf(module='augment-module', namespace='http://example.com/augment', prefix='aug', name='ref', config=True, is_key=False, mandatory=False, type=DTypeLeafref(name='leafref', description=None, reference=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('base', 'network-instances', []), yxpath.NodeTestStep('base', 'network-instance', []), yxpath.NodeTestStep('base', 'state', []), yxpath.NodeTestStep('base', 'id', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
+        DLeaf(module='augment-module', namespace='http://example.com/augment', prefix='aug', name='ref', config=True, is_key=False, mandatory=False, type=DTypeLeafref(name='leafref', description=None, reference=None, units=None, exts=[], builtin_type='leafref', default=None, path=yxpath.AbsoluteLocationPath([yxpath.NodeTestStep('base', 'network-instances', []), yxpath.NodeTestStep('base', 'network-instance', []), yxpath.NodeTestStep('base', 'state', []), yxpath.NodeTestStep('base', 'id', [])]), require_instance=False, target_type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])))
     ])
 ])
 
@@ -43,7 +43,7 @@ _breaker1: None = None
 class base_module__network_instances__network_instance__state(yadata.MNode):
     id: ?str
 
-    mut def __init__(self, id: ?str) -> None:
+    mut def __init__(self, id: ?str=None) -> None:
         self.id = id
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -66,7 +66,7 @@ class base_module__network_instances__network_instance_entry(yadata.MNode):
     state: base_module__network_instances__network_instance__state
     ref: ?str
 
-    mut def __init__(self, name: str, state: ?base_module__network_instances__network_instance__state=None, ref: ?str) -> None:
+    mut def __init__(self, name: str, state: ?base_module__network_instances__network_instance__state=None, ref: ?str=None) -> None:
         self.name = name
         self.state = state if state is not None else base_module__network_instances__network_instance__state()
         self.ref = ref

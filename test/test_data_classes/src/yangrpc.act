@@ -19,21 +19,21 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_RPC_0: DRpc = DRpc(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='foo', input=DInput(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', children=[
-    DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='a', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+    DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='a', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
     DContainer(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo', config=False, presence=False, children=[
-        DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo_b', config=False, is_key=False, mandatory=False, type=DTypeIntegerSigned(name='int64', description=None, reference=None, exts=[], builtin_type='int64', default=None, ranges=Ranges([(-9223372036854775808, 9223372036854775807)])))
+        DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo_b', config=False, is_key=False, mandatory=False, type=DTypeIntegerSigned(name='int64', description=None, reference=None, units=None, exts=[], builtin_type='int64', default=None, ranges=Ranges([(-9223372036854775808, 9223372036854775807)])))
     ])
 ]), output=DOutput(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', children=[
-    DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='outoo', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='outoo', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ]), children=[
     DInput(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', children=[
-        DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='a', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='a', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DContainer(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo', config=False, presence=False, children=[
-            DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo_b', config=False, is_key=False, mandatory=False, type=DTypeIntegerSigned(name='int64', description=None, reference=None, exts=[], builtin_type='int64', default=None, ranges=Ranges([(-9223372036854775808, 9223372036854775807)])))
+            DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='woo_b', config=False, is_key=False, mandatory=False, type=DTypeIntegerSigned(name='int64', description=None, reference=None, units=None, exts=[], builtin_type='int64', default=None, ranges=Ranges([(-9223372036854775808, 9223372036854775807)])))
         ])
     ]),
     DOutput(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', children=[
-        DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='outoo', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='yangrpc', namespace='http://example.com/yangrpc', prefix='yrpc', name='outoo', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
@@ -97,7 +97,7 @@ _breaker2: None = None
 class yangrpc__foo__input__woo(yadata.MNode):
     woo_b: ?int
 
-    mut def __init__(self, woo_b: ?int) -> None:
+    mut def __init__(self, woo_b: ?int=None) -> None:
         self.woo_b = woo_b
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -119,7 +119,7 @@ class yangrpc__foo__input(yadata.MNode):
     a: ?str
     woo: yangrpc__foo__input__woo
 
-    mut def __init__(self, a: ?str, woo: ?yangrpc__foo__input__woo=None) -> None:
+    mut def __init__(self, a: ?str=None, woo: ?yangrpc__foo__input__woo=None) -> None:
         self.a = a
         self.woo = woo if woo is not None else yangrpc__foo__input__woo()
 
@@ -141,7 +141,7 @@ _breaker4: None = None
 class yangrpc__foo__output(yadata.MNode):
     outoo: ?str
 
-    mut def __init__(self, outoo: ?str) -> None:
+    mut def __init__(self, outoo: ?str=None) -> None:
         self.outoo = outoo
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:

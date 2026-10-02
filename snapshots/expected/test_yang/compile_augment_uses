@@ -22,7 +22,7 @@ SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://examp
         DExt(module='some-ext', namespace='http://example.com/some-ext', prefix='some', name='exty', arg='foo.bar', exts=[])
     ], children=[
     DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c2', config=True, presence=False, children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, description='leaf 1', is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, description='leaf 1', is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
@@ -41,7 +41,7 @@ _breaker1: None = None
 class foo__c1__c2(yadata.MNode):
     l1: ?str
 
-    mut def __init__(self, l1: ?str) -> None:
+    mut def __init__(self, l1: ?str=None) -> None:
         self.l1 = l1
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:

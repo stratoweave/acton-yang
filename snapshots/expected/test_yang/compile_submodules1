@@ -19,11 +19,11 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
 SRC_DNODE_CHILD_1: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c2', config=True, presence=False, children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l2', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l2', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
 SRC_DNODE: DRoot = DRoot(
@@ -40,7 +40,7 @@ _breaker1: None = None
 class foo__c1(yadata.MNode):
     l1: ?str
 
-    mut def __init__(self, l1: ?str) -> None:
+    mut def __init__(self, l1: ?str=None) -> None:
         self.l1 = l1
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -61,7 +61,7 @@ _breaker2: None = None
 class foo__c2(yadata.MNode):
     l2: ?str
 
-    mut def __init__(self, l2: ?str) -> None:
+    mut def __init__(self, l2: ?str=None) -> None:
         self.l2 = l2
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
