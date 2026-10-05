@@ -11,7 +11,7 @@ jobs:
         with:
           channel: 'tip'
       - name: "Check out repository code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: "Cache acton stuff"
@@ -46,7 +46,7 @@ jobs:
         with:
           channel: 'tip'
       - name: "Check out StratoWeave repository code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: stratoweave/stratoweave
       - name: "Update yang library dependency"
