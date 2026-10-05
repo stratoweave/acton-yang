@@ -34,7 +34,9 @@ jobs:
       - run: acton test
       - run: make test-daclass
       - run: make test-data-source-roundtrip
-      # another diff check because test-daclass also generates code
+      - run: make test-device-mode
+      # another diff check because test-daclass and test-device-mode also
+      # generate code
       - run: git diff --exit-code
       - run: make test-yang-compile
 
