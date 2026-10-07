@@ -189,3 +189,23 @@ def from_adata(root: yschema.DRoot, data: MNode, loose: bool=False, root_path: l
         raise ValueError("Value is not an yang.adata.MNode: {type(v)}")
 
     return from_data(root, data, type_narrower, loose, root_path, prev)
+
+
+class ToGdataPrevWrapper(object):
+    """Convert adata to gdata and pass it to an update callback
+
+    Keeps the gdata tree it sent previously and passes it as prev to to_gdata in
+    the next update
+    """
+    @property
+    wrapped: action(?ygdata.Node) -> None
+    prev: ?ygdata.Container
+
+    def __init__(self, wrapped: action(?ygdata.Node) -> None):
+        self.wrapped = wrapped
+        self.prev = None
+
+    proc def update(self, data: ?MNode) -> None:
+        new_data = data?.to_gdata(self.prev)
+        self.wrapped(new_data)
+        self.prev = new_data if isinstance(new_data, ygdata.Container) else None
