@@ -21,33 +21,33 @@ _identities: list[DIdentity] = []
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='system-state', config=False, presence=False, children=[
     DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='clock', config=False, presence=False, children=[
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='current-datetime', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='boot-datetime', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='current-datetime', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='boot-datetime', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
     ])
 ])
 
 SRC_DNODE_CHILD_1: DContainer = DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='interfaces', config=True, presence=False, children=[
     DList(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='interface', key=['name'], config=True, min_elements=0, ordered_by='system', children=[
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='description', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='type', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='enabled', config=True, is_key=False, mandatory=False, type=DTypeBoolean(name='boolean', description=None, reference=None, exts=[], builtin_type='boolean', default=None)),
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='admin-status', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='oper-status', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='last-change', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='name', config=True, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='description', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='type', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='enabled', config=True, is_key=False, mandatory=False, type=DTypeBoolean(name='boolean', description=None, reference=None, units=None, exts=[], builtin_type='boolean', default=None)),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='admin-status', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='oper-status', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+        DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='last-change', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
         DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='statistics', config=False, presence=False, children=[
-            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='in-octets', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
-            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='out-octets', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)])))
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='in-octets', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, units=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)]))),
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='out-octets', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint64', description=None, reference=None, units=None, exts=[], builtin_type='uint64', default=None, ranges=Ranges([(0, 18446744073709551615)])))
         ]),
         DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='ipv4', config=True, presence=False, children=[
-            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='mtu', config=True, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='mtu', config=True, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, units=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
         ]),
         DContainer(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='ipv6', config=True, presence=False, children=[
-            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='mtu', config=True, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='mtu', config=True, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint16', description=None, reference=None, units=None, exts=[], builtin_type='uint16', default=None, ranges=Ranges([(0, 65535)])))
         ]),
         DList(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='address', key=['ip'], config=False, min_elements=0, ordered_by='system', children=[
-            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='ip', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
-            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='prefix-length', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint8', description=None, reference=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)])))
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='ip', config=False, is_key=True, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])),
+            DLeaf(module='filter-test', namespace='http://example.com/filter-test', prefix='ft', name='prefix-length', config=False, is_key=False, mandatory=False, type=DTypeIntegerUnsigned(name='uint8', description=None, reference=None, units=None, exts=[], builtin_type='uint8', default=None, ranges=Ranges([(0, 255)])))
         ])
     ])
 ])
@@ -150,7 +150,7 @@ class filter_test__system_state__clock(yadata.MNode):
     current_datetime: ?str
     boot_datetime: ?str
 
-    mut def __init__(self, current_datetime: ?str, boot_datetime: ?str) -> None:
+    mut def __init__(self, current_datetime: ?str=None, boot_datetime: ?str=None) -> None:
         self.current_datetime = current_datetime
         self.boot_datetime = boot_datetime
 
@@ -194,7 +194,7 @@ class filter_test__interfaces__interface__statistics(yadata.MNode):
     in_octets: ?u64
     out_octets: ?u64
 
-    mut def __init__(self, in_octets: ?u64, out_octets: ?u64) -> None:
+    mut def __init__(self, in_octets: ?u64=None, out_octets: ?u64=None) -> None:
         self.in_octets = in_octets
         self.out_octets = out_octets
 
@@ -216,7 +216,7 @@ _breaker4: None = None
 class filter_test__interfaces__interface__ipv4(yadata.MNode):
     mtu: ?u64
 
-    mut def __init__(self, mtu: ?u64) -> None:
+    mut def __init__(self, mtu: ?u64=None) -> None:
         self.mtu = mtu
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -237,7 +237,7 @@ _breaker5: None = None
 class filter_test__interfaces__interface__ipv6(yadata.MNode):
     mtu: ?u64
 
-    mut def __init__(self, mtu: ?u64) -> None:
+    mut def __init__(self, mtu: ?u64=None) -> None:
         self.mtu = mtu
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
@@ -259,7 +259,7 @@ class filter_test__interfaces__interface__address_entry(yadata.MNode):
     ip: str
     prefix_length: ?u64
 
-    mut def __init__(self, ip: str, prefix_length: ?u64) -> None:
+    mut def __init__(self, ip: str, prefix_length: ?u64=None) -> None:
         self.ip = ip
         self.prefix_length = prefix_length
 
@@ -321,7 +321,7 @@ class filter_test__interfaces__interface_entry(yadata.MNode):
     ipv6: filter_test__interfaces__interface__ipv6
     address: filter_test__interfaces__interface__address
 
-    mut def __init__(self, name: str, description: ?str, type: ?str, enabled: ?bool, admin_status: ?str, oper_status: ?str, last_change: ?str, statistics: ?filter_test__interfaces__interface__statistics=None, ipv4: ?filter_test__interfaces__interface__ipv4=None, ipv6: ?filter_test__interfaces__interface__ipv6=None, address: list[filter_test__interfaces__interface__address_entry]=[]) -> None:
+    mut def __init__(self, name: str, description: ?str=None, type: ?str=None, enabled: ?bool=None, admin_status: ?str=None, oper_status: ?str=None, last_change: ?str=None, statistics: ?filter_test__interfaces__interface__statistics=None, ipv4: ?filter_test__interfaces__interface__ipv4=None, ipv6: ?filter_test__interfaces__interface__ipv6=None, address: list[filter_test__interfaces__interface__address_entry]=[]) -> None:
         self.name = name
         self.description = description
         self.type = type

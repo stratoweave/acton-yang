@@ -35,7 +35,7 @@ _breaker1: None = None
 class m__cfg__sub(yadata.MNode):
     detail: ?str
 
-    mut def __init__(self, detail: ?str) -> None:
+    mut def __init__(self, detail: ?str=None) -> None:
         self.detail = detail
 
 
@@ -44,7 +44,7 @@ class m__cfg__items_entry(yadata.MNode):
     id: str
     val: ?u64
 
-    mut def __init__(self, id: str, val: ?u64) -> None:
+    mut def __init__(self, id: str, val: ?u64=None) -> None:
         self.id = id
         self.val = val
 
@@ -73,7 +73,7 @@ class m__cfg(yadata.MNode):
     sub: m__cfg__sub
     items: m__cfg__items
 
-    mut def __init__(self, name: ?str, enabled: ?bool, proto: ?Identityref, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
+    mut def __init__(self, name: ?str=None, enabled: ?bool=None, proto: ?Identityref=None, sub: ?m__cfg__sub=None, items: list[m__cfg__items_entry]=[]) -> None:
         self.name = name
         self.enabled = enabled
         self.proto = proto
