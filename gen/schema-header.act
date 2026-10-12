@@ -651,12 +651,10 @@ class DNodeInner(DNode):
                 else:
                     req_args.append("{usname(child)}: {pname(child)}")
             elif isinstance(child, DLeaf):
-                defval = ""
-                child_default = child.default
-                if not loose and child_default is not None:
-                    defval = "=None"
+                optional_arg = is_optional_arg_yang_leaf(child, loose)
+                defval = "=None" if optional_arg else ""
                 child_arg = "{usname(child)}: {yang_leaf_to_acton_arg_type(child, loose)}{defval}"
-                if is_optional_arg_yang_leaf(child, loose):
+                if optional_arg:
                     opt_args.append(child_arg)
                 else:
                     req_args.append(child_arg)
@@ -1370,16 +1368,13 @@ class DModule(DNodeInner):
     revision: list[Revision]
     yang_version: float
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: ?float, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[]):
         self.module = module
         self.name = name
         self.gname = "Container"
         self.namespace = namespace
         self.prefix = prefix
-        if yang_version is not None:
-            self.yang_version = yang_version
-        else:
-            self.yang_version = 1.1
+        self.yang_version = yang_version
         self.config = True # module is not config in itself, but it is the root
                            # of the data tree and the default is config=True, so
                            # we set it here
@@ -1431,7 +1426,7 @@ class DList(DNodeInner):
     unique: list[str]
     when: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by="system", reference=None, status=None, unique=[], when=None, exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, key: list[str]=[], config: bool, description: ?str=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, unique=[], when=None, exts=[], children=[]):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -1479,7 +1474,7 @@ class DLeaf(DNodeLeaf):
     mandatory: bool
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], is_key: bool=False, mandatory: bool=False, must=[], reference=None, status=None, type: DType, units=None, when=None, exts=[]):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -1528,7 +1523,7 @@ class DLeafList(DNodeLeaf):
     ordered_by: str
     units: ?str
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by="system", reference=None, status=None, type: DType, units=None, when=None, exts=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, config: bool, description: ?str=None, default=None, if_feature=[], max_elements: ?int=None, min_elements=0, must=[], ordered_by: str="system", reference=None, status=None, type: DType, units=None, when=None, exts=[]):
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -2444,7 +2439,7 @@ class DType(object):
         return "DType({self.format_common_params()})"
 
     def format_common_params(self) -> str:
-        return "name={repr(self.name)}, description={repr(self.description)}, reference={repr(self.reference)}, exts={repr(self.exts)}, builtin_type={repr(self.builtin_type)}, default={repr(self.default)}"
+        return "name={repr(self.name)}, description={repr(self.description)}, reference={repr(self.reference)}, units={repr(self.units)}, exts={repr(self.exts)}, builtin_type={repr(self.builtin_type)}, default={repr(self.default)}"
 
     def format_short_hint(self) -> str:
         return  self.builtin_type if self.builtin_type == self.name else "{self.builtin_type} {self.name}"
@@ -3559,7 +3554,7 @@ class SchemaNode(object):
                 cexts.append(cext)
         return cexts
 
-    def expand_augments(self, context: Context, target_base: SchemaNode=self, in_uses=False, remap_imports):
+    def expand_augments(self, context: Context, target_base: SchemaNode, in_uses=False, remap_imports: ?list[(orig: str, alias: str)]=None):
         """Expand augment node"""
         def get_target(target_base, target: str) -> SchemaNode:
 

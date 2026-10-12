@@ -57,7 +57,7 @@ class SubStmt(object):
     section: str
     cardinality: str
 
-    def __init__(self, name: str, argument_name: ?str, section: str, cardinality: str):
+    def __init__(self, name: str, argument_name: ?str=None, section: str, cardinality: str):
         self.name = name
         self.argument_name = argument_name
         self.section = section
@@ -533,7 +533,7 @@ snode_methods = {
                      feature=self.feature,
                      exts=self.compile_exts(context))
         self.expand_children(context, new, new_mod, new_ns, new_pfx, remap_imports)
-        new.expand_augments(context, remap_imports=remap_imports)
+        new.expand_augments(context, new, remap_imports=remap_imports)
         return new
 
 """
@@ -594,6 +594,7 @@ snode_methods = {
 
 """,
         "to_dnode": """    def to_dnode(self, context: DTypeContext) -> DList:
+        ordered_by = self.ordered_by
         new_dnode = DList(
             module=self.get_module_name(),
             namespace=self.get_namespace(),
@@ -606,7 +607,7 @@ snode_methods = {
             max_elements=self.get_max_elements(),
             min_elements=self.get_min_elements(),
             must=[m.to_dmust() for m in self.must],
-            ordered_by=self.ordered_by,
+            ordered_by=ordered_by if ordered_by is not None else "system",
             reference=self.reference,
             status=self.status,
             when=self.when,
@@ -654,6 +655,7 @@ snode_methods = {
 """,
         "to_dnode": """    def to_dnode(self, context: DTypeContext) -> DLeaf:
         dtype = self.type.to_dtype(context)
+        mandatory = self.mandatory
 
         new_default = self.default
         if new_default is None:
@@ -680,7 +682,7 @@ snode_methods = {
             description=self.description,
             if_feature=self.if_feature,
             is_key=is_key,
-            mandatory=self.mandatory,
+            mandatory=mandatory if mandatory is not None else False,
             must=[m.to_dmust() for m in self.must],
             reference=self.reference,
             status=self.status,
@@ -744,6 +746,7 @@ snode_methods = {
 """,
         "to_dnode": """    def to_dnode(self, context: DTypeContext) -> DLeafList:
         dtype = self.type.to_dtype(context)
+        ordered_by = self.ordered_by
 
         new_units = self.units
         if new_units is None:
@@ -761,7 +764,7 @@ snode_methods = {
             max_elements=self.get_max_elements(),
             min_elements=self.get_min_elements(),
             must=[m.to_dmust() for m in self.must],
-            ordered_by=self.ordered_by,
+            ordered_by=ordered_by if ordered_by is not None else "system",
             reference=self.reference,
             status=self.status,
             type=dtype,
@@ -1343,7 +1346,7 @@ def gen(stmts: dict[str, Stmt]) -> list[str]:
                 res.append("            new.children.append(Output(parent=new))")
             for substmt in stmt.substmts.values():
                 if substmt.name == "augment":
-                    res.append("        new.expand_augments(context)")
+                    res.append("        new.expand_augments(context, new)")
             res.append("        return new")
             res.append("")
         # ==============================================================
@@ -1646,5 +1649,5 @@ actor main(env):
         file.join_path([projpath, "schema-footer.act"])).read().decode()
 
     yang = "\n".join(schema_header.splitlines()[4:]) + "\n".join(gen(parse_stmts(rfc.rfc7950 + rfc7950bis))) + schema_footer
-    print(yang)
+    print(yang, end="")
     env.exit(0)

@@ -416,8 +416,9 @@ def repr_adata(v: value) -> str:
 
 
 def pradata(root: yschema.DRoot, node: ygdata.Node, self_name: str="ad", loose: bool=False, root_path: list[str]=[]):
-    used_modules = {}
-    body = _pradata_recursive(root, node, self_name, loose, top=True, root_path=root_path, spath=[PathElement(root)], path_var_names={}, reserved_names=set([self_name]), used_modules=used_modules, create_consumed_leaves=set())
+    path_var_names: dict[str, str] = {}
+    used_modules: dict[str, (prefix: str, namespace: str)] = {}
+    body = _pradata_recursive(root, node, self_name, loose, top=True, root_path=root_path, spath=[PathElement(root)], path_var_names=path_var_names, reserved_names=set([self_name]), used_modules=used_modules, create_consumed_leaves=set())
     if len(used_modules) == 0:
         return "\n".join(body)
     mods = sorted(used_modules.keys())
@@ -429,7 +430,7 @@ def pradata(root: yschema.DRoot, node: ygdata.Node, self_name: str="ad", loose: 
     return "\n".join(legend + body)
 
 
-def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str, loose: bool=False, top: bool=False, list_element: bool=False, root_path: list[str]=[], spath: list[PathElement]=[], path_var_names: dict[str, str], reserved_names: set[str], used_modules: dict[str, (prefix: str, namespace: str)], create_consumed_leaves: set[str]=set()) -> list[str]:
+def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str, loose: bool=False, top: bool=False, list_element: bool=False, root_path: list[str]=[], spath: list[PathElement]=[], path_var_names: dict[str, str], reserved_names: set[str], used_modules: dict[str, (prefix: str, namespace: str)], create_consumed_leaves: set[str]) -> list[str]:
 
     # `path_var_names` maps schema path -> local variable name.
     # `reserved_names` is the set of names already taken in generated code.
@@ -549,7 +550,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
         children because create*() do not accept nested optional descendants.
         """
         optional_leaf_args = []
-        create_consumed_leaf_args = set()
+        create_consumed_leaf_args: set[str] = set()
         unique_namer = yschema.UniqueNamer(container)
 
         for cchild in container.children:
@@ -634,7 +635,8 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                     # Recursive call to pradata() for the P-container, to fill in the rest of the optional children
                     res.extend(_pradata_recursive(child, container, child_var, loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, used_modules=used_modules, create_consumed_leaves=pc_consumed_leaf_args))
                 else:
-                    res.extend(_pradata_recursive(child, container, "{self_name}.{usname(child)}", loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, used_modules=used_modules))
+                    empty_consumed_leaves: set[str] = set()
+                    res.extend(_pradata_recursive(child, container, "{self_name}.{usname(child)}", loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, used_modules=used_modules, create_consumed_leaves=empty_consumed_leaves))
         elif isinstance(child, yschema.DList):
             if len(child.key) > 0:
                 glist = node.get_opt_list(fqname(child))
@@ -693,7 +695,8 @@ def prpaths(root: yschema.DRoot, node: ygdata.Node) -> list[str]:
     - presence DContainer (only when no child value nodes are set)
     """
     out: list[str] = []
-    _prpaths_recursive(root, node, [root], set(), out)
+    seen_paths: set[str] = set()
+    _prpaths_recursive(root, node, [root], seen_paths, out)
     return out
 
 

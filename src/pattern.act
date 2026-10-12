@@ -571,7 +571,7 @@ class _XmlRegexToRe(object):
             self.raise_error("Missing closing brace")
         return name
 
-    def raise_error(self, message: str, index: ?int):
+    def raise_error(self, message: str, index: ?int = None):
         i = index if index is not None else self.i - 1
         raise ValueError("{message} at position {i} in pattern {self.input}")
 
