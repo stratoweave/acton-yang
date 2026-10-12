@@ -18,7 +18,7 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, is_key=False, mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'first':0}), DTypeInstanceIdentifier(name='instance-identifier', description=None, reference=None, exts=[], builtin_type='instance-identifier', default=None, require_instance=False), DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
+SRC_DNODE_CHILD_0: DLeaf = DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l1', config=True, is_key=False, mandatory=False, type=DTypeUnion(name='union', description=None, reference=None, units=None, exts=[], builtin_type='union', default=None, types=[DTypeEnum(name='enumeration', description=None, reference=None, units=None, exts=[], builtin_type='enumeration', default=None, name_to_val={'first':0}), DTypeInstanceIdentifier(name='instance-identifier', description=None, reference=None, units=None, exts=[], builtin_type='instance-identifier', default=None, require_instance=False), DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])]))
 
 SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
@@ -34,7 +34,7 @@ _breaker1: None = None
 class root(yadata.MNode):
     l1: ?str
 
-    mut def __init__(self, l1: ?str) -> None:
+    mut def __init__(self, l1: ?str=None) -> None:
         self.l1 = l1
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:

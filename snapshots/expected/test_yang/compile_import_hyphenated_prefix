@@ -19,7 +19,7 @@ _identities: list[DIdentity] = []
 
 
 SRC_DNODE_CHILD_0: DContainer = DContainer(module='acme_foo-bar', namespace='http://example.com/foo', prefix='acme_foo-bar', name='c1', config=True, presence=False, children=[
-    DLeaf(module='acme_foo-bar', namespace='http://example.com/foo', prefix='acme_foo-bar', name='l1', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='acme_foo-bar', namespace='http://example.com/foo', prefix='acme_foo-bar', name='l1', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
 ])
 
 SRC_DNODE: DRoot = DRoot(
@@ -37,7 +37,7 @@ _breaker1: None = None
 class acme_foo_bar__c1(yadata.MNode):
     l1: ?str
 
-    mut def __init__(self, l1: ?str) -> None:
+    mut def __init__(self, l1: ?str=None) -> None:
         self.l1 = l1
 
     mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
