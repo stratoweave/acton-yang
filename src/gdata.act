@@ -751,20 +751,20 @@ class Node(value):
         else:
             raise ValueError("Unsupported node type in prsrc")
 
-    def to_json_str(self, pretty=True) -> str:
+    def to_json_str(self, pretty=False) -> str:
         """Serialize gdata to schema-free JSON text for storage."""
         return json.encode(self.to_json(), pretty=pretty)
 
-    def to_yang_jsonstr(self, pretty=True, deterministic=False) -> str:
+    def to_yang_jsonstr(self, pretty=False, deterministic=False) -> str:
         """Convert gdata to IETF RFC7951 JSON encoding of YANG-data
 
         When deterministic=True, node children are emitted in sorted order
         and system-ordered lists and leaf-lists elements are sorted. This makes
         the output stable for comparisons/tests.
         """
-        return json.encode(self.to_yang_dict(pretty, deterministic), pretty=pretty)
+        return json.encode(self.to_yang_dict(deterministic), pretty=pretty)
 
-    def to_yang_dict(self, pretty=True, deterministic=False) -> dict[str, ?value]:
+    def to_yang_dict(self, deterministic=False) -> dict[str, ?value]:
         """Convert gdata to a dict, structured according to IETF RFC7951 JSON
         encoding of YANG-data
 
@@ -781,7 +781,7 @@ class Node(value):
             child_dict = {}
             for nm,child in self_children.items():
                 if isinstance(child, Container):
-                    child_dict[fmt_json_name(nm, child.module)] = child.to_yang_dict(pretty, deterministic)
+                    child_dict[fmt_json_name(nm, child.module)] = child.to_yang_dict(deterministic)
                 elif isinstance(child, Leaf):
                     v = child.val
                     # "empty" type is encoded as an array with a null element "[null]"
@@ -802,7 +802,7 @@ class Node(value):
                     elems = []
                     for elem in child.entries(deterministic):
                         if isinstance(elem, Container):
-                            elems.append(elem.to_yang_dict(pretty, deterministic))
+                            elems.append(elem.to_yang_dict(deterministic))
                         elif isinstance(elem, Absent):
                             continue
                         else:
@@ -922,7 +922,7 @@ class Node(value):
         the output stable for comparisons/tests."""
         return self._to_xml_rec(deterministic=deterministic)
 
-    def to_xmlstr(self, pretty=True, deterministic=False) -> str:
+    def to_xmlstr(self, pretty=False, deterministic=False) -> str:
         """Convert this gdata node to an XML string.
 
         The result is a joined XML string of all the fragments, one for each of
@@ -2023,7 +2023,7 @@ class FNode(value):
             return [c._to_filter_xml_rec(None, deterministic) for c in self.children]
         return [self._to_filter_xml_rec(None, deterministic)]
 
-    def to_filter_xmlstr(self, pretty=True, deterministic=False) -> str:
+    def to_filter_xmlstr(self, pretty=False, deterministic=False) -> str:
         return xml.encode_nodes(self.to_filter_xml(deterministic), pretty)
 
 
@@ -5471,7 +5471,7 @@ def _test_to_xmlstr():
         }, ns="http://example.com/beep", module="beep")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_root():
     y1 = Container({
@@ -5481,7 +5481,7 @@ def _test_to_xmlstr_root():
         }, ns="http://example.com/acme", module="acme")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_module():
     y1 = Container({
@@ -5491,7 +5491,7 @@ def _test_to_xmlstr_module():
         }, ns="http://example.com/acme", module="acme")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_leaf_ns():
     y1 = Container({
@@ -5501,7 +5501,7 @@ def _test_to_xmlstr_leaf_ns():
         }, ns="http://example.com/acme", module="acme")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_mixed():
     y1 = Container({
@@ -5525,7 +5525,7 @@ def _test_to_xmlstr_mixed():
         ], ns="http://stratoweave.org/yang/stratoweave-device.yang")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_root_merge():
     y1 = Container({
@@ -5541,7 +5541,7 @@ def _test_to_xmlstr_root_merge():
     })
     ym = merge(y1, y2)
 
-    return ym.to_xmlstr()
+    return ym.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_presence():
     y1 = Container({
@@ -5550,14 +5550,14 @@ def _test_to_xmlstr_presence():
         }, presence=True, ns="http://example.com/acme", module="acme")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_presence_childless():
     y1 = Container({
         Id(NS_acme, "foo"): Container(presence=True, ns="http://example.com/acme", module="acme")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_empty_leaf():
     y1 = Container({
@@ -5565,7 +5565,7 @@ def _test_to_xmlstr_empty_leaf():
         Id("", "e2"): Absent()
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_identityref():
     y1 = Container({
@@ -5574,7 +5574,7 @@ def _test_to_xmlstr_identityref():
         Id(NS_acme, "augmented-identity-other"): Leaf(Identityref("bar", "http://example.com/bar", "bar", "bar"), "http://example.com/augmentor", "augmentor"),
     }, ns="http://example.com/acme", module="acme")
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 def _test_to_xmlstr_list_removal():
     y1 = Container({
@@ -5593,7 +5593,7 @@ def _test_to_xmlstr_list_removal():
         }, ns="http://example.com/acme", module="acme")
     })
 
-    return y1.to_xmlstr()
+    return y1.to_xmlstr(pretty=True)
 
 ################################################################################
 # Filter tests

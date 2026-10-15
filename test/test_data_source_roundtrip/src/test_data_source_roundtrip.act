@@ -14,7 +14,7 @@ import xml_full_adata
 import xml_full_adata_loose
 
 def _test_xml_full():
-    xml_out_full = xml_full_gdata.xml_full.to_xmlstr()
+    xml_out_full = xml_full_gdata.xml_full.to_xmlstr(pretty=True)
     xml_out_full_wrapped = "<data>\n{xml_out_full}\n</data>"
     testing.assertEqual(test_data_classes.xml_text_full, xml_out_full_wrapped)
 
@@ -25,13 +25,13 @@ def _test_gdata_full():
 
 def _test_adata_full():
     ad = xml_full_adata.adata()
-    xml_out_adata = ad.to_gdata().to_xmlstr()
+    xml_out_adata = ad.to_gdata().to_xmlstr(pretty=True)
     xml_out_adata_wrapped = "<data>\n{xml_out_adata}\n</data>"
     testing.assertEqual(test_data_classes.xml_text_full, xml_out_adata_wrapped)
 
 def _test_adata_full_loose():
     ad = xml_full_adata_loose.adata()
-    xml_out_adata = ad.to_gdata().to_xmlstr()
+    xml_out_adata = ad.to_gdata().to_xmlstr(pretty=True)
     xml_out_adata_wrapped = "<data>\n{xml_out_adata}\n</data>"
     testing.assertEqual(test_data_classes.xml_text_full, xml_out_adata_wrapped)
 

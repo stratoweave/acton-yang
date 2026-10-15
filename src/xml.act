@@ -557,7 +557,7 @@ def _test_filter_roundtrip_xml():
     root = _filter_test_schema()
     xml_in_str = '<foo xmlns="http://example.com/acme"><l1>1</l1><l2/><empty/><ll>2</ll><l><name>a</name><v/></l></foo>'
     g1 = from_filter_xml(root, xml.decode(xml_in_str))
-    xml_out = g1.to_filter_xmlstr(pretty=False, deterministic=True)
+    xml_out = g1.to_filter_xmlstr(deterministic=True)
     testing.assertEqual(_filter_norm_xml(xml_out), _filter_norm_xml(xml_in_str))
     g2 = from_filter_xml(root, xml.decode(xml_out))
     testing.assertEqual(g1.prsrc(deterministic=True), g2.prsrc(deterministic=True))
@@ -579,7 +579,7 @@ def _test_filter_roundtrip_gdata():
             ]),
         ]),
     ])
-    xml_out = g1.to_filter_xmlstr(pretty=False, deterministic=True)
+    xml_out = g1.to_filter_xmlstr(deterministic=True)
     expected = xml.encode_nodes([
         xml.Node("foo", nsdefs=[(None, ns)], children=[
             xml.Node("l1", nsdefs=[], text="1"),
