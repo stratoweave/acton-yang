@@ -205,7 +205,7 @@ def _test_foo_from_xml_full():
     testing.assertNone(gdiff)
 
     # Prove roundtrip XML -> gdata -> XML is idempotent
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     testing.assertEqual(xml_in.encode(), xml_out.encode())
     # Return golden gdata
@@ -285,7 +285,7 @@ def _test_foo_from_xml1():
 </data>"""
     xml_in = xml.decode(xml_text)
     gd2 = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     testing.assertEqual(xml_in.encode(), xml_out.encode())
 
@@ -306,7 +306,7 @@ def _test_foo_from_xml_pc1():
     pc1 = ad.pc1
     if pc1 is None:
         testing.error("pc1 not found in adata")
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     testing.assertEqual(xml_in.encode(), xml_out.encode())
 
@@ -340,7 +340,7 @@ def _test_foo_from_xml2():
     pc1 = ad.pc1
     if pc1 is not None:
         testing.error("pc1 found in adata")
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     testing.assertEqual(xml_in.encode(), xml_out.encode())
 
@@ -353,7 +353,7 @@ def _test_foo_from_xml_leaf_ns():
 </data>"""
     xml_in = xml.decode(xml_text)
     gd2 = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     #testing.assertEqual(xml_in.encode(), xml_out.encode())
     return xml_out_text
@@ -367,7 +367,7 @@ def _test_foo_from_xml_named_ns():
 </data>"""
     xml_in = xml.decode(xml_text)
     gd2 = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     #testing.assertEqual(xml_in.encode(), xml_out.encode())
     return xml_out_text
@@ -381,7 +381,7 @@ def _test_foo_from_xml_dots():
 </data>"""
     xml_in = xml.decode(xml_text)
     gd2 = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}</data>")
     #testing.assertEqual(xml_in.encode(), xml_out.encode())
     return xml_out_text
@@ -453,7 +453,7 @@ def _test_foo_from_xml_empty_leaf():
     l_empty = ad.c1.l_empty
     if l_empty is not None:
         testing.assertTrue(l_empty)
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     testing.assertEqual(xml_in.encode(), xml_out.encode())
 
@@ -464,7 +464,7 @@ def _test_list_create_idempotency():
     e2 = r.c1.li.create("a")
     e2.val = "2"
     # TODO: fix this!!!
-    return r.to_gdata().to_xmlstr()
+    return r.to_gdata().to_xmlstr(pretty=True)
 
 def _test_list_get():
     r = yang_foo_root()
@@ -826,12 +826,12 @@ def _test_foo_from_gdata_c1_l1():
 def _test_empty_true():
     r = yang_foo_root()
     r.c1.l_empty = True
-    return r.to_gdata().to_xmlstr()
+    return r.to_gdata().to_xmlstr(pretty=True)
 
 def _test_empty_false():
     r = yang_foo_root()
     r.c1.l_empty = False
-    return r.to_gdata().to_xmlstr()
+    return r.to_gdata().to_xmlstr(pretty=True)
 
 
 def basics_leaf_defaults(r):
@@ -922,7 +922,7 @@ def _test_bits_from_xml():
     else:
         raise ValueError("Expected l_bits to be set")
     testing.assertEqual(r.c1.ll_bits, [iset(["x", "y"]), iset(["x"])])
-    xml_out = r.to_gdata().to_xmlstr()
+    xml_out = r.to_gdata().to_xmlstr(pretty=True)
     testing.assertTrue("<l_bits>zebra aardvark medved</l_bits>" in xml_out, "bits must serialize in canonical position order, got: {xml_out}")
     testing.assertTrue("<ll_bits>x y</ll_bits>" in xml_out, "bits leaf-list entries must serialize in canonical position order, got: {xml_out}")
     return xml_out
@@ -942,7 +942,7 @@ def _test_union_bits_roundtrip():
         testing.assertEqual(sv, iset(["red", "green"]))
     else:
         raise ValueError("Expected l_union_bits to hold a set of bit names")
-    xml_out = r.to_gdata().to_xmlstr()
+    xml_out = r.to_gdata().to_xmlstr(pretty=True)
     testing.assertTrue("<l_union_bits>red green</l_union_bits>" in xml_out, "union bits must round-trip in canonical position order, got: {xml_out}")
 
 def _test_empty_presence():
@@ -951,7 +951,7 @@ def _test_empty_presence():
     gd2 = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
     ad = yang_foo_root.from_gdata(gd2)
     testing.assertNotNone(ad.empty_presence)
-    xml_out_text = gd2.to_xmlstr()
+    xml_out_text = gd2.to_xmlstr(pretty=True)
     xml_out = xml.decode("<data>\n{xml_out_text}\n</data>")
     # testing.assertEqual(xml_in.encode(), xml_out.encode())
     return xml_out_text
@@ -1093,7 +1093,7 @@ json_full = {
 def _test_foo_from_json_full():
     gd2 = yjson.from_json(yang_foo.SRC_DNODE, json_full)
     print(gd2.prsrc(), err=True)
-    json_out = gd2.to_yang_jsonstr()
+    json_out = gd2.to_yang_jsonstr(pretty=True)
     # This is not entirely in line with RFC 7951, Section 6.1: A value of the
     # "int64", "uint64", or "decimal64" type is represented as a JSON string ...
     # json.encode serializes fixed-size numeric types to numeric literals.
@@ -1130,7 +1130,7 @@ def _test_foo_from_json_empty_leaf():
     l_empty = ad.c1.l_empty
     if l_empty is not None:
         testing.assertTrue(l_empty)
-    json_out_text = gd2.to_yang_jsonstr(pretty=False)
+    json_out_text = gd2.to_yang_jsonstr()
     testing.assertEqual(json_text, json_out_text)
 
 def _test_from_json():
@@ -1144,7 +1144,7 @@ def _test_from_json():
     gd2 = yjson.from_json(yang_one.SRC_DNODE, json_data)
     #root = yang_one.root.from_gdata(gd2)
     #testing.assertEqual(root.children["tc1"].children["l1"].val, "foo")
-    return gd2.to_xmlstr()
+    return gd2.to_xmlstr(pretty=True)
 
 # example JSON data
 jd1 = {
@@ -1187,7 +1187,7 @@ def _test_json_to_gdata():
 def _test_json_roundtrip():
     """Test JSON roundtrip"""
     gd2 = yjson.from_json(yang_foo.SRC_DNODE, jd1)
-    json_out = gd2.to_yang_jsonstr()
+    json_out = gd2.to_yang_jsonstr(pretty=True)
     # This is not entirely in line with RFC 7951, Section 6.1: A value of the
     # "int64", "uint64", or "decimal64" type is represented as a JSON string ...
     # json.encode serializes fixed-size numeric types to numeric literals.

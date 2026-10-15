@@ -47,14 +47,14 @@ def _sample_tree() -> gdata.Node:
 
 def _render_data(node: ?gdata.Node) -> str:
     actual = node!
-    return "Filtered gdata tree:\n" + actual.prsrc(deterministic=True) + "\n\n" + "Filtered data XML:\n" + actual.to_xmlstr(deterministic=True)
+    return "Filtered gdata tree:\n" + actual.prsrc(deterministic=True) + "\n\n" + "Filtered data XML:\n" + actual.to_xmlstr(pretty=True, deterministic=True)
 
 def _render_subscription(head: str, filt: gdata.FNode) -> str:
     if filt.name is not None:
         filtered = gdata.filter(_sample_tree(), gdata.FNode(children=[filt]))
     else:
         filtered = gdata.filter(_sample_tree(), filt)
-    return head + "\n\n" + "NETCONF XML subtree filter:\n" + filt.to_filter_xmlstr(deterministic=True) + "\n\n" + _render_data(filtered)
+    return head + "\n\n" + "NETCONF XML subtree filter:\n" + filt.to_filter_xmlstr(pretty=True, deterministic=True) + "\n\n" + _render_data(filtered)
 
 def _test_subs_raw_clock():
     filt = ft_oper.subs.system_state.clock.filt()!
