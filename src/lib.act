@@ -366,8 +366,12 @@ def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.Fi
     sources.
     """
     fs = file.FS(fc)
-    cache_dir = [fs.homedir(), ".cache", "ayang"]
-    fs.mkdir(file.join_path(cache_dir))
+    home = fs.homedir()
+    cache_dir = [home, ".cache", "ayang"]
+    # Wait for each mkdir: the cache files below go into this directory.
+    # mkdir does not create parents, so create ~/.cache first.
+    await async fs.mkdir(file.join_path([home, ".cache"]))
+    await async fs.mkdir(file.join_path(cache_dir))
 
     statements: list[yschema.Statement] = []
 
