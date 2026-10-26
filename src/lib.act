@@ -1,7 +1,3 @@
-import file
-import hash.wyhash as wyhash
-import std.json as json
-
 import parser as yparser
 import schema as yschema
 import transform_explicit_cases
@@ -320,76 +316,6 @@ def compile_to_droot(dmodules: list[yschema.DModule], allow_failure: ?list[str]=
     DModules and combines them into a single DRoot object.
     """
     return yschema.DRoot.from_modules(dmodules, allow_failure)
-
-
-def _load_cached_statement(fc: file.FileCap, cache_file: str) -> ?yschema.Statement:
-    """Try to load cached Statement from JSON file"""
-    rfc = file.ReadFileCap(fc)
-
-    rf = None
-    try:
-        rf = file.ReadFile(rfc, cache_file)
-    except FileNotFoundError:
-        return None
-
-    if rf is not None:
-        json_content = rf.read().decode()
-        rf.close()
-
-        json_data = None
-        try:
-            json_data = json.decode(json_content)
-        except ValueError:
-            return None
-
-        if json_data is not None:
-            try:
-                return yschema.Statement.from_dict(json_data)
-            except Exception:
-                return None
-
-
-def _save_statement_to_cache(fc: file.FileCap, cache_file: str, stmt: yschema.Statement):
-    """Save Statement to cache as JSON"""
-    wfc = file.WriteFileCap(fc)
-    json_content = json.encode(stmt.to_dict(), pretty=True)
-    wf = file.WriteFile(wfc, cache_file)
-    wf.write(json_content.encode())
-    wf.close()
-
-
-def compile_with_cache(yang_sources: list[str], strict_quoting=True, fc: file.FileCap, allow_failure: ?list[str]=None) -> yschema.DRoot:
-    """Parse and compile a set of YANG modules and submodules into a derived schema tree, but with Statement caching.
-
-    This function is equivalent to the compile function, except that it caches
-    the parsed Statement trees as JSON files to avoid re-parsing unchanged YANG
-    sources.
-    """
-    fs = file.FS(fc)
-    home = fs.homedir()
-    cache_dir = [home, ".cache", "ayang"]
-    # Wait for each mkdir: the cache files below go into this directory.
-    # mkdir does not create parents, so create ~/.cache first.
-    await async fs.mkdir(file.join_path([home, ".cache"]))
-    await async fs.mkdir(file.join_path(cache_dir))
-
-    statements: list[yschema.Statement] = []
-
-    for src in yang_sources:
-        content_hash = str(wyhash.hash(0, src.encode()))
-        cache_filename = "{content_hash}.json"
-        cache_path = file.join_path(cache_dir + [cache_filename])
-
-        stmt = _load_cached_statement(fc, cache_path)
-
-        if stmt is not None:
-            statements.append(stmt)
-        else:
-            new_stmt = yparser.parse(src, strict_quoting)
-            _save_statement_to_cache(fc, cache_path, new_stmt)
-            statements.append(new_stmt)
-
-    return compile_to_droot(compile_to_dmodules(compile_modules(parse_modules(statements))), allow_failure)
 
 
 def compile_from_stmt(yang_statements: list[yschema.Statement]):

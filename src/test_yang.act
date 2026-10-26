@@ -275,11 +275,6 @@ def _test_parse_pryang_non_idempotent():
     testing.assertEqual(yy1, yy2, "YANG round trip^2 failed")
     return yy1
 
-def _test_statement_dict_roundtrip():
-    s1 = yparser.parse(test_yang)
-    s2 = yschema.Statement.from_dict(s1.to_dict())
-    testing.assertEqual(s1.prsrc(), s2.prsrc())
-
 def _test_prsrc():
     s = yang.schema_from_src(test_yang)
     return s.prsrc()

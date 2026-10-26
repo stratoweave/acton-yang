@@ -226,22 +226,6 @@ class Statement(object):
         res += ")\n"
         return res
 
-    def to_dict(self) -> dict[str, ?value]:
-        subs = [ss.to_dict() for ss in self.substatements]
-        return {"kw": self.kw, "arg": self.arg, "prefix": self.prefix, "substatements": subs}
-
-    @staticmethod
-    def from_dict(d: dict[str, ?value]):
-        def maybe_str(k):
-            v = d[k]
-            if isinstance(v, str):
-                return v
-        s = Statement(str(d["kw"]), maybe_str("arg"), maybe_str("prefix"))
-        substatements = d.get("substatements")
-        if isinstance(substatements, list):
-            s.substatements = [Statement.from_dict(ss) for ss in substatements]
-        return s
-
 
 # YANG schema for data / the derived schema
 #
