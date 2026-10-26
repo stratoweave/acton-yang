@@ -69,7 +69,7 @@ def test_compile_yang_directory(t: testing.EnvT, dir_path: str, exclude_patterns
 
         print("Compiling {len(yang_sources)} YANG modules...", err=True)
         sw = time.Stopwatch()
-        root = yang.compile_with_cache(yang_sources, strict_quoting=strict_quoting, fc=file_cap)
+        root = yang.compile(yang_sources, strict_quoting=strict_quoting)
         elapsed = sw.elapsed()
 
         msg = "Successfully compiled {len(yang_sources)} YANG modules from {dir_path}"
