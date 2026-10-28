@@ -38,7 +38,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[SRC_DNODE_RPC_0],
-    module_metadata={'urn:example:keygrp':('keygrp', None), 'urn:example:svc':('svc', None)},
+    module_metadata={'urn:example:keygrp':('keygrp', None, [], False), 'urn:example:svc':('svc', None, [], True)},
 )
 
 NS_keygrp: str = 'urn:example:keygrp'

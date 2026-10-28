@@ -47,7 +47,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_1, SRC_DNODE_CHILD_2],
     identities=[],
     rpcs=[],
-    module_metadata={'http://example.com/keywords':('keywords', None)},
+    module_metadata={'http://example.com/keywords':('keywords', None, [], True)},
 )
 
 SRC_YANG_0: str = r"""module keywords {

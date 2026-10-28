@@ -116,6 +116,7 @@ def parse_modules(yang_sources: Iterable[yschema.Statement]) -> NameRevMap[ysche
             except KeyError:
                 raise ValueError("{m.name} - submodule {include.module} not found.")
             else:
+                include.revision_date = submod.get_modrev().rev
                 # Track all prefix remappings needed when merging submodule into parent:
                 # 1. Submodule uses different prefix for parent module (belongs-to)
                 # 2. Same module imported with different prefix in parent vs submodule
@@ -239,7 +240,6 @@ def parse_modules(yang_sources: Iterable[yschema.Statement]) -> NameRevMap[ysche
 
                 m.exts.extend(submod.exts)
 
-        m.include = []
     return modules
 
 

@@ -221,7 +221,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0, SRC_DNODE_CHILD_19, SRC_DNODE_CHILD_20, SRC_DNODE_CHILD_21, SRC_DNODE_CHILD_22, SRC_DNODE_CHILD_23, SRC_DNODE_CHILD_24, SRC_DNODE_CHILD_25, SRC_DNODE_CHILD_26, SRC_DNODE_CHILD_27, SRC_DNODE_CHILD_28, SRC_DNODE_CHILD_29, SRC_DNODE_CHILD_30, SRC_DNODE_CHILD_31, SRC_DNODE_CHILD_32, SRC_DNODE_CHILD_33, SRC_DNODE_CHILD_34, SRC_DNODE_CHILD_35, SRC_DNODE_CHILD_36, SRC_DNODE_CHILD_37],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[],
-    module_metadata={'http://example.com/foo':('foo', None), 'http://example.com/bar':('bar', None)},
+    module_metadata={'http://example.com/foo':('foo', None, [('qux', None)], True), 'http://example.com/bar':('bar', None, [], True)},
 )
 
 SRC_YANG_0: str = r"""module foo {

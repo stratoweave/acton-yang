@@ -43,7 +43,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[],
     identities=[],
     rpcs=[SRC_DNODE_RPC_0, SRC_DNODE_RPC_1],
-    module_metadata={'http://example.com/yangrpc':('yangrpc', None)},
+    module_metadata={'http://example.com/yangrpc':('yangrpc', None, [], True)},
 )
 
 NS_yangrpc: str = 'http://example.com/yangrpc'

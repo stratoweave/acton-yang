@@ -2078,6 +2078,8 @@ def _test_compile_submodules1():
     belongs-to foo {
         prefix "foo";
     }
+    revision 2024-02-02;
+    revision 2024-03-03;
     container c2 {
         leaf l2 {
             type string;

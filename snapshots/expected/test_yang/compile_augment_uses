@@ -30,7 +30,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
-    module_metadata={'http://example.com/some-ext':('some-ext', None), 'http://example.com/foo':('foo', None)},
+    module_metadata={'http://example.com/some-ext':('some-ext', None, [], False), 'http://example.com/foo':('foo', None, [], True)},
 )
 
 NS_foo: str = 'http://example.com/foo'

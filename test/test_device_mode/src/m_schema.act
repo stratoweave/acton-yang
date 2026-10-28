@@ -60,7 +60,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2],
     rpcs=[SRC_DNODE_RPC_0],
-    module_metadata={'urn:example:m':('m', None)},
+    module_metadata={'urn:example:m':('m', None, [], True)},
 )
 
 SRC_YANG_0: str = r"""module m {

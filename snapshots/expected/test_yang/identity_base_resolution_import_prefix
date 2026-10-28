@@ -58,7 +58,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1, SRC_DNODE_IDENTITY_2, SRC_DNODE_IDENTITY_3],
     rpcs=[],
-    module_metadata={'http://example.com/base':('base-module', None), 'http://example.com/derived':('derived-module', None)},
+    module_metadata={'http://example.com/base':('base-module', None, [], False), 'http://example.com/derived':('derived-module', None, [], False)},
 )
 
 NS_base_module: str = 'http://example.com/base'

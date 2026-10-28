@@ -26,7 +26,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
-    module_metadata={'http://example.com/loose-required':('loose-required', None)},
+    module_metadata={'http://example.com/loose-required':('loose-required', None, [], True)},
 )
 
 SRC_YANG_0: str = r"""module loose-required {

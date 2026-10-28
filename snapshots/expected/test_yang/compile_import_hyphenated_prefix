@@ -26,7 +26,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[],
     rpcs=[],
-    module_metadata={'http://example.com/qux':('acme_qux-baz', None), 'http://example.com/foo':('acme_foo-bar', None)},
+    module_metadata={'http://example.com/qux':('acme_qux-baz', None, [], False), 'http://example.com/foo':('acme_foo-bar', None, [], True)},
 )
 
 NS_acme_foo_bar: str = 'http://example.com/foo'
