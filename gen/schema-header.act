@@ -1641,7 +1641,7 @@ class DOutput(DNodeInner):
         ]
 
 # Tuple alias for the entry in the module_metadata dict
-type ModuleMetadata = (module: str, revision: ?str, submodules: list[(name: str, revision: ?str)], implemented: bool)
+type ModuleMetadata = (name: str, revision: ?str, submodules: list[(name: str, revision: ?str)], implemented: bool)
 
 
 class DRoot(DNodeInner):
@@ -1748,7 +1748,7 @@ class DRoot(DNodeInner):
                 if len(module.revision) > 0:
                     latest_revision = module.revision[0].date
                 submodules = [(name=include.module, revision=include.revision_date) for include in module.include]
-                module_metadata[module.namespace] = (module=module.module, revision=latest_revision, submodules=submodules, implemented=len(module.children) > 0 or len(module.augment) > 0)
+                module_metadata[module.namespace] = (name=module.module, revision=latest_revision, submodules=submodules, implemented=len(module.children) > 0 or len(module.augment) > 0)
 
         root = DRoot(children, identities, rpcs, module_metadata)
 
@@ -1992,7 +1992,7 @@ class DRoot(DNodeInner):
             else:
                 res.extend(DRoot._pr_src_yang(schema_yang))
 
-        res.extend(["NS_{safe_name(self.module_metadata[ns].module)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
+        res.extend(["NS_{safe_name(self.module_metadata[ns].name)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
         res.append("")
         res.append("")
         res.extend(inner)
