@@ -4,13 +4,9 @@ import file
 import yang
 import yang.schema as yschema
 
-def compile_root(yangs: list[str]) -> yschema.DRoot:
-    modules = yang.compile_modules(yang.parse_sources(yangs))
-    return yang.compile_to_droot(yang.compile_to_dmodules(modules))
-
 def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose=False) -> None:
-    root = compile_root(yangs)
-    src = root.prdaclass(schema_yang=yangs, loose=loose, include_state=True)
+    compiled = yang.compile_with_sources(yangs, strict_quoting=False)
+    src = compiled.root.prdaclass(schema_yang=compiled.sources, loose=loose, include_state=True)
     wf = file.WriteFile(wfcap, filename)
 
     src += "mut def src_schema() -> dict[str, SchemaNode]:\n"
@@ -31,8 +27,8 @@ def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose
     await async wf.close()
 
 def yang_to_oper_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str) -> None:
-    root = compile_root(yangs)
-    src = root.prdaclass(schema_yang=yangs, loose=True, include_state=True, include_subs=True)
+    compiled = yang.compile_with_sources(yangs, strict_quoting=False)
+    src = compiled.root.prdaclass(schema_yang=compiled.sources, loose=True, include_state=True, include_subs=True)
     wf = file.WriteFile(wfcap, filename)
 
     src += "mut def src_schema() -> dict[str, SchemaNode]:\n"

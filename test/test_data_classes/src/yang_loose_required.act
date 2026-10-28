@@ -42,9 +42,9 @@ SRC_YANG_0: str = r"""module loose-required {
     }
 }"""
 
-pure def src_yang() -> list[str]:
+pure def src_yang() -> list[YangSource]:
     return [
-        SRC_YANG_0,
+        (name='loose-required', revision=None, src=SRC_YANG_0),
     ]
 
 

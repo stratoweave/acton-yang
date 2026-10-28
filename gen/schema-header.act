@@ -1666,6 +1666,9 @@ class DOutput(DNodeInner):
             ("exts", self.exts),
         ]
 
+# Tuple alias for passing the (sub)module metadata and source into adata generator
+type YangSource = (name: str, revision: ?str, src: str)
+
 # Tuple alias for the entry in the module_metadata dict
 type ModuleMetadata = (name: str, revision: ?str, submodules: list[(name: str, revision: ?str)], implemented: bool)
 
@@ -1959,30 +1962,33 @@ class DRoot(DNodeInner):
         return res
 
     @staticmethod
-    def _pr_src_yang(schema_yang: list[str]) -> list[str]:
+    def _pr_src_yang(schema_yang: list[YangSource]) -> list[str]:
         """Emit the SRC_YANG_* raw-source constants and the src_yang() accessor.
+
+        src_yang() returns each source with the name and revision it
+        declares, so that a source can be looked up by name.
 
         Shared by prschema (separate schema module) and prdaclass (inline mode).
         """
         res = []
-        src_yang_names = []
+        entries = []
         i = 0
         for s in schema_yang:
             src_yang_name = "SRC_YANG_{i}"
-            src_yang_names.append(src_yang_name)
-            res.append('{src_yang_name}: str = r"""{s}"""')
+            entries.append("(name={repr(s.name)}, revision={repr(s.revision)}, src={src_yang_name})")
+            res.append('{src_yang_name}: str = r"""{s.src}"""')
             res.append("")
             i += 1
-        res.append("pure def src_yang() -> list[str]:")
+        res.append("pure def src_yang() -> list[YangSource]:")
         res.append("    return [")
-        for src_yang_name in src_yang_names:
-            res.append("        {src_yang_name},")
+        for entry in entries:
+            res.append("        {entry},")
         res.append("    ]")
         res.append("")
         res.append("")
         return res
 
-    def prschema(self, schema_yang: ?list[str]=None) -> str:
+    def prschema(self, schema_yang: ?list[YangSource]=None) -> str:
         """Print a standalone Acton module holding SRC_DNODE (and, when given, the
         SRC_YANG raw schema source) plus their dependencies.
 
@@ -2008,7 +2014,7 @@ class DRoot(DNodeInner):
             res.extend(DRoot._pr_src_yang(schema_yang))
         return "\n".join(res)
 
-    def prdaclass(self, schema_yang: ?list[str]=None, loose=False, device=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False, schema_module: ?str=None) -> str:
+    def prdaclass(self, schema_yang: ?list[YangSource]=None, loose=False, device=False, include_state=False, top=True, root_path: list[str]=[], exclude_ext: list[(name: str, namespace: str)]=[], include_subs=False, schema_module: ?str=None) -> str:
         def build_spath(spath: list[DNode]):
             if len(root_path) == len(spath) - 1:
                 return spath
@@ -2065,7 +2071,7 @@ class DRoot(DNodeInner):
 
         if schema_yang is not None:
             if schema_module is not None:
-                res.append("pure def src_yang() -> list[str]:")
+                res.append("pure def src_yang() -> list[YangSource]:")
                 res.append("    return {schema_module}.src_yang()")
                 res.append("")
                 res.append("")

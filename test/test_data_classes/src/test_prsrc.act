@@ -4,17 +4,8 @@ import yang
 # TODO: yang.adata is a transitive dependency from yang_one, yang_foo. We import
 # it explicitly as a workaround, remove when compiler is fixed
 import yang.adata
-import yang.schema as yschema
 import yang_one
 import yang_foo
-
-def _module_name(sn: yschema.SchemaNode) -> str:
-    if isinstance(sn, yschema.Module):
-        return sn.name
-    elif isinstance(sn, yschema.Submodule):
-        return sn.name
-    else:
-        raise ValueError("Expected Module or Submodule, got %s" % type(sn))
 
 def _test_prsrc_yang_one_roundtrip():
     """Test prsrc() consistency after restoring the schema from data structure
@@ -26,8 +17,8 @@ def _test_prsrc_yang_one_roundtrip():
     # schema_2 contains Module and Submodule objects from parsed YANG
     schema_2 = yang_one.src_schema()
     for y1 in yang_one.src_yang():
-        ys1 = yang.schema_from_src(y1)
-        ys2 = schema_2[_module_name(ys1)]
+        ys1 = yang.schema_from_src(y1.src)
+        ys2 = schema_2[y1.name]
         # Compare the Module or Submodule objects for equality using the Eq extension (generated)
         testing.assertEqual(ys1, ys2)
         # Compare the output of prsrc() to ensure we can do it again and it is stable
@@ -43,8 +34,8 @@ def _test_prsrc_yang_foo_roundtrip():
     # schema_2 contains Module and Submodule objects from parsed YANG
     schema_2 = yang_foo.src_schema()
     for y1 in yang_foo.src_yang():
-        ys1 = yang.schema_from_src(y1)
-        ys2 = schema_2[_module_name(ys1)]
+        ys1 = yang.schema_from_src(y1.src)
+        ys2 = schema_2[y1.name]
         # Compare the Module or Submodule objects for equality using the Eq extension (generated)
         testing.assertEqual(ys1, ys2)
         # Compare the output of prsrc() to ensure we can do it again and it is stable
@@ -58,7 +49,7 @@ def _test_prsrc_yang_one_compiled_roundtrip():
     schema tree with a newly compiled schema tree directly from YANG (also
     grabbed the adata module).
     """
-    schema_1 = yang.compile(yang_one.src_yang())
+    schema_1 = yang.compile([y.src for y in yang_one.src_yang()])
     schema_2 = yang_one.SRC_DNODE
     # TODO: Compare the DNode objects for equality using the Eq extension
     #testing.assertEqual(schema_1, schema_2)
@@ -73,7 +64,7 @@ def _test_prsrc_yang_foo_compiled_roundtrip():
     schema tree with a newly compiled schema tree directly from YANG (also
     grabbed the adata module).
     """
-    schema_1 = yang.compile(yang_foo.src_yang())
+    schema_1 = yang.compile([y.src for y in yang_foo.src_yang()])
     schema_2 = yang_foo.SRC_DNODE
     # TODO: Compare the DNode objects for equality using the Eq extension
     #testing.assertEqual(schema_1, schema_2)

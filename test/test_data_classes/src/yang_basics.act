@@ -151,9 +151,9 @@ SRC_YANG_0: str = r"""module basics {
     }
 }"""
 
-pure def src_yang() -> list[str]:
+pure def src_yang() -> list[YangSource]:
     return [
-        SRC_YANG_0,
+        (name='basics', revision=None, src=SRC_YANG_0),
     ]
 
 

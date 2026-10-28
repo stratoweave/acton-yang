@@ -33,13 +33,16 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1],
     rpcs=[],
-    module_metadata={'http://example.com/foo':('foo', None, [], True)},
+    module_metadata={'http://example.com/foo':('foo', '2025-06-30', [], True)},
 )
 
 SRC_YANG_0: str = r"""module foo {
     yang-version "1.1";
     namespace "http://example.com/foo";
     prefix "f";
+    revision 2024-01-01;
+    revision 2025-06-30;
+    revision 2023-05-05;
     identity base_id;
     identity der_id {
         base base_id;
@@ -57,9 +60,9 @@ SRC_YANG_0: str = r"""module foo {
     }
 }"""
 
-pure def src_yang() -> list[str]:
+pure def src_yang() -> list[YangSource]:
     return [
-        SRC_YANG_0,
+        (name='foo', revision='2025-06-30', src=SRC_YANG_0),
     ]
 
 
@@ -91,7 +94,7 @@ foo_der_id: Identityref = Identityref('der_id', ns='http://example.com/foo', mod
 
 SRC_DNODE: DRoot = foo_schema.SRC_DNODE
 
-pure def src_yang() -> list[str]:
+pure def src_yang() -> list[YangSource]:
     return foo_schema.src_yang()
 
 

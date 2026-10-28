@@ -205,18 +205,20 @@ proc def cmd_compile(env, file_cap, args):
             t2 = sw.elapsed()
             print("Generated SRC_DNODE in {t2.to_float()}s", err=True)
         elif stage == "adata":
-            root = yang.compile(yang_sources, strict_quoting=strict_quoting)
+            compiled = yang.compile_with_sources(yang_sources, strict_quoting=strict_quoting)
+            root = compiled.root
+            schema_yang = compiled.sources
             t1 = sw.elapsed()
             print("Compiled {len(yang_sources)} YANG modules in {t1.to_float()}s", err=True)
             sw.reset()
             if device and outfile != "-":
                 # Device mode also implies split modules (separate SRC_DNODE, SRC_YANG)
                 schema_module, schema_filename = _schema_target(outfile)
-                stage_output = root.prdaclass(schema_yang=yang_sources, loose=loose, device=device, schema_module=schema_module)
+                stage_output = root.prdaclass(schema_yang=schema_yang, loose=loose, device=device, schema_module=schema_module)
                 try:
                     wfc = file.WriteFileCap(file_cap)
                     dwf = file.WriteFile(wfc, schema_filename)
-                    dwf.write(root.prschema(schema_yang=yang_sources).encode())
+                    dwf.write(root.prschema(schema_yang=schema_yang).encode())
                     dwf.close()
                     print("Wrote schema module to {schema_filename}", err=True)
                 except OSError as e:
@@ -224,7 +226,7 @@ proc def cmd_compile(env, file_cap, args):
                     env.exit(1)
             else:
                 # Full mode (or stdout): emit SRC_DNODE inline.
-                stage_output = root.prdaclass(schema_yang=yang_sources, loose=loose, device=device)
+                stage_output = root.prdaclass(schema_yang=schema_yang, loose=loose, device=device)
             t2 = sw.elapsed()
             print("Generated adata in {t2.to_float()}s", err=True)
         else:
