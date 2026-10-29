@@ -1753,6 +1753,47 @@ class DRoot(DNodeInner):
 
         return root
 
+    @staticmethod
+    def merge(roots: list[DRoot]) -> DRoot:
+        """A merged root with the top-level nodes, RPCs, identities and modules of all roots.
+
+        Merging is done on the top-level nodes only, not recursively. The same
+        module may still appear in more than one root if it defines no top-level
+        node, like a module with only typedefs, groupings and identities.
+        Raises ValueError when roots hold different revisions of such a
+        module, as module_metadata lists a single revision per module.
+        """
+        children = []
+        rpcs = []
+        identities = []
+        module_metadata = {}
+        node_names = set()
+        identity_names = set()
+        for root in roots:
+            for child in root.children:
+                name = "{child.namespace}:{child.name}"
+                if name in node_names:
+                    raise ValueError("Top-level node {child.module}:{child.name} is in more than one root")
+                node_names.add(name)
+                if isinstance(child, DRpc):
+                    rpcs.append(child)
+                else:
+                    children.append(child)
+            for identity in root.identities:
+                name = "{identity.namespace}:{identity.name}"
+                # TODO: The base identities are persisted in
+                # DTypeIdentityref.identities, they should instead be injected
+                # into validate_value to make all merged identities visible
+                if name not in identity_names:
+                    identity_names.add(name)
+                    identities.append(identity)
+            for ns, meta in root.module_metadata.items():
+                existing = module_metadata.get(ns)
+                if existing is not None and existing.revision != meta.revision:
+                    raise ValueError("Module {meta.name} is in more than one root with different revisions: {existing.revision} and {meta.revision}")
+                module_metadata[ns] = meta
+        return DRoot(children, identities, rpcs, module_metadata)
+
     def _get_attrs(self):
         return [
             ("rpcs", self.rpcs),
