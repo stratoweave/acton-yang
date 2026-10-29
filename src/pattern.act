@@ -473,10 +473,6 @@ class _XmlRegexToRe(object):
                         self.raise_error("Unescaped '-' is only permitted as the first or last character in a character group", self.i)
                     else:
                         self.raise_error("Internal error: parse_pos_char_group: invalid state", self.i)
-                elif c == '.':
-                    self.i += 1
-                    builder.simple_part(c)
-                    state = _update_state_on_multi_char(state)
                 elif c == '\\':
                     self.i += 1
                     c1 = self.try_get_char()
@@ -541,6 +537,7 @@ class _XmlRegexToRe(object):
                     else:
                         self.raise_error("Missing character after escape \\")
                 elif c not in r"[]":
+                    # Any other character, including '.', is a literal single character inside a group
                     self.i += 1
                     if state == STATE_INIT and c == ':':
                         # Escape initial ':' to avoid misinterpretation as PCRE2 POSIX name class
@@ -674,7 +671,7 @@ def _rebuild_pos_group(elems: list[str]):
         elem = elems[0]
         if elem == r"\-":
             return "-"
-        elif elem in r"&?*+{}()|":
+        elif elem in r".&?*+{}()|":
             return "\\{elem}"
         return elems[0]
     else:
@@ -852,3 +849,26 @@ def _test_w3cregex_to_re_search_group_escape_unicode_block():
 
 def _test_w3cregex_to_re_search_cisci_xr():
     testing.assertEqual(w3cregex_to_re_search(r"[\w\-\.:,_@#%$\+=\| ;]+"), r"([\-\.:,_@#%$\+=\| ;]|(?![\p{P}\p{Z}\p{C}])[\x{0000}-\x{10FFFF}])+")
+
+def _test_w3cregex_to_re_search_group_dot():
+    testing.assertEqual(w3cregex_to_re_search(r"[.]"), r"\.")
+    testing.assertEqual(w3cregex_to_re_search(r"[^.]"), r"[^.]")
+    testing.assertEqual(w3cregex_to_re_search(r"[+-.]"), r"[+-.]")
+    testing.assertEqual(w3cregex_to_re_search(r"[.-0]"), r"[.-0]")
+
+def _test_w3cregex_to_re_nokia_sros_http_url_loose():
+    testing.assertEqual(w3cregex_to_re(r"\w[\w+-.]*:[\\/]{2}[^\\/]+[\\/].*"), r"^((?![\p{P}\p{Z}\p{C}])[\x{0000}-\x{10FFFF}]([+-.]|(?![\p{P}\p{Z}\p{C}])[\x{0000}-\x{10FFFF}])*:[\\/]{2}[^\\/]+[\\/].*)$")
+    p = YangPattern.from_yang_regex(r"\w[\w+-.]*:[\\/]{2}[^\\/]+[\\/].*", False)
+    testing.assertTrue(p.match("svn+ssh.x://host/path"))
+    testing.assertFalse(p.match("http:/host/path"))
+
+def _test_yang_pattern_group_dot_match():
+    p = YangPattern.from_yang_regex(r"[+-.]", False)
+    testing.assertTrue(p.match("+"))
+    testing.assertTrue(p.match(","))
+    testing.assertTrue(p.match("-"))
+    testing.assertTrue(p.match("."))
+    testing.assertFalse(p.match("a"))
+    d = YangPattern.from_yang_regex(r"[.]", False)
+    testing.assertTrue(d.match("."))
+    testing.assertFalse(d.match("x"))
