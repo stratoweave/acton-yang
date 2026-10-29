@@ -671,7 +671,7 @@ def _rebuild_pos_group(elems: list[str]):
         elem = elems[0]
         if elem == r"\-":
             return "-"
-        elif elem in r".&?*+{}()|":
+        elif elem in r".$&?*+{}()|":
             return "\\{elem}"
         return elems[0]
     else:
@@ -872,3 +872,14 @@ def _test_yang_pattern_group_dot_match():
     d = YangPattern.from_yang_regex(r"[.]", False)
     testing.assertTrue(d.match("."))
     testing.assertFalse(d.match("x"))
+
+def _test_w3cregex_to_re_search_group_dollar():
+    testing.assertEqual(w3cregex_to_re_search(r"[$]"), r"\$")
+    testing.assertEqual(w3cregex_to_re_search(r"[^$]"), r"[^$]")
+    testing.assertEqual(w3cregex_to_re_search(r"[$a]"), r"[$a]")
+
+def _test_yang_pattern_group_dollar_match():
+    p = YangPattern.from_yang_regex(r"[$]", False)
+    testing.assertTrue(p.match("$"))
+    testing.assertFalse(p.match(""))
+    testing.assertFalse(p.match("x"))
