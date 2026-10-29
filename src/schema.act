@@ -1348,7 +1348,7 @@ class DModule(DNodeInner):
     revision: list[Revision]
     yang_version: float
 
-    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[]):
+    def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[], augment=[]):
         self.module = module
         self.name = name
         self.gname = "Container"
@@ -1359,7 +1359,7 @@ class DModule(DNodeInner):
                            # of the data tree and the default is config=True, so
                            # we set it here
         self.description = description
-        self.augment = []
+        self.augment = augment
         self.contact = contact
         self.deviation = deviation
         self.extension = extension
@@ -1636,12 +1636,16 @@ class DOutput(DNodeInner):
             ("exts", self.exts),
         ]
 
+# Tuple alias for the entry in the module_metadata dict
+type ModuleMetadata = (name: str, revision: ?str, submodules: list[(name: str, revision: ?str)], implemented: bool)
+
+
 class DRoot(DNodeInner):
     identities: list[DIdentity]
     rpcs: list[DRpc]
-    module_metadata: dict[str, (module: str, revision: ?str)]
+    module_metadata: dict[str, ModuleMetadata]
 
-    def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, (module: str, revision: ?str)]={}):
+    def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, ModuleMetadata]={}):
         self.module = ""
         self.namespace = ""
         self.prefix = ""
@@ -1662,14 +1666,8 @@ class DRoot(DNodeInner):
         children = []
         rpcs = []
         identity_map = {}  # Map from "prefix:name" to DIdentity instance
-        module_metadata = {}
         for module in modules:
             if isinstance(module, DModule):
-                latest_revision: ?str = None
-                if len(module.revision) > 0:
-                    latest_revision = module.revision[0].date
-                module_metadata[module.namespace] = (module=module.module, revision=latest_revision)
-
                 for child in module.children:
                     if isinstance(child, DRpc):
                         rpcs.append(child)
@@ -1738,6 +1736,15 @@ class DRoot(DNodeInner):
                 raise ValueError(error)
 
         identities = [v.identity for v in identity_map.values()]
+
+        module_metadata = {}
+        for module in modules:
+            if isinstance(module, DModule):
+                latest_revision: ?str = None
+                if len(module.revision) > 0:
+                    latest_revision = module.revision[0].date
+                submodules = [(name=include.module, revision=include.revision_date) for include in module.include]
+                module_metadata[module.namespace] = (name=module.module, revision=latest_revision, submodules=submodules, implemented=len(module.children) > 0 or len(module.augment) > 0)
 
         root = DRoot(children, identities, rpcs, module_metadata)
 
@@ -1981,7 +1988,7 @@ class DRoot(DNodeInner):
             else:
                 res.extend(DRoot._pr_src_yang(schema_yang))
 
-        res.extend(["NS_{safe_name(self.module_metadata[ns].module)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
+        res.extend(["NS_{safe_name(self.module_metadata[ns].name)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
         res.append("")
         res.append("")
         res.extend(inner)
@@ -8005,11 +8012,13 @@ class Module(SchemaNodeInner):
             name=self.name,
             description=self.description,
             identity=[c for c in self.children if isinstance(c, Identity)],
+            include=self.include,
             # revisions SHOULD be sorted in reverse chronological order
             revision=list(reversed(sorted(self.revision))),
             reference=self.reference,
             exts=[ext.to_dext() for ext in self.exts],
-            children=self.get_dnode_children(context)
+            children=self.get_dnode_children(context),
+            augment=self.augment
         )
         return new_dnode
 

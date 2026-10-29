@@ -54,7 +54,7 @@ SRC_DNODE: DRoot = DRoot(
     children=[SRC_DNODE_CHILD_0],
     identities=[SRC_DNODE_IDENTITY_0, SRC_DNODE_IDENTITY_1],
     rpcs=[],
-    module_metadata={'http://example.com/basics':('basics', None)},
+    module_metadata={'http://example.com/basics':('basics', None, [], True)},
 )
 
 SRC_YANG_0: str = r"""module basics {
