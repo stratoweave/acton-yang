@@ -1,0 +1,6 @@
+module: test_yang
+   +--rw c1
+      +--rw l1 string
+      +--ro c2
+         +--ro l2 string
+         +--ro l3 uint32
