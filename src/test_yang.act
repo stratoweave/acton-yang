@@ -3862,7 +3862,7 @@ def _test_print_tree_simple_schemanode():
     res = []
     for m in modules:
         res.append(m.print_tree())
-	return "\n".join(res)
+    return "\n".join(res)
 
 def _test_print_tree_netinfra_inter_dnode():
     dmodules = yang.compile_to_dmodules(yang.compile_modules(yang.parse_modules(yang.parse_statements([netinfra_inter_yang]))))
