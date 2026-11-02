@@ -5,7 +5,7 @@ import yang
 import yang.schema as yschema
 
 def compile_root(yangs: list[str]) -> yschema.DRoot:
-    modules = yang.compile_modules(yang.parse_modules(yang.parse_statements(yangs)))
+    modules = yang.compile_modules(yang.parse_sources(yangs))
     return yang.compile_to_droot(yang.compile_to_dmodules(modules))
 
 def yang_to_act(wfcap: file.WriteFileCap, yangs: list[str], filename: str, loose=False) -> None:
