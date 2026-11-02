@@ -950,6 +950,81 @@ def _test_compile_augment():
     testing.assertEqual(root.get("c1").get("l2").config, True)
     return root.prdaclass()
 
+_merge_types_yang = r"""module types {
+  yang-version "1.1";
+  namespace "http://example.com/types";
+  prefix "types";
+  identity base-id;
+  typedef name {
+    type string;
+  }
+}"""
+
+_merge_foo_yang = r"""module foo {
+  yang-version "1.1";
+  namespace "http://example.com/foo";
+  prefix "foo";
+  import types {
+    prefix "types";
+  }
+  container c1 {
+    leaf l1 {
+      type types:name;
+    }
+  }
+  rpc r1;
+}"""
+
+_merge_bar_yang = r"""module bar {
+  yang-version "1.1";
+  namespace "http://example.com/bar";
+  prefix "bar";
+  import types {
+    prefix "types";
+  }
+  container c2 {
+    leaf l2 {
+      type identityref {
+        base types:base-id;
+      }
+    }
+  }
+}"""
+
+def _test_merge_roots():
+    foo = yang.compile([_merge_foo_yang, _merge_types_yang])
+    bar = yang.compile([_merge_bar_yang, _merge_types_yang])
+    root = yschema.DRoot.merge([foo, bar])
+
+    testing.assertEqual([c.name for c in root.children], ["c1", "c2", "r1"])
+    testing.assertEqual([r.name for r in root.rpcs], ["r1"])
+    testing.assertEqual([i.name for i in root.identities], ["base-id"])
+    testing.assertEqual(root.get("c2").get("l2").name, "l2")
+    meta = root.module_metadata
+    testing.assertEqual(sorted(meta.keys()), ["http://example.com/bar", "http://example.com/foo", "http://example.com/types"])
+    testing.assertEqual(meta["http://example.com/foo"].implemented, True)
+    testing.assertEqual(meta["http://example.com/types"].implemented, False)
+
+def _test_merge_roots_duplicate_node():
+    foo = yang.compile([_merge_foo_yang, _merge_types_yang])
+    try:
+        yschema.DRoot.merge([foo, foo])
+    except ValueError as exc:
+        testing.assertEqual(str(exc), "ValueError: Top-level node foo:c1 is in more than one root")
+        return
+    testing.error("Expected ValueError")
+
+def _test_merge_roots_different_revisions():
+    types_rev = _merge_types_yang.replace('prefix "types";', 'prefix "types";\n  revision 2026-10-30;')
+    foo = yang.compile([_merge_foo_yang, _merge_types_yang])
+    bar = yang.compile([_merge_bar_yang, types_rev])
+    try:
+        yschema.DRoot.merge([foo, bar])
+    except ValueError as exc:
+        testing.assertEqual(str(exc), "ValueError: Module types is in more than one root with different revisions: None and 2026-10-30")
+        return
+    testing.error("Expected ValueError")
+
 def _test_compile_augment_import():
     ys_foo = r"""module foo {
   yang-version "1.1";
