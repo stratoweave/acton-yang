@@ -34,25 +34,25 @@ derived_module_HTTP: Identityref = Identityref('HTTP', ns='http://example.com/de
 derived_module_HTTPS: Identityref = Identityref('HTTPS', ns='http://example.com/derived', mod='derived-module', pfx='derived')
 
 
-SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
+SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL', adata_name='PROTOCOL')
 
 SRC_DNODE_IDENTITY_1: DIdentity = DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[
-        DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
-    ])
+        DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL', adata_name='PROTOCOL')
+    ], adata_name='TCP')
 
 SRC_DNODE_IDENTITY_2: DIdentity = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTP', base=[
         DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[
-                DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
-            ])
-    ])
+                DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL', adata_name='PROTOCOL')
+            ], adata_name='TCP')
+    ], adata_name='HTTP')
 
 SRC_DNODE_IDENTITY_3: DIdentity = DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTPS', base=[
         DIdentity(module='derived-module', namespace='http://example.com/derived', prefix='derived', name='HTTP', base=[
                 DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='TCP', base=[
-                        DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL')
-                    ])
-            ])
-    ])
+                        DIdentity(module='base-module', namespace='http://example.com/base', prefix='base-pfx', name='PROTOCOL', adata_name='PROTOCOL')
+                    ], adata_name='TCP')
+            ], adata_name='HTTP')
+    ], adata_name='HTTPS')
 
 SRC_DNODE: DRoot = DRoot(
     children=[],

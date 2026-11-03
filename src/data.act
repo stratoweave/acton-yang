@@ -58,19 +58,11 @@ def format_schema_path(path: list[PathElement]) -> str:
             if not isinstance(prev, yschema.DRoot):
                 path_str = path_str + "/"
             if isinstance(prev, yschema.DNodeInner):
-                # TODO: replace with yang.schema.UniqueNamer(prev).unique_name(...) once
-                # the Acton compiler stops leaking function mut effect through to callers
-                # (which would make format_schema_path mut and break __str__'s purity).
-                names = [c.name for c in prev.children]
-                conflicts = {n for n in names if names.count(n) > 1}
-                name = elem.node.name
-                if name in conflicts:
-                    name = "{elem.node.prefix}:{name}"
-                path_str = path_str + name
-                keys_dict = elem.keys
-                if keys_dict is not None and len(keys_dict) > 0:
-                    predicates = ["{k}='{(v if isinstance(v, str) else str(v)).replace("'", "\\'")}'" for k, v in keys_dict.items()]
-                    path_str = path_str + "[" + ",".join(predicates) + "]"
+                path_str = path_str + yschema.unique_name(prev, elem.node)
+            keys_dict = elem.keys
+            if keys_dict is not None and len(keys_dict) > 0:
+                predicates = ["{k}='{(v if isinstance(v, str) else str(v)).replace("'", "\\'")}'" for k, v in keys_dict.items()]
+                path_str = path_str + "[" + ",".join(predicates) + "]"
         elif isinstance(elem.node, yschema.DRoot):
             path_str = "/"
         else:
@@ -116,14 +108,14 @@ protocol YangData:
     that can carry YANG-modeled data, like XML and JSON
     """
     # TODO: can value implement YangData? Yes, once Acton supports recursive protocol definitions ...
-    take_container: mut(yschema.DContainer, str, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
-    take_list: mut(yschema.DList, str, bool, list[PathElement]) -> list[(op: ?str, key: dict[str, value], val: value)]
+    take_container: mut(yschema.DContainer, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
+    take_list: mut(yschema.DList, bool, list[PathElement]) -> list[(op: ?str, key: dict[str, value], val: value)]
     # Return a typed tuple for leaves. The tuple carries the concrete type name
     # and the parsed value. Missing leaves return None.
-    take_leaf: mut(yschema.DRoot, yschema.DLeaf, str, bool, list[PathElement]) -> ?(op: ?str, t: str, val: ?value)
+    take_leaf: mut(yschema.DRoot, yschema.DLeaf, bool, list[PathElement]) -> ?(op: ?str, t: str, val: ?value)
     # For leaf-lists, return a list of typed tuples (op, t, val).
     # For identityref items, val holds a PartialIdentityref.
-    take_leaflist: mut(yschema.DRoot, yschema.DLeafList, str, bool, list[PathElement]) -> list[(op: ?str, t: str, val: ?value)]
+    take_leaflist: mut(yschema.DRoot, yschema.DLeafList, bool, list[PathElement]) -> list[(op: ?str, t: str, val: ?value)]
 
 
 def user_order(ordered_by):
@@ -245,10 +237,6 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
         prev_children = prev_container.children
     changed = False
 
-    unique_namer = yschema.UniqueNamer(s)
-    def usname(n) -> str:
-        return unique_namer.unique_safe_name(n.name, n.prefix)
-
     for child in s.children:
         if skip_nonkeys and isinstance(s, yschema.DList) and child.name not in s.key:
             continue
@@ -270,7 +258,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
             mod = child.module
 
         if isinstance(child, yschema.DContainer):
-            opval = data.take_container(child, usname(child), s.namespace != child.namespace, spath)
+            opval = data.take_container(child, s.namespace != child.namespace, spath)
             if opval is not None:
                 val = type_narrower(opval.val)
                 prev_cchild = prev_children.get(cid)
@@ -292,7 +280,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                         raise ValueError("Error reading {format_schema_path(path_with_child())}: Cannot find child node with name {child.name}")
 
         elif isinstance(child, yschema.DList):
-            list_val = data.take_list(child, usname(child), s.namespace != child.namespace, spath)
+            list_val = data.take_list(child, s.namespace != child.namespace, spath)
             list_elements = []
             prev_list = prev_children.get(cid)
             list_changed = False
@@ -318,7 +306,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                     changed = True
 
         elif isinstance(child, yschema.DLeafList):
-            leaflist_val = data.take_leaflist(root, child, usname(child), s.namespace != child.namespace, spath)
+            leaflist_val = data.take_leaflist(root, child, s.namespace != child.namespace, spath)
             if len(leaflist_val) > 0:
                 entries: list[ygdata.LeafListEntry] = []
                 for item in leaflist_val:
@@ -349,7 +337,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
                 raise ValueError("Error reading {format_schema_path(path_with_child())}: Missing non-optional leaf-list value")
 
         elif isinstance(child, yschema.DLeaf):
-            typed = data.take_leaf(root, child, usname(child), s.namespace != child.namespace, spath)
+            typed = data.take_leaf(root, child, s.namespace != child.namespace, spath)
             if typed is not None:
                 wleaf = None
                 if typed.op == OP_REMOVE:
@@ -506,7 +494,6 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
         """
         non_optional_args = []
         non_optional_containers = []
-        unique_namer = yschema.UniqueNamer(container)
 
         for cchild in container.children:
             def path_with_child():
@@ -522,13 +509,11 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                     non_optional_args.append(repr_adata(leaf.val))
             elif isinstance(cchild, yschema.DContainer):
                 if not (cchild.presence or loose or yschema.optional_subtree(cchild)):
-                    cchild_safe_name = unique_namer.unique_safe_name(cchild.name, cchild.prefix)
-
                     # Recursively build subtree for non-optional children
-                    sub_args, sub_containers = _find_non_optional_subtree(cchild, path_with_child(), node.get_cnt(fqname(cchild)), path + [cchild_safe_name], local_prefix)
+                    sub_args, sub_containers = _find_non_optional_subtree(cchild, path_with_child(), node.get_cnt(fqname(cchild)), path + [cchild.adata_name], local_prefix)
 
                     # Create variable declaration for this container
-                    mcchild_var = path_local_var(pname(path_with_child()), "{'_'.join(path)}_{cchild_safe_name}")
+                    mcchild_var = path_local_var(pname(path_with_child()), "{'_'.join(path)}_{cchild.adata_name}")
 
                     if sub_args:
                         sub_args_str = ", ".join(sub_args)
@@ -551,27 +536,22 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
         """
         optional_leaf_args = []
         create_consumed_leaf_args: set[str] = set()
-        unique_namer = yschema.UniqueNamer(container)
 
         for cchild in container.children:
             if isinstance(cchild, yschema.DLeaf):
                 if not yschema.is_optional_arg_yang_leaf(cchild, loose):
                     continue
 
-                cchild_arg = unique_namer.unique_safe_name(cchild.name, cchild.prefix)
                 leaf = node.get_opt_leaf_or_absent(fqname(cchild))
                 if isinstance(leaf, ygdata.Leaf):
-                    optional_leaf_args.append("{cchild_arg}={repr_adata(leaf.val)}")
-                    create_consumed_leaf_args.add(cchild_arg)
+                    optional_leaf_args.append("{cchild.adata_name}={repr_adata(leaf.val)}")
+                    create_consumed_leaf_args.add(cchild.adata_name)
                 elif isinstance(leaf, ygdata.Absent):
-                    optional_leaf_args.append("{cchild_arg}=False")
-                    create_consumed_leaf_args.add(cchild_arg)
+                    optional_leaf_args.append("{cchild.adata_name}=False")
+                    create_consumed_leaf_args.add(cchild.adata_name)
 
         return optional_leaf_args, create_consumed_leaf_args
 
-    unique_namer = yschema.UniqueNamer(s)
-    def usname(n) -> str:
-        return unique_namer.unique_safe_name(n.name, n.prefix)
     res = []
     if top:
         res.append('# Top node: {format_schema_path(spath)}{header_note(s, spath[0].node)}')
@@ -597,7 +577,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
             return spath + [PathElement(child, k)]
 
         if isinstance(child, yschema.DLeaf):
-            if usname(child) in create_consumed_leaves:
+            if child.adata_name in create_consumed_leaves:
                 continue
             if not top and not yschema.is_optional_arg_yang_leaf(child, loose):
                 # Do not print non-optional leafs if not top level, because
@@ -606,16 +586,16 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
             leaf = node.get_opt_leaf_or_absent(fqname(child))
             if isinstance(leaf, ygdata.Leaf):
                 # DLeaf values are copied verbatim
-                leaves.append("{self_name}.{usname(child)} = {repr_adata(leaf.val)}{code_note(child, s)}")
+                leaves.append("{self_name}.{child.adata_name} = {repr_adata(leaf.val)}{code_note(child, s)}")
             elif isinstance(leaf, ygdata.Absent):
                 # "leaf": Absent() is a remove op on an empty leaf
-                leaves.append("{self_name}.{usname(child)} = False{code_note(child, s)}")
+                leaves.append("{self_name}.{child.adata_name} = False{code_note(child, s)}")
         elif isinstance(child, yschema.DLeafList):
             leaflist = node.get_opt_leaflist(fqname(child))
             if leaflist is not None:
                 # DLeafList values are copied verbatim
                 vals = [repr_adata(e.val) for e in leaflist.entries if isinstance(e, ygdata.LeafListEntryMerge)]
-                leaves.append("{self_name}.{usname(child)} = [{", ".join(vals)}]{code_note(child, s)}")
+                leaves.append("{self_name}.{child.adata_name} = [{", ".join(vals)}]{code_note(child, s)}")
         elif isinstance(child, yschema.DContainer):
             container = node.get_opt_cnt(fqname(child))
             if container is not None:
@@ -623,20 +603,20 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                     res.append("")
                     res.append("# P-container: {format_schema_path(path_with_child())}{header_note(child, s)}")
                     # Build .pradata() code for this P-container
-                    pc_args, pc_var_declarations = _find_non_optional_subtree(child, path_with_child(), container, [usname(child)])
+                    pc_args, pc_var_declarations = _find_non_optional_subtree(child, path_with_child(), container, [child.adata_name])
                     pc_opt_leaf_args, pc_consumed_leaf_args = _find_direct_optional_leaf_create_args(child, container)
 
                     # Add variable declarations in reverse order to ensure the prerequisites are met
                     res.extend(list(reversed(pc_var_declarations)))
 
-                    child_var = path_local_var(pname(path_with_child()), usname(child))
+                    child_var = path_local_var(pname(path_with_child()), child.adata_name)
                     pc_args_str = ", ".join(pc_args + pc_opt_leaf_args)
-                    res.append("{child_var} = {self_name}.create_{usname(child)}({pc_args_str})")
+                    res.append("{child_var} = {self_name}.create_{child.adata_name}({pc_args_str})")
                     # Recursive call to pradata() for the P-container, to fill in the rest of the optional children
                     res.extend(_pradata_recursive(child, container, child_var, loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, used_modules=used_modules, create_consumed_leaves=pc_consumed_leaf_args))
                 else:
                     empty_consumed_leaves: set[str] = set()
-                    res.extend(_pradata_recursive(child, container, "{self_name}.{usname(child)}", loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, used_modules=used_modules, create_consumed_leaves=empty_consumed_leaves))
+                    res.extend(_pradata_recursive(child, container, "{self_name}.{child.adata_name}", loose, root_path=root_path, spath=path_with_child(), path_var_names=path_var_names, reserved_names=reserved_names, used_modules=used_modules, create_consumed_leaves=empty_consumed_leaves))
         elif isinstance(child, yschema.DList):
             if len(child.key) > 0:
                 glist = node.get_opt_list(fqname(child))
@@ -647,7 +627,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                 entries = glist.entries()
             if entries is not None and len(entries) > 0:
                 list_path_key = pname(path_with_child())
-                list_element_var = path_local_var(list_path_key, "{usname(child)}_element")
+                list_element_var = path_local_var(list_path_key, "{child.adata_name}_element")
                 for element in entries:
                     res.append("")
                     key_reprs = ", ".join([repr(element.get_leaf(k).val) for k in fq_list_keys(child)])
@@ -661,14 +641,13 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
 
                     num_keys = len(child.key)
                     if num_keys > 1:
-                        key_namer = yschema.UniqueNamer(child)
-                        key_pairs = ["{key_namer.unique_safe_name(child.key[i], child.prefix)}={non_optional_args[i]}" for i in range(num_keys)]
+                        key_pairs = ["{yschema.list_key_child(child, child.key[i]).adata_name}={non_optional_args[i]}" for i in range(num_keys)]
                         key_arg = "({", ".join(key_pairs)})"
                         create_call_args = [key_arg] + non_optional_args[num_keys:] + list_opt_leaf_args
                     else:
                         create_call_args = non_optional_args + list_opt_leaf_args
                     create_args_str = ", ".join(create_call_args)
-                    res.append("{list_element_var} = {self_name}.{usname(child)}.create({create_args_str})")
+                    res.append("{list_element_var} = {self_name}.{child.adata_name}.create({create_args_str})")
                     # Recursive call to pradata() for the list element
                     res.extend(_pradata_recursive(child, element, list_element_var, loose, list_element=True, root_path=root_path, spath=path_with_child(element.key_values(fq_list_keys(child))), path_var_names=path_var_names, reserved_names=reserved_names, used_modules=used_modules, create_consumed_leaves=list_consumed_leaf_args))
         else:
