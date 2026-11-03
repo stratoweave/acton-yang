@@ -40,7 +40,7 @@ extension dict[A(Hashable), B] (YangData):
                 return [(op=None, key=key_values(le), val=le) for le in lv]
         return []
 
-    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
+    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         new_path = path + [PathElement(schema)]
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             leaf_value = None
@@ -51,14 +51,14 @@ extension dict[A(Hashable), B] (YangData):
             if leaf_value is not None:
                 tv = try_parse_json_value(leaf_value, schema, schema.type, new_path, root)
                 if tv is not None:
-                    return (op=None, t=tv.t, val=tv.val)
+                    return (op=None, val=tv)
             else:
                 return None
         else:
             return None
 
-    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
-        values: list[(op: ?str, t: str, val: ?value)] = []
+    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, val: ?value)]:
+        values: list[(op: ?str, val: ?value)] = []
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
             leaflist_data = None
             if ns_qualified and schema.module is not None and schema.module != "":
@@ -70,25 +70,22 @@ extension dict[A(Hashable), B] (YangData):
                 for item in leaflist_data:
                     tv = try_parse_json_value(item, schema, schema.type, new_path, root)
                     if tv is not None:
-                        values.append((op=None, t=tv.t, val=tv.val))
+                        values.append((op=None, val=tv))
         return values
 
 
-def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, schema_type: yschema.DType, path: list[PathElement], root: yschema.DRoot) -> ?(t: str, val: value):
+def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, schema_type: yschema.DType, path: list[PathElement], root: yschema.DRoot) -> ?value:
     """Parse a textual value according to the provided schema type.
 
     Returns:
-        (t, val): A typed tuple with the concrete type name and native value
-                  (e.g. ("uint8", 42)). For unions, returns the successful
-                  member type and parsed value.
+        The native value (e.g. 42 for a uint8). For unions, the value parsed
+        by the first member type that accepts it.
 
     Errors:
         Raises YangValidationError with a message including the formatted
         schema path (from the path parameter) and a textual description of the
         expected type (including range constraints if present).
     """
-    type_name = schema_type.builtin_type
-
     if isinstance(schema_type, yschema.DTypeUnion):
         for alt_type in schema_type.types:
             try:
@@ -101,7 +98,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, sch
     elif isinstance(schema_type, yschema.DTypeEmpty):
         # Empty leaf JSON encoding: [null]
         if isinstance(leaf_value, list) and len(leaf_value) == 1 and leaf_value[0] is None:
-            return (t=type_name, val=ygdata.Present())
+            return ygdata.Present()
         raise YangValidationError(path, schema_type, leaf_value)
 
     if leaf_value is not None:
@@ -164,7 +161,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, sch
                 raise YangValidationError(path, schema_type, leaf_value)
 
         if val is not None and schema_type.validate_value(val):
-            return (t=type_name, val=val)
+            return val
 
         raise YangValidationError(path, schema_type, leaf_value)
 

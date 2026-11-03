@@ -38,7 +38,7 @@ def _resolve_path_key_leaf(list_node: yschema.DList, key_name: str, path: list[P
 def _coerce_path_key_value(root: yschema.DRoot, key_leaf: yschema.DNodeLeaf, raw_value: ?value, path: list[PathElement]) -> value:
     typed_value = try_parse_json_value(raw_value, key_leaf, key_leaf.type, path, root)
     if typed_value is not None:
-        return typed_value.val
+        return typed_value
     raise YangValidationError(path, key_leaf.type, raw_value)
 
 

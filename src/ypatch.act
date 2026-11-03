@@ -382,9 +382,9 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
             parsed = try_parse_xml_value(uri.unquote(raw_value), llnode, llnode.type, pe, [], root)
             if parsed is not None:
                 if rop == OP_REMOVE:
-                    entry: gdata.LeafListEntry = gdata.LeafListEntryRemove(parsed.val)
+                    entry: gdata.LeafListEntry = gdata.LeafListEntryRemove(parsed)
                 else:
-                    entry = gdata.LeafListEntryMerge(parsed.val)
+                    entry = gdata.LeafListEntryMerge(parsed)
                 maybe_ns = node_ns(pe, n - 1) and llnode.namespace != ""
                 inner: gdata.Node = gdata.LeafList([entry], user_order(llnode.ordered_by),
                                                    ns=llnode.namespace if maybe_ns else None,
@@ -413,7 +413,7 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
             v = e.value!   # merge/create/replace require a value (RFC 8072 §2.5)
             parsed = try_parse_xml_value(v.text, terminal, terminal.type, pe, v.nsdefs, root)
             if parsed is not None:
-                inner = gdata.Leaf(parsed.val, ns=lns, module=lmod)
+                inner = gdata.Leaf(parsed, ns=lns, module=lmod)
             else:
                 raise ValueError("ypatch.edit_to_gdata: cannot parse value for {e.target}")
         return wrap_to_root(pe, inner)

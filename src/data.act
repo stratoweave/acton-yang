@@ -118,12 +118,10 @@ protocol YangData:
     # TODO: can value implement YangData? Yes, once Acton supports recursive protocol definitions ...
     take_container: mut(yschema.DContainer, str, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
     take_list: mut(yschema.DList, str, bool, list[PathElement]) -> list[(op: ?str, key: dict[str, value], val: value)]
-    # Return a typed tuple for leaves. The tuple carries the concrete type name
-    # and the parsed value. Missing leaves return None.
-    take_leaf: mut(yschema.DRoot, yschema.DLeaf, str, bool, list[PathElement]) -> ?(op: ?str, t: str, val: ?value)
-    # For leaf-lists, return a list of typed tuples (op, t, val).
-    # For identityref items, val holds a PartialIdentityref.
-    take_leaflist: mut(yschema.DRoot, yschema.DLeafList, str, bool, list[PathElement]) -> list[(op: ?str, t: str, val: ?value)]
+    # Return the operation and parsed value of a leaf, or None for a missing leaf
+    take_leaf: mut(yschema.DRoot, yschema.DLeaf, str, bool, list[PathElement]) -> ?(op: ?str, val: ?value)
+    # Return the operation and parsed value of each leaf-list item
+    take_leaflist: mut(yschema.DRoot, yschema.DLeafList, str, bool, list[PathElement]) -> list[(op: ?str, val: ?value)]
 
 
 def user_order(ordered_by):
