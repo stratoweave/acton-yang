@@ -126,7 +126,7 @@ extension MNode (YangData):
             return [(op=None, key=element_key(e), val=e) for e in maybe_list]
         return []
 
-    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, t: str, val: ?value):
+    def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         new_path = path + [PathElement(schema)]
         maybe_attr = self.__get_attr__(name)
         if maybe_attr is not None:
@@ -134,20 +134,20 @@ extension MNode (YangData):
             tv = try_validate_mnode_value(maybe_attr, schema_type, new_path)
             if tv is not None:
                 if tv.t == "empty":
-                    return (op=None if tv.val else OP_REMOVE, t=tv.t, val=ygdata.Present() if tv.val else None)
-                return (op=None, t=tv.t, val=tv.val)
+                    return (op=None if tv.val else OP_REMOVE, val=ygdata.Present() if tv.val else None)
+                return (op=None, val=tv.val)
             raise YangValidationError(path, schema_type, maybe_attr)
 
-    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, t: str, val: ?value)]:
+    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, val: ?value)]:
         new_path = path + [PathElement(schema)]
-        values: list[(op: ?str, t: str, val: ?value)] = []
+        values: list[(op: ?str, val: ?value)] = []
         children = self.__get_attr__(name)
         if isinstance(children, list):
             schema_type = schema.type
             for child in children:
                 tv = try_validate_mnode_value(child, schema_type, new_path)
                 if tv is not None:
-                    values.append((op=None, t=tv.t, val=tv.val))
+                    values.append((op=None, val=tv.val))
                 else:
                     raise YangValidationError(path, schema_type, child)
         return values

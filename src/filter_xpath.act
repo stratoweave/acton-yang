@@ -93,7 +93,7 @@ def parse_filter_value(root: yschema.DRoot, schema_leaf: yschema.DNodeLeaf, raw_
         return ygdata.VWildcard(raw_value)
     parsed = try_parse_json_value(raw_value, schema_leaf, schema_leaf.type, spath, root)
     if parsed is not None:
-        return parsed.val
+        return parsed
     raise ValueError("Unable to parse XPath predicate value at {format_schema_path(spath)}: {raw_value}")
 
 
