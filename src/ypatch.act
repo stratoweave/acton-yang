@@ -43,7 +43,7 @@ import restconf
 import schema as yschema
 from restconf import resolve_path
 from data import fqname, list_node, user_order, PathElement
-from xml import try_parse_xml_value
+from xml import norm_text, try_parse_xml_value
 
 
 NS_YANG_PATCH = "urn:ietf:params:xml:ns:yang:ietf-yang-patch"
@@ -411,7 +411,7 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
         inner: gdata.Node = gdata.Absent()
         if rop != OP_REMOVE:
             v = e.value!   # merge/create/replace require a value (RFC 8072 §2.5)
-            parsed = try_parse_xml_value(v.text, terminal, terminal.type, pe, v.nsdefs, root)
+            parsed = try_parse_xml_value(norm_text(v), terminal, terminal.type, pe, v.nsdefs, root)
             if parsed is not None:
                 inner = gdata.Leaf(parsed, ns=lns, module=lmod)
             else:

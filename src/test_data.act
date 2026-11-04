@@ -513,6 +513,34 @@ def _test_missing_list_key_xml():
         testing.assertEqual(expected, err.error_message)
 
 
+def _test_empty_string_xml():
+    """An XML element without character data holds the empty string"""
+    y1 = r"""module y1 {
+  namespace "urn:example:y1";
+  prefix y1;
+
+  container c1 {
+    list l1 {
+      key "k1";
+      leaf k1 { type string; }
+      leaf v1 { type string; }
+    }
+  }
+}"""
+
+    xml_in = r"""<data>
+<c1 xmlns="urn:example:y1">
+  <l1>
+    <k1></k1>
+    <v1/>
+  </l1>
+</c1>
+</data>"""
+
+    s = yang.compile([y1])
+    return from_xml(s, xml.decode(xml_in)).prsrc()
+
+
 def _test_json_path_basic():
     """Test basic JSON path navigation"""
     y1 = r"""module y1 {
@@ -894,7 +922,7 @@ def _test_netconf_remove_leaf():
   namespace "urn:example:y";
   prefix y;
   container c1 {
-    leaf l1 { type string; }
+    leaf l1 { type uint8; }
   }
 }"""
 

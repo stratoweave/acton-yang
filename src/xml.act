@@ -144,7 +144,7 @@ extension xml.Node (YangData):
             key_values = {}
             for key_name in schema.key:
                 key_node = unwrap_key(key_name, ygdata.get_xml_opt_child(element_data, key_name, None), new_path)
-                key_values[key_name] = unwrap_key(key_name, key_node.text, new_path)
+                key_values[key_name] = norm_text(key_node)
             return key_values
 
         return [(op=_get_netconf_operation(e), key=extract_key(e), val=e) for e in elements]
@@ -154,7 +154,9 @@ extension xml.Node (YangData):
         maybe_node = ygdata.get_xml_opt_child(self, schema.name, schema.namespace if ns_qualified else None)
         if maybe_node is not None:
             op = _get_netconf_operation(maybe_node)
-            return (op=op, val=try_parse_xml_value(maybe_node.text, schema, schema.type, new_path, maybe_node.nsdefs, root))
+            if op == OP_REMOVE or op == OP_DELETE:
+                return (op=op, val=None)
+            return (op=op, val=try_parse_xml_value(norm_text(maybe_node), schema, schema.type, new_path, maybe_node.nsdefs, root))
         else:
             return None
 
@@ -165,8 +167,14 @@ extension xml.Node (YangData):
         for child in children:
             if isinstance(child, xml.Node):
                 op = _get_netconf_operation(child)
-                values.append((op=op, val=try_parse_xml_value(child.text, schema, schema.type, new_path, child.nsdefs, root)))
+                values.append((op=op, val=try_parse_xml_value(norm_text(child), schema, schema.type, new_path, child.nsdefs, root)))
         return values
+
+
+def norm_text(n: xml.Node) -> str:
+    """Normalize xml.Node.text attribute to empty string"""
+    text = n.text
+    return text if text is not None else ""
 
 
 def try_parse_xml_value(text_value: ?str, schema_node: yschema.DNodeLeaf, schema_type: yschema.DType, path: list[PathElement], nsdefs: list[(?str, str)], root: yschema.DRoot) -> ?value:
