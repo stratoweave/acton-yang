@@ -1,0 +1,10 @@
+Container({
+  Id('urn:example:y1', 'c1'): Container({
+    Id('urn:example:y1', 'l1'): List([Id('urn:example:y1', 'k1')], elements=[
+      Container({
+        Id('urn:example:y1', 'k1'): Leaf(''),
+        Id('urn:example:y1', 'v1'): Leaf('')
+      })
+    ])
+  }, ns='urn:example:y1', module='y1')
+})
