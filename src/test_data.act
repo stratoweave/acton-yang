@@ -536,6 +536,66 @@ def _test_missing_list_key_json():
         testing.assertEqual("Missing key value at /c1/l1: k2", err.error_message)
 
 
+def _test_null_value_json():
+    """null is not a value of a string leaf or leaf-list item in JSON"""
+    y1 = r"""module y1 {
+  namespace "urn:example:y1";
+  prefix y1;
+
+  container c1 {
+    leaf l1 { type string; }
+    leaf-list ll1 { type string; }
+  }
+}"""
+
+    s = yang.compile([y1])
+    for json_in, expected in [
+            ({"y1:c1": {"l1": None}}, "Invalid value at /c1/l1: 'None' - expected string"),
+            ({"y1:c1": {"ll1": [None]}}, "Invalid value at /c1/ll1: 'None' - expected string"),
+        ]:
+        try:
+            from_json(s, json_in)
+            testing.error("Expected YangValidationError not raised")
+        except YangValidationError as err:
+            testing.assertEqual(expected, str(err))
+
+
+def _test_empty_value_json():
+    """Empty values use [null], including in unions; bare null is invalid"""
+    y = r"""module y {
+  namespace "urn:example:y";
+  prefix y;
+
+  typedef string-or-empty {
+    type union {
+      type string;
+      type empty;
+    }
+  }
+  leaf e { type empty; }
+  leaf u { type string-or-empty; }
+  leaf-list ul { type string-or-empty; }
+}"""
+    s = yang.compile([y])
+    for loose in [False, True]:
+        for json_in, expected in [
+                ({"y:u": None}, "Invalid value at /u: 'None' - expected string-or-empty union with types: [string OR empty]"),
+                ({"y:ul": [None]}, "Invalid value at /ul: 'None' - expected string-or-empty union with types: [string OR empty]"),
+            ]:
+            try:
+                from_json(s, json_in, loose=loose)
+                testing.error("Expected YangValidationError not raised")
+            except YangValidationError as err:
+                testing.assertEqual(expected, str(err))
+
+        gd = from_json(s, {"y:e": [None], "y:u": [None]}, loose=loose)
+        expected_data = ygdata.Container({
+            ygdata.Id("urn:example:y", "e"): ygdata.Leaf(ygdata.Present(), ns="urn:example:y", module="y"),
+            ygdata.Id("urn:example:y", "u"): ygdata.Leaf(ygdata.Present(), ns="urn:example:y", module="y"),
+        })
+        testing.assertEqual(gd.prsrc(), expected_data.prsrc())
+
+
 def _test_missing_list_key_xml():
     """Test error message when list key is missing in XML"""
     y1 = r"""module y1 {
