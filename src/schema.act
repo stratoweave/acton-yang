@@ -313,6 +313,8 @@ class DNode(object):
                     name_matches = True
                 elif isinstance(child, DList) and child.name == name:
                     name_matches = True
+                elif isinstance(child, DNotification) and child.name == name:
+                    name_matches = True
                 elif isinstance(child, DOutput) and name == 'output':
                     name_matches = True
                 elif isinstance(child, DRpc) and child.name == name:

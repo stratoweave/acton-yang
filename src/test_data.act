@@ -355,6 +355,57 @@ def _test_root_path():
 
     return gd_nested.prsrc()
 
+
+_NOTIFICATION_SCHEMA = r"""module acme-events {
+  yang-version 1.1;
+  namespace "urn:example:acme-events";
+  prefix ev;
+
+  notification link-down {
+    leaf name {
+      type string;
+    }
+  }
+  container system {
+    notification restarted {
+      leaf reason {
+        type string;
+      }
+    }
+  }
+}"""
+
+
+def _test_get_notification():
+    """get finds a top-level notification and one nested in a container"""
+    s = yang.compile([_NOTIFICATION_SCHEMA])
+    top = s.get("link-down", module="acme-events")
+    testing.assertEqual(isinstance(top, yschema.DNotification), True)
+    nested = s.get("system", module="acme-events").get("restarted")
+    testing.assertEqual(isinstance(nested, yschema.DNotification), True)
+
+
+def _test_root_path_notification():
+    """root_path reaches a notification, so its payload decodes like rpc output"""
+    s = yang.compile([_NOTIFICATION_SCHEMA])
+    ns = "urn:example:acme-events"
+
+    top = from_xml(s, xml.decode('<link-down xmlns="urn:example:acme-events"><name>eth0</name></link-down>'),
+                   root_path=["acme-events:link-down"])
+    name = top.get_opt_leaf(ygdata.Id(ns, "name"))
+    if name is not None:
+        testing.assertEqual(str(name.val), "eth0")
+    else:
+        testing.error("link-down decoded without its name leaf")
+
+    nested = from_xml(s, xml.decode('<restarted xmlns="urn:example:acme-events"><reason>upgrade</reason></restarted>'),
+                      root_path=["acme-events:system", "restarted"])
+    reason = nested.get_opt_leaf(ygdata.Id(ns, "reason"))
+    if reason is not None:
+        testing.assertEqual(str(reason.val), "upgrade")
+    else:
+        testing.error("restarted decoded without its reason leaf")
+
 def _test_error_path_json_list_range():
     """Error path includes list key predicate for JSON payloads"""
     y1 = r"""module y1 {
