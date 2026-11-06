@@ -386,7 +386,7 @@ def from_data_recursive[A(YangData)](root: yschema.DRoot, s: yschema.DNodeInner,
         presence = s.presence
         ns_out = s.namespace if set_ns and s.namespace != "" else None
         mod_out = s.module if set_ns and s.module != "" else None
-    elif isinstance(s, yschema.DList) or isinstance(s, yschema.DRoot) or isinstance(s, yschema.DOutput) or isinstance(s, yschema.DInput):
+    elif isinstance(s, yschema.DList) or isinstance(s, yschema.DRoot) or isinstance(s, yschema.DOutput) or isinstance(s, yschema.DInput) or isinstance(s, yschema.DNotification):
         pass
     else:
         raise ValueError("Unknown schema node type at {format_schema_path(spath)}: {type(s)}")
