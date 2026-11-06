@@ -3641,24 +3641,27 @@ class Dst(object):
     that one instance: every list on the way holds one entry with its keys,
     and the instance is there as it is after a change, an Absent holding
     its keys where a list entry is gone, or missing where a container is
-    gone. `on_update` is what the provider calls: the consumer's action,
-    or the lambda a generated dst wraps around it that first converts the
-    tree, so nothing stands between provider and consumer.
+    gone. `on_update` is the action that the provider calls: the
+    consumer's action, or the action of the actor that a generated dst
+    puts in front of the consumer to convert each tree. That actor also
+    has `synced`, and the provider's first-pass report goes through it,
+    so that the report arrives after the data.
     """
-    # TODO: on_update should be an action. A generated dst wraps the
-    # consumer's action in a lambda that first converts the tree, and the
-    # compiler types that lambda as a proc: outside an actor only the bare
-    # `lambda n, err: cb(n, err)` passes as an action, and inside an actor a
-    # lambda may not call a mut function such as from_gdata. This looks like
-    # a compiler limitation. Until a lambda that computes before its action
-    # call can be an action, a provider calls a proc, which an action fits.
     @property
-    on_update: proc(?Node, ?Exception) -> None
+    on_update: action(?Node, ?Exception) -> None
     root: ?FNode
+    @property
+    synced: ?action(action(str) -> None, str) -> None
 
-    def __init__(self, on_update: proc(?Node, ?Exception) -> None, root: ?FNode=None):
+    def __init__(self, on_update: action(?Node, ?Exception) -> None, root: ?FNode=None,
+                 synced: ?action(action(str) -> None, str) -> None=None):
         self.on_update = on_update
         self.root = root
+        self.synced = synced
+
+    # TODO: make Dst an actor when Acton has actor inheritance
+    # (actonlang/acton#1044). The generated dst actors can then inherit
+    # from it, and this class and _synced_after can go.
 
     def deliver(self, want: set[SubscriptionSpec]) -> Delivery:
         """The specs to serve here, rooted where this destination is. A bad
@@ -3709,10 +3712,9 @@ extension Delivery(Hashable):
 class TreeProvider(object):
     """Imperative transport interface for RPCs and owner-scoped subscriptions.
     The last argument of declare_subscriptions is called once with the owner
-    id after the owner's first pass: the initial data has all been sent. Its
-    data callback is a proc for the reason given at Dst.on_update."""
+    id after the owner's first pass: the initial data has all been sent."""
     rpc: proc(action(?Node, ?Exception) -> None, Node) -> None
-    declare_subscriptions: proc(str, proc(?Node, ?Exception) -> None, set[SubscriptionSpec], ?action(str) -> None) -> None
+    declare_subscriptions: proc(str, action(?Node, ?Exception) -> None, set[SubscriptionSpec], ?action(str) -> None) -> None
     remove_subscriptions: proc(str) -> None
 
 
@@ -3751,6 +3753,12 @@ actor _Syncing():
                 n()
 
 
+def _synced_after(synced: action(action(str) -> None, str) -> None, done: action(str) -> None) -> action(str) -> None:
+    """done, sent through the synced action of a dst, so that it arrives
+    after the data that the provider sent before it."""
+    return lambda owner_id: synced(done, owner_id)
+
+
 class SubscriptionManager(object):
     """Declarative subscription owner that reconciles destination-bound
     subscriptions. `declare` replaces the whole set; its `synced` is called
@@ -3787,7 +3795,11 @@ class SubscriptionManager(object):
         # so no first pass can be reported before it is expected.
         self.syncing.declare(new_ids, all_ids, synced)
         for delivery in want:
-            self.tp.declare_subscriptions(self.child_owner_ids[delivery], delivery.dst.on_update, delivery.want, self.syncing.done)
+            first_pass = self.syncing.done
+            dst_synced = delivery.dst.synced
+            if dst_synced is not None:
+                first_pass = _synced_after(dst_synced, self.syncing.done)
+            self.tp.declare_subscriptions(self.child_owner_ids[delivery], delivery.dst.on_update, delivery.want, first_pass)
 
     def close(self):
         child_deliveries = [delivery for delivery in self.child_owner_ids.keys()]
