@@ -277,7 +277,6 @@ def nest(n):
 
 
 class DNode(object):
-    gname: str       # The name of the GData class, e.g. "Container" for ygdata.Container
     module: str      # The name of the module this node belongs to
     namespace: str
     prefix: str
@@ -479,7 +478,7 @@ class DNode(object):
             elif isinstance(node, DModule):
                 res.append("module: {node.name}")
             else:
-                res.append("{node_prefix} {node.gname}")
+                res.append("{node_prefix} {node.name}")
             if isinstance(node, DNodeInner):
                 new_has_siblings = len(node.children) > 1
                 for i, child in enumerate(node.children):
@@ -1072,7 +1071,6 @@ class DAction(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "Action"
         self.config = False
         self.description = description
         self.if_feature = if_feature
@@ -1106,7 +1104,6 @@ class DAnydata(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "Anydata"
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1146,7 +1143,6 @@ class DAnyxml(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "Anyxml"
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1185,7 +1181,6 @@ class DContainer(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "Container"
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1218,7 +1213,6 @@ class DIdentity(DNode):
     base: list[DIdentity]
 
     def __init__(self, module: str, namespace: str, prefix: str, name: str, base: list[DIdentity]=[]):
-        self.gname = "Identity"
         self.module = module
         self.namespace = namespace
         self.prefix = prefix
@@ -1322,7 +1316,6 @@ class DInput(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = "input"
-        self.gname = "Container"
         self.config = False
         self.description = None
         self.reference = None
@@ -1357,7 +1350,6 @@ class DModule(DNodeInner):
     def __init__(self, module: str, namespace: str, prefix: str, name: str, yang_version: float = 1.1, description: ?str=None, contact=None, deviation=[], extension=[], feature=[], identity=[], import=[], include=[], organization=None, reference=None, revision=[], exts=[], children=[], augment=[]):
         self.module = module
         self.name = name
-        self.gname = "Container"
         self.namespace = namespace
         self.prefix = prefix
         self.yang_version = yang_version
@@ -1417,7 +1409,6 @@ class DList(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "List"
         self.key = key
         self.config = config
         self.description = description
@@ -1465,7 +1456,6 @@ class DLeaf(DNodeLeaf):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "Leaf"
         self.config = config
         self.description = description
         self.default = default
@@ -1514,7 +1504,6 @@ class DLeafList(DNodeLeaf):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "LeafList"
         self.config = config
         self.description = description
         self.default = default
@@ -1591,7 +1580,6 @@ class DNotification(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "Notification"
         self.config = False
         self.description = description
         self.if_feature = if_feature
@@ -1623,7 +1611,6 @@ class DOutput(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = "output"
-        self.gname = "Container"
         self.config = False
         self.description = None
         self.reference = None
@@ -1656,7 +1643,6 @@ class DRoot(DNodeInner):
         self.namespace = ""
         self.prefix = ""
         self.name = "root"
-        self.gname = "Container"
         self.config = True
         self.description = None
         self.reference = None
@@ -2371,7 +2357,6 @@ class DRpc(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
-        self.gname = "Rpc"
         self.config = False
         self.description = description
         self.if_feature = if_feature
