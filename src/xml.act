@@ -129,14 +129,14 @@ def _test_get_nc_op_pref_ancestor():
 
 
 extension xml.Node (YangData):
-    def take_container(self, schema: yschema.DContainer, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
+    def take_container(self, schema: yschema.DContainer, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
         child_node = ygdata.get_xml_opt_child(self, schema.name, schema.namespace if ns_qualified else None)
         if child_node is not None:
             op = _get_netconf_operation(child_node)
             return (op=op, val=child_node)
         return None
 
-    def take_list(self, schema: yschema.DList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
+    def take_list(self, schema: yschema.DList, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
         elements = ygdata.get_xml_children(self, schema.name, schema.namespace if ns_qualified else None)
 
@@ -149,7 +149,7 @@ extension xml.Node (YangData):
 
         return [(op=_get_netconf_operation(e), key=extract_key(e), val=e) for e in elements]
 
-    mut def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
+    mut def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
         new_path = path + [PathElement(schema)]
         maybe_node = ygdata.get_xml_opt_child(self, schema.name, schema.namespace if ns_qualified else None)
         if maybe_node is not None:
@@ -160,7 +160,7 @@ extension xml.Node (YangData):
         else:
             return None
 
-    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, name: str, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, val: ?value)]:
+    def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, val: ?value)]:
         new_path = path + [PathElement(schema)]
         values: list[(op: str, val: ?value)] = []
         children = ygdata.get_xml_children(self, schema.name, schema.namespace if ns_qualified else None)

@@ -37,8 +37,8 @@ foo_tcp: Identityref = Identityref('tcp', ns='http://example.com/foo', mod='foo'
 foo_udp: Identityref = Identityref('udp', ns='http://example.com/foo', mod='foo', pfx='foo')
 
 
-SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, children=[
-    DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='active-protocol', config=True, description='Currently active protocol', is_key=False, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, units=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_base_protocol_type], identities=_identities))
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='base', namespace='http://example.com/base', prefix='base', name='config', config=True, presence=False, adata_name='config', children=[
+    DLeaf(module='base', namespace='http://example.com/base', prefix='base', name='active-protocol', config=True, description='Currently active protocol', is_key=False, mandatory=False, type=DTypeIdentityref(name='identityref', description=None, reference=None, units=None, exts=[], builtin_type='identityref', default=None, identity_bases=[_base_base_protocol_type], identities=_identities), adata_name='active_protocol')
 ])
 
 SRC_DNODE_IDENTITY_0: DIdentity = DIdentity(module='base', namespace='http://example.com/base', prefix='base', name='protocol-type')

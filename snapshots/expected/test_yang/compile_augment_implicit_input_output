@@ -18,22 +18,22 @@ from yang.type import Decimal, Ranges
 _identities: list[DIdentity] = []
 
 
-SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False)
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c1', config=True, presence=False, adata_name='c1')
 
 SRC_DNODE_RPC_0: DRpc = DRpc(module='foo', namespace='http://example.com/foo', prefix='foo', name='r1', input=DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-    DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c3', config=False, presence=False, children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c3', config=False, presence=False, adata_name='c3', children=[
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='l3')
     ])
 ]), output=DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='l4')
 ]), children=[
-    DInput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-        DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c3', config=False, presence=False, children=[
-            DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DInput(module='foo', namespace='http://example.com/foo', prefix='foo', adata_name='input', children=[
+        DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='c3', config=False, presence=False, adata_name='c3', children=[
+            DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l3', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='l3')
         ])
     ]),
-    DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', children=[
-        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]))
+    DOutput(module='foo', namespace='http://example.com/foo', prefix='foo', adata_name='output', children=[
+        DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='l4', config=False, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='l4')
     ])
 ])
 

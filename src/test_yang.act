@@ -2595,6 +2595,9 @@ def _test_prdaclass_split_schema():
     }
 }"""
     root = yang.compile([ys])
+    # prdaclass() removes the children it generates no attributes for, so it
+    # runs before prschema(), like in ayangc
+    adata_src = root.prdaclass(schema_module="foo_schema", schema_yang=[ys])
     return "\n".join([
         "# ===== foo_schema.act (prschema) =====",
         "",
@@ -2602,7 +2605,7 @@ def _test_prdaclass_split_schema():
         "",
         "# ===== foo.act (prdaclass schema_module='foo_schema') =====",
         "",
-        root.prdaclass(schema_module="foo_schema", schema_yang=[ys]),
+        adata_src,
     ])
 
 def _test_prdaclass_loose_p_container_with_mandatory_leaf():
