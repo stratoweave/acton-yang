@@ -93,6 +93,7 @@
 # and then running .to_dnode().
 
 import base64
+import gdata
 import re
 import xpath
 from identityref import Identityref, PartialIdentityref
@@ -281,6 +282,7 @@ class DNode(object):
     namespace: str
     prefix: str
     name: str
+    gname: gdata.Id
     config: bool
     description: ?str
     reference: ?str
@@ -1080,6 +1082,7 @@ class DAction(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = description
@@ -1114,6 +1117,7 @@ class DAnydata(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1154,6 +1158,7 @@ class DAnyxml(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1193,6 +1198,7 @@ class DContainer(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1230,6 +1236,7 @@ class DIdentity(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = None
@@ -1330,6 +1337,7 @@ class DInput(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = "input"
+        self.gname = gdata.Id(namespace, "input")
         self.adata_name = adata_name
         self.config = False
         self.description = None
@@ -1367,6 +1375,7 @@ class DModule(DNodeInner):
         self.name = name
         self.adata_name = adata_name
         self.namespace = namespace
+        self.gname = gdata.Id(namespace, name)
         self.prefix = prefix
         self.yang_version = yang_version
         self.config = True # module is not config in itself, but it is the root
@@ -1412,6 +1421,7 @@ class DModule(DNodeInner):
 class DList(DNodeInner):
     if_feature: list[str]
     key: list[str]
+    key_gnames: list[gdata.Id]
     max_elements: ?int
     min_elements: int
     must: list[DMust]
@@ -1425,8 +1435,10 @@ class DList(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.key = key
+        self.key_gnames = [gdata.Id(namespace, k) for k in key]
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1473,6 +1485,7 @@ class DLeaf(DNodeLeaf):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1522,6 +1535,7 @@ class DLeafList(DNodeLeaf):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1599,6 +1613,7 @@ class DNotification(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = description
@@ -1631,6 +1646,7 @@ class DOutput(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = "output"
+        self.gname = gdata.Id(namespace, "output")
         self.adata_name = adata_name
         self.config = False
         self.description = None
@@ -1664,6 +1680,7 @@ class DRoot(DNodeInner):
         self.namespace = ""
         self.prefix = ""
         self.name = "root"
+        self.gname = gdata.Id("", "root")
         self.adata_name = adata_name
         self.config = True
         self.description = None
@@ -2388,6 +2405,7 @@ class DRpc(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = description

@@ -305,17 +305,16 @@ def _filter_parse_children(root: yschema.DRoot, s: yschema.DNodeInner, data: xml
 
 def _filter_parse_node(root: yschema.DRoot, s: yschema.DNode, data: xml.Node, spath: list[PathElement]) -> ygdata.FNode:
     """Parse a single XML element into a filter node based on schema type."""
-    name_id = ygdata.Id(s.namespace, s.name)
     if isinstance(s, yschema.DContainer) or isinstance(s, yschema.DList):
         s_inner = _unwrap_dnode_inner(s, spath)
         children = _filter_parse_children(root, s_inner, data, spath)
-        return ygdata.FNode(name_id, children=children)
+        return ygdata.FNode(s.gname, children=children)
     if isinstance(s, yschema.DLeaf):
         vm = _filter_value_match(root, s, data, spath)
-        return ygdata.FNode(name_id, value_match=vm)
+        return ygdata.FNode(s.gname, value_match=vm)
     if isinstance(s, yschema.DLeafList):
         vm = _filter_value_match(root, s, data, spath)
-        return ygdata.FNode(name_id, value_match=vm)
+        return ygdata.FNode(s.gname, value_match=vm)
     raise ValueError("Unsupported schema node in filter at {ydata.format_schema_path(spath)}: {type(s)}")
 
 

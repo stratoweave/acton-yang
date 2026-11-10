@@ -116,16 +116,15 @@ def fnode_for_step(root: yschema.DRoot, schema_node: yschema.DNode, step: xpath.
                 pred_leaf = pred_schema
             else:
                 raise ValueError("XPath child predicates require leaf nodes at {format_schema_path(pred_spath)}: {type(pred_schema)}")
-            pred_name = ygdata.Id(pred_leaf.namespace, pred_leaf.name)
-            if pred_name in predicate_names:
+            if pred_leaf.gname in predicate_names:
                 raise ValueError("Duplicate XPath child predicate at {format_schema_path(pred_spath)}")
-            predicate_names.add(pred_name)
+            predicate_names.add(pred_leaf.gname)
             children.append(ygdata.FNode(
-                pred_name,
+                pred_leaf.gname,
                 value_match=parse_filter_value(root, pred_leaf, parsed.val, pred_spath)
             ))
     return ygdata.FNode(
-        ygdata.Id(schema_node.namespace, schema_node.name),
+        schema_node.gname,
         value_match=value_match,
         children=children,
     )
@@ -313,10 +312,9 @@ def render_xpath(schema_node: yschema.DNode, fnode: ygdata.FNode, base_path: str
         parts = filter_child_parts(parent, fnode.children)
         predicate_names: set[ygdata.Id] = set()
         for pred_schema, pred in parts.predicates:
-            pred_name = ygdata.Id(pred_schema.namespace, pred_schema.name)
-            if pred_name in predicate_names:
+            if pred_schema.gname in predicate_names:
                 raise ValueError("Cannot render duplicate XPath predicates for {format_schema_path(spath + [PathElement(pred_schema)])}")
-            predicate_names.add(pred_name)
+            predicate_names.add(pred_schema.gname)
         predicates = sort_schema_fnode_pairs(parts.predicates) if deterministic else parts.predicates
         for pred_schema, pred in predicates:
             if len(pred.children) > 0:
