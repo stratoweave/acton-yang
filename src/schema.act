@@ -4618,8 +4618,10 @@ def prsrc_default(t: DType, s: str, identities: list[DIdentity], module: str) ->
 
 def safe_name(name: str, safe_kw=True) -> str:
     new = name.replace("-", "_").replace(".", "_")
+    if not safe_kw:
+        return new
     tvar_name = new[0].isupper() and (len(new) == 1 or new[1:].isdecimal())
-    if safe_kw and (new in _reserved_keywords or tvar_name):
+    if new in _reserved_keywords or tvar_name:
         new += "_"
     return new
 
@@ -4668,7 +4670,7 @@ class _GdataIdConstants(object):
             i += 1
         self._consts[(module, name)] = cand
         self._taken.add(cand)
-        return const
+        return cand
 
     def prsrc(self) -> list[str]:
         return ["{self._consts[key]}: ygdata.Id = ygdata.Id(NS_{safe_name(key.0)}, {repr(key.1)})" for key in sorted(self._consts.keys())]
