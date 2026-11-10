@@ -3358,6 +3358,21 @@ def _test_prdaclass_rpc():
     src = root.prdaclass()
     return src
 
+def _test_prdaclass_id_const_suffix():
+    ys = r"""module foo {
+    yang-version "1.1";
+    namespace "http://example.com/foo";
+    prefix "foo";
+    container a-b {
+        leaf a_b {
+            type string;
+        }
+    }
+}"""
+    root = yang.compile([ys])
+    src = root.prdaclass()
+    return src
+
 def _test_prdaclass_exclude_ext():
     ys = r"""module foo {
     yang-version "1.1";

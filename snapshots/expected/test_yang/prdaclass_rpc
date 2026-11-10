@@ -48,6 +48,13 @@ SRC_DNODE: DRoot = DRoot(
 
 NS_yangrpc: str = 'http://example.com/yangrpc'
 
+_ID_yangrpc__a: ygdata.Id = ygdata.Id(NS_yangrpc, 'a')
+_ID_yangrpc__foo: ygdata.Id = ygdata.Id(NS_yangrpc, 'foo')
+_ID_yangrpc__outoo: ygdata.Id = ygdata.Id(NS_yangrpc, 'outoo')
+_ID_yangrpc__silent: ygdata.Id = ygdata.Id(NS_yangrpc, 'silent')
+_ID_yangrpc__woo: ygdata.Id = ygdata.Id(NS_yangrpc, 'woo')
+_ID_yangrpc__woo_b: ygdata.Id = ygdata.Id(NS_yangrpc, 'woo_b')
+
 
 _breaker1: None = None
 class root(yadata.MNode):
@@ -82,7 +89,7 @@ class yangrpc__foo__input__woo(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__input__woo:
         if n is not None:
-            return yangrpc__foo__input__woo(woo_b=n.get_opt_int(ygdata.Id(NS_yangrpc, 'woo_b')))
+            return yangrpc__foo__input__woo(woo_b=n.get_opt_int(_ID_yangrpc__woo_b))
         return yangrpc__foo__input__woo()
 
     mut def copy(self) -> yangrpc__foo__input__woo:
@@ -105,7 +112,7 @@ class yangrpc__foo__input(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__input:
         if n is not None:
-            return yangrpc__foo__input(a=n.get_opt_str(ygdata.Id(NS_yangrpc, 'a')), woo=yangrpc__foo__input__woo.from_gdata(n.get_opt_cnt(ygdata.Id(NS_yangrpc, 'woo'))))
+            return yangrpc__foo__input(a=n.get_opt_str(_ID_yangrpc__a), woo=yangrpc__foo__input__woo.from_gdata(n.get_opt_cnt(_ID_yangrpc__woo)))
         return yangrpc__foo__input()
 
     mut def copy(self) -> yangrpc__foo__input:
@@ -126,7 +133,7 @@ class yangrpc__foo__output(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> yangrpc__foo__output:
         if n is not None:
-            return yangrpc__foo__output(outoo=n.get_opt_str(ygdata.Id(NS_yangrpc, 'outoo')))
+            return yangrpc__foo__output(outoo=n.get_opt_str(_ID_yangrpc__outoo))
         return yangrpc__foo__output()
 
     mut def copy(self) -> yangrpc__foo__output:
@@ -147,13 +154,13 @@ actor rpc_root(tp: ygdata.TreeProvider):
         rpc_input = ygdata.Container()
         if inp is not None:
             rpc_input = yadata.from_adata(SRC_DNODE, inp, False, ["yangrpc:foo", "input"])
-        rpc_gdata = ygdata.Container({ygdata.Id('http://example.com/yangrpc', 'foo'): rpc_input})
+        rpc_gdata = ygdata.Container({_ID_yangrpc__foo: rpc_input})
         tp.rpc(cb_wrap, rpc_gdata)
 
     silent: action(cb: action(?Exception) -> None) -> None
     def silent(cb):
         rpc_input = ygdata.Container()
-        rpc_gdata = ygdata.Container({ygdata.Id('http://example.com/yangrpc', 'silent'): rpc_input})
+        rpc_gdata = ygdata.Container({_ID_yangrpc__silent: rpc_input})
         tp.rpc(lambda _, err: cb(err), rpc_gdata)
 
 

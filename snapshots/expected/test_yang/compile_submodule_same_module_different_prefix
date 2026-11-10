@@ -38,6 +38,13 @@ SRC_DNODE: DRoot = DRoot(
 NS_parent: str = 'http://example.com/parent'
 NS_shared: str = 'http://example.com/shared'
 
+_ID_parent__augmented_leaf: ygdata.Id = ygdata.Id(NS_parent, 'augmented-leaf')
+_ID_parent__parent_container: ygdata.Id = ygdata.Id(NS_parent, 'parent-container')
+_ID_parent__parent_leaf: ygdata.Id = ygdata.Id(NS_parent, 'parent-leaf')
+_ID_parent__shared_leaf: ygdata.Id = ygdata.Id(NS_parent, 'shared-leaf')
+_ID_parent__sub_container: ygdata.Id = ygdata.Id(NS_parent, 'sub-container')
+_ID_parent__sub_leaf: ygdata.Id = ygdata.Id(NS_parent, 'sub-leaf')
+
 
 _breaker1: None = None
 class parent__parent_container(yadata.MNode):
@@ -54,7 +61,7 @@ class parent__parent_container(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> parent__parent_container:
         if n is not None:
-            return parent__parent_container(parent_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'parent-leaf')), augmented_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'augmented-leaf')))
+            return parent__parent_container(parent_leaf=n.get_opt_str(_ID_parent__parent_leaf), augmented_leaf=n.get_opt_str(_ID_parent__augmented_leaf))
         return parent__parent_container()
 
     mut def copy(self) -> parent__parent_container:
@@ -77,7 +84,7 @@ class parent__sub_container(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> parent__sub_container:
         if n is not None:
-            return parent__sub_container(sub_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'sub-leaf')), shared_leaf=n.get_opt_str(ygdata.Id(NS_parent, 'shared-leaf')))
+            return parent__sub_container(sub_leaf=n.get_opt_str(_ID_parent__sub_leaf), shared_leaf=n.get_opt_str(_ID_parent__shared_leaf))
         return parent__sub_container()
 
     mut def copy(self) -> parent__sub_container:
@@ -100,7 +107,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(parent_container=parent__parent_container.from_gdata(n.get_opt_cnt(ygdata.Id(NS_parent, 'parent-container'))), sub_container=parent__sub_container.from_gdata(n.get_opt_cnt(ygdata.Id(NS_parent, 'sub-container'))))
+            return root(parent_container=parent__parent_container.from_gdata(n.get_opt_cnt(_ID_parent__parent_container)), sub_container=parent__sub_container.from_gdata(n.get_opt_cnt(_ID_parent__sub_container)))
         return root()
 
     mut def copy(self) -> root:

@@ -31,6 +31,8 @@ SRC_DNODE: DRoot = DRoot(
 
 NS_foo: str = 'http://example.com/foo'
 
+_ID_foo__ieee_802_3: ygdata.Id = ygdata.Id(NS_foo, 'ieee-802.3')
+
 
 _breaker1: None = None
 class foo__ieee_802_3(yadata.MNode):
@@ -45,7 +47,7 @@ class foo__ieee_802_3(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__ieee_802_3:
         if n is not None:
-            return foo__ieee_802_3(ieee_802_3=n.get_opt_str(ygdata.Id(NS_foo, 'ieee-802.3')))
+            return foo__ieee_802_3(ieee_802_3=n.get_opt_str(_ID_foo__ieee_802_3))
         return foo__ieee_802_3()
 
     mut def copy(self) -> foo__ieee_802_3:
@@ -66,7 +68,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(ieee_802_3=foo__ieee_802_3.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'ieee-802.3'))))
+            return root(ieee_802_3=foo__ieee_802_3.from_gdata(n.get_opt_cnt(_ID_foo__ieee_802_3)))
         return root()
 
     mut def copy(self) -> root:

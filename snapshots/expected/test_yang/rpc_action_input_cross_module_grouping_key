@@ -44,6 +44,12 @@ SRC_DNODE: DRoot = DRoot(
 NS_keygrp: str = 'urn:example:keygrp'
 NS_svc: str = 'urn:example:svc'
 
+_ID_svc__id: ygdata.Id = ygdata.Id(NS_svc, 'id')
+_ID_svc__mgmt: ygdata.Id = ygdata.Id(NS_svc, 'mgmt')
+_ID_svc__port: ygdata.Id = ygdata.Id(NS_svc, 'port')
+_ID_svc__register: ygdata.Id = ygdata.Id(NS_svc, 'register')
+_ID_svc__servers: ygdata.Id = ygdata.Id(NS_svc, 'servers')
+
 
 _breaker1: None = None
 class svc__mgmt(yadata.MNode):
@@ -78,7 +84,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(mgmt=svc__mgmt.from_gdata(n.get_opt_cnt(ygdata.Id(NS_svc, 'mgmt'))))
+            return root(mgmt=svc__mgmt.from_gdata(n.get_opt_cnt(_ID_svc__mgmt)))
         return root()
 
     mut def copy(self) -> root:
@@ -100,7 +106,7 @@ class svc__register__input__servers_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> svc__register__input__servers_entry:
-        return svc__register__input__servers_entry(id=n.get_str(ygdata.Id(NS_svc, 'id')), port=n.get_opt_u64(ygdata.Id(NS_svc, 'port')))
+        return svc__register__input__servers_entry(id=n.get_str(_ID_svc__id), port=n.get_opt_u64(_ID_svc__port))
 
     mut def copy(self) -> svc__register__input__servers_entry:
         """Create a deep copy of this adata object"""
@@ -152,7 +158,7 @@ class svc__register__input(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> svc__register__input:
         if n is not None:
-            return svc__register__input(servers=svc__register__input__servers.from_gdata(n.get_opt_list(ygdata.Id(NS_svc, 'servers'))))
+            return svc__register__input(servers=svc__register__input__servers.from_gdata(n.get_opt_list(_ID_svc__servers)))
         return svc__register__input()
 
     mut def copy(self) -> svc__register__input:
@@ -166,7 +172,7 @@ actor rpc_root(tp: ygdata.TreeProvider):
         rpc_input = ygdata.Container()
         if inp is not None:
             rpc_input = yadata.from_adata(SRC_DNODE, inp, False, ["svc:register", "input"])
-        rpc_gdata = ygdata.Container({ygdata.Id('urn:example:svc', 'register'): rpc_input})
+        rpc_gdata = ygdata.Container({_ID_svc__register: rpc_input})
         tp.rpc(lambda _, err: cb(err), rpc_gdata)
 
 

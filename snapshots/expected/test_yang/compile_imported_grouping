@@ -51,6 +51,11 @@ SRC_DNODE: DRoot = DRoot(
 NS_bar: str = 'http://example.com/bar'
 NS_foo: str = 'http://example.com/foo'
 
+_ID_bar__c1: ygdata.Id = ygdata.Id(NS_bar, 'c1')
+_ID_bar__l1: ygdata.Id = ygdata.Id(NS_bar, 'l1')
+_ID_bar__l2: ygdata.Id = ygdata.Id(NS_bar, 'l2')
+_ID_bar__li1: ygdata.Id = ygdata.Id(NS_bar, 'li1')
+
 
 _breaker1: None = None
 class bar__c1__li1_entry(yadata.MNode):
@@ -66,7 +71,7 @@ class bar__c1__li1_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> bar__c1__li1_entry:
-        return bar__c1__li1_entry(l1=n.get_str(ygdata.Id(NS_bar, 'l1')), l2=n.get_opt_Identityref(ygdata.Id(NS_bar, 'l2')))
+        return bar__c1__li1_entry(l1=n.get_str(_ID_bar__l1), l2=n.get_opt_Identityref(_ID_bar__l2))
 
     mut def copy(self) -> bar__c1__li1_entry:
         """Create a deep copy of this adata object"""
@@ -118,7 +123,7 @@ class bar__c1(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> bar__c1:
         if n is not None:
-            return bar__c1(li1=bar__c1__li1.from_gdata(n.get_opt_list(ygdata.Id(NS_bar, 'li1'))))
+            return bar__c1(li1=bar__c1__li1.from_gdata(n.get_opt_list(_ID_bar__li1)))
         return bar__c1()
 
     mut def copy(self) -> bar__c1:
@@ -139,7 +144,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(c1=bar__c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'c1'))))
+            return root(c1=bar__c1.from_gdata(n.get_opt_cnt(_ID_bar__c1)))
         return root()
 
     mut def copy(self) -> root:

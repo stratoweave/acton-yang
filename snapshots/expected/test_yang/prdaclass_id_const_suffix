@@ -1,0 +1,82 @@
+import base64
+import json
+import std.xml as xml
+import yang.adata as yadata
+import yang.gdata as ygdata
+import yang.xml as yxml
+import yang.xpath as yxpath
+from yang.identityref import Identityref, PartialIdentityref
+from yang.pattern import YangPattern
+from yang.schema import *
+from yang.type import Decimal, Ranges
+
+# == This file is generated ==
+
+
+
+
+_identities: list[DIdentity] = []
+
+
+SRC_DNODE_CHILD_0: DContainer = DContainer(module='foo', namespace='http://example.com/foo', prefix='foo', name='a-b', config=True, presence=False, adata_name='a_b', children=[
+    DLeaf(module='foo', namespace='http://example.com/foo', prefix='foo', name='a_b', config=True, is_key=False, mandatory=False, type=DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[]), adata_name='a_b')
+])
+
+SRC_DNODE: DRoot = DRoot(
+    children=[SRC_DNODE_CHILD_0],
+    identities=[],
+    rpcs=[],
+    module_metadata={'http://example.com/foo':('foo', None, [], True)},
+)
+
+NS_foo: str = 'http://example.com/foo'
+
+_ID_foo__a_b_2: ygdata.Id = ygdata.Id(NS_foo, 'a-b')
+_ID_foo__a_b: ygdata.Id = ygdata.Id(NS_foo, 'a_b')
+
+
+_breaker1: None = None
+class foo__a_b(yadata.MNode):
+    a_b: ?str
+
+    mut def __init__(self, a_b: ?str=None) -> None:
+        self.a_b = a_b
+
+    mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, root_path=['foo:a-b'], prev=prev)
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> foo__a_b:
+        if n is not None:
+            return foo__a_b(a_b=n.get_opt_str(_ID_foo__a_b))
+        return foo__a_b()
+
+    mut def copy(self) -> foo__a_b:
+        """Create a deep copy of this adata object"""
+        return foo__a_b.from_gdata(self.to_gdata())
+
+
+_breaker2: None = None
+class root(yadata.MNode):
+    a_b: foo__a_b
+
+    mut def __init__(self, a_b: ?foo__a_b=None) -> None:
+        self.a_b = a_b if a_b is not None else foo__a_b()
+
+    mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
+        return yadata.from_adata(SRC_DNODE, self, loose=False, prev=prev)
+
+    @staticmethod
+    mut def from_gdata(n: ?ygdata.Node) -> root:
+        if n is not None:
+            return root(a_b=foo__a_b.from_gdata(n.get_opt_cnt(_ID_foo__a_b_2)))
+        return root()
+
+    mut def copy(self) -> root:
+        """Create a deep copy of this adata object"""
+        return root.from_gdata(self.to_gdata())
+
+
+actor rpc_root(tp: ygdata.TreeProvider):
+    pass
+

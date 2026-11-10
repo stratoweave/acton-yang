@@ -38,6 +38,12 @@ SRC_DNODE: DRoot = DRoot(
 NS_augmenter: str = 'http://example.com/augmenter'
 NS_base: str = 'http://example.com/base'
 
+_ID_augmenter__max_nodes: ygdata.Id = ygdata.Id(NS_augmenter, 'max-nodes')
+_ID_augmenter__subscription_capabilities: ygdata.Id = ygdata.Id(NS_augmenter, 'subscription-capabilities')
+_ID_augmenter__supported_excluded_change_type: ygdata.Id = ygdata.Id(NS_augmenter, 'supported-excluded-change-type')
+_ID_base__per_node_capabilities: ygdata.Id = ygdata.Id(NS_base, 'per-node-capabilities')
+_ID_base__system_capabilities: ygdata.Id = ygdata.Id(NS_base, 'system-capabilities')
+
 
 _breaker1: None = None
 class base__system_capabilities__per_node_capabilities_entry(yadata.MNode):
@@ -98,7 +104,7 @@ class base__system_capabilities__subscription_capabilities(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__system_capabilities__subscription_capabilities:
         if n is not None:
-            return base__system_capabilities__subscription_capabilities(max_nodes=n.get_opt_u64(ygdata.Id(NS_augmenter, 'max-nodes')), supported_excluded_change_type=n.get_opt_strs(ygdata.Id(NS_augmenter, 'supported-excluded-change-type')))
+            return base__system_capabilities__subscription_capabilities(max_nodes=n.get_opt_u64(_ID_augmenter__max_nodes), supported_excluded_change_type=n.get_opt_strs(_ID_augmenter__supported_excluded_change_type))
         return base__system_capabilities__subscription_capabilities()
 
     mut def copy(self) -> base__system_capabilities__subscription_capabilities:
@@ -121,7 +127,7 @@ class base__system_capabilities(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__system_capabilities:
         if n is not None:
-            return base__system_capabilities(per_node_capabilities=base__system_capabilities__per_node_capabilities.from_gdata(n.get_opt_keyless_list(ygdata.Id(NS_base, 'per-node-capabilities'))), subscription_capabilities=base__system_capabilities__subscription_capabilities.from_gdata(n.get_opt_cnt(ygdata.Id(NS_augmenter, 'subscription-capabilities'))))
+            return base__system_capabilities(per_node_capabilities=base__system_capabilities__per_node_capabilities.from_gdata(n.get_opt_keyless_list(_ID_base__per_node_capabilities)), subscription_capabilities=base__system_capabilities__subscription_capabilities.from_gdata(n.get_opt_cnt(_ID_augmenter__subscription_capabilities)))
         return base__system_capabilities()
 
     mut def copy(self) -> base__system_capabilities:
@@ -142,7 +148,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(system_capabilities=base__system_capabilities.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base, 'system-capabilities'))))
+            return root(system_capabilities=base__system_capabilities.from_gdata(n.get_opt_cnt(_ID_base__system_capabilities)))
         return root()
 
     mut def copy(self) -> root:

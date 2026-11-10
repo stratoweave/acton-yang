@@ -115,6 +115,13 @@ pure def src_yang() -> list[str]:
 
 NS_foo: str = 'http://example.com/foo'
 
+_ID_foo__c1: ygdata.Id = ygdata.Id(NS_foo, 'c1')
+_ID_foo__l1: ygdata.Id = ygdata.Id(NS_foo, 'l1')
+_ID_foo__l2: ygdata.Id = ygdata.Id(NS_foo, 'l2')
+_ID_foo__li: ygdata.Id = ygdata.Id(NS_foo, 'li')
+_ID_foo__name: ygdata.Id = ygdata.Id(NS_foo, 'name')
+_ID_foo__tc1: ygdata.Id = ygdata.Id(NS_foo, 'tc1')
+
 
 _breaker1: None = None
 class foo__tc1(yadata.MNode):
@@ -131,7 +138,7 @@ class foo__tc1(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__tc1:
         if n is not None:
-            return foo__tc1(l1=n.get_str(ygdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(ygdata.Id(NS_foo, 'l2')))
+            return foo__tc1(l1=n.get_str(_ID_foo__l1), l2=n.get_opt_str(_ID_foo__l2))
         raise ValueError('Missing required subtree foo__tc1')
 
     mut def copy(self) -> foo__tc1:
@@ -154,7 +161,7 @@ class foo__li__c1(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__li__c1:
         if n is not None:
-            return foo__li__c1(l1=n.get_str(ygdata.Id(NS_foo, 'l1')), l2=n.get_opt_str(ygdata.Id(NS_foo, 'l2')))
+            return foo__li__c1(l1=n.get_str(_ID_foo__l1), l2=n.get_opt_str(_ID_foo__l2))
         raise ValueError('Missing required subtree foo__li__c1')
 
     mut def copy(self) -> foo__li__c1:
@@ -176,7 +183,7 @@ class foo__li_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> foo__li_entry:
-        return foo__li_entry(name=n.get_str(ygdata.Id(NS_foo, 'name')), c1=foo__li__c1.from_gdata(n.get_cnt(ygdata.Id(NS_foo, 'c1'))))
+        return foo__li_entry(name=n.get_str(_ID_foo__name), c1=foo__li__c1.from_gdata(n.get_cnt(_ID_foo__c1)))
 
     mut def copy(self) -> foo__li_entry:
         """Create a deep copy of this adata object"""
@@ -229,7 +236,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(tc1=foo__tc1.from_gdata(n.get_cnt(ygdata.Id(NS_foo, 'tc1'))), li=foo__li.from_gdata(n.get_opt_list(ygdata.Id(NS_foo, 'li'))))
+            return root(tc1=foo__tc1.from_gdata(n.get_cnt(_ID_foo__tc1)), li=foo__li.from_gdata(n.get_opt_list(_ID_foo__li)))
         raise ValueError('Missing required subtree root')
 
     mut def copy(self) -> root:

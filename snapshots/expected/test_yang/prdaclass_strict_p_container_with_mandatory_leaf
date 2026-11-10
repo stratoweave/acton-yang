@@ -36,6 +36,12 @@ SRC_DNODE: DRoot = DRoot(
 NS_bar: str = 'http://example.com/bar'
 NS_foo: str = 'http://example.com/foo'
 
+_ID_bar__l1: ygdata.Id = ygdata.Id(NS_bar, 'l1')
+_ID_bar__l2: ygdata.Id = ygdata.Id(NS_bar, 'l2')
+_ID_foo__bar: ygdata.Id = ygdata.Id(NS_foo, 'bar')
+_ID_foo__foo: ygdata.Id = ygdata.Id(NS_foo, 'foo')
+_ID_foo__l1: ygdata.Id = ygdata.Id(NS_foo, 'l1')
+
 
 _breaker1: None = None
 class foo__foo__bar(yadata.MNode):
@@ -54,7 +60,7 @@ class foo__foo__bar(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> ?foo__foo__bar:
         if n is not None:
-            return foo__foo__bar(foo_l1=n.get_str(ygdata.Id(NS_foo, 'l1')), bar_l1=n.get_str(ygdata.Id(NS_bar, 'l1')), l2=n.get_str(ygdata.Id(NS_bar, 'l2')))
+            return foo__foo__bar(foo_l1=n.get_str(_ID_foo__l1), bar_l1=n.get_str(_ID_bar__l1), l2=n.get_str(_ID_bar__l2))
         return None
 
     mut def copy(self) -> foo__foo__bar:
@@ -89,7 +95,7 @@ class foo__foo(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> ?foo__foo:
         if n is not None:
-            return foo__foo(bar=foo__foo__bar.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'bar'))))
+            return foo__foo(bar=foo__foo__bar.from_gdata(n.get_opt_cnt(_ID_foo__bar)))
         return None
 
     mut def copy(self) -> foo__foo:
@@ -121,7 +127,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(foo=foo__foo.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'foo'))))
+            return root(foo=foo__foo.from_gdata(n.get_opt_cnt(_ID_foo__foo)))
         return root()
 
     mut def copy(self) -> root:

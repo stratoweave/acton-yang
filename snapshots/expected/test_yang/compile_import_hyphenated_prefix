@@ -32,6 +32,9 @@ SRC_DNODE: DRoot = DRoot(
 NS_acme_foo_bar: str = 'http://example.com/foo'
 NS_acme_qux_baz: str = 'http://example.com/qux'
 
+_ID_acme_foo_bar__c1: ygdata.Id = ygdata.Id(NS_acme_foo_bar, 'c1')
+_ID_acme_foo_bar__l1: ygdata.Id = ygdata.Id(NS_acme_foo_bar, 'l1')
+
 
 _breaker1: None = None
 class acme_foo_bar__c1(yadata.MNode):
@@ -46,7 +49,7 @@ class acme_foo_bar__c1(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> acme_foo_bar__c1:
         if n is not None:
-            return acme_foo_bar__c1(l1=n.get_opt_str(ygdata.Id(NS_acme_foo_bar, 'l1')))
+            return acme_foo_bar__c1(l1=n.get_opt_str(_ID_acme_foo_bar__l1))
         return acme_foo_bar__c1()
 
     mut def copy(self) -> acme_foo_bar__c1:
@@ -67,7 +70,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(c1=acme_foo_bar__c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_acme_foo_bar, 'c1'))))
+            return root(c1=acme_foo_bar__c1.from_gdata(n.get_opt_cnt(_ID_acme_foo_bar__c1)))
         return root()
 
     mut def copy(self) -> root:

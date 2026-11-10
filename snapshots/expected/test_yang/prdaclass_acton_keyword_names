@@ -41,6 +41,18 @@ SRC_DNODE: DRoot = DRoot(
 
 NS_foo: str = 'http://example.com/foo'
 
+_ID_foo__actor: ygdata.Id = ygdata.Id(NS_foo, 'actor')
+_ID_foo__as: ygdata.Id = ygdata.Id(NS_foo, 'as')
+_ID_foo__class: ygdata.Id = ygdata.Id(NS_foo, 'class')
+_ID_foo__extension: ygdata.Id = ygdata.Id(NS_foo, 'extension')
+_ID_foo__for: ygdata.Id = ygdata.Id(NS_foo, 'for')
+_ID_foo__from: ygdata.Id = ygdata.Id(NS_foo, 'from')
+_ID_foo__import: ygdata.Id = ygdata.Id(NS_foo, 'import')
+_ID_foo__in: ygdata.Id = ygdata.Id(NS_foo, 'in')
+_ID_foo__protocol: ygdata.Id = ygdata.Id(NS_foo, 'protocol')
+_ID_foo__type: ygdata.Id = ygdata.Id(NS_foo, 'type')
+_ID_foo__with: ygdata.Id = ygdata.Id(NS_foo, 'with')
+
 
 _breaker1: None = None
 class foo__c1(yadata.MNode):
@@ -75,7 +87,7 @@ class foo__c1(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__c1:
         if n is not None:
-            return foo__c1(as_=n.get_opt_str(ygdata.Id(NS_foo, 'as')), for_=n.get_opt_str(ygdata.Id(NS_foo, 'for')), in_=n.get_opt_str(ygdata.Id(NS_foo, 'in')), with_=n.get_opt_str(ygdata.Id(NS_foo, 'with')), actor=n.get_opt_str(ygdata.Id(NS_foo, 'actor')), class=n.get_opt_str(ygdata.Id(NS_foo, 'class')), extension=n.get_opt_str(ygdata.Id(NS_foo, 'extension')), from=n.get_opt_str(ygdata.Id(NS_foo, 'from')), import=n.get_opt_str(ygdata.Id(NS_foo, 'import')), protocol=n.get_opt_str(ygdata.Id(NS_foo, 'protocol')), type=n.get_opt_str(ygdata.Id(NS_foo, 'type')))
+            return foo__c1(as_=n.get_opt_str(_ID_foo__as), for_=n.get_opt_str(_ID_foo__for), in_=n.get_opt_str(_ID_foo__in), with_=n.get_opt_str(_ID_foo__with), actor=n.get_opt_str(_ID_foo__actor), class=n.get_opt_str(_ID_foo__class), extension=n.get_opt_str(_ID_foo__extension), from=n.get_opt_str(_ID_foo__from), import=n.get_opt_str(_ID_foo__import), protocol=n.get_opt_str(_ID_foo__protocol), type=n.get_opt_str(_ID_foo__type))
         return foo__c1()
 
     mut def copy(self) -> foo__c1:

@@ -70,6 +70,9 @@ NS_bar: str = 'http://example.com/bar'
 NS_base: str = 'http://example.com/base'
 NS_foo: str = 'http://example.com/foo'
 
+_ID_base__active_protocol: ygdata.Id = ygdata.Id(NS_base, 'active-protocol')
+_ID_base__config: ygdata.Id = ygdata.Id(NS_base, 'config')
+
 
 _breaker1: None = None
 class base__config(yadata.MNode):
@@ -84,7 +87,7 @@ class base__config(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__config:
         if n is not None:
-            return base__config(active_protocol=n.get_opt_Identityref(ygdata.Id(NS_base, 'active-protocol')))
+            return base__config(active_protocol=n.get_opt_Identityref(_ID_base__active_protocol))
         return base__config()
 
     mut def copy(self) -> base__config:
@@ -105,7 +108,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(config=base__config.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base, 'config'))))
+            return root(config=base__config.from_gdata(n.get_opt_cnt(_ID_base__config)))
         return root()
 
     mut def copy(self) -> root:

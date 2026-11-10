@@ -108,6 +108,18 @@ pure def src_yang() -> list[str]:
 
 NS_keywords: str = 'http://example.com/keywords'
 
+_ID_keywords__B4: ygdata.Id = ygdata.Id(NS_keywords, 'B4')
+_ID_keywords__C: ygdata.Id = ygdata.Id(NS_keywords, 'C')
+_ID_keywords__K: ygdata.Id = ygdata.Id(NS_keywords, 'K')
+_ID_keywords__L: ygdata.Id = ygdata.Id(NS_keywords, 'L')
+_ID_keywords__actor: ygdata.Id = ygdata.Id(NS_keywords, 'actor')
+_ID_keywords__class: ygdata.Id = ygdata.Id(NS_keywords, 'class')
+_ID_keywords__extension: ygdata.Id = ygdata.Id(NS_keywords, 'extension')
+_ID_keywords__from: ygdata.Id = ygdata.Id(NS_keywords, 'from')
+_ID_keywords__import: ygdata.Id = ygdata.Id(NS_keywords, 'import')
+_ID_keywords__protocol: ygdata.Id = ygdata.Id(NS_keywords, 'protocol')
+_ID_keywords__type: ygdata.Id = ygdata.Id(NS_keywords, 'type')
+
 
 _breaker1: None = None
 class keywords__class(yadata.MNode):
@@ -132,7 +144,7 @@ class keywords__class(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> keywords__class:
         if n is not None:
-            return keywords__class(actor=n.get_opt_str(ygdata.Id(NS_keywords, 'actor')), extension=n.get_opt_str(ygdata.Id(NS_keywords, 'extension')), from=n.get_opt_str(ygdata.Id(NS_keywords, 'from')), import=n.get_opt_str(ygdata.Id(NS_keywords, 'import')), protocol=n.get_opt_str(ygdata.Id(NS_keywords, 'protocol')), type=n.get_opt_str(ygdata.Id(NS_keywords, 'type')))
+            return keywords__class(actor=n.get_opt_str(_ID_keywords__actor), extension=n.get_opt_str(_ID_keywords__extension), from=n.get_opt_str(_ID_keywords__from), import=n.get_opt_str(_ID_keywords__import), protocol=n.get_opt_str(_ID_keywords__protocol), type=n.get_opt_str(_ID_keywords__type))
         return keywords__class()
 
     mut def copy(self) -> keywords__class:
@@ -156,7 +168,7 @@ class keywords__import_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> keywords__import_entry:
-        return keywords__import_entry(from=n.get_str(ygdata.Id(NS_keywords, 'from')), type=n.get_str(ygdata.Id(NS_keywords, 'type')), class=n.get_opt_str(ygdata.Id(NS_keywords, 'class')))
+        return keywords__import_entry(from=n.get_str(_ID_keywords__from), type=n.get_str(_ID_keywords__type), class=n.get_opt_str(_ID_keywords__class))
 
     mut def copy(self) -> keywords__import_entry:
         """Create a deep copy of this adata object"""
@@ -207,7 +219,7 @@ class keywords__C__L_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> keywords__C__L_entry:
-        return keywords__C__L_entry(K_=n.get_str(ygdata.Id(NS_keywords, 'K')))
+        return keywords__C__L_entry(K_=n.get_str(_ID_keywords__K))
 
     mut def copy(self) -> keywords__C__L_entry:
         """Create a deep copy of this adata object"""
@@ -259,7 +271,7 @@ class keywords__C(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> keywords__C:
         if n is not None:
-            return keywords__C(B4_=n.get_opt_str(ygdata.Id(NS_keywords, 'B4')), L_=keywords__C__L.from_gdata(n.get_opt_list(ygdata.Id(NS_keywords, 'L'))))
+            return keywords__C(B4_=n.get_opt_str(_ID_keywords__B4), L_=keywords__C__L.from_gdata(n.get_opt_list(_ID_keywords__L)))
         return keywords__C()
 
     mut def copy(self) -> keywords__C:
@@ -284,7 +296,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(class=keywords__class.from_gdata(n.get_opt_cnt(ygdata.Id(NS_keywords, 'class'))), import=keywords__import.from_gdata(n.get_opt_list(ygdata.Id(NS_keywords, 'import'))), C_=keywords__C.from_gdata(n.get_opt_cnt(ygdata.Id(NS_keywords, 'C'))))
+            return root(class=keywords__class.from_gdata(n.get_opt_cnt(_ID_keywords__class)), import=keywords__import.from_gdata(n.get_opt_list(_ID_keywords__import)), C_=keywords__C.from_gdata(n.get_opt_cnt(_ID_keywords__C)))
         return root()
 
     mut def copy(self) -> root:
