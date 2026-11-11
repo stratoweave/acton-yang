@@ -49,6 +49,11 @@ SRC_DNODE: DRoot = DRoot(
 
 NS_foo: str = 'http://example.com/foo'
 
+_ID_foo__c: ygdata.Id = ygdata.Id(NS_foo, 'c')
+_ID_foo__l_boolean_def: ygdata.Id = ygdata.Id(NS_foo, 'l_boolean_def')
+_ID_foo__l_identityref_def: ygdata.Id = ygdata.Id(NS_foo, 'l_identityref_def')
+_ID_foo__l_str_def: ygdata.Id = ygdata.Id(NS_foo, 'l_str_def')
+
 
 _breaker1: None = None
 class foo__c(yadata.MNode):
@@ -67,7 +72,7 @@ class foo__c(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__c:
         if n is not None:
-            return foo__c(l_str_def=n.get_opt_str(ygdata.Id(NS_foo, 'l_str_def')), l_boolean_def=n.get_opt_bool(ygdata.Id(NS_foo, 'l_boolean_def')), l_identityref_def=n.get_opt_Identityref(ygdata.Id(NS_foo, 'l_identityref_def')))
+            return foo__c(l_str_def=n.get_opt_str(_ID_foo__l_str_def), l_boolean_def=n.get_opt_bool(_ID_foo__l_boolean_def), l_identityref_def=n.get_opt_Identityref(_ID_foo__l_identityref_def))
         return foo__c()
 
     mut def copy(self) -> foo__c:
@@ -88,7 +93,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(c=foo__c.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c'))))
+            return root(c=foo__c.from_gdata(n.get_opt_cnt(_ID_foo__c)))
         return root()
 
     mut def copy(self) -> root:

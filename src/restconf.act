@@ -22,7 +22,7 @@ import data as ydata
 import gdata as ygdata
 import schema as yschema
 from data import from_data_recursive, YangData, PathElement, YangValidationError, format_schema_path
-from data import fqname, list_node, parse_qualified_name
+from data import list_node, parse_qualified_name
 from data import OP_MERGE, OP_REPLACE, OP_REMOVE
 from json import try_parse_json_value
 from xml import xml_node_ns, NETCONF_NS, NETCONF_OPS
@@ -145,19 +145,19 @@ def _from_unwrapped_body[A(YangData)](root: yschema.DRoot, data: ?A, type_narrow
             if op == OP_REMOVE:
                 # Body is ignored; construct key children directly from URL keys.
                 element_children = {}
-                for key_name in last_node.key:
+                for key_name, key_id in zip(last_node.key, last_node.key_gnames):
                     key_val = keys.get(key_name)
                     if key_val is not None:
-                        element_children[ygdata.Id(last_node.namespace, key_name)] = ygdata.Leaf(key_val)
+                        element_children[key_id] = ygdata.Leaf(key_val)
                 inner = list_node(last_node, [ygdata.Absent(element_children)], ns=last_node.namespace if maybe_ns else None, module=last_node.module if maybe_ns else None)
             elif op == OP_MERGE or op == OP_REPLACE:
                 if data is None:
                     raise ValueError("Body required for op '{op}' at {format_schema_path(path_elements)}")
                 element_gdata = from_data_recursive(root, last_node, data!, type_narrower, loose, set_ns=False, spath=path_elements, op=op)
                 # List keys in the body MUST equal the URL path keys.
-                for key_name in last_node.key:
+                for key_name, key_id in zip(last_node.key, last_node.key_gnames):
                     url_key_val = keys.get(key_name)
-                    body_leaf = element_gdata.children.get(ygdata.Id(last_node.namespace, key_name))
+                    body_leaf = element_gdata.children.get(key_id)
                     if isinstance(body_leaf, ygdata.Leaf) and url_key_val is not None:
                         if not ygdata.vals_equal(body_leaf.val, url_key_val):
                             raise ValueError("Key value mismatch between path and payload at {format_schema_path(path_elements)}: key {key_name}")
@@ -181,17 +181,17 @@ def _from_unwrapped_body[A(YangData)](root: yschema.DRoot, data: ?A, type_narrow
             # Carry the schema presence: ygdata.patch takes a container whose
             # presence differs from the datastore as a schema mismatch.
             spresence = s.presence if isinstance(s, yschema.DContainer) else False
-            inner = ygdata.Container({fqname(child_node): inner}, presence=spresence, ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
+            inner = ygdata.Container({child_node.gname: inner}, presence=spresence, ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
 
         elif isinstance(s, yschema.DList):
             ancestor_keys = path_elements[i].keys
             if ancestor_keys is not None:
                 element_children: dict[ygdata.Id, ygdata.Node] = {}
-                for key_name in s.key:
+                for key_name, key_id in zip(s.key, s.key_gnames):
                     key_val = ancestor_keys.get(key_name)
                     if key_val is not None:
-                        element_children[ygdata.Id(s.namespace, key_name)] = ygdata.Leaf(key_val)
-                element_children[fqname(child_node)] = inner
+                        element_children[key_id] = ygdata.Leaf(key_val)
+                element_children[child_node.gname] = inner
                 inner = list_node(s, [ygdata.Container(element_children)], ns=s.namespace if maybe_ns else None, module=s.module if maybe_ns else None)
             else:
                 raise ValueError("Invalid path invariant at {format_schema_path(path_elements[:i+1])}: ancestor list is missing key values")

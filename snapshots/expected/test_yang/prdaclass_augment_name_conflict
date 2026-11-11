@@ -34,6 +34,9 @@ NS_bar: str = 'http://example.com/bar'
 NS_base: str = 'http://example.com/base'
 NS_foo: str = 'http://example.com/foo'
 
+_ID_bar__foo: ygdata.Id = ygdata.Id(NS_bar, 'foo')
+_ID_foo__foo: ygdata.Id = ygdata.Id(NS_foo, 'foo')
+
 
 _breaker1: None = None
 class base__c1(yadata.MNode):
@@ -50,7 +53,7 @@ class base__c1(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__c1:
         if n is not None:
-            return base__c1(bar_foo=n.get_opt_str(ygdata.Id(NS_bar, 'foo')), foo_foo=n.get_opt_str(ygdata.Id(NS_foo, 'foo')))
+            return base__c1(bar_foo=n.get_opt_str(_ID_bar__foo), foo_foo=n.get_opt_str(_ID_foo__foo))
         return base__c1()
 
     mut def copy(self) -> base__c1:

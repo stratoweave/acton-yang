@@ -68,6 +68,11 @@ VALUES = _q("values")
 IDENTITYREFS = _q("identityrefs")
 BITSS = _q("bitss")
 MISSING = _q("missing")
+VALUE = _q("value")
+LEAF0 = _q("leaf0")
+LEAF1 = _q("leaf1")
+LEAF2 = _q("leaf2")
+LEAF3 = _q("leaf3")
 OPTIONAL_CONTAINERS: list[ygdata.Id] = [_q("optional-container-" + str(i)) for i in range(10)]
 
 
@@ -449,7 +454,7 @@ class _device_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> _device_entry:
-        return _device_entry(name=n.get_str(_q("name")), value=n.get_opt_int(_q("value")), leaf0=n.get_opt_str(_q("leaf0")), leaf1=n.get_opt_str(_q("leaf1")), leaf2=n.get_opt_str(_q("leaf2")), leaf3=n.get_opt_str(_q("leaf3")))
+        return _device_entry(name=n.get_str(KEY), value=n.get_opt_int(VALUE), leaf0=n.get_opt_str(LEAF0), leaf1=n.get_opt_str(LEAF1), leaf2=n.get_opt_str(LEAF2), leaf3=n.get_opt_str(LEAF3))
 
     mut def copy(self) -> _device_entry:
         return _device_entry(self.name, self.value, self.leaf0, self.leaf1, self.leaf2, self.leaf3)
@@ -471,7 +476,7 @@ class _sparse_entry:
         for name in OPTIONAL_CONTAINERS:
             if n.get_opt_cnt(name) is not None:
                 found += 1
-        return _sparse_entry(name=n.get_str(KEY), value=n.get_opt_int(_q("value")), optional_containers=found)
+        return _sparse_entry(name=n.get_str(KEY), value=n.get_opt_int(VALUE), optional_containers=found)
 
 
 class _device(yadata.MKeyedList[str, _device_entry]):

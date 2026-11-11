@@ -42,6 +42,15 @@ SRC_DNODE: DRoot = DRoot(
 NS_base: str = 'http://example.com/base'
 NS_voice: str = 'http://example.com/voice'
 
+_ID_base__native: ygdata.Id = ygdata.Id(NS_base, 'native')
+_ID_voice__bind: ygdata.Id = ygdata.Id(NS_voice, 'bind')
+_ID_voice__enabled: ygdata.Id = ygdata.Id(NS_voice, 'enabled')
+_ID_voice__port: ygdata.Id = ygdata.Id(NS_voice, 'port')
+_ID_voice__service: ygdata.Id = ygdata.Id(NS_voice, 'service')
+_ID_voice__sip: ygdata.Id = ygdata.Id(NS_voice, 'sip')
+_ID_voice__voice: ygdata.Id = ygdata.Id(NS_voice, 'voice')
+_ID_voice__voip: ygdata.Id = ygdata.Id(NS_voice, 'voip')
+
 
 _breaker1: None = None
 class base__native__voice__service__voip__sip(yadata.MNode):
@@ -58,7 +67,7 @@ class base__native__voice__service__voip__sip(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service__voip__sip:
         if n is not None:
-            return base__native__voice__service__voip__sip(bind=n.get_opt_str(ygdata.Id(NS_voice, 'bind')), port=n.get_opt_u64(ygdata.Id(NS_voice, 'port')))
+            return base__native__voice__service__voip__sip(bind=n.get_opt_str(_ID_voice__bind), port=n.get_opt_u64(_ID_voice__port))
         return base__native__voice__service__voip__sip()
 
     mut def copy(self) -> base__native__voice__service__voip__sip:
@@ -81,7 +90,7 @@ class base__native__voice__service__voip(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service__voip:
         if n is not None:
-            return base__native__voice__service__voip(enabled=n.get_opt_bool(ygdata.Id(NS_voice, 'enabled')), sip=base__native__voice__service__voip__sip.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'sip'))))
+            return base__native__voice__service__voip(enabled=n.get_opt_bool(_ID_voice__enabled), sip=base__native__voice__service__voip__sip.from_gdata(n.get_opt_cnt(_ID_voice__sip)))
         return base__native__voice__service__voip()
 
     mut def copy(self) -> base__native__voice__service__voip:
@@ -102,7 +111,7 @@ class base__native__voice__service(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice__service:
         if n is not None:
-            return base__native__voice__service(voip=base__native__voice__service__voip.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'voip'))))
+            return base__native__voice__service(voip=base__native__voice__service__voip.from_gdata(n.get_opt_cnt(_ID_voice__voip)))
         return base__native__voice__service()
 
     mut def copy(self) -> base__native__voice__service:
@@ -123,7 +132,7 @@ class base__native__voice(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native__voice:
         if n is not None:
-            return base__native__voice(service=base__native__voice__service.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'service'))))
+            return base__native__voice(service=base__native__voice__service.from_gdata(n.get_opt_cnt(_ID_voice__service)))
         return base__native__voice()
 
     mut def copy(self) -> base__native__voice:
@@ -144,7 +153,7 @@ class base__native(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> base__native:
         if n is not None:
-            return base__native(voice=base__native__voice.from_gdata(n.get_opt_cnt(ygdata.Id(NS_voice, 'voice'))))
+            return base__native(voice=base__native__voice.from_gdata(n.get_opt_cnt(_ID_voice__voice)))
         return base__native()
 
     mut def copy(self) -> base__native:
@@ -165,7 +174,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(native=base__native.from_gdata(n.get_opt_cnt(ygdata.Id(NS_base, 'native'))))
+            return root(native=base__native.from_gdata(n.get_opt_cnt(_ID_base__native)))
         return root()
 
     mut def copy(self) -> root:

@@ -144,6 +144,29 @@ pure def src_yang() -> list[str]:
 
 NS_filter_test: str = 'http://example.com/filter-test'
 
+_ID_filter_test__address: ygdata.Id = ygdata.Id(NS_filter_test, 'address')
+_ID_filter_test__admin_status: ygdata.Id = ygdata.Id(NS_filter_test, 'admin-status')
+_ID_filter_test__boot_datetime: ygdata.Id = ygdata.Id(NS_filter_test, 'boot-datetime')
+_ID_filter_test__clock: ygdata.Id = ygdata.Id(NS_filter_test, 'clock')
+_ID_filter_test__current_datetime: ygdata.Id = ygdata.Id(NS_filter_test, 'current-datetime')
+_ID_filter_test__description: ygdata.Id = ygdata.Id(NS_filter_test, 'description')
+_ID_filter_test__enabled: ygdata.Id = ygdata.Id(NS_filter_test, 'enabled')
+_ID_filter_test__in_octets: ygdata.Id = ygdata.Id(NS_filter_test, 'in-octets')
+_ID_filter_test__interface: ygdata.Id = ygdata.Id(NS_filter_test, 'interface')
+_ID_filter_test__interfaces: ygdata.Id = ygdata.Id(NS_filter_test, 'interfaces')
+_ID_filter_test__ip: ygdata.Id = ygdata.Id(NS_filter_test, 'ip')
+_ID_filter_test__ipv4: ygdata.Id = ygdata.Id(NS_filter_test, 'ipv4')
+_ID_filter_test__ipv6: ygdata.Id = ygdata.Id(NS_filter_test, 'ipv6')
+_ID_filter_test__last_change: ygdata.Id = ygdata.Id(NS_filter_test, 'last-change')
+_ID_filter_test__mtu: ygdata.Id = ygdata.Id(NS_filter_test, 'mtu')
+_ID_filter_test__name: ygdata.Id = ygdata.Id(NS_filter_test, 'name')
+_ID_filter_test__oper_status: ygdata.Id = ygdata.Id(NS_filter_test, 'oper-status')
+_ID_filter_test__out_octets: ygdata.Id = ygdata.Id(NS_filter_test, 'out-octets')
+_ID_filter_test__prefix_length: ygdata.Id = ygdata.Id(NS_filter_test, 'prefix-length')
+_ID_filter_test__statistics: ygdata.Id = ygdata.Id(NS_filter_test, 'statistics')
+_ID_filter_test__system_state: ygdata.Id = ygdata.Id(NS_filter_test, 'system-state')
+_ID_filter_test__type: ygdata.Id = ygdata.Id(NS_filter_test, 'type')
+
 
 _breaker1: None = None
 class filter_test__system_state__clock(yadata.MNode):
@@ -160,7 +183,7 @@ class filter_test__system_state__clock(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> filter_test__system_state__clock:
         if n is not None:
-            return filter_test__system_state__clock(current_datetime=n.get_opt_str(ygdata.Id(NS_filter_test, 'current-datetime')), boot_datetime=n.get_opt_str(ygdata.Id(NS_filter_test, 'boot-datetime')))
+            return filter_test__system_state__clock(current_datetime=n.get_opt_str(_ID_filter_test__current_datetime), boot_datetime=n.get_opt_str(_ID_filter_test__boot_datetime))
         return filter_test__system_state__clock()
 
     mut def copy(self) -> filter_test__system_state__clock:
@@ -181,7 +204,7 @@ class filter_test__system_state(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> filter_test__system_state:
         if n is not None:
-            return filter_test__system_state(clock=filter_test__system_state__clock.from_gdata(n.get_opt_cnt(ygdata.Id(NS_filter_test, 'clock'))))
+            return filter_test__system_state(clock=filter_test__system_state__clock.from_gdata(n.get_opt_cnt(_ID_filter_test__clock)))
         return filter_test__system_state()
 
     mut def copy(self) -> filter_test__system_state:
@@ -204,7 +227,7 @@ class filter_test__interfaces__interface__statistics(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> filter_test__interfaces__interface__statistics:
         if n is not None:
-            return filter_test__interfaces__interface__statistics(in_octets=n.get_opt_u64(ygdata.Id(NS_filter_test, 'in-octets')), out_octets=n.get_opt_u64(ygdata.Id(NS_filter_test, 'out-octets')))
+            return filter_test__interfaces__interface__statistics(in_octets=n.get_opt_u64(_ID_filter_test__in_octets), out_octets=n.get_opt_u64(_ID_filter_test__out_octets))
         return filter_test__interfaces__interface__statistics()
 
     mut def copy(self) -> filter_test__interfaces__interface__statistics:
@@ -225,7 +248,7 @@ class filter_test__interfaces__interface__ipv4(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> filter_test__interfaces__interface__ipv4:
         if n is not None:
-            return filter_test__interfaces__interface__ipv4(mtu=n.get_opt_u64(ygdata.Id(NS_filter_test, 'mtu')))
+            return filter_test__interfaces__interface__ipv4(mtu=n.get_opt_u64(_ID_filter_test__mtu))
         return filter_test__interfaces__interface__ipv4()
 
     mut def copy(self) -> filter_test__interfaces__interface__ipv4:
@@ -246,7 +269,7 @@ class filter_test__interfaces__interface__ipv6(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> filter_test__interfaces__interface__ipv6:
         if n is not None:
-            return filter_test__interfaces__interface__ipv6(mtu=n.get_opt_u64(ygdata.Id(NS_filter_test, 'mtu')))
+            return filter_test__interfaces__interface__ipv6(mtu=n.get_opt_u64(_ID_filter_test__mtu))
         return filter_test__interfaces__interface__ipv6()
 
     mut def copy(self) -> filter_test__interfaces__interface__ipv6:
@@ -268,7 +291,7 @@ class filter_test__interfaces__interface__address_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> filter_test__interfaces__interface__address_entry:
-        return filter_test__interfaces__interface__address_entry(ip=n.get_str(ygdata.Id(NS_filter_test, 'ip')), prefix_length=n.get_opt_u64(ygdata.Id(NS_filter_test, 'prefix-length')))
+        return filter_test__interfaces__interface__address_entry(ip=n.get_str(_ID_filter_test__ip), prefix_length=n.get_opt_u64(_ID_filter_test__prefix_length))
 
     mut def copy(self) -> filter_test__interfaces__interface__address_entry:
         """Create a deep copy of this adata object"""
@@ -339,7 +362,7 @@ class filter_test__interfaces__interface_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> filter_test__interfaces__interface_entry:
-        return filter_test__interfaces__interface_entry(name=n.get_str(ygdata.Id(NS_filter_test, 'name')), description=n.get_opt_str(ygdata.Id(NS_filter_test, 'description')), type=n.get_opt_str(ygdata.Id(NS_filter_test, 'type')), enabled=n.get_opt_bool(ygdata.Id(NS_filter_test, 'enabled')), admin_status=n.get_opt_str(ygdata.Id(NS_filter_test, 'admin-status')), oper_status=n.get_opt_str(ygdata.Id(NS_filter_test, 'oper-status')), last_change=n.get_opt_str(ygdata.Id(NS_filter_test, 'last-change')), statistics=filter_test__interfaces__interface__statistics.from_gdata(n.get_opt_cnt(ygdata.Id(NS_filter_test, 'statistics'))), ipv4=filter_test__interfaces__interface__ipv4.from_gdata(n.get_opt_cnt(ygdata.Id(NS_filter_test, 'ipv4'))), ipv6=filter_test__interfaces__interface__ipv6.from_gdata(n.get_opt_cnt(ygdata.Id(NS_filter_test, 'ipv6'))), address=filter_test__interfaces__interface__address.from_gdata(n.get_opt_list(ygdata.Id(NS_filter_test, 'address'))))
+        return filter_test__interfaces__interface_entry(name=n.get_str(_ID_filter_test__name), description=n.get_opt_str(_ID_filter_test__description), type=n.get_opt_str(_ID_filter_test__type), enabled=n.get_opt_bool(_ID_filter_test__enabled), admin_status=n.get_opt_str(_ID_filter_test__admin_status), oper_status=n.get_opt_str(_ID_filter_test__oper_status), last_change=n.get_opt_str(_ID_filter_test__last_change), statistics=filter_test__interfaces__interface__statistics.from_gdata(n.get_opt_cnt(_ID_filter_test__statistics)), ipv4=filter_test__interfaces__interface__ipv4.from_gdata(n.get_opt_cnt(_ID_filter_test__ipv4)), ipv6=filter_test__interfaces__interface__ipv6.from_gdata(n.get_opt_cnt(_ID_filter_test__ipv6)), address=filter_test__interfaces__interface__address.from_gdata(n.get_opt_list(_ID_filter_test__address)))
 
     mut def copy(self) -> filter_test__interfaces__interface_entry:
         """Create a deep copy of this adata object"""
@@ -401,7 +424,7 @@ class filter_test__interfaces(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> filter_test__interfaces:
         if n is not None:
-            return filter_test__interfaces(interface=filter_test__interfaces__interface.from_gdata(n.get_opt_list(ygdata.Id(NS_filter_test, 'interface'))))
+            return filter_test__interfaces(interface=filter_test__interfaces__interface.from_gdata(n.get_opt_list(_ID_filter_test__interface)))
         return filter_test__interfaces()
 
     mut def copy(self) -> filter_test__interfaces:
@@ -424,7 +447,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(system_state=filter_test__system_state.from_gdata(n.get_opt_cnt(ygdata.Id(NS_filter_test, 'system-state'))), interfaces=filter_test__interfaces.from_gdata(n.get_opt_cnt(ygdata.Id(NS_filter_test, 'interfaces'))))
+            return root(system_state=filter_test__system_state.from_gdata(n.get_opt_cnt(_ID_filter_test__system_state)), interfaces=filter_test__interfaces.from_gdata(n.get_opt_cnt(_ID_filter_test__interfaces)))
         return root()
 
     mut def copy(self) -> root:
@@ -464,8 +487,8 @@ actor filter_test__system_state__clock_dst(cb: action(?filter_test__system_state
         inst: ?filter_test__system_state__clock = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'system-state'))
-                c2 = _at(c1, ygdata.Id(NS_filter_test, 'clock'))
+                c1 = _at(n, _ID_filter_test__system_state)
+                c2 = _at(c1, _ID_filter_test__clock)
                 here = _present(c2)
                 if here is not None:
                     inst = filter_test__system_state__clock.from_gdata(here)
@@ -483,8 +506,8 @@ class filter_test__system_state__clock_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.current_datetime = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'current-datetime'), parent=path))
-        self.boot_datetime = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'boot-datetime'), parent=path))
+        self.current_datetime = SubscriptionNode(SubscriptionPath(_ID_filter_test__current_datetime, parent=path))
+        self.boot_datetime = SubscriptionNode(SubscriptionPath(_ID_filter_test__boot_datetime, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.current_datetime, self.boot_datetime]
@@ -503,7 +526,7 @@ actor filter_test__system_state_dst(cb: action(?filter_test__system_state, ?Exce
         inst: ?filter_test__system_state = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'system-state'))
+                c1 = _at(n, _ID_filter_test__system_state)
                 here = _present(c1)
                 if here is not None:
                     inst = filter_test__system_state.from_gdata(here)
@@ -520,7 +543,7 @@ class filter_test__system_state_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.clock = filter_test__system_state__clock_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'clock'), parent=path))
+        self.clock = filter_test__system_state__clock_subs(SubscriptionPath(_ID_filter_test__clock, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.clock]
@@ -540,10 +563,10 @@ actor filter_test__interfaces__interface__statistics_dst(cb: action(?(interface_
         inst: ?filter_test__interfaces__interface__statistics = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'interfaces'))
-                e2 = _one(_at(c1, ygdata.Id(NS_filter_test, 'interface')), 'interface')
-                c3 = _at(e2, ygdata.Id(NS_filter_test, 'statistics'))
-                keys = (interface_name=e2.get_str(ygdata.Id(NS_filter_test, 'name')))
+                c1 = _at(n, _ID_filter_test__interfaces)
+                e2 = _one(_at(c1, _ID_filter_test__interface), 'interface')
+                c3 = _at(e2, _ID_filter_test__statistics)
+                keys = (interface_name=e2.get_str(_ID_filter_test__name))
                 here = _present(c3)
                 if here is not None:
                     inst = filter_test__interfaces__interface__statistics.from_gdata(here)
@@ -561,8 +584,8 @@ class filter_test__interfaces__interface__statistics_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.in_octets = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'in-octets'), parent=path))
-        self.out_octets = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'out-octets'), parent=path))
+        self.in_octets = SubscriptionNode(SubscriptionPath(_ID_filter_test__in_octets, parent=path))
+        self.out_octets = SubscriptionNode(SubscriptionPath(_ID_filter_test__out_octets, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.in_octets, self.out_octets]
@@ -582,10 +605,10 @@ actor filter_test__interfaces__interface__ipv4_dst(cb: action(?(interface_name: 
         inst: ?filter_test__interfaces__interface__ipv4 = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'interfaces'))
-                e2 = _one(_at(c1, ygdata.Id(NS_filter_test, 'interface')), 'interface')
-                c3 = _at(e2, ygdata.Id(NS_filter_test, 'ipv4'))
-                keys = (interface_name=e2.get_str(ygdata.Id(NS_filter_test, 'name')))
+                c1 = _at(n, _ID_filter_test__interfaces)
+                e2 = _one(_at(c1, _ID_filter_test__interface), 'interface')
+                c3 = _at(e2, _ID_filter_test__ipv4)
+                keys = (interface_name=e2.get_str(_ID_filter_test__name))
                 here = _present(c3)
                 if here is not None:
                     inst = filter_test__interfaces__interface__ipv4.from_gdata(here)
@@ -602,7 +625,7 @@ class filter_test__interfaces__interface__ipv4_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.mtu = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'mtu'), parent=path))
+        self.mtu = SubscriptionNode(SubscriptionPath(_ID_filter_test__mtu, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.mtu]
@@ -622,10 +645,10 @@ actor filter_test__interfaces__interface__ipv6_dst(cb: action(?(interface_name: 
         inst: ?filter_test__interfaces__interface__ipv6 = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'interfaces'))
-                e2 = _one(_at(c1, ygdata.Id(NS_filter_test, 'interface')), 'interface')
-                c3 = _at(e2, ygdata.Id(NS_filter_test, 'ipv6'))
-                keys = (interface_name=e2.get_str(ygdata.Id(NS_filter_test, 'name')))
+                c1 = _at(n, _ID_filter_test__interfaces)
+                e2 = _one(_at(c1, _ID_filter_test__interface), 'interface')
+                c3 = _at(e2, _ID_filter_test__ipv6)
+                keys = (interface_name=e2.get_str(_ID_filter_test__name))
                 here = _present(c3)
                 if here is not None:
                     inst = filter_test__interfaces__interface__ipv6.from_gdata(here)
@@ -642,7 +665,7 @@ class filter_test__interfaces__interface__ipv6_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.mtu = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'mtu'), parent=path))
+        self.mtu = SubscriptionNode(SubscriptionPath(_ID_filter_test__mtu, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.mtu]
@@ -662,8 +685,8 @@ class filter_test__interfaces__interface__address_entry_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.ip = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'ip'), parent=path))
-        self.prefix_length = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'prefix-length'), parent=path))
+        self.ip = SubscriptionNode(SubscriptionPath(_ID_filter_test__ip, parent=path))
+        self.prefix_length = SubscriptionNode(SubscriptionPath(_ID_filter_test__prefix_length, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.ip, self.prefix_length]
@@ -676,10 +699,10 @@ actor filter_test__interfaces__interface__address_dst(cb: action(?(interface_nam
         inst: ?filter_test__interfaces__interface__address_entry = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'interfaces'))
-                e2 = _one(_at(c1, ygdata.Id(NS_filter_test, 'interface')), 'interface')
-                e3 = _one(_at(e2, ygdata.Id(NS_filter_test, 'address')), 'address')
-                keys = (interface_name=e2.get_str(ygdata.Id(NS_filter_test, 'name')), address_ip=e3.get_str(ygdata.Id(NS_filter_test, 'ip')))
+                c1 = _at(n, _ID_filter_test__interfaces)
+                e2 = _one(_at(c1, _ID_filter_test__interface), 'interface')
+                e3 = _one(_at(e2, _ID_filter_test__address), 'address')
+                keys = (interface_name=e2.get_str(_ID_filter_test__name), address_ip=e3.get_str(_ID_filter_test__ip))
                 here = _present(e3)
                 if here is not None:
                     inst = filter_test__interfaces__interface__address_entry.from_gdata(here)
@@ -696,15 +719,15 @@ class filter_test__interfaces__interface__address_subs(SubscriptionNode):
     prefix_length: SubscriptionNode
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.ip = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'ip'), parent=path))
-        self.prefix_length = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'prefix-length'), parent=path))
+        self.ip = SubscriptionNode(SubscriptionPath(_ID_filter_test__ip, parent=path))
+        self.prefix_length = SubscriptionNode(SubscriptionPath(_ID_filter_test__prefix_length, parent=path))
 
     pure def entry(self, ip: str) -> filter_test__interfaces__interface__address_entry_subs:
         predicates = [
-            ygdata.FNode(ygdata.Id(NS_filter_test, 'ip'), value_match=ip),
+            ygdata.FNode(_ID_filter_test__ip, value_match=ip),
         ]
         base_path = self._path!.parent
-        return filter_test__interfaces__interface__address_entry_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'address'), predicates=predicates, parent=base_path))
+        return filter_test__interfaces__interface__address_entry_subs(SubscriptionPath(_ID_filter_test__address, predicates=predicates, parent=base_path))
 
     proc def dst(self, cb: action(?(interface_name: str, address_ip: str), ?filter_test__interfaces__interface__address_entry, ?Exception) -> None) -> ygdata.Dst:
         """A destination rooted here: cb gets, one instance at a time,
@@ -733,17 +756,17 @@ class filter_test__interfaces__interface_entry_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.name = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'name'), parent=path))
-        self.description = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'description'), parent=path))
-        self.type = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'type'), parent=path))
-        self.enabled = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'enabled'), parent=path))
-        self.admin_status = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'admin-status'), parent=path))
-        self.oper_status = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'oper-status'), parent=path))
-        self.last_change = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'last-change'), parent=path))
-        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'statistics'), parent=path))
-        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'ipv4'), parent=path))
-        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'ipv6'), parent=path))
-        self.address = filter_test__interfaces__interface__address_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'address'), parent=path))
+        self.name = SubscriptionNode(SubscriptionPath(_ID_filter_test__name, parent=path))
+        self.description = SubscriptionNode(SubscriptionPath(_ID_filter_test__description, parent=path))
+        self.type = SubscriptionNode(SubscriptionPath(_ID_filter_test__type, parent=path))
+        self.enabled = SubscriptionNode(SubscriptionPath(_ID_filter_test__enabled, parent=path))
+        self.admin_status = SubscriptionNode(SubscriptionPath(_ID_filter_test__admin_status, parent=path))
+        self.oper_status = SubscriptionNode(SubscriptionPath(_ID_filter_test__oper_status, parent=path))
+        self.last_change = SubscriptionNode(SubscriptionPath(_ID_filter_test__last_change, parent=path))
+        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(_ID_filter_test__statistics, parent=path))
+        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(_ID_filter_test__ipv4, parent=path))
+        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(_ID_filter_test__ipv6, parent=path))
+        self.address = filter_test__interfaces__interface__address_subs(SubscriptionPath(_ID_filter_test__address, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.name, self.description, self.type, self.enabled, self.admin_status, self.oper_status, self.last_change, self.statistics, self.ipv4, self.ipv6, self.address]
@@ -756,9 +779,9 @@ actor filter_test__interfaces__interface_dst(cb: action(?(interface_name: str), 
         inst: ?filter_test__interfaces__interface_entry = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'interfaces'))
-                e2 = _one(_at(c1, ygdata.Id(NS_filter_test, 'interface')), 'interface')
-                keys = (interface_name=e2.get_str(ygdata.Id(NS_filter_test, 'name')))
+                c1 = _at(n, _ID_filter_test__interfaces)
+                e2 = _one(_at(c1, _ID_filter_test__interface), 'interface')
+                keys = (interface_name=e2.get_str(_ID_filter_test__name))
                 here = _present(e2)
                 if here is not None:
                     inst = filter_test__interfaces__interface_entry.from_gdata(here)
@@ -784,24 +807,24 @@ class filter_test__interfaces__interface_subs(SubscriptionNode):
     address: filter_test__interfaces__interface__address_subs
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.name = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'name'), parent=path))
-        self.description = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'description'), parent=path))
-        self.type = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'type'), parent=path))
-        self.enabled = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'enabled'), parent=path))
-        self.admin_status = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'admin-status'), parent=path))
-        self.oper_status = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'oper-status'), parent=path))
-        self.last_change = SubscriptionNode(SubscriptionPath(ygdata.Id(NS_filter_test, 'last-change'), parent=path))
-        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'statistics'), parent=path))
-        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'ipv4'), parent=path))
-        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'ipv6'), parent=path))
-        self.address = filter_test__interfaces__interface__address_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'address'), parent=path))
+        self.name = SubscriptionNode(SubscriptionPath(_ID_filter_test__name, parent=path))
+        self.description = SubscriptionNode(SubscriptionPath(_ID_filter_test__description, parent=path))
+        self.type = SubscriptionNode(SubscriptionPath(_ID_filter_test__type, parent=path))
+        self.enabled = SubscriptionNode(SubscriptionPath(_ID_filter_test__enabled, parent=path))
+        self.admin_status = SubscriptionNode(SubscriptionPath(_ID_filter_test__admin_status, parent=path))
+        self.oper_status = SubscriptionNode(SubscriptionPath(_ID_filter_test__oper_status, parent=path))
+        self.last_change = SubscriptionNode(SubscriptionPath(_ID_filter_test__last_change, parent=path))
+        self.statistics = filter_test__interfaces__interface__statistics_subs(SubscriptionPath(_ID_filter_test__statistics, parent=path))
+        self.ipv4 = filter_test__interfaces__interface__ipv4_subs(SubscriptionPath(_ID_filter_test__ipv4, parent=path))
+        self.ipv6 = filter_test__interfaces__interface__ipv6_subs(SubscriptionPath(_ID_filter_test__ipv6, parent=path))
+        self.address = filter_test__interfaces__interface__address_subs(SubscriptionPath(_ID_filter_test__address, parent=path))
 
     pure def entry(self, name: str) -> filter_test__interfaces__interface_entry_subs:
         predicates = [
-            ygdata.FNode(ygdata.Id(NS_filter_test, 'name'), value_match=name),
+            ygdata.FNode(_ID_filter_test__name, value_match=name),
         ]
         base_path = self._path!.parent
-        return filter_test__interfaces__interface_entry_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'interface'), predicates=predicates, parent=base_path))
+        return filter_test__interfaces__interface_entry_subs(SubscriptionPath(_ID_filter_test__interface, predicates=predicates, parent=base_path))
 
     proc def dst(self, cb: action(?(interface_name: str), ?filter_test__interfaces__interface_entry, ?Exception) -> None) -> ygdata.Dst:
         """A destination rooted here: cb gets, one instance at a time,
@@ -820,7 +843,7 @@ actor filter_test__interfaces_dst(cb: action(?filter_test__interfaces, ?Exceptio
         inst: ?filter_test__interfaces = None
         if n is not None:
             try:
-                c1 = _at(n, ygdata.Id(NS_filter_test, 'interfaces'))
+                c1 = _at(n, _ID_filter_test__interfaces)
                 here = _present(c1)
                 if here is not None:
                     inst = filter_test__interfaces.from_gdata(here)
@@ -837,7 +860,7 @@ class filter_test__interfaces_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.interface = filter_test__interfaces__interface_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'interface'), parent=path))
+        self.interface = filter_test__interfaces__interface_subs(SubscriptionPath(_ID_filter_test__interface, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.interface]
@@ -857,8 +880,8 @@ class root_subs(SubscriptionNode):
 
     pure def __init__(self, path: ?SubscriptionPath=None) -> None:
         SubscriptionNode.__init__(self, path)
-        self.system_state = filter_test__system_state_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'system-state'), parent=path))
-        self.interfaces = filter_test__interfaces_subs(SubscriptionPath(ygdata.Id(NS_filter_test, 'interfaces'), parent=path))
+        self.system_state = filter_test__system_state_subs(SubscriptionPath(_ID_filter_test__system_state, parent=path))
+        self.interfaces = filter_test__interfaces_subs(SubscriptionPath(_ID_filter_test__interfaces, parent=path))
 
     pure def _direct_children(self) -> list[SubscriptionNode]:
         direct: list[SubscriptionNode] = [self.system_state, self.interfaces]

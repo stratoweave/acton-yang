@@ -47,6 +47,13 @@ SRC_DNODE: DRoot = DRoot(
 NS_bar: str = 'http://example.com/bar'
 NS_foo: str = 'http://example.com/foo'
 
+_ID_bar__certificate_mgmt: ygdata.Id = ygdata.Id(NS_bar, 'certificate-mgmt')
+_ID_bar__reset_at: ygdata.Id = ygdata.Id(NS_bar, 'reset-at')
+_ID_bar__reset_finished_at: ygdata.Id = ygdata.Id(NS_bar, 'reset-finished-at')
+_ID_foo__managed_element: ygdata.Id = ygdata.Id(NS_foo, 'managed-element')
+_ID_foo__reset: ygdata.Id = ygdata.Id(NS_foo, 'reset')
+_ID_foo__security: ygdata.Id = ygdata.Id(NS_foo, 'security')
+
 
 _breaker1: None = None
 class foo__managed_element__security__certificate_mgmt(yadata.MNode):
@@ -92,7 +99,7 @@ class foo__managed_element__security(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__managed_element__security:
         if n is not None:
-            return foo__managed_element__security(certificate_mgmt=foo__managed_element__security__certificate_mgmt.from_gdata(n.get_opt_cnt(ygdata.Id(NS_bar, 'certificate-mgmt'))))
+            return foo__managed_element__security(certificate_mgmt=foo__managed_element__security__certificate_mgmt.from_gdata(n.get_opt_cnt(_ID_bar__certificate_mgmt)))
         return foo__managed_element__security()
 
     mut def copy(self) -> foo__managed_element__security:
@@ -113,7 +120,7 @@ class foo__managed_element(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__managed_element:
         if n is not None:
-            return foo__managed_element(security=foo__managed_element__security.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'security'))))
+            return foo__managed_element(security=foo__managed_element__security.from_gdata(n.get_opt_cnt(_ID_foo__security)))
         return foo__managed_element()
 
     mut def copy(self) -> foo__managed_element:
@@ -134,7 +141,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(managed_element=foo__managed_element.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'managed-element'))))
+            return root(managed_element=foo__managed_element.from_gdata(n.get_opt_cnt(_ID_foo__managed_element)))
         return root()
 
     mut def copy(self) -> root:
@@ -155,7 +162,7 @@ class foo__reset__input(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__reset__input:
         if n is not None:
-            return foo__reset__input(reset_at=n.get_opt_str(ygdata.Id(NS_bar, 'reset-at')))
+            return foo__reset__input(reset_at=n.get_opt_str(_ID_bar__reset_at))
         return foo__reset__input()
 
     mut def copy(self) -> foo__reset__input:
@@ -176,7 +183,7 @@ class foo__reset__output(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__reset__output:
         if n is not None:
-            return foo__reset__output(reset_finished_at=n.get_opt_str(ygdata.Id(NS_bar, 'reset-finished-at')))
+            return foo__reset__output(reset_finished_at=n.get_opt_str(_ID_bar__reset_finished_at))
         return foo__reset__output()
 
     mut def copy(self) -> foo__reset__output:
@@ -197,7 +204,7 @@ actor rpc_root(tp: ygdata.TreeProvider):
         rpc_input = ygdata.Container()
         if inp is not None:
             rpc_input = yadata.from_adata(SRC_DNODE, inp, False, ["foo:reset", "input"])
-        rpc_gdata = ygdata.Container({ygdata.Id('http://example.com/foo', 'reset'): rpc_input})
+        rpc_gdata = ygdata.Container({_ID_foo__reset: rpc_input})
         tp.rpc(cb_wrap, rpc_gdata)
 
 

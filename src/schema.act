@@ -89,6 +89,7 @@
 # and then running .to_dnode().
 
 import base64
+import gdata
 import re
 import xpath
 from identityref import Identityref, PartialIdentityref
@@ -277,6 +278,7 @@ class DNode(object):
     namespace: str
     prefix: str
     name: str
+    gname: gdata.Id
     config: bool
     description: ?str
     reference: ?str
@@ -374,7 +376,7 @@ class DNode(object):
 
         raise ValueError("Unable to get child from non-inner node")
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, device=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], id_consts: _GdataIdConstants, loose=False, top=True, set_ns=True, include_state=False, device=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
         """Print the data class for this schema node
         """
         raise NotImplementedError('DNode pdc: {type(self)} - {get_path(spath)}')
@@ -504,7 +506,7 @@ class DNode(object):
 class DNodeInner(DNode):
     children: list[DNode]
 
-    def _prdaclass_rec(self, spath: list[DNode], loose=False, top=True, set_ns=True, include_state=False, device=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
+    def _prdaclass_rec(self, spath: list[DNode], id_consts: _GdataIdConstants, loose=False, top=True, set_ns=True, include_state=False, device=False, exclude_ext: list[(name: str, namespace: str)]=[], breaker_idx: int=0, pname_cache: dict[str, str]={}) -> (list[str], int):
         """Print the data class for this schema node
         """
         def path_with_child(c):
@@ -581,7 +583,7 @@ class DNodeInner(DNode):
         for child in self.children:
             if isinstance(child, DNodeLeaf):
                 continue
-            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, device=device, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
+            child_res, breaker_idx = child._prdaclass_rec(path_with_child(child), id_consts, loose=loose, top=False, set_ns=child.namespace!=self.namespace, include_state=include_state, device=device, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
             res.extend(child_res)
 
         def excluded(n):
@@ -746,9 +748,9 @@ class DNodeInner(DNode):
             from_gdata_args_list = []
             for child in attr_children:
                 if isinstance(child, DNodeLeaf):
-                    from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'))")
+                    from_gdata_args_list.append("{usname(child)}=n.{taker_name(child, loose=loose)}({id_consts.ref(child.module, child.name)})")
                 else:
-                    from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, loose=loose)}(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}')))")
+                    from_gdata_args_list.append("{usname(child)}={pname(child)}.from_gdata(n.{taker_name(child, loose=loose)}({id_consts.ref(child.module, child.name)}))")
             from_gdata_args = ", ".join(from_gdata_args_list)
             res.append("    @staticmethod")
             if isinstance(self, DList):
@@ -975,7 +977,7 @@ class DNodeInner(DNode):
                 # - include_state=True
                 for child in rpc.children:
                     # rpc subtrees keep serialization (device=False) so rpc_root compiles
-                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], loose=loose, top=False, set_ns=set_ns, include_state=True, device=False, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
+                    child_class_src, breaker_idx = child._prdaclass_rec(spath + [rpc, child], id_consts, loose=loose, top=False, set_ns=set_ns, include_state=True, device=False, exclude_ext=exclude_ext, breaker_idx=breaker_idx, pname_cache=pname_cache)
                     res.extend(child_class_src)
 
             # Ensure the rpc_root actor actions have unique safe names
@@ -1039,7 +1041,7 @@ class DNodeInner(DNode):
                 if input_node is not None:
                     res.append("        if inp is not None:")
                     res.append('            rpc_input = yadata.from_adata(SRC_DNODE, inp, {loose}, ["{rpc.module}:{rpc.name}", "input"])')
-                res.append("        rpc_gdata = ygdata.Container({{ygdata.Id({repr(rpc.namespace)}, {repr(rpc.name)}): rpc_input}})")
+                res.append("        rpc_gdata = ygdata.Container({{{id_consts.ref(rpc.module, rpc.name)}: rpc_input}})")
 
                 # Call tp.rpc with appropriate callback
                 if output_node is not None:
@@ -1076,6 +1078,7 @@ class DAction(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = description
@@ -1110,6 +1113,7 @@ class DAnydata(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1150,6 +1154,7 @@ class DAnyxml(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1189,6 +1194,7 @@ class DContainer(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1226,6 +1232,7 @@ class DIdentity(DNode):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = None
@@ -1326,6 +1333,7 @@ class DInput(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = "input"
+        self.gname = gdata.Id(namespace, "input")
         self.adata_name = adata_name
         self.config = False
         self.description = None
@@ -1363,6 +1371,7 @@ class DModule(DNodeInner):
         self.name = name
         self.adata_name = adata_name
         self.namespace = namespace
+        self.gname = gdata.Id(namespace, name)
         self.prefix = prefix
         self.yang_version = yang_version
         self.config = True # module is not config in itself, but it is the root
@@ -1408,6 +1417,7 @@ class DModule(DNodeInner):
 class DList(DNodeInner):
     if_feature: list[str]
     key: list[str]
+    key_gnames: list[gdata.Id]
     max_elements: ?int
     min_elements: int
     must: list[DMust]
@@ -1421,8 +1431,10 @@ class DList(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.key = key
+        self.key_gnames = [gdata.Id(namespace, k) for k in key]
         self.config = config
         self.description = description
         self.if_feature = if_feature
@@ -1469,6 +1481,7 @@ class DLeaf(DNodeLeaf):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1518,6 +1531,7 @@ class DLeafList(DNodeLeaf):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = config
         self.description = description
@@ -1595,6 +1609,7 @@ class DNotification(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = description
@@ -1627,6 +1642,7 @@ class DOutput(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = "output"
+        self.gname = gdata.Id(namespace, "output")
         self.adata_name = adata_name
         self.config = False
         self.description = None
@@ -1660,6 +1676,7 @@ class DRoot(DNodeInner):
         self.namespace = ""
         self.prefix = ""
         self.name = "root"
+        self.gname = gdata.Id("", "root")
         self.adata_name = adata_name
         self.config = True
         self.description = None
@@ -2005,7 +2022,11 @@ class DRoot(DNodeInner):
         # adata code generator ...
         spath = build_spath([self])
         pname_cache: dict[str, str] = {}
-        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, loose=loose, top=top, set_ns=True, include_state=include_state, device=device, exclude_ext=exclude_ext, pname_cache=pname_cache)
+        id_consts = _GdataIdConstants()
+        inner, _breaker_idx = spath[-1]._prdaclass_rec(spath, id_consts, loose=loose, top=top, set_ns=True, include_state=include_state, device=device, exclude_ext=exclude_ext, pname_cache=pname_cache)
+        subs_classes: list[str] = []
+        if include_subs:
+            subs_classes, _breaker_idx = self._prsubsclasses(id_consts, breaker_idx=_breaker_idx)
 
         res = []
         res.append("import base64")
@@ -2048,6 +2069,10 @@ class DRoot(DNodeInner):
                 res.extend(DRoot._pr_src_yang(schema_yang))
 
         res.extend(["NS_{safe_name(self.module_metadata[ns].name)}: str = {repr(ns)}" for ns in sorted(self.module_metadata.keys())])
+        id_lines = id_consts.prsrc()
+        if len(id_lines) > 0:
+            res.append("")
+            res.extend(id_lines)
         res.append("")
         res.append("")
         res.extend(inner)
@@ -2074,7 +2099,6 @@ class DRoot(DNodeInner):
             res.append("            return n")
             res.append("    return None")
             res.append("")
-            subs_classes, _breaker_idx = self._prsubsclasses(breaker_idx=_breaker_idx)
             res.extend(subs_classes)
             res.append("actor _root_dst(cb: action(?root, ?Exception) -> None):")
             res.append("    def on_update(n: ?ygdata.Node, err: ?Exception) -> None:")
@@ -2097,7 +2121,7 @@ class DRoot(DNodeInner):
 
         return "\n".join(res)
 
-    def _prsubsclasses(self, root_const_name: str="subs", breaker_idx: int=0) -> (list[str], int):
+    def _prsubsclasses(self, id_consts: _GdataIdConstants, root_const_name: str="subs", breaker_idx: int=0) -> (list[str], int):
         def next_breaker_name(i: int) -> (str, int):
             return ("_breaker{i + 1}", i + 1)
 
@@ -2211,13 +2235,13 @@ class DRoot(DNodeInner):
                 key_exprs: list[str] = []
                 for i in range(1, len(spath)):
                     level = spath[i]
-                    node_id = "ygdata.Id(NS_{safe_name(level.module)}, '{level.name}')"
+                    node_id = id_consts.ref(level.module, level.name)
                     if isinstance(level, DList):
                         vn = "e{i}"
                         res.append("                {vn} = _one(_at({at}, {node_id}), '{level.name}')")
                         for key_name in level.key:
                             key_leaf = list_key_child(level, key_name)
-                            key_exprs.append("{safe_name(level.name)}_{safe_name(key_name)}={vn}.{taker_name(key_leaf, loose=False)}(ygdata.Id(NS_{safe_name(key_leaf.module)}, '{key_leaf.name}'))")
+                            key_exprs.append("{safe_name(level.name)}_{safe_name(key_name)}={vn}.{taker_name(key_leaf, loose=False)}({id_consts.ref(key_leaf.module, key_leaf.name)})")
                         at = vn
                     else:
                         vn = "c{i}"
@@ -2284,7 +2308,7 @@ class DRoot(DNodeInner):
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
-                    res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
+                    res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath({id_consts.ref(child.module, child.name)}, parent=path))")
                 res.append("")
                 res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                 if len(selectables) > 0:
@@ -2310,7 +2334,7 @@ class DRoot(DNodeInner):
                     res.append("        SubscriptionNode.__init__(self, path)")
                     for child in selectables:
                         child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
-                        res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
+                        res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath({id_consts.ref(child.module, child.name)}, parent=path))")
                     res.append("")
                     res.append("    pure def _direct_children(self) -> list[SubscriptionNode]:")
                     if len(selectables) > 0:
@@ -2332,7 +2356,7 @@ class DRoot(DNodeInner):
                 res.append("        SubscriptionNode.__init__(self, path)")
                 for child in selectables:
                     child_ctor = subs_path_name(spath + [child]) if isinstance(child, DNodeInner) else "SubscriptionNode"
-                    res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath(ygdata.Id(NS_{safe_name(child.module)}, '{child.name}'), parent=path))")
+                    res.append("        self.{usname(child)} = {child_ctor}(SubscriptionPath({id_consts.ref(child.module, child.name)}, parent=path))")
                 res.append("")
                 if len(node.key) > 0:
                     entry_args = []
@@ -2343,10 +2367,10 @@ class DRoot(DNodeInner):
                     res.append("        predicates = [")
                     for key_name in node.key:
                         key_leaf = list_key_child(node, key_name)
-                        res.append("            ygdata.FNode(ygdata.Id(NS_{safe_name(key_leaf.module)}, '{key_leaf.name}'), value_match={us_list_key(key_name)}),")
+                        res.append("            ygdata.FNode({id_consts.ref(key_leaf.module, key_leaf.name)}, value_match={us_list_key(key_name)}),")
                     res.append("        ]")
                     res.append("        base_path = self._path!.parent")
-                    res.append("        return {subs_entry_path_name(spath)}(SubscriptionPath(ygdata.Id(NS_{safe_name(node.module)}, '{node.name}'), predicates=predicates, parent=base_path))")
+                    res.append("        return {subs_entry_path_name(spath)}(SubscriptionPath({id_consts.ref(node.module, node.name)}, predicates=predicates, parent=base_path))")
                     res.append("")
                     if rootable:
                         emit_dst_method(res, node)
@@ -2377,6 +2401,7 @@ class DRpc(DNodeInner):
         self.namespace = namespace
         self.prefix = prefix
         self.name = name
+        self.gname = gdata.Id(namespace, name)
         self.adata_name = adata_name
         self.config = False
         self.description = description
@@ -4593,8 +4618,10 @@ def prsrc_default(t: DType, s: str, identities: list[DIdentity], module: str) ->
 
 def safe_name(name: str, safe_kw=True) -> str:
     new = name.replace("-", "_").replace(".", "_")
+    if not safe_kw:
+        return new
     tvar_name = new[0].isupper() and (len(new) == 1 or new[1:].isdecimal())
-    if safe_kw and (new in _reserved_keywords or tvar_name):
+    if new in _reserved_keywords or tvar_name:
         new += "_"
     return new
 
@@ -4621,6 +4648,32 @@ class UniqueNamer(object):
 
     def is_unique(self, name):
         return name not in self._name_conflicts
+
+
+class _GdataIdConstants(object):
+    _consts: dict[(str, str), str]
+    _taken: set[str]
+
+    def __init__(self):
+        self._consts = {}
+        self._taken = set()
+
+    def ref(self, module: str, name: str) -> str:
+        existing = self._consts.get((module, name))
+        if existing is not None:
+            return existing
+        base = safe_name("_ID_{module}__{name}", safe_kw=False)
+        cand = base
+        i = 2
+        while cand in self._taken:
+            cand = "{base}_{i}"
+            i += 1
+        self._consts[(module, name)] = cand
+        self._taken.add(cand)
+        return cand
+
+    def prsrc(self) -> list[str]:
+        return ["{self._consts[key]}: ygdata.Id = ygdata.Id(NS_{safe_name(key.0)}, {repr(key.1)})" for key in sorted(self._consts.keys())]
 
 
 def list_key_child(node: DList, key_name: str) -> DLeaf:

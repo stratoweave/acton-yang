@@ -37,6 +37,11 @@ SRC_DNODE: DRoot = DRoot(
 
 NS_foo: str = 'http://example.com/foo'
 
+_ID_foo__bar: ygdata.Id = ygdata.Id(NS_foo, 'bar')
+_ID_foo__foo: ygdata.Id = ygdata.Id(NS_foo, 'foo')
+_ID_foo__man: ygdata.Id = ygdata.Id(NS_foo, 'man')
+_ID_foo__name: ygdata.Id = ygdata.Id(NS_foo, 'name')
+
 
 _breaker1: None = None
 class foo__c__li__bar(yadata.MNode):
@@ -51,7 +56,7 @@ class foo__c__li__bar(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__c__li__bar:
         if n is not None:
-            return foo__c__li__bar(man=n.get_str(ygdata.Id(NS_foo, 'man')))
+            return foo__c__li__bar(man=n.get_str(_ID_foo__man))
         raise ValueError('Missing required subtree foo__c__li__bar')
 
     mut def copy(self) -> foo__c__li__bar:
@@ -75,7 +80,7 @@ class foo__c__li_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> foo__c__li_entry:
-        return foo__c__li_entry(name=n.get_str(ygdata.Id(NS_foo, 'name')), foo=n.get_opt_str(ygdata.Id(NS_foo, 'foo')), bar=foo__c__li__bar.from_gdata(n.get_cnt(ygdata.Id(NS_foo, 'bar'))))
+        return foo__c__li_entry(name=n.get_str(_ID_foo__name), foo=n.get_opt_str(_ID_foo__foo), bar=foo__c__li__bar.from_gdata(n.get_cnt(_ID_foo__bar)))
 
     mut def copy(self) -> foo__c__li_entry:
         """Create a deep copy of this adata object"""

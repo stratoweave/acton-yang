@@ -48,6 +48,19 @@ SRC_DNODE: DRoot = DRoot(
 
 NS_main_module: str = 'http://example.com/main'
 
+_ID_main_module__augmented_in_group: ygdata.Id = ygdata.Id(NS_main_module, 'augmented-in-group')
+_ID_main_module__group_container: ygdata.Id = ygdata.Id(NS_main_module, 'group-container')
+_ID_main_module__group_leaf: ygdata.Id = ygdata.Id(NS_main_module, 'group-leaf')
+_ID_main_module__main_container: ygdata.Id = ygdata.Id(NS_main_module, 'main-container')
+_ID_main_module__main_leaf: ygdata.Id = ygdata.Id(NS_main_module, 'main-leaf')
+_ID_main_module__name: ygdata.Id = ygdata.Id(NS_main_module, 'name')
+_ID_main_module__ref_to_main: ygdata.Id = ygdata.Id(NS_main_module, 'ref-to-main')
+_ID_main_module__sub_group_container: ygdata.Id = ygdata.Id(NS_main_module, 'sub-group-container')
+_ID_main_module__sub_group_leaf: ygdata.Id = ygdata.Id(NS_main_module, 'sub-group-leaf')
+_ID_main_module__sub_leaf: ygdata.Id = ygdata.Id(NS_main_module, 'sub-leaf')
+_ID_main_module__sub_list: ygdata.Id = ygdata.Id(NS_main_module, 'sub-list')
+_ID_main_module__sub_value: ygdata.Id = ygdata.Id(NS_main_module, 'sub-value')
+
 
 _breaker1: None = None
 class main_module__main_container__sub_group_container(yadata.MNode):
@@ -62,7 +75,7 @@ class main_module__main_container__sub_group_container(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> main_module__main_container__sub_group_container:
         if n is not None:
-            return main_module__main_container__sub_group_container(sub_group_leaf=n.get_opt_str(ygdata.Id(NS_main_module, 'sub-group-leaf')))
+            return main_module__main_container__sub_group_container(sub_group_leaf=n.get_opt_str(_ID_main_module__sub_group_leaf))
         return main_module__main_container__sub_group_container()
 
     mut def copy(self) -> main_module__main_container__sub_group_container:
@@ -86,7 +99,7 @@ class main_module__main_container__sub_list_entry(yadata.MNode):
 
     @staticmethod
     mut def from_gdata(n: ygdata.Node) -> main_module__main_container__sub_list_entry:
-        return main_module__main_container__sub_list_entry(name=n.get_str(ygdata.Id(NS_main_module, 'name')), sub_value=n.get_opt_str(ygdata.Id(NS_main_module, 'sub-value')), ref_to_main=n.get_opt_str(ygdata.Id(NS_main_module, 'ref-to-main')))
+        return main_module__main_container__sub_list_entry(name=n.get_str(_ID_main_module__name), sub_value=n.get_opt_str(_ID_main_module__sub_value), ref_to_main=n.get_opt_str(_ID_main_module__ref_to_main))
 
     mut def copy(self) -> main_module__main_container__sub_list_entry:
         """Create a deep copy of this adata object"""
@@ -142,7 +155,7 @@ class main_module__main_container__group_container(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> main_module__main_container__group_container:
         if n is not None:
-            return main_module__main_container__group_container(group_leaf=n.get_opt_str(ygdata.Id(NS_main_module, 'group-leaf')), augmented_in_group=n.get_opt_str(ygdata.Id(NS_main_module, 'augmented-in-group')))
+            return main_module__main_container__group_container(group_leaf=n.get_opt_str(_ID_main_module__group_leaf), augmented_in_group=n.get_opt_str(_ID_main_module__augmented_in_group))
         return main_module__main_container__group_container()
 
     mut def copy(self) -> main_module__main_container__group_container:
@@ -171,7 +184,7 @@ class main_module__main_container(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> main_module__main_container:
         if n is not None:
-            return main_module__main_container(main_leaf=n.get_opt_str(ygdata.Id(NS_main_module, 'main-leaf')), sub_group_container=main_module__main_container__sub_group_container.from_gdata(n.get_opt_cnt(ygdata.Id(NS_main_module, 'sub-group-container'))), sub_leaf=n.get_opt_str(ygdata.Id(NS_main_module, 'sub-leaf')), sub_list=main_module__main_container__sub_list.from_gdata(n.get_opt_list(ygdata.Id(NS_main_module, 'sub-list'))), group_container=main_module__main_container__group_container.from_gdata(n.get_opt_cnt(ygdata.Id(NS_main_module, 'group-container'))))
+            return main_module__main_container(main_leaf=n.get_opt_str(_ID_main_module__main_leaf), sub_group_container=main_module__main_container__sub_group_container.from_gdata(n.get_opt_cnt(_ID_main_module__sub_group_container)), sub_leaf=n.get_opt_str(_ID_main_module__sub_leaf), sub_list=main_module__main_container__sub_list.from_gdata(n.get_opt_list(_ID_main_module__sub_list)), group_container=main_module__main_container__group_container.from_gdata(n.get_opt_cnt(_ID_main_module__group_container)))
         return main_module__main_container()
 
     mut def copy(self) -> main_module__main_container:
@@ -192,7 +205,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(main_container=main_module__main_container.from_gdata(n.get_opt_cnt(ygdata.Id(NS_main_module, 'main-container'))))
+            return root(main_container=main_module__main_container.from_gdata(n.get_opt_cnt(_ID_main_module__main_container)))
         return root()
 
     mut def copy(self) -> root:

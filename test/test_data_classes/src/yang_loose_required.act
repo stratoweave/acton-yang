@@ -50,6 +50,9 @@ pure def src_yang() -> list[str]:
 
 NS_loose_required: str = 'http://example.com/loose-required'
 
+_ID_loose_required__c2: ygdata.Id = ygdata.Id(NS_loose_required, 'c2')
+_ID_loose_required__l1: ygdata.Id = ygdata.Id(NS_loose_required, 'l1')
+
 
 _breaker1: None = None
 class loose_required__c2(yadata.MNode):
@@ -64,7 +67,7 @@ class loose_required__c2(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> loose_required__c2:
         if n is not None:
-            return loose_required__c2(l1=n.get_opt_str(ygdata.Id(NS_loose_required, 'l1')))
+            return loose_required__c2(l1=n.get_opt_str(_ID_loose_required__l1))
         return loose_required__c2()
 
     mut def copy(self) -> loose_required__c2:
@@ -85,7 +88,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(c2=loose_required__c2.from_gdata(n.get_opt_cnt(ygdata.Id(NS_loose_required, 'c2'))))
+            return root(c2=loose_required__c2.from_gdata(n.get_opt_cnt(_ID_loose_required__c2)))
         return root()
 
     mut def copy(self) -> root:

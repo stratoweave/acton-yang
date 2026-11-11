@@ -46,6 +46,12 @@ SRC_DNODE: DRoot = DRoot(
 
 NS_foo: str = 'http://example.com/foo'
 
+_ID_foo__c1: ygdata.Id = ygdata.Id(NS_foo, 'c1')
+_ID_foo__c3: ygdata.Id = ygdata.Id(NS_foo, 'c3')
+_ID_foo__l3: ygdata.Id = ygdata.Id(NS_foo, 'l3')
+_ID_foo__l4: ygdata.Id = ygdata.Id(NS_foo, 'l4')
+_ID_foo__r1: ygdata.Id = ygdata.Id(NS_foo, 'r1')
+
 
 _breaker1: None = None
 class foo__c1(yadata.MNode):
@@ -80,7 +86,7 @@ class root(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> root:
         if n is not None:
-            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c1'))))
+            return root(c1=foo__c1.from_gdata(n.get_opt_cnt(_ID_foo__c1)))
         return root()
 
     mut def copy(self) -> root:
@@ -101,7 +107,7 @@ class foo__r1__input__c3(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__r1__input__c3:
         if n is not None:
-            return foo__r1__input__c3(l3=n.get_opt_str(ygdata.Id(NS_foo, 'l3')))
+            return foo__r1__input__c3(l3=n.get_opt_str(_ID_foo__l3))
         return foo__r1__input__c3()
 
     mut def copy(self) -> foo__r1__input__c3:
@@ -122,7 +128,7 @@ class foo__r1__input(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__r1__input:
         if n is not None:
-            return foo__r1__input(c3=foo__r1__input__c3.from_gdata(n.get_opt_cnt(ygdata.Id(NS_foo, 'c3'))))
+            return foo__r1__input(c3=foo__r1__input__c3.from_gdata(n.get_opt_cnt(_ID_foo__c3)))
         return foo__r1__input()
 
     mut def copy(self) -> foo__r1__input:
@@ -143,7 +149,7 @@ class foo__r1__output(yadata.MNode):
     @staticmethod
     mut def from_gdata(n: ?ygdata.Node) -> foo__r1__output:
         if n is not None:
-            return foo__r1__output(l4=n.get_opt_str(ygdata.Id(NS_foo, 'l4')))
+            return foo__r1__output(l4=n.get_opt_str(_ID_foo__l4))
         return foo__r1__output()
 
     mut def copy(self) -> foo__r1__output:
@@ -164,7 +170,7 @@ actor rpc_root(tp: ygdata.TreeProvider):
         rpc_input = ygdata.Container()
         if inp is not None:
             rpc_input = yadata.from_adata(SRC_DNODE, inp, False, ["foo:r1", "input"])
-        rpc_gdata = ygdata.Container({ygdata.Id('http://example.com/foo', 'r1'): rpc_input})
+        rpc_gdata = ygdata.Container({_ID_foo__r1: rpc_input})
         tp.rpc(cb_wrap, rpc_gdata)
 
 

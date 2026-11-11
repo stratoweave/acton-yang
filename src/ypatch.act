@@ -42,7 +42,7 @@ import gdata
 import restconf
 import schema as yschema
 from restconf import resolve_path
-from data import fqname, list_node, user_order, PathElement
+from data import list_node, user_order, PathElement
 from xml import norm_text, try_parse_xml_value
 
 
@@ -348,17 +348,17 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
                 element_children: dict[gdata.Id, gdata.Node] = {}
                 ek = pe[i].keys
                 if ek is not None:
-                    for key_name in s.key:
+                    for key_name, key_id in zip(s.key, s.key_gnames):
                         kv = ek.get(key_name)
                         if kv is not None:
-                            element_children[gdata.Id(s.namespace, key_name)] = gdata.Leaf(kv)
-                element_children[fqname(child_node)] = inner
+                            element_children[key_id] = gdata.Leaf(kv)
+                element_children[child_node.gname] = inner
                 inner = list_node(s, [gdata.Container(element_children)], ns=sns, module=smod)
             else:
                 # Carry the schema presence: gdata.patch takes a container whose
                 # presence differs from the datastore as a schema mismatch.
                 spresence = s.presence if isinstance(s, yschema.DContainer) else False
-                inner = gdata.Container({fqname(child_node): inner}, presence=spresence, ns=sns, module=smod)
+                inner = gdata.Container({child_node.gname: inner}, presence=spresence, ns=sns, module=smod)
         return inner
 
     def resolve_leaflist(segs: list[str]) -> ?list[PathElement]:
