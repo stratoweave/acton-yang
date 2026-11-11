@@ -131,11 +131,11 @@ extension MNode (YangData):
         maybe_attr = self.__get_attr__(schema.adata_name!)
         if maybe_attr is not None:
             schema_type = schema.type
-            tv = try_validate_mnode_value(maybe_attr, schema_type, new_path)
-            if tv is not None:
-                if tv.t == "empty":
-                    return (op=None if tv.val else OP_REMOVE, val=ygdata.Present() if tv.val else None)
-                return (op=None, val=tv.val)
+            v = try_validate_mnode_value(maybe_attr, schema_type, new_path)
+            if isinstance(v, _Remove):
+                return (op=OP_REMOVE, val=None)
+            if v is not None:
+                return (op=None, val=v)
             raise YangValidationError(path, schema_type, maybe_attr)
 
     def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, val: ?value)]:
@@ -145,20 +145,36 @@ extension MNode (YangData):
         if isinstance(children, list):
             schema_type = schema.type
             for child in children:
-                tv = try_validate_mnode_value(child, schema_type, new_path)
-                if tv is not None:
-                    values.append((op=None, val=tv.val))
+                v = try_validate_mnode_value(child, schema_type, new_path)
+                if v is not None and not isinstance(v, _Remove):
+                    values.append((op=None, val=v))
                 else:
                     raise YangValidationError(path, schema_type, child)
         return values
 
 
-def try_validate_mnode_value(val: value, schema_type: yschema.DType, path: list[PathElement]) -> ?(t: str, val: value):
+class _Remove:
+    """An adata empty value set to False, which removes the leaf"""
+    def __init__(self):
+        pass
+
+
+def try_validate_mnode_value(val: value, schema_type: yschema.DType, path: list[PathElement]) -> ?value:
+    """Validate an adata value against a schema type and return its gdata value
+
+    adata holds an empty value as a bool: True returns Present() and False
+    returns _Remove().
+    """
     if isinstance(schema_type, yschema.DTypeUnion):
+        # A member that takes the value wins over an empty member removing it
+        remove: ?value = None
         for alt_type in schema_type.types:
-            tv = try_validate_mnode_value(val, alt_type, path)
-            if tv is not None:
-                return tv
+            v = try_validate_mnode_value(val, alt_type, path)
+            if isinstance(v, _Remove):
+                remove = v
+            elif v is not None:
+                return v
+        return remove
     elif isinstance(schema_type, yschema.DTypeLeafref):
         target_type = schema_type.target_type
         if target_type is not None:
@@ -166,19 +182,24 @@ def try_validate_mnode_value(val: value, schema_type: yschema.DType, path: list[
     elif isinstance(schema_type, yschema.DTypeInteger):
         intval = coerce_integer_value(val, schema_type, path)
         if intval is not None and schema_type.validate_value(intval):
-            return (t=schema_type.builtin_type, val=intval)
+            return intval
     elif isinstance(schema_type, yschema.DTypeBits):
         if isinstance(val, iset):
             # TODO(acton#2969): drop the iset[str] annotation once
             # value-narrowing unboxes set elements.
             sv: iset[str] = val
             try:
-                return (t=schema_type.builtin_type, val=schema_type.canonical_bits(list(sv)))
+                return schema_type.canonical_bits(list(sv))
             except ValueError:
                 return None
+    elif isinstance(schema_type, yschema.DTypeEmpty):
+        if isinstance(val, bool):
+            if val:
+                return ygdata.Present()
+            return _Remove()
     else:
         if schema_type.validate_value(val):
-            return (t=schema_type.builtin_type, val=val)
+            return val
     return None
 
 

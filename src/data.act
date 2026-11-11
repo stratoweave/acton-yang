@@ -87,7 +87,8 @@ def unwrap_key[T](name: str, val: ?T, spath) -> T:
 
 
 def coerce_integer_value[T(Ord)](raw_value: value, schema_type: yschema.DTypeInteger[T], path: list[PathElement]) -> ?value:
-    if isinstance(raw_value, atom):
+    # int() turns a bool into 0 or 1
+    if isinstance(raw_value, atom) and not isinstance(raw_value, bool):
         builtin_type = schema_type.builtin_type
         if builtin_type in SIGNED_INT_TYPES:
             try:

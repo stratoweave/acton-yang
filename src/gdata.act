@@ -295,6 +295,8 @@ def adata_val(v: value) -> value:
     bits = as_bits(v)
     if bits is not None:
         return iset(bits)
+    if isinstance(v, Present):
+        return True
     return v
 
 
@@ -336,6 +338,9 @@ def leaf_xml(name: str, ns: ?str, val: value) -> xml.Node:
 
 
 def json_val(v: value) -> ?value:
+    if isinstance(v, Present):
+        # "empty" type is encoded as an array with a null element "[null]"
+        return [None]
     if isinstance(v, bytes):
         return base64.encode(v).decode()
     if isinstance(v, Identityref):
@@ -784,10 +789,7 @@ class Node(value):
                     child_dict[fmt_json_name(nm, child.module)] = child.to_yang_dict(deterministic)
                 elif isinstance(child, Leaf):
                     v = child.val
-                    # "empty" type is encoded as an array with a null element "[null]"
-                    if isinstance(v, Present):
-                        child_dict[fmt_json_name(nm, child.module)] = [None]
-                    elif v is not None and not isinstance(v, Absent):
+                    if v is not None and not isinstance(v, Absent):
                         # Absent - value for unset empty leaf
                         child_dict[fmt_json_name(nm, child.module)] = json_val(v)
                 elif isinstance(child, LeafList):
@@ -1232,6 +1234,8 @@ class Node(value):
                     v = entry.val
                     if isinstance(v, bool):
                         cvals.append(v)
+                    elif isinstance(v, Present):
+                        cvals.append(True)
                 return cvals
         raise ValueError("Cannot find leaf-list child with name {name}")
 
@@ -1244,6 +1248,8 @@ class Node(value):
                     v = entry.val
                     if isinstance(v, bool):
                         cvals.append(v)
+                    elif isinstance(v, Present):
+                        cvals.append(True)
                 return cvals
         return []
 

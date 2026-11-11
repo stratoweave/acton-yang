@@ -1,0 +1,13 @@
+Container({
+  Id('urn:example:y1', 'flags'): LeafList([LeafListEntryMerge(Present())], ns='urn:example:y1', module='y1'),
+  Id('urn:example:y1', 'flag'): Leaf(False, ns='urn:example:y1', module='y1'),
+  Id('urn:example:y1', 'label'): Absent()
+})
+{
+    "y1:flags": [
+        [
+            null
+        ]
+    ],
+    "y1:flag": false
+}

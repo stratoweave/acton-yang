@@ -337,6 +337,43 @@ def _test_leafref_target_type_adata():
     return gd.prsrc()
 
 
+class _test_empty_root(yadata.MNode):
+    flags: ?list[bool]
+    flag: ?bool
+    label: ?atom
+
+    mut def __init__(self, flags: ?list[bool], flag: ?bool, label: ?atom):
+        self._ns = "urn:example:y1"
+        self.flags = flags
+        self.flag = flag
+        self.label = label
+
+    mut def to_gdata(self, prev: ?ygdata.Container=None) -> ygdata.Node:
+        raise NotImplementedError("to_gdata")
+
+    def copy(self):
+        return _test_empty_root(self.flags, self.flag, self.label)
+
+
+def _empty_dnode() -> yschema.DRoot:
+    """leaf-list flags of type empty, leaf flag of a union of empty and boolean,
+    leaf label of a union of empty and string"""
+    empty = yschema.DTypeEmpty(name='empty', description=None, reference=None, units=None, exts=[], builtin_type='empty', default=None)
+    boolean = yschema.DTypeBoolean(name='boolean', description=None, reference=None, units=None, exts=[], builtin_type='boolean', default=None)
+    string = yschema.DTypeString(name='string', description=None, reference=None, units=None, exts=[], builtin_type='string', default=None, length=None, patterns=[])
+    return yschema.DRoot(module_metadata={'urn:example:y1':('y1', None, [], True)}, children=[
+        yschema.DLeafList(module='y1', namespace='urn:example:y1', prefix='y1', name='flags', config=True, type=empty, adata_name='flags'),
+        yschema.DLeaf(module='y1', namespace='urn:example:y1', prefix='y1', name='flag', config=True, type=yschema.DTypeUnion(name='union', description=None, reference=None, units=None, exts=[], builtin_type='union', default=None, types=[empty, boolean]), adata_name='flag'),
+        yschema.DLeaf(module='y1', namespace='urn:example:y1', prefix='y1', name='label', config=True, type=yschema.DTypeUnion(name='union', description=None, reference=None, units=None, exts=[], builtin_type='union', default=None, types=[empty, string]), adata_name='label'),
+    ])
+
+
+def _test_empty_adata():
+    gd = yadata.from_adata(_empty_dnode(), _test_empty_root([True], False, False))
+    testing.assertEqual(gd.get_opt_bools(ygdata.Id("urn:example:y1", "flags")), [True])
+    return gd.prsrc() + "\n" + gd.to_yang_jsonstr(pretty=True)
+
+
 def _test_root_path():
     """Test root_path argument for navigating to nested containers"""
     y1 = r"""module acme-y1 {
