@@ -10,15 +10,9 @@ import xpath as yxpath
 from data import YangValidationError, format_schema_path
 from xml import from_xml
 from json import from_json
-from restconf import from_json_path, from_xml_path, resolve_path
+from restconf import from_json_path, from_xml_path, resolve_path, resolve_fields, select_fields
 from identityref import Identityref, PartialIdentityref
 from type import Decimal, Ranges
-
-
-def _unwrap_node(n: ?ygdata.Node) -> ygdata.Node:
-    if n is not None:
-        return n
-    raise ValueError("Expected non-empty node")
 
 
 def _test_remove_list_roundtrip():
@@ -73,7 +67,7 @@ def _test_remove_list_roundtrip():
     gd_b = from_xml(s, xml.decode(xml_b))
 
     # Compute diff: expect Absent list element for key B
-    d = _unwrap_node(ygdata.diff(gd_a, gd_b))
+    d = ygdata.diff(gd_a, gd_b)!
 
     # Serialize diff to XML (NETCONF ops), then parse back
     # We could do d.to_xml() -> list[xml.Node] here and then convert that to
@@ -87,8 +81,7 @@ def _test_remove_list_roundtrip():
     testing.assertEqual(d.prsrc(deterministic=True), gd_ops.prsrc(deterministic=True))
 
     # Verify that applying the parsed ops to A yields B
-    patched = ygdata.patch(gd_a, gd_ops)
-    pnode = _unwrap_node(patched)
+    pnode = ygdata.patch(gd_a, gd_ops)!
     testing.assertEqual(pnode.prsrc(deterministic=True), gd_b.prsrc(deterministic=True))
 
     # Also check that XML serialization of the patched state parses back to B
@@ -1580,6 +1573,238 @@ def _test_resolve_path_rejects_under_specified_list_instances():
         testing.error("Should have raised ValueError for incomplete list key tuple")
     except ValueError as e:
         testing.assertIn("expected 2 value(s), got 1", e.error_message)
+
+
+def _fields_schema() -> yschema.DRoot:
+    y1 = r"""module y1 {
+  yang-version 1.1;
+  namespace "urn:example:y1";
+  prefix y1;
+
+  container c1 {
+    leaf l1 { type string; }
+    leaf l2 { type string; }
+    leaf-list ll { type string; }
+    list entry {
+      key "name";
+      leaf name { type string; }
+      leaf v { type string; }
+      container sub {
+        leaf a { type string; }
+        leaf b { type string; }
+      }
+    }
+    list log {
+      config false;
+      leaf msg { type string; }
+      leaf level { type string; }
+    }
+    action reset {
+      input {
+        leaf force { type boolean; }
+      }
+    }
+  }
+}"""
+    y2 = r"""module y2 {
+  yang-version 1.1;
+  namespace "urn:example:y2";
+  prefix y2;
+  import y1 { prefix y1; }
+
+  augment /y1:c1 {
+    leaf extra { type string; }
+  }
+}"""
+    return yang.compile([y1, y2])
+
+
+def _test_resolve_fields():
+    """A fields value resolves to one FNode per selected child of the target.
+    A path and a fields-expr in "()" become FNode children, and selections
+    of the same node merge."""
+    s = _fields_schema()
+    c1 = s.get("c1", module="y1")
+    ns1 = "urn:example:y1"
+    c1_id = ygdata.Id(ns1, "c1")
+    l1 = ygdata.Id(ns1, "l1")
+    l2 = ygdata.Id(ns1, "l2")
+    ll = ygdata.Id(ns1, "ll")
+    entry = ygdata.Id(ns1, "entry")
+    name = ygdata.Id(ns1, "name")
+    v = ygdata.Id(ns1, "v")
+    sub = ygdata.Id(ns1, "sub")
+    a = ygdata.Id(ns1, "a")
+    b = ygdata.Id(ns1, "b")
+    log = ygdata.Id(ns1, "log")
+    msg = ygdata.Id(ns1, "msg")
+    extra = ygdata.Id("urn:example:y2", "extra")
+
+    testing.assertEqual(resolve_fields(c1, "l1"), [ygdata.FNode(l1)])
+    testing.assertEqual(resolve_fields(c1, "l1;l2"), [ygdata.FNode(l1), ygdata.FNode(l2)])
+    testing.assertEqual(resolve_fields(c1, "entry(name;sub/a)"), [
+        ygdata.FNode(entry, children=[
+            ygdata.FNode(name),
+            ygdata.FNode(sub, children=[ygdata.FNode(a)]),
+        ]),
+    ])
+    testing.assertEqual(resolve_fields(c1, "entry/sub(a;b);l1"), [
+        ygdata.FNode(entry, children=[
+            ygdata.FNode(sub, children=[ygdata.FNode(a), ygdata.FNode(b)]),
+        ]),
+        ygdata.FNode(l1),
+    ])
+    testing.assertEqual(resolve_fields(c1, "entry(v);log(msg)"), [
+        ygdata.FNode(entry, children=[ygdata.FNode(v)]),
+        ygdata.FNode(log, children=[ygdata.FNode(msg)]),
+    ])
+    testing.assertEqual(resolve_fields(c1, "entry/v;entry(sub)"), [
+        ygdata.FNode(entry, children=[ygdata.FNode(v), ygdata.FNode(sub)]),
+    ])
+    testing.assertEqual(resolve_fields(c1, "entry;entry/v"), [ygdata.FNode(entry)])
+    testing.assertEqual(resolve_fields(c1, "y2:extra;ll"), [ygdata.FNode(extra), ygdata.FNode(ll)])
+    testing.assertEqual(resolve_fields(s, "y1:c1/entry/name"), [
+        ygdata.FNode(c1_id, children=[
+            ygdata.FNode(entry, children=[ygdata.FNode(name)]),
+        ]),
+    ])
+
+
+def _test_resolve_fields_errors():
+    """A fields value that does not parse, or names no data node below the
+    target, raises ValueError."""
+    s = _fields_schema()
+    c1 = s.get("c1", module="y1")
+    cases: list[(yschema.DNode, str, str)] = [
+        (c1, "", "Invalid fields at position 0: expected a node name in "),
+        (c1, "l1;", "Invalid fields at position 3: expected a node name in l1;"),
+        (c1, "l1;;l2", "Invalid fields at position 3: expected a node name in l1;;l2"),
+        (c1, "entry//v", "Invalid fields at position 6: expected a node name in entry//v"),
+        (c1, "()", "Invalid fields at position 0: expected a node name in ()"),
+        (c1, "entry()", "Invalid fields at position 6: expected a node name in entry()"),
+        (c1, "entry(name", "Invalid fields at position 10: expected ')' in entry(name"),
+        (c1, "entry)", "Invalid fields at position 5: unexpected ')' in entry)"),
+        (c1, "entry(name)v", "Invalid fields at position 11: unexpected 'v' in entry(name)v"),
+        (c1, "l1/x", "Invalid fields at position 3: l1 has no child x"),
+        (c1, "l1(x)", "Invalid fields at position 3: l1 has no child x"),
+        (c1, "nope", "Invalid fields at position 0: Child 'nope' not found"),
+        (c1, "extra", "Invalid fields at position 0: Child 'extra' not found, requires qualifier, found in modules {{'y2'}}"),
+        (c1, "y1:extra", "Invalid fields at position 0: Child 'extra' not found with qualifiers: module='y1'"),
+        (c1, "reset", "Invalid fields at position 0: reset is not a data node"),
+        (s, "c1", "Invalid fields at position 0: Child 'c1' not found, requires qualifier, found in modules {{'y1'}}"),
+    ]
+    for target, expr, expected in cases:
+        try:
+            resolve_fields(target, expr)
+            testing.error("Expected ValueError for fields {expr}")
+        except ValueError as e:
+            testing.assertEqual(e.error_message, expected)
+
+
+def _test_select_fields():
+    """select_fields returns the part of c1, and of its entry list, that a
+    fields value selects. A selected node that is missing leaves its siblings
+    in place, and list entries keep their keys."""
+    s = _fields_schema()
+    c1 = s.get("c1", module="y1")
+    ns1 = "urn:example:y1"
+    c1_id = ygdata.Id(ns1, "c1")
+    l1 = ygdata.Id(ns1, "l1")
+    ll = ygdata.Id(ns1, "ll")
+    entry = ygdata.Id(ns1, "entry")
+    name = ygdata.Id(ns1, "name")
+    v = ygdata.Id(ns1, "v")
+    sub = ygdata.Id(ns1, "sub")
+    a = ygdata.Id(ns1, "a")
+    b = ygdata.Id(ns1, "b")
+    log = ygdata.Id(ns1, "log")
+    msg = ygdata.Id(ns1, "msg")
+    level = ygdata.Id(ns1, "level")
+    extra = ygdata.Id("urn:example:y2", "extra")
+    data = from_json(s, {
+        "y1:c1": {
+            "l1": "one",
+            "ll": ["x", "y"],
+            "entry": [
+                {"name": "e1", "v": "v1", "sub": {"a": "a1"}},
+                {"name": "e2", "v": "v2", "sub": {"a": "a2", "b": "b2"}},
+                {"name": "e3"},
+            ],
+            "log": [
+                {"msg": "m1", "level": "info"},
+                {"msg": "m2"},
+            ],
+            "y2:extra": "more",
+        }
+    }, loose=True)
+    c1_data = data.children[c1_id]
+    entry_data = c1_data.children[entry]
+
+    testing.assertEqual(select_fields(c1_data, resolve_fields(c1, "l1;l2"))!.prsrc(), ygdata.Container({
+        l1: ygdata.Leaf("one"),
+    }, ns=ns1, module="y1").prsrc())
+
+    testing.assertNone(select_fields(c1_data, resolve_fields(c1, "l2")))
+
+    testing.assertEqual(select_fields(c1_data, resolve_fields(c1, "entry(sub/b)"))!.prsrc(), ygdata.Container({
+        entry: ygdata.List([name], [
+            ygdata.Container({
+                sub: ygdata.Container({b: ygdata.Leaf("b2")}),
+                name: ygdata.Leaf("e2"),
+            }),
+        ]),
+    }, ns=ns1, module="y1").prsrc())
+
+    testing.assertEqual(select_fields(c1_data, resolve_fields(c1, "entry(v;sub/b)"))!.prsrc(), ygdata.Container({
+        entry: ygdata.List([name], [
+            ygdata.Container({
+                v: ygdata.Leaf("v1"),
+                name: ygdata.Leaf("e1"),
+            }),
+            ygdata.Container({
+                v: ygdata.Leaf("v2"),
+                sub: ygdata.Container({b: ygdata.Leaf("b2")}),
+                name: ygdata.Leaf("e2"),
+            }),
+        ]),
+    }, ns=ns1, module="y1").prsrc())
+
+    testing.assertEqual(select_fields(c1_data, resolve_fields(c1, "entry/name"))!.prsrc(), ygdata.Container({
+        entry: ygdata.List([name], [
+            ygdata.Container({name: ygdata.Leaf("e1")}),
+            ygdata.Container({name: ygdata.Leaf("e2")}),
+            ygdata.Container({name: ygdata.Leaf("e3")}),
+        ]),
+    }, ns=ns1, module="y1").prsrc())
+
+    testing.assertEqual(select_fields(c1_data, resolve_fields(c1, "log(level)"))!.prsrc(), ygdata.Container({
+        log: ygdata.KeylessList([
+            ygdata.Container({level: ygdata.Leaf("info")}),
+        ]),
+    }, ns=ns1, module="y1").prsrc())
+
+    testing.assertEqual(select_fields(c1_data, resolve_fields(c1, "log(msg;level)"))!.prsrc(), ygdata.Container({
+        log: ygdata.KeylessList([
+            ygdata.Container({msg: ygdata.Leaf("m1"), level: ygdata.Leaf("info")}),
+            ygdata.Container({msg: ygdata.Leaf("m2")}),
+        ]),
+    }, ns=ns1, module="y1").prsrc())
+
+    testing.assertEqual(select_fields(c1_data, resolve_fields(c1, "ll;y2:extra"))!.prsrc(), ygdata.Container({
+        ll: ygdata.LeafList([ygdata.LeafListEntryMerge("x"), ygdata.LeafListEntryMerge("y")]),
+        extra: ygdata.Leaf("more", ns="urn:example:y2", module="y2"),
+    }, ns=ns1, module="y1").prsrc())
+
+    testing.assertEqual(select_fields(entry_data, resolve_fields(c1.get("entry"), "sub/a"))!.prsrc(), ygdata.List([name], [
+        ygdata.Container({
+            sub: ygdata.Container({a: ygdata.Leaf("a1")}),
+            name: ygdata.Leaf("e1"),
+        }),
+        ygdata.Container({
+            sub: ygdata.Container({a: ygdata.Leaf("a2")}),
+            name: ygdata.Leaf("e2"),
+        }),
+    ]).prsrc())
 
 
 def _test_identityref():
