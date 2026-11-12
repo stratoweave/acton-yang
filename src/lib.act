@@ -62,27 +62,39 @@ extension NameRevMap[T](Collection[(str, (?str, T))]):
         return len(self.items)
 
 
-actor _Job[T](work: proc() -> T):
-    def run() -> (val: ?T, e: ?Exception):
-        # Return the exception instead of raising it: an actor that raises
-        # before its caller awaits the result prints "Unhandled exception in
-        # actor" on stderr
+# Jobs return exceptions instead of raising them: an actor that raises before
+# its caller awaits the result prints "Unhandled exception in actor" on stderr.
+actor _MergeSubmodulesJob(m: yschema.Module, submodules: NameRevMap[yschema.Submodule]):
+    def run() -> ?Exception:
         try:
-            return (val=work(), e=None)
+            _merge_submodules(m, submodules)
+            return None
+        except Exception as e:
+            return e
+
+
+actor _ParseStatementJob(src: str, strict_quoting: bool):
+    def run() -> (val: ?yschema.Statement, e: ?Exception):
+        try:
+            return (val=yparser.parse(src, strict_quoting), e=None)
         except Exception as e:
             return (val=None, e=e)
 
 
-def _run_concurrently[T](jobs: list[proc() -> T]) -> list[T]:
-    """Run each job in its own actor and return the results in job order
+actor _ParseSourceJob(src: str, strict_quoting: bool):
+    def run() -> (val: ?yschema.SchemaNode, e: ?Exception):
+        try:
+            n = yschema.stmt_to_snode(yparser.parse(src, strict_quoting))
+            return (val=_apply_precompile_transforms(n), e=None)
+        except Exception as e:
+            return (val=None, e=e)
 
-    All jobs start at once and the runtime spreads them over its worker
-    threads. The first failed job in job order raises its exception here.
+
+def _collect_results[T](msgs: list[Msg[(val: ?T, e: ?Exception)]]) -> list[T]:
+    """Collect results from already started jobs in job order
+
+    The first failed job in job order raises its exception here.
     """
-    msgs = []
-    for job in jobs:
-        j = _Job(job)
-        msgs.append(async j.run())
     res: list[T] = []
     for msg in msgs:
         r = await msg
@@ -268,10 +280,14 @@ def _build_modules(snodes: list[yschema.SchemaNode]) -> NameRevMap[yschema.Modul
             modrev = snode.get_modrev()
             submodules.add(modrev.modname, modrev.rev, snode)
 
-    jobs: list[proc() -> None] = []
+    msgs = []
     for _n, (_r, m) in modules:
-        jobs.append(lambda: _merge_submodules(m, submodules))
-    _run_concurrently(jobs)
+        j = _MergeSubmodulesJob(m, submodules)
+        msgs.append(async j.run())
+    for msg in msgs:
+        e = await msg
+        if e is not None:
+            raise e
     return modules
 
 
@@ -282,10 +298,11 @@ def parse_statements(yang_sources: list[str], strict_quoting: bool=False) -> lis
     Statement tree representations. Each YANG source is parsed independently,
     which makes it possible to run concurrently.
     """
-    jobs: list[proc() -> yschema.Statement] = []
+    msgs = []
     for src in yang_sources:
-        jobs.append(lambda: yparser.parse(src, strict_quoting))
-    return _run_concurrently(jobs)
+        j = _ParseStatementJob(src, strict_quoting)
+        msgs.append(async j.run())
+    return _collect_results(msgs)
 
 
 def parse_sources(yang_sources: list[str], strict_quoting: bool=False) -> NameRevMap[yschema.Module]:
@@ -296,10 +313,11 @@ def parse_sources(yang_sources: list[str], strict_quoting: bool=False) -> NameRe
     concurrently. Then each Submodule node is merged into the Module node
     that includes it.
     """
-    jobs: list[proc() -> yschema.SchemaNode] = []
+    msgs = []
     for src in yang_sources:
-        jobs.append(lambda: _apply_precompile_transforms(yschema.stmt_to_snode(yparser.parse(src, strict_quoting))))
-    return _build_modules(_run_concurrently(jobs))
+        j = _ParseSourceJob(src, strict_quoting)
+        msgs.append(async j.run())
+    return _build_modules(_collect_results(msgs))
 
 
 def compile_modules(modules: NameRevMap[yschema.Module]) -> list[yschema.Module]:
