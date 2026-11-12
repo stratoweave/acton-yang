@@ -605,6 +605,72 @@ def _test_empty_string_xml():
     return from_xml(s, xml.decode(xml_in)).prsrc()
 
 
+_repeated_container_schema = r"""module rep {
+  namespace "urn:example:rep";
+  prefix r;
+  container top {
+    container neighbors {
+      list neighbor {
+        key "id";
+        leaf id { type string; }
+        leaf state { type string; }
+      }
+    }
+    container info {
+      leaf a { type string; }
+      leaf b { type string; }
+    }
+    container outer {
+      container inner {
+        leaf x { type string; }
+        leaf y { type string; }
+      }
+      leaf z { type string; }
+    }
+  }
+}"""
+
+
+def _test_xml_repeated_container():
+    """A container that occurs more than once decodes as one container with the children of all occurrences"""
+    s = yang.compile([_repeated_container_schema])
+    # (name, XML with repeated containers, the same data with each container once)
+    cases = [
+        ("around list entries",
+         '<top xmlns="urn:example:rep"><neighbors><neighbor><id>A</id><state>idle</state></neighbor></neighbors><neighbors><neighbor><id>B</id><state>established</state></neighbor></neighbors><neighbors><neighbor><id>C</id></neighbor></neighbors></top>',
+         '<top xmlns="urn:example:rep"><neighbors><neighbor><id>A</id><state>idle</state></neighbor><neighbor><id>B</id><state>established</state></neighbor><neighbor><id>C</id></neighbor></neighbors></top>'),
+        ("around leaves",
+         '<top xmlns="urn:example:rep"><info><a>1</a></info><info><b>2</b></info></top>',
+         '<top xmlns="urn:example:rep"><info><a>1</a><b>2</b></info></top>'),
+        ("nested repeats",
+         '<top xmlns="urn:example:rep"><outer><inner><x>1</x></inner></outer><outer><inner><y>2</y></inner><z>3</z></outer></top>',
+         '<top xmlns="urn:example:rep"><outer><inner><x>1</x><y>2</y></inner><z>3</z></outer></top>'),
+        ("top-level container",
+         '<top xmlns="urn:example:rep"><info><a>1</a></info></top><top xmlns="urn:example:rep"><info><b>2</b></info></top>',
+         '<top xmlns="urn:example:rep"><info><a>1</a><b>2</b></info></top>'),
+    ]
+    failures = []
+    for name, repeated, grouped in cases:
+        got = from_xml(s, xml.decode("<data>{repeated}</data>")).prsrc(deterministic=True)
+        want = from_xml(s, xml.decode("<data>{grouped}</data>")).prsrc(deterministic=True)
+        if got != want:
+            failures.append("{name}:\n got:\n{got}\n want:\n{want}")
+    if len(failures) > 0:
+        testing.error("\n".join(failures))
+
+
+def _test_xml_repeated_container_different_ops():
+    """Repeated occurrences of a container with different NETCONF operations are an error"""
+    s = yang.compile([_repeated_container_schema])
+    xml_in = '<data><top xmlns="urn:example:rep"><info xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" nc:operation="replace"><a>1</a></info><info><b>2</b></info></top></data>'
+    try:
+        from_xml(s, xml.decode(xml_in))
+    except ValueError as err:
+        testing.assertEqual(err.error_message, "Repeated container /top/info has different operations: replace, merge")
+        return
+    raise AssertionError("Expected error not raised")
+
+
 def _test_json_path_basic():
     """Test basic JSON path navigation"""
     y1 = r"""module y1 {

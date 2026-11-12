@@ -130,11 +130,27 @@ def _test_get_nc_op_pref_ancestor():
 
 extension xml.Node (YangData):
     def take_container(self, schema: yschema.DContainer, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: str, val: ?value):
-        child_node = ygdata.get_xml_opt_child(self, schema.name, schema.namespace if ns_qualified else None)
-        if child_node is not None:
-            op = _get_netconf_operation(child_node)
-            return (op=op, val=child_node)
-        return None
+        """Return the container element and its NETCONF operation.
+
+        A container element can occur more than once in the same parent. For
+        example, IOS XE yang-push repeats <neighbors> for each list entry. The
+        result is then one element that holds the children of all occurrences.
+        """
+        nodes = ygdata.get_xml_children(self, schema.name, schema.namespace if ns_qualified else None)
+        if len(nodes) == 0:
+            return None
+        first = nodes[0]
+        op = _get_netconf_operation(first)
+        if len(nodes) == 1:
+            return (op=op, val=first)
+        children: list[xml.Node] = []
+        for node in nodes:
+            node_op = _get_netconf_operation(node)
+            if node_op != op:
+                raise ValueError("Repeated container {ydata.format_schema_path(path + [PathElement(schema)])} has different operations: {op}, {node_op}")
+            children.extend(node.children)
+        merged = xml.Node(first.tag, nsdefs=first.nsdefs, prefix=first.prefix, attributes=first.attributes, children=children, text=first.text)
+        return (op=op, val=merged)
 
     def take_list(self, schema: yschema.DList, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: str, key: dict[str, value], val: value)]:
         new_path = path + [PathElement(schema)]
