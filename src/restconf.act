@@ -101,6 +101,123 @@ def resolve_path(root: yschema.DRoot, path: list[str]) -> list[PathElement]:
     return result
 
 
+def resolve_fields(target: yschema.DNode, expr: str) -> list[ygdata.FNode]:
+    """Resolve the RESTCONF fields query param against the target schema,
+    returning FNode expressions.
+
+    Each field is a path expression with optional nested fields-expr in "()".
+    Fields are separated with ";". The function uses the schema to map each
+    field to an FNode expression.
+
+    Returns:
+        List of FNode expressions, merged on node identity
+    """
+    res = _resolve_fields_expr(target, expr, 0)
+    if res.pos < len(expr):
+        raise ValueError("Invalid fields at position {res.pos}: unexpected '{expr[res.pos]}' in {expr}")
+    return res.nodes
+
+
+def _resolve_fields_expr(parent: yschema.DNode, expr: str, pos: int) -> (nodes: list[ygdata.FNode], pos: int):
+    """The FNodes of individual fields-expr selections separated with ";", at pos, below the parent schema node"""
+    res = _resolve_fields_path(parent, expr, pos)
+    nodes = [res.node]
+    while res.pos < len(expr) and expr[res.pos] == ";":
+        res = _resolve_fields_path(parent, expr, res.pos + 1)
+        nodes.append(res.node)
+    return (nodes=ygdata.filter_merge_list(nodes), pos=res.pos)
+
+
+def _resolve_fields_path(parent: yschema.DNode, expr: str, pos: int) -> (node: ygdata.FNode, pos: int):
+    """The FNode of one selection at pos: a "/"-separated path, optionally
+    followed by fields-expr in "()" """
+    end = pos
+    while end < len(expr) and expr[end] not in ";/()":
+        end += 1
+    if end == pos:
+        raise ValueError("Invalid fields at position {pos}: expected a node name in {expr}")
+    name = expr[pos:end]
+    if not isinstance(parent, yschema.DNodeInner):
+        raise ValueError("Invalid fields at position {pos}: {parent.name} has no child {name}")
+    local_name, module = parse_qualified_name(name)
+    try:
+        child = parent.get(local_name, module=module, allow_unqualified=False)
+    except ValueError as e:
+        raise ValueError("Invalid fields at position {pos}: {e.error_message}")
+    if not (isinstance(child, yschema.DContainer) or isinstance(child, yschema.DList) or isinstance(child, yschema.DNodeLeaf) or isinstance(child, yschema.DAnydata) or isinstance(child, yschema.DAnyxml)):
+        raise ValueError("Invalid fields at position {pos}: {name} is not a data node")
+    if end < len(expr) and expr[end] == "/":
+        res = _resolve_fields_path(child, expr, end + 1)
+        return (node=ygdata.FNode(child.gname, children=[res.node]), pos=res.pos)
+    if end < len(expr) and expr[end] == "(":
+        res = _resolve_fields_expr(child, expr, end + 1)
+        if res.pos < len(expr) and expr[res.pos] == ")":
+            return (node=ygdata.FNode(child.gname, children=res.nodes), pos=res.pos + 1)
+        raise ValueError("Invalid fields at position {res.pos}: expected ')' in {expr}")
+    return (node=ygdata.FNode(child.gname), pos=end)
+
+
+def select_fields(data: ygdata.Node, fields: list[ygdata.FNode]) -> ?ygdata.Node:
+    """Return the part of data that fields selects (RFC 8040 4.8.3).
+
+    The fields parameter has one FNode for each selected child of data, as
+    returned by resolve_fields. An FNode that targets an inner node (like a
+    container) selects the entire node, and outer nodes narrow the selection to
+    just those children.
+
+    The key difference from gdata.filter is that a selected node without a match
+    in data does not affect siblings - they remain selected.
+    """
+    if isinstance(data, ygdata.Container):
+        return _select_fields_children(data, fields)
+    if isinstance(data, ygdata.List):
+        elements = {}
+        for k, elem in data.elements.items():
+            sel = _select_fields_children(elem, fields, data.keys)
+            if sel is not None:
+                elements[k] = sel
+        if len(elements) == 0:
+            return None
+        if isinstance(data, ygdata.OList):
+            return ygdata.OList(data.keys, ns=data.ns, module=data.module, by_key_order=(elements, [k for k in data.order if k in elements]))
+        return ygdata.List(data.keys, ns=data.ns, module=data.module, by_key=elements)
+    if isinstance(data, ygdata.KeylessList):
+        elements = []
+        for elem in data.elements:
+            sel = _select_fields_children(elem, fields)
+            if sel is not None:
+                elements.append(sel)
+        if len(elements) == 0:
+            return None
+        return ygdata.KeylessList(elements, ns=data.ns, module=data.module)
+    raise ValueError("Unexpected node type for fields: {type(data)}")
+
+
+def _select_fields_children(data: ygdata.Node, fields: list[ygdata.FNode], keys: ?list[ygdata.Id]=None) -> ?ygdata.Node:
+    """data narrowed to its keys and the children that fields selects, or
+    None if fields selects nothing in data."""
+    if isinstance(data, ygdata.Container):
+        children = {}
+        selected = False
+        for f in fields:
+            name = f.name!
+            child = data.children.get(name)
+            if child is not None:
+                sel = child if len(f.children) == 0 else select_fields(child, f.children)
+                if sel is not None:
+                    children[name] = sel
+                    selected = True
+        if selected:
+            if keys is not None:
+                for key in keys:
+                    key_child = data.children.get(key)
+                    if key_child is not None:
+                        children[key] = key_child
+            return ygdata.Container(children, presence=data.presence, ns=data.ns, module=data.module)
+        return None
+    raise ValueError("Unexpected node type for fields: {type(data)}")
+
+
 def _from_unwrapped_body[A(YangData)](root: yschema.DRoot, data: ?A, type_narrower: (?value) -> A, path_elements: list[PathElement], op: str=OP_MERGE, loose: bool=False) -> ygdata.Container:
     """Build a sparse gdata tree with `data` applied at the terminal (path_elements[-1]).
 
