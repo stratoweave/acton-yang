@@ -24,7 +24,7 @@ m_https: Identityref = Identityref('https', ns='urn:example:m', mod='m', pfx='m'
 
 SRC_DNODE: DRoot = m_schema.SRC_DNODE
 
-pure def src_yang() -> list[str]:
+pure def src_yang() -> list[YangSource]:
     return m_schema.src_yang()
 
 

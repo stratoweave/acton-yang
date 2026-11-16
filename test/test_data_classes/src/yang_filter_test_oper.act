@@ -136,9 +136,9 @@ SRC_YANG_0: str = r"""module filter-test {
     }
 }"""
 
-pure def src_yang() -> list[str]:
+pure def src_yang() -> list[YangSource]:
     return [
-        SRC_YANG_0,
+        (name='filter-test', revision=None, src=SRC_YANG_0),
     ]
 
 

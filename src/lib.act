@@ -288,18 +288,28 @@ def parse_statements(yang_sources: list[str], strict_quoting: bool=False) -> lis
     return _run_concurrently(jobs)
 
 
-def parse_sources(yang_sources: list[str], strict_quoting: bool=False) -> NameRevMap[yschema.Module]:
-    """Parse YANG source strings into Module nodes
+def _parse_snodes(yang_sources: list[str], strict_quoting: bool) -> list[yschema.SchemaNode]:
+    """Parse each YANG source to its Module or Submodule node, in the order of
+    yang_sources
 
     One job per source parses it, converts the Statement tree to a Module or
     Submodule node and applies the pre-compile transforms, all jobs
-    concurrently. Then each Submodule node is merged into the Module node
-    that includes it.
+    concurrently.
     """
     jobs: list[proc() -> yschema.SchemaNode] = []
     for src in yang_sources:
         jobs.append(lambda: _apply_precompile_transforms(yschema.stmt_to_snode(yparser.parse(src, strict_quoting))))
-    return _build_modules(_run_concurrently(jobs))
+    return _run_concurrently(jobs)
+
+
+def parse_sources(yang_sources: list[str], strict_quoting: bool=False) -> NameRevMap[yschema.Module]:
+    """Parse YANG source strings into Module nodes
+
+    Each source is parsed to its Module or Submodule node concurrently, see
+    _parse_snodes. Then each Submodule node is merged into the Module node
+    that includes it.
+    """
+    return _build_modules(_parse_snodes(yang_sources, strict_quoting))
 
 
 def compile_modules(modules: NameRevMap[yschema.Module]) -> list[yschema.Module]:
@@ -392,6 +402,27 @@ def compile(yang_sources: list[str], strict_quoting=True, allow_failure: ?list[s
             )
         ), allow_failure
     )
+
+
+def compile_with_sources(yang_sources: list[str], strict_quoting=True, allow_failure: ?list[str]=None) -> (root: yschema.DRoot, sources: list[yschema.YangSource]):
+    """Parse and compile a set of YANG modules and submodules into a derived schema tree and list of sources
+
+    The derived schema tree (root field) is the same as output by compile().
+    This function also returns the YANG sources with the name and revision
+    metadata extracted.
+    """
+    snodes = _parse_snodes(yang_sources, strict_quoting)
+    sources = []
+    for src, snode in zip(yang_sources, snodes):
+        if isinstance(snode, yschema.Module):
+            modrev = snode.get_modrev()
+        elif isinstance(snode, yschema.Submodule):
+            modrev = snode.get_modrev()
+        else:
+            raise ValueError("YANG source is not a module or a submodule: {snode._yname}")
+        sources.append((name=modrev.modname, revision=modrev.rev, src=src))
+    root = compile_to_droot(compile_to_dmodules(compile_modules(_build_modules(snodes))), allow_failure)
+    return (root=root, sources=sources)
 
 
 def schema_from_src(src: str) -> yschema.SchemaNode:

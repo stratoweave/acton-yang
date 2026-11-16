@@ -2578,6 +2578,9 @@ def _test_prdaclass_split_schema():
     yang-version "1.1";
     namespace "http://example.com/foo";
     prefix "f";
+    revision 2024-01-01;
+    revision 2025-06-30;
+    revision 2023-05-05;
     identity base_id;
     identity der_id {
         base base_id;
@@ -2594,14 +2597,15 @@ def _test_prdaclass_split_schema():
         }
     }
 }"""
-    root = yang.compile([ys])
+    compiled = yang.compile_with_sources([ys])
+    root = compiled.root
     # prdaclass() removes the children it generates no attributes for, so it
     # runs before prschema(), like in ayangc
-    adata_src = root.prdaclass(schema_module="foo_schema", schema_yang=[ys])
+    adata_src = root.prdaclass(schema_module="foo_schema", schema_yang=compiled.sources)
     return "\n".join([
         "# ===== foo_schema.act (prschema) =====",
         "",
-        root.prschema(schema_yang=[ys]),
+        root.prschema(schema_yang=compiled.sources),
         "",
         "# ===== foo.act (prdaclass schema_module='foo_schema') =====",
         "",
