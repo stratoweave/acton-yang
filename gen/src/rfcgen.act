@@ -1641,15 +1641,19 @@ rfc7950bis = """
 actor main(env):
     file_cap = file.FileCap(env.cap)
     fs = file.FS(file_cap)
-    projpath = fs.exepath()[0:-len("out/bin/rfcgen")]
 
-    schema_header = file.ReadFile(
-        file.ReadFileCap(file_cap),
-        file.join_path([projpath, "schema-header.act"])).read().decode()
-    schema_footer = file.ReadFile(
-        file.ReadFileCap(file_cap),
-        file.join_path([projpath, "schema-footer.act"])).read().decode()
+    proc def __startup__():
+        projpath = fs.exepath()[0:-len("out/bin/rfcgen")]
 
-    yang = "\n".join(schema_header.splitlines()[4:]) + "\n".join(gen(parse_stmts(rfc.rfc7950 + rfc7950bis))) + schema_footer
-    print(yang, end="")
-    env.exit(0)
+        schema_header = file.ReadFile(
+            file.ReadFileCap(file_cap),
+            file.join_path([projpath, "schema-header.act"])).read().decode()
+        schema_footer = file.ReadFile(
+            file.ReadFileCap(file_cap),
+            file.join_path([projpath, "schema-footer.act"])).read().decode()
+
+        yang = "\n".join(schema_header.splitlines()[4:]) + "\n".join(gen(parse_stmts(rfc.rfc7950 + rfc7950bis))) + schema_footer
+        print(yang, end="")
+        env.exit(0)
+
+    __startup__()

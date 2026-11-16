@@ -751,12 +751,16 @@ ys_yangrpc = r"""module yangrpc {
 
 actor main(env: Env):
     wfcap = file.WriteFileCap(file.FileCap(env.cap))
-    yang_to_act(wfcap, yangs=[ys_one], filename="../test_data_classes/src/yang_one.act")
-    yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo.act")
-    yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo_loose.act", loose=True)
-    yang_to_act(wfcap, yangs=[ys_loose_required], filename="../test_data_classes/src/yang_loose_required.act", loose=True)
-    yang_to_act(wfcap, yangs=[ys_basics], filename="../test_data_classes/src/yang_basics.act")
-    yang_to_act(wfcap, yangs=[ys_keywords], filename="../test_data_classes/src/yang_keywords.act")
-    yang_to_oper_act(wfcap, yangs=[ys_subs], filename="../test_data_classes/src/yang_filter_test_oper.act")
-    yang_to_act(wfcap, yangs=[ys_yangrpc], filename="../test_data_classes/src/yangrpc.act")
-    env.exit(0)
+
+    proc def __startup__():
+        yang_to_act(wfcap, yangs=[ys_one], filename="../test_data_classes/src/yang_one.act")
+        yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo.act")
+        yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo_loose.act", loose=True)
+        yang_to_act(wfcap, yangs=[ys_loose_required], filename="../test_data_classes/src/yang_loose_required.act", loose=True)
+        yang_to_act(wfcap, yangs=[ys_basics], filename="../test_data_classes/src/yang_basics.act")
+        yang_to_act(wfcap, yangs=[ys_keywords], filename="../test_data_classes/src/yang_keywords.act")
+        yang_to_oper_act(wfcap, yangs=[ys_subs], filename="../test_data_classes/src/yang_filter_test_oper.act")
+        yang_to_act(wfcap, yangs=[ys_yangrpc], filename="../test_data_classes/src/yangrpc.act")
+        env.exit(0)
+
+    __startup__()

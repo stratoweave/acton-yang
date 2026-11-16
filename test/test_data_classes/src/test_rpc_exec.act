@@ -75,8 +75,11 @@ actor _test_rpc_foo_success(t: testing.AsyncT):
     woo = yangrpc.yangrpc__foo__input__woo(1337)
     foo_input = yangrpc.yangrpc__foo__input("test_input", woo)
 
-    # Execute the RPC
-    root.foo(on_reply, foo_input)
+    proc def __startup__():
+        # Execute the RPC
+        root.foo(on_reply, foo_input)
+
+    __startup__()
 
 
 actor _test_rpc_foo_error(t: testing.AsyncT):
@@ -97,8 +100,11 @@ actor _test_rpc_foo_error(t: testing.AsyncT):
     woo = yangrpc.yangrpc__foo__input__woo(42)
     foo_input = yangrpc.yangrpc__foo__input("error_test", woo)
 
-    # Execute the RPC (should fail)
-    root.foo(on_reply, foo_input)
+    proc def __startup__():
+        # Execute the RPC (should fail)
+        root.foo(on_reply, foo_input)
+
+    __startup__()
 
 
 actor _test_rpc_foo_empty_output(t: testing.AsyncT):
@@ -122,8 +128,11 @@ actor _test_rpc_foo_empty_output(t: testing.AsyncT):
     woo = yangrpc.yangrpc__foo__input__woo(999)
     foo_input = yangrpc.yangrpc__foo__input("empty_test", woo)
 
-    # Execute the RPC
-    root.foo(on_reply, foo_input)
+    proc def __startup__():
+        # Execute the RPC
+        root.foo(on_reply, foo_input)
+
+    __startup__()
 
 
 actor _test_rpc_foo_complex_input(t: testing.AsyncT):
@@ -149,8 +158,11 @@ actor _test_rpc_foo_complex_input(t: testing.AsyncT):
 #    foo_input = yangrpc.yangrpc__foo__input("Complex input with special chars: <>&\"'", woo)
     foo_input = yangrpc.yangrpc__foo__input("Full input", woo)
 
-    # Execute the RPC
-    root.foo(on_reply, foo_input)
+    proc def __startup__():
+        # Execute the RPC
+        root.foo(on_reply, foo_input)
+
+    __startup__()
 
 
 def _test_rpc_input_serialization():
@@ -210,8 +222,11 @@ actor _test_rpc_silent_no_input_output(t: testing.AsyncT):
     tp = MockTreeProviderSuccess()
     root = yangrpc.rpc_root(tp)
 
-    # Execute the silent RPC - no input parameter needed
-    root.silent(on_reply)
+    proc def __startup__():
+        # Execute the silent RPC - no input parameter needed
+        root.silent(on_reply)
+
+    __startup__()
 
 
 actor _test_rpc_silent_error_handling(t: testing.AsyncT):
@@ -228,5 +243,8 @@ actor _test_rpc_silent_error_handling(t: testing.AsyncT):
     tp = MockTreeProviderError()
     root = yangrpc.rpc_root(tp)
 
-    # Execute the silent RPC (should fail with error provider)
-    root.silent(on_reply)
+    proc def __startup__():
+        # Execute the silent RPC (should fail with error provider)
+        root.silent(on_reply)
+
+    __startup__()

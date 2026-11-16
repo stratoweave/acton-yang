@@ -188,25 +188,28 @@ actor _test_subs_dst_grouping(t: testing.AsyncT):
         actual_tp.deliver_all(_sample_tree())
 
     tp = MockSubscriptionTreeProvider(on_declared)
-    subs = gdata.SubscriptionManager(tp!, "test-owner")
-
-    state_dst = ft_oper.dst(on_state)
-    links_dst = ft_oper.dst(on_links)
     sub = ft_oper.subs
     iface = sub.interfaces.interface.entry("eth0")
 
-    want = {
-        state_dst.deliver({
-            sub.system_state.clock.subscribe(depth=1, period=0.05),
-            iface.subscribe(select=[iface.statistics], period=1.0),
-        }),
-        links_dst.deliver({
-            sub.interfaces.interface.oper_status.subscribe(period=1.0),
-        }),
-    }
+    proc def __startup__():
+        subs = gdata.SubscriptionManager(tp!, "test-owner")
 
-    subs.declare(want)
+        state_dst = ft_oper.dst(on_state)
+        links_dst = ft_oper.dst(on_links)
 
+        want = {
+            state_dst.deliver({
+                sub.system_state.clock.subscribe(depth=1, period=0.05),
+                iface.subscribe(select=[iface.statistics], period=1.0),
+            }),
+            links_dst.deliver({
+                sub.interfaces.interface.oper_status.subscribe(period=1.0),
+            }),
+        }
+
+        subs.declare(want)
+
+    __startup__()
 
 actor _test_subs_dst_rooted_at_list(t: testing.AsyncT):
     """A destination rooted at a list gets one typed entry per delivery,
@@ -242,12 +245,15 @@ actor _test_subs_dst_rooted_at_list(t: testing.AsyncT):
         actual_tp.deliver_all(_sample_tree())
 
     tp = MockSubscriptionTreeProvider(on_declared)
-    subs = gdata.SubscriptionManager(tp!, "test-owner")
     ifaces = ft_oper.subs.interfaces.interface
-    subs.declare({
-        ifaces.dst(on_iface).deliver({ifaces.oper_status.subscribe(period=1.0)}),
-    }, synced=on_synced)
 
+    proc def __startup__():
+        subs = gdata.SubscriptionManager(tp!, "test-owner")
+        subs.declare({
+            ifaces.dst(on_iface).deliver({ifaces.oper_status.subscribe(period=1.0)}),
+        }, synced=on_synced)
+
+    __startup__()
 
 actor _test_subs_dst_rooted_at_container(t: testing.AsyncT):
     """A destination rooted at a container gets that container, typed."""
@@ -261,10 +267,13 @@ actor _test_subs_dst_rooted_at_container(t: testing.AsyncT):
         tp!.deliver_all(_sample_tree())
 
     tp = MockSubscriptionTreeProvider(on_declared)
-    subs = gdata.SubscriptionManager(tp!, "test-owner")
     clock = ft_oper.subs.system_state.clock
-    subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
 
+    proc def __startup__():
+        subs = gdata.SubscriptionManager(tp!, "test-owner")
+        subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
+
+    __startup__()
 
 def _test_rooted_specs_are_distinct():
     """The root is part of a spec's identity, so two destinations with the
@@ -300,10 +309,13 @@ actor _test_subs_dst_container_gone_is_none(t: testing.AsyncT):
         tp!.deliver_all(_sample_tree())
 
     tp = MockSubscriptionTreeProvider(on_declared)
-    subs = gdata.SubscriptionManager(tp!, "test-owner")
     clock = ft_oper.subs.system_state.clock
-    subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
 
+    proc def __startup__():
+        subs = gdata.SubscriptionManager(tp!, "test-owner")
+        subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
+
+    __startup__()
 
 def _test_rooted_filters_must_lead_to_the_root():
     """A filter handed to a rooted destination starts at its root, or ends
@@ -359,10 +371,13 @@ actor _test_subs_dst_rooted_below_a_list(t: testing.AsyncT):
         tp!.deliver_all(_sample_tree())
 
     tp = MockSubscriptionTreeProvider(on_declared)
-    subs = gdata.SubscriptionManager(tp!, "test-owner")
     addresses = ft_oper.subs.interfaces.interface.address
-    subs.declare({addresses.dst(on_address).deliver({addresses.subscribe(period=1.0)})}, synced=on_synced)
 
+    proc def __startup__():
+        subs = gdata.SubscriptionManager(tp!, "test-owner")
+        subs.declare({addresses.dst(on_address).deliver({addresses.subscribe(period=1.0)})}, synced=on_synced)
+
+    __startup__()
 
 def _test_spines_and_gone():
     """An instance's spine holds the path from the top down to it alone, and
@@ -424,5 +439,9 @@ actor _test_synced_covers_the_whole_declaration(t: testing.AsyncT):
         }, synced=on_all)
 
     tp = MockSubscriptionTreeProvider(on_declared)
-    subs = gdata.SubscriptionManager(tp!, "test-owner")
-    declare(on_synced)
+
+    proc def __startup__():
+        subs = gdata.SubscriptionManager(tp!, "test-owner")
+        declare(on_synced)
+
+    __startup__()
