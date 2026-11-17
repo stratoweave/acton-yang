@@ -2822,17 +2822,23 @@ def _filter_list_element(elem: Node, fnode: FNode, keys: list[Id]) -> ?Node:
     selected_children: dict[Id, Node] = {}
     has_selection = False
     for name, flist in groups.items():
-        if name not in elem.children:
+        # Only a failing value match excludes the parent
+        res = _filter_child(elem.children[name], flist) if name in elem.children else (node=None, select=False)
+        n = res.node
+        if n is not None:
+            selected_children[name] = n
+            if res.select:
+                has_selection = True
+        elif any(f.value_match is not None for f in flist):
             return None
-        res = _filter_child(elem.children[name], flist)
-        if res.node is None:
-            return None
-        if res.select:
-            selected_children[name] = expect(res.node, "list element selection")
+        else:
             has_selection = True
 
     if not has_selection:
         return elem
+    # Nothing selected: leave the entry out, not just its keys
+    if len(selected_children) == 0:
+        return None
 
     for key in keys:
         if key in elem.children and key not in selected_children:
@@ -2939,17 +2945,23 @@ def _filter_container_children(data: Node, fchildren: list[FNode]) -> ?Node:
     selected_children: dict[Id, Node] = {}
     has_selection = False
     for name, flist in groups.items():
-        if name not in data.children:
+        # Only a failing value match excludes the parent
+        res = _filter_child(data.children[name], flist) if name in data.children else (node=None, select=False)
+        n = res.node
+        if n is not None:
+            selected_children[name] = n
+            if res.select:
+                has_selection = True
+        elif any(f.value_match is not None for f in flist):
             return None
-        res = _filter_child(data.children[name], flist)
-        if res.node is None:
-            return None
-        if res.select:
-            selected_children[name] = expect(res.node, "container selection")
+        else:
             has_selection = True
 
     if not has_selection:
         return data
+    # Nothing selected: leave the container out, not empty
+    if len(selected_children) == 0:
+        return None
     return _filter_container_result(data, selected_children)
 
 
@@ -5707,6 +5719,50 @@ def _test_filter_leaf_content_matches_and():
     testing.assertNone(filter(data, filt))
 
 
+def _test_filter_content_match_in_output():
+    """A content match node that passes is in the output, also when its
+    sibling selections select nothing."""
+    k = Id(NS_acme, "name")
+    data = Container({
+        Id(NS_acme, "foo"): Container({
+            Id(NS_acme, "l1"): Leaf(u64(1)),
+            Id(NS_acme, "l3"): Leaf(u64(3)),
+            Id(NS_acme, "l"): List([k], [
+                Container({
+                    Id(NS_acme, "name"): Leaf("a"),
+                    Id(NS_acme, "v"): Leaf(u64(1)),
+                    Id(NS_acme, "y"): Leaf(u64(2)),
+                }),
+            ], ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme"),
+    })
+    filt = FNode(None, None, [
+        FNode(Id(NS_acme, "foo"), children=[
+            FNode(Id(NS_acme, "l1"), value_match=u64(1)),
+            FNode(Id(NS_acme, "l2")),
+            FNode(Id(NS_acme, "l"), children=[
+                FNode(Id(NS_acme, "v"), value_match=u64(1)),
+                FNode(Id(NS_acme, "x")),
+            ]),
+        ]),
+    ])
+    res = expect(filter(data, filt), "filter result")
+    testing.assertEqual(
+        res.prsrc(deterministic=True),
+        Container({
+            Id(NS_acme, "foo"): Container({
+                Id(NS_acme, "l1"): Leaf(u64(1)),
+                Id(NS_acme, "l"): List([k], [
+                    Container({
+                        Id(NS_acme, "name"): Leaf("a"),
+                        Id(NS_acme, "v"): Leaf(u64(1)),
+                    }),
+                ], ns=NS_acme, module="acme"),
+            }, ns=NS_acme, module="acme"),
+        }).prsrc(deterministic=True)
+    )
+
+
 def _test_filter_container_leaf_select():
     """Leaf selection predicate limits output to requested leaves."""
     data = Container({
@@ -6072,6 +6128,36 @@ def _test_filter_wildcard_value_match():
                     }),
                 ], ns=NS_acme, module="acme")
             }, ns=NS_acme, module="acme")
+        }).prsrc(deterministic=True)
+    )
+
+
+def _test_filter_empty_list_keeps_sibling():
+    """A list that selects nothing, such as an empty one, leaves the data
+    that its siblings select in the output."""
+    k = Id(NS_acme, "name")
+    data = Container({
+        Id(NS_acme, "foo"): Container({
+            Id(NS_acme, "l1"): Leaf(u64(1)),
+            Id(NS_acme, "l2"): Leaf(u64(2)),
+            Id(NS_acme, "l"): List([k], [], ns=NS_acme, module="acme"),
+        }, ns=NS_acme, module="acme"),
+    })
+    filt = FNode(None, None, [
+        FNode(Id(NS_acme, "foo"), children=[
+            FNode(Id(NS_acme, "l1")),
+            FNode(Id(NS_acme, "l"), children=[
+                FNode(Id(NS_acme, "v")),
+            ]),
+        ]),
+    ])
+    res = expect(filter(data, filt), "filter result")
+    testing.assertEqual(
+        res.prsrc(deterministic=True),
+        Container({
+            Id(NS_acme, "foo"): Container({
+                Id(NS_acme, "l1"): Leaf(u64(1)),
+            }, ns=NS_acme, module="acme"),
         }).prsrc(deterministic=True)
     )
 
