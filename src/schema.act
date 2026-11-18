@@ -2847,15 +2847,23 @@ class DTypeLeafref(DType):
 
     def resolve_references(self, root: DRoot, spath: list[DNode], allow_failure: ?list[str]):
         n: DNode = root
+        walked: list[DNode] = [root]
         current_module = spath[-1].module
         for step in self.path.steps:
             if isinstance(step, xpath.NodeTestStep):
                 try:
+                    if isinstance(n, DAction) or isinstance(n, DRpc):
+                        # In the path, the action or rpc is the parent of its
+                        # input or output leaves. In the schema tree, the input
+                        # or output node is between them.
+                        n = _operation_io(walked, spath)
+                        walked.append(n)
                     if step.prefix is not None:
                         n = n.get(step.name, prefix=step.prefix)
                     else:
                         # Unqualified (no prefix) nodes belong the namespace of the current node
                         n = n.get(step.name, module=current_module)
+                    walked.append(n)
                 except ValueError as ex:
                     if allow_failure is not None and get_path(spath) in allow_failure:
                         print("{get_path(spath)}: [SKIP] Failed to resolve leafref path: {self.path}, {ex.error_message}", err=True)
@@ -4775,6 +4783,22 @@ def get_path_usnames(path: list[DNode]) -> list[str]:
             # Relative path
             res.append(safe_name(node.name, safe_kw=False))
     return res
+
+
+def _operation_io(walked: list[DNode], spath: list[DNode]) -> DNode:
+    """Return the input or output of the action or rpc at the end of walked
+
+    walked and spath are node paths from the root. spath ends at a leafref.
+    A leafref path can only go into the action or rpc that holds the leafref,
+    so walked must be the start of spath. The next node of spath is the input
+    or output that holds the leafref.
+    """
+    i = len(walked)
+    if i < len(spath) and get_path(walked) == get_path(spath[:i]):
+        io = spath[i]
+        if isinstance(io, DInput) or isinstance(io, DOutput):
+            return io
+    raise ValueError("Path goes into an action or rpc that does not hold the leafref")
 
 
 def get_path(path: list[DNode]) -> str:
@@ -11426,6 +11450,15 @@ class ResolvedType(Type):
                             elif isinstance(_n, Leaf):
                                 reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
                             elif isinstance(_n, LeafList):
+                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                            elif isinstance(_n, Action):
+                                # The action, rpc or notification is the parent of
+                                # its leaves. Input and output are not path steps
+                                # (RFC 7950 6.4.1).
+                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                            elif isinstance(_n, Rpc):
+                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                            elif isinstance(_n, Notification):
                                 reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
                             elif isinstance(_n, Module):
                                 break

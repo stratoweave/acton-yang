@@ -119,6 +119,15 @@ class ResolvedType(Type):
                                 reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
                             elif isinstance(_n, LeafList):
                                 reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                            elif isinstance(_n, Action):
+                                # The action, rpc or notification is the parent of
+                                # its leaves. Input and output are not path steps
+                                # (RFC 7950 6.4.1).
+                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                            elif isinstance(_n, Rpc):
+                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                            elif isinstance(_n, Notification):
+                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
                             elif isinstance(_n, Module):
                                 break
                             elif isinstance(_n, Grouping) or isinstance(_n, Augment) or isinstance(_n, Typedef):

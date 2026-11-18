@@ -1535,6 +1535,155 @@ def _test_rpc_input_import_prefix_leafref():
     else:
         testing.error("Expected DRpc register")
 
+def _leafref_target_type(n: yschema.DNode) -> str:
+    """Return the built-in type of the target of leafref leaf n"""
+    if isinstance(n, yschema.DLeaf):
+        t = n.type
+        if isinstance(t, yschema.DTypeLeafref):
+            tt = t.target_type
+            if tt is not None:
+                return tt.builtin_type
+    raise ValueError("Expected a resolved leafref leaf")
+
+def _test_leafref_relative_action_input():
+    """A relative leafref in action input steps from the leaf to the action,
+    not over it
+
+    Input is not a path step.
+    """
+    ys = r"""module foo {
+  yang-version 1.1;
+  namespace "urn:example:foo";
+  prefix foo;
+  container top {
+    list comp {
+      key name;
+      leaf name {
+        type string;
+      }
+      action enable {
+        input {
+          leaf a {
+            type uint8;
+          }
+          leaf item {
+            type leafref {
+              path "../../items/item";
+            }
+          }
+          leaf sibling {
+            type leafref {
+              path "../a";
+            }
+          }
+        }
+      }
+      list items {
+        key item;
+        leaf item {
+          type uint16;
+        }
+      }
+    }
+  }
+}"""
+    root = yang.compile([ys])
+    enable_input = root.get("top").get("comp").get("enable").get("input")
+    testing.assertEqual(_leafref_target_type(enable_input.get("item")), "uint16")
+    testing.assertEqual(_leafref_target_type(enable_input.get("sibling")), "uint8")
+
+def _test_leafref_relative_rpc_input():
+    """A relative leafref to a sibling rpc input leaf finds the input leaf, not
+    a top-level leaf with the same name
+    """
+    ys = r"""module foo {
+  yang-version 1.1;
+  namespace "urn:example:foo";
+  prefix foo;
+  leaf a {
+    type string;
+  }
+  rpc r1 {
+    input {
+      leaf a {
+        type uint8;
+      }
+      leaf sibling {
+        type leafref {
+          path "../a";
+        }
+      }
+      leaf top {
+        type leafref {
+          path "../../a";
+        }
+      }
+    }
+  }
+}"""
+    root = yang.compile([ys])
+    r1_input = root.get("r1").get("input")
+    testing.assertEqual(_leafref_target_type(r1_input.get("sibling")), "uint8")
+    testing.assertEqual(_leafref_target_type(r1_input.get("top")), "string")
+
+def _test_leafref_relative_notification():
+    """A relative leafref in a notification steps from the leaf to the
+    notification
+    """
+    ys = r"""module foo {
+  yang-version 1.1;
+  namespace "urn:example:foo";
+  prefix foo;
+  container top {
+    leaf a {
+      type string;
+    }
+    notification n1 {
+      leaf a {
+        type uint8;
+      }
+      leaf sibling {
+        type leafref {
+          path "../a";
+        }
+      }
+    }
+  }
+}"""
+    root = yang.compile([ys])
+    n1 = root.get("top").get("n1")
+    testing.assertEqual(_leafref_target_type(n1.get("sibling")), "uint8")
+
+def _test_leafref_into_other_rpc():
+    """A leafref cannot point into the input of another rpc"""
+    ys = r"""module foo {
+  yang-version 1.1;
+  namespace "urn:example:foo";
+  prefix foo;
+  rpc r1 {
+    input {
+      leaf a {
+        type uint8;
+      }
+    }
+  }
+  rpc r2 {
+    input {
+      leaf other {
+        type leafref {
+          path "/r1/a";
+        }
+      }
+    }
+  }
+}"""
+    try:
+        yang.compile([ys])
+    except ValueError as exc:
+        testing.assertIn("does not hold the leafref", exc.error_message)
+        return
+    testing.error("Expected ValueError")
+
 def _test_compile_refine():
     """Refining a grouping"""
     ys = r"""module foo {
