@@ -98,12 +98,12 @@ actor _test_cisco_xrd_25_3_1(t: testing.EnvT):
 
 actor _test_cisco_xe_17_15_03a(t: testing.EnvT):
     """Test compilation of Cisco IOS XE YANG modules"""
-    test_compile_yang_directory(t, "test-yang/cisco-xe-17_15_03a", ["tailf-yang-patch*", "tailf-rollback*", "cisco-xe-openconfig*"], strict_quoting=False)
+    test_compile_yang_directory(t, "test-yang/cisco-xe-17_15_03a", ["cisco-xe-openconfig*"], strict_quoting=False)
 
 
 actor _test_cisco_xe_17_18_02(t: testing.EnvT):
     """Test compilation of Cisco IOS XE YANG modules"""
-    test_compile_yang_directory(t, "test-yang/cisco-xe-17_18_02", ["tailf-yang-patch*", "tailf-rollback*", "cisco-xe-openconfig*"], strict_quoting=False)
+    test_compile_yang_directory(t, "test-yang/cisco-xe-17_18_02", ["cisco-xe-openconfig*"], strict_quoting=False)
 
 
 actor _test_juniper_crpd_24_4R1_9(t: testing.EnvT):

@@ -2131,6 +2131,81 @@ def _test_compile_augment_on_augment_across_modules():
     testing.assertEqual(l3.namespace, "http://example.com/baz")
     return root.prdaclass()
 
+_ys_ext_tailf_common = r"""module tailf-common {
+  namespace "http://tail-f.com/yang/common";
+  prefix tailf;
+  extension structure {
+    argument name;
+  }
+}"""
+
+_ys_ext_other = r"""module other-ext {
+  namespace "http://example.com/other-ext";
+  prefix oe;
+  extension structure {
+    argument name;
+  }
+}"""
+
+def _ys_structure_base(ext_module: str, ext_prefix: str) -> str:
+    return r"""module base {
+  namespace "http://example.com/base";
+  prefix b;
+  import EXT_MODULE {
+    prefix EXT_PREFIX;
+  }
+  container c1 {
+    leaf l1 {
+      type string;
+    }
+  }
+  EXT_PREFIX:structure st {
+    container status {
+      container ok;
+    }
+  }
+}""".replace("EXT_MODULE", ext_module).replace("EXT_PREFIX", ext_prefix)
+
+_ys_structure_aug = r"""module aug {
+  namespace "http://example.com/aug";
+  prefix a;
+  import base { prefix b; }
+  augment "/b:st/b:status/b:ok" {
+    leaf id {
+      type string;
+    }
+  }
+  augment "/b:c1" {
+    leaf l2 {
+      type string;
+    }
+  }
+}"""
+
+def _test_compile_augment_structure():
+    """An augment into a structure is skipped, like the structure itself
+
+    ConfD's tailf-rollback augments the tailf:structure in tailf-yang-patch
+    like this. The other augments of the module apply.
+    """
+    root = yang.compile([_ys_ext_tailf_common, _ys_structure_base("tailf-common", "tailf"), _ys_structure_aug])
+    testing.assertEqual(root.get("c1").get("l2").namespace, "http://example.com/aug")
+    try:
+        root.get("st")
+    except ValueError:
+        return
+    testing.error("Expected no node for the structure")
+
+def _test_compile_augment_other_extension():
+    """An augment into an extension statement that is not a structure fails
+    """
+    try:
+        yang.compile([_ys_ext_other, _ys_structure_base("other-ext", "oe"), _ys_structure_aug])
+    except ValueError as exc:
+        testing.assertIn("non-inner node", exc.error_message)
+        return
+    testing.error("Expected ValueError")
+
 def _test_compile_submodules1():
     ys_foo = r"""module foo {
     yang-version "1.1";
