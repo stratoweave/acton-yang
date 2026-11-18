@@ -1684,6 +1684,70 @@ def _test_leafref_into_other_rpc():
         return
     testing.error("Expected ValueError")
 
+def _test_leafref_predicates_with_whitespace():
+    """Whitespace between the predicates of a leafref path"""
+    ys = r"""module foo {
+  yang-version 1.1;
+  namespace "urn:example:foo";
+  prefix foo;
+  container sets {
+    list set {
+      key "name type";
+      leaf name {
+        type string;
+      }
+      leaf type {
+        type string;
+      }
+      leaf seq {
+        type uint32;
+      }
+    }
+  }
+  container ref {
+    leaf name {
+      type string;
+    }
+    leaf type {
+      type string;
+    }
+    leaf seq {
+      type leafref {
+        path "/foo:sets/foo:set[foo:name=current()/../name] "
+           + "[foo:type=current()/../type]/foo:seq";
+      }
+    }
+  }
+}"""
+    root = yang.compile([ys])
+    testing.assertEqual(_leafref_target_type(root.get("ref").get("seq")), "uint32")
+
+def _test_leafref_path_trailing_input():
+    """A leafref path with input after the path fails, instead of resolving
+    the part before it
+    """
+    ys = r"""module foo {
+  yang-version 1.1;
+  namespace "urn:example:foo";
+  prefix foo;
+  container c1 {
+    leaf a {
+      type string;
+    }
+    leaf b {
+      type leafref {
+        path "../a extra";
+      }
+    }
+  }
+}"""
+    try:
+        yang.compile([ys])
+    except ValueError as exc:
+        testing.assertIn("Unexpected trailing input", exc.error_message)
+        return
+    testing.error("Expected ValueError")
+
 def _test_compile_refine():
     """Refining a grouping"""
     ys = r"""module foo {

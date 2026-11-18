@@ -150,10 +150,15 @@ class NodeTestStep(Step):
 
             predicates = []
             while True:
+                # Allow whitespace before a predicate, like "a[x=1] [y=2]".
+                # XPath allows it; the YANG path-arg ABNF does not.
+                begin = p.i
+                p.get_substr_while(lambda c: c in " \t\r\n")
                 predicate = Predicate.try_parse(p)
                 if predicate is not None:
                     predicates.append(predicate)
                 else:
+                    p.i = begin
                     break
 
             return NodeTestStep(prefix, name, predicates)
@@ -374,6 +379,27 @@ def _test_simple_relative_path():
 def _test_parse_location_path_rejects_trailing_input():
     try:
         parse_location_path("/foo/bar extra")
+        testing.error("Expected trailing input to fail")
+    except ValueError as e:
+        testing.assertIn("Unexpected trailing input", e.error_message)
+
+def _test_parse_location_path_predicates_with_whitespace():
+    path = parse_location_path("/foo/set[name=current()/../name] [type=current()/../type]/seq")
+    if isinstance(path, AbsoluteLocationPath):
+        testing.assertEqual(len(path.steps), 3)
+        s2 = path.steps[1]
+        if isinstance(s2, NodeTestStep):
+            testing.assertEqual(s2.name, "set")
+            testing.assertEqual([p.predicate for p in s2.predicates], ["name=current()/../name", "type=current()/../type"])
+            s3 = path.steps[2]
+            if isinstance(s3, NodeTestStep):
+                testing.assertEqual(s3.name, "seq")
+                return
+    testing.error("Unexpected parse result")
+
+def _test_parse_location_path_rejects_trailing_whitespace_step():
+    try:
+        parse_location_path("/foo/bar [x=1] baz")
         testing.error("Expected trailing input to fail")
     except ValueError as e:
         testing.assertIn("Unexpected trailing input", e.error_message)

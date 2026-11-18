@@ -100,59 +100,59 @@ class ResolvedType(Type):
         # Resolve self
         path = self.path
         if path is not None:
-            location_path = xpath.try_parse_location_path(path)
-            if location_path is not None:
-                if isinstance(location_path, xpath.AbsoluteLocationPath):
-                    absolute_path = location_path.steps
-                elif isinstance(location_path, xpath.RelativeLocationPath):
-                    reverse_base_path: list[xpath.Step] = []
-                    n = xpath_context_node
-                    while True:
-                        _n = n
-                        if _n is not None:
-                            unalias_pfx = _n.pfx if _n.pfx != xpath_context_node.pfx else None
-                            if isinstance(_n, Container):
-                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
-                            elif isinstance(_n, List):
-                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
-                            elif isinstance(_n, Leaf):
-                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
-                            elif isinstance(_n, LeafList):
-                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
-                            elif isinstance(_n, Action):
-                                # The action, rpc or notification is the parent of
-                                # its leaves. Input and output are not path steps
-                                # (RFC 7950 6.4.1).
-                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
-                            elif isinstance(_n, Rpc):
-                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
-                            elif isinstance(_n, Notification):
-                                reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
-                            elif isinstance(_n, Module):
-                                break
-                            elif isinstance(_n, Grouping) or isinstance(_n, Augment) or isinstance(_n, Typedef):
-                                return # Only resolve compiled data-path instances!
-                            n = _n.parent
-                        else:
+            try:
+                location_path = xpath.parse_location_path(path)
+            except ValueError as exc:
+                raise ValueError("Unable to parse leafref path: {path}: {exc.error_message}")
+            if isinstance(location_path, xpath.AbsoluteLocationPath):
+                absolute_path = location_path.steps
+            elif isinstance(location_path, xpath.RelativeLocationPath):
+                reverse_base_path: list[xpath.Step] = []
+                n = xpath_context_node
+                while True:
+                    _n = n
+                    if _n is not None:
+                        unalias_pfx = _n.pfx if _n.pfx != xpath_context_node.pfx else None
+                        if isinstance(_n, Container):
+                            reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                        elif isinstance(_n, List):
+                            reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                        elif isinstance(_n, Leaf):
+                            reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                        elif isinstance(_n, LeafList):
+                            reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                        elif isinstance(_n, Action):
+                            # The action, rpc or notification is the parent of
+                            # its leaves. Input and output are not path steps
+                            # (RFC 7950 6.4.1).
+                            reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                        elif isinstance(_n, Rpc):
+                            reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                        elif isinstance(_n, Notification):
+                            reverse_base_path.append(xpath.NodeTestStep(unalias_pfx, _n.name, []))
+                        elif isinstance(_n, Module):
                             break
-                    absolute_path = list(reversed(reverse_base_path))
-                    absolute_path.extend(location_path.steps)
-                else:
-                    raise NotImplementedError("Unhandled type {type(location_path)}")
-
-                resolved_path = []
-                for step in absolute_path:
-                    if isinstance(step, xpath.NodeTestStep):
-                        resolved_path.append(step)
-                    elif isinstance(step, xpath.AbbreviatedStep):
-                        if step.step == "..":
-                            try:
-                                resolved_path.pop()
-                            except Exception:
-                                raise ValueError("Unable to resolve leafref path: {path}")
-                self.resolved_path = xpath.AbsoluteLocationPath(resolved_path)
+                        elif isinstance(_n, Grouping) or isinstance(_n, Augment) or isinstance(_n, Typedef):
+                            return # Only resolve compiled data-path instances!
+                        n = _n.parent
+                    else:
+                        break
+                absolute_path = list(reversed(reverse_base_path))
+                absolute_path.extend(location_path.steps)
             else:
-                raise ValueError("Unable to parse leafref path: {path}")
+                raise NotImplementedError("Unhandled type {type(location_path)}")
+
+            resolved_path = []
+            for step in absolute_path:
+                if isinstance(step, xpath.NodeTestStep):
+                    resolved_path.append(step)
+                elif isinstance(step, xpath.AbbreviatedStep):
+                    if step.step == "..":
+                        try:
+                            resolved_path.pop()
+                        except Exception:
+                            raise ValueError("Unable to resolve leafref path: {path}")
+            self.resolved_path = xpath.AbsoluteLocationPath(resolved_path)
 
 
 extension ResolvedType(Hashable):
