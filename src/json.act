@@ -43,19 +43,15 @@ extension dict[A(Hashable), B] (YangData):
     def take_leaf(self, root: yschema.DRoot, schema: yschema.DLeaf, ns_qualified: bool, path: list[PathElement]=[]) -> ?(op: ?str, val: ?value):
         new_path = path + [PathElement(schema)]
         if isinstance(self, dict):  # This test is only needed because of a temporary shortcoming of the type-checker
-            leaf_value = None
             if ns_qualified and schema.module is not None and schema.module != "":
-                leaf_value = self.get(f"{schema.module}:{schema.name}")
+                member = f"{schema.module}:{schema.name}"
             else:
-                leaf_value = self.get(schema.name)
-            if leaf_value is not None:
-                tv = try_parse_json_value(leaf_value, schema, schema.type, new_path, root)
-                if tv is not None:
-                    return (op=None, val=tv)
-            else:
-                return None
-        else:
-            return None
+                member = schema.name
+            # The `null` JSON value is stored as `None` in the this dict, so we
+            # still pass it through the validator (to reject it ...)
+            if member in self:
+                return (op=None, val=try_parse_json_value(self[member], schema, schema.type, new_path, root))
+        return None
 
     def take_leaflist(self, root: yschema.DRoot, schema: yschema.DLeafList, ns_qualified: bool, path: list[PathElement]=[]) -> list[(op: ?str, val: ?value)]:
         values: list[(op: ?str, val: ?value)] = []
@@ -92,9 +88,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, sch
                 return try_parse_json_value(leaf_value, schema_node, alt_type, path, root)
             except YangValidationError:
                 continue
-        if leaf_value is not None:
-            raise YangValidationError(path, schema_type, leaf_value)
-        return None
+        raise YangValidationError(path, schema_type, leaf_value)
     elif isinstance(schema_type, yschema.DTypeEmpty):
         # Empty leaf JSON encoding: [null]
         if isinstance(leaf_value, list) and len(leaf_value) == 1 and leaf_value[0] is None:
@@ -163,9 +157,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, sch
         if val is not None and schema_type.validate_value(val):
             return val
 
-        raise YangValidationError(path, schema_type, leaf_value)
-
-    return None
+    raise YangValidationError(path, schema_type, leaf_value)
 
 
 def from_json(root: yschema.DRoot, data: dict[str, ?value], loose: bool=False, root_path: list[str]=[], prev: ?ygdata.Container=None) -> ygdata.Container:
