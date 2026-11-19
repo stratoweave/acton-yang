@@ -9,7 +9,7 @@ work on this.
 """
 
 import file
-import re
+import std.re
 
 import rfc
 
@@ -92,11 +92,11 @@ def parse_stmts(rfc_text: str) -> dict[str, Stmt]:
             continue
         #        +--------------+---------+-------------+
         if in_table:
-            m = re.match(r"\+--------------+\+---------\+-------------\+", line)
+            m = std.re.match(r"\+--------------+\+---------\+-------------\+", line)
             if m is not None:
                 in_table = False
             else:
-                m = re.match(r"\| (\S+) +\| (\S+) +\| (\S+) +\|", line)
+                m = std.re.match(r"\| (\S+) +\| (\S+) +\| (\S+) +\|", line)
                 if m is not None:
                     gname = m.group[1]
                     gsection = m.group[2]
@@ -109,7 +109,7 @@ def parse_stmts(rfc_text: str) -> dict[str, Stmt]:
         # They look like:
         # 7.1.1.  The module's Substatements
         # 7.1.6.  The "include" Statement
-        m = re.match(r"(\d+(\.\d+)+)\.\s+The \"?([a-z-]+)(\"|'s) (Subs|S)tatement", line)
+        m = std.re.match(r"(\d+(\.\d+)+)\.\s+The \"?([a-z-]+)(\"|'s) (Subs|S)tatement", line)
         if m is not None:
             #print("Found statement:", m.group[2], line)
             gsection = m.group[1]
@@ -121,7 +121,7 @@ def parse_stmts(rfc_text: str) -> dict[str, Stmt]:
         #        +--------------+---------+-------------+
         #        | substatement | section | cardinality |
         #        +--------------+---------+-------------+
-        m = re.match(r"\| substatement +\| section \| cardinality \|", line)
+        m = std.re.match(r"\| substatement +\| section \| cardinality \|", line)
         if m is not None:
             #print("Found substatement table for", stmt_name)
             in_table = True
@@ -153,14 +153,14 @@ def parse_arg_names(rfc_text: str) -> dict[str, str]:
         if in_yin:
             # Check for end of table
             # +------------------+---------------+-------------+
-            m = re.match(r"\+------------------\+---------------\+-------------\+", line)
+            m = std.re.match(r"\+------------------\+---------------\+-------------\+", line)
             if m is not None:
                 in_yin = False
                 break
             else:
                 # Grab table from YIN section that contains the argument name
                 # | action           | name          | false       |
-                m = re.match(r"\| (\S+) +\| (\S+) +\| (\S+) +\|", line)
+                m = std.re.match(r"\| (\S+) +\| (\S+) +\| (\S+) +\|", line)
                 if m is not None:
                     name = m.group[1]
                     arg = m.group[2]
@@ -170,7 +170,7 @@ def parse_arg_names(rfc_text: str) -> dict[str, str]:
         # Grab table from YIN section that contains the argument name
         # Match table header
         #             | keyword          | argument name | yin-element |
-        m = re.match(r"\| keyword +\| argument name +\| yin-element +\|", line)
+        m = std.re.match(r"\| keyword +\| argument name +\| yin-element +\|", line)
         if m is not None:
             in_yin = True
             skip_lines = 1

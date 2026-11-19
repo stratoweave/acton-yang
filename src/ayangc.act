@@ -1,4 +1,4 @@
-import argparse
+import std.argparse
 import file
 import fs
 import time
@@ -273,7 +273,7 @@ actor main(env):
     proc def _cmd_compile(args):
         cmd_compile(env, file_cap, args)
 
-    p = argparse.Parser()
+    p = std.argparse.Parser()
 
     # Transform subcommand
     transform_cmd = p.add_cmd("transform", "apply transforms to a YANG module", _cmd_transform)
@@ -293,10 +293,10 @@ actor main(env):
 
     try:
         args = p.parse(env.argv)
-    except argparse.PrintUsage as exc:
+    except std.argparse.PrintUsage as exc:
         print(exc.error_message)
         env.exit(0)
-    except argparse.ArgumentError as exc:
+    except std.argparse.ArgumentError as exc:
         print(exc.error_message, err=True)
         env.exit(1)
     else:
