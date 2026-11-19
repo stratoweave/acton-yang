@@ -4,7 +4,7 @@ This module defines classes for YANG data nodes. It can represent a YANG data
 tree, and can be used to serialize and deserialize YANG data.
 """
 
-import base64
+import std.base64
 import testing
 import std.json as json
 import std.xml as xml
@@ -308,7 +308,7 @@ def adata_atom(v: value) -> atom:
 
 def yang_str(v) -> str:
     if isinstance(v, bytes):
-        s = base64.encode(v).decode()
+        s = std.base64.encode(v).decode()
         return s
     if isinstance(v, Identityref):
         s = "{v.mod}:{v.val}"
@@ -337,7 +337,7 @@ def leaf_xml(name: str, ns: ?str, val: value) -> xml.Node:
 
 def json_val(v: value) -> ?value:
     if isinstance(v, bytes):
-        return base64.encode(v).decode()
+        return std.base64.encode(v).decode()
     if isinstance(v, Identityref):
         return "{v.mod}:{v.val}"
     if isinstance(v, Decimal):
@@ -407,7 +407,7 @@ def value_to_json(v: value) -> dict[str, ?value]:
     if isinstance(v, Present):
         return {"type": "Present"}
     if isinstance(v, bytes):
-        return {"type": "bytes", "value": base64.encode(v).decode()}
+        return {"type": "bytes", "value": std.base64.encode(v).decode()}
     if isinstance(v, Identityref):
         return {
             "type": "Identityref",
@@ -443,7 +443,7 @@ def value_from_json(data: value) -> value:
             if value_type == "bytes":
                 encoded = data.get("value")
                 if isinstance(encoded, str):
-                    return base64.decode(encoded.encode())
+                    return std.base64.decode(encoded.encode())
             if value_type == "Identityref":
                 val = data.get("val")
                 ns = data.get("ns")

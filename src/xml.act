@@ -1,4 +1,4 @@
-import base64
+import std.base64
 import testing
 import std.xml as xml
 
@@ -236,7 +236,7 @@ def try_parse_xml_value(text_value: ?str, schema_node: yschema.DNodeLeaf, schema
                 val = False
         elif isinstance(schema_type, yschema.DTypeBinary):
             try:
-                val = base64.decode(text_value.encode())
+                val = std.base64.decode(text_value.encode())
             except ValueError:
                 pass
         elif isinstance(schema_type, yschema.DTypeIdentityref):

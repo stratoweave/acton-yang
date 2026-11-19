@@ -1,4 +1,4 @@
-import re
+import std.re
 import testing
 
 BP_NONE: int = 0
@@ -731,7 +731,7 @@ class YangPattern(object):
 
     def match(self, val: str) -> bool:
         try:
-            return bool(re.match(self.pcre, val) is not None) != self.invert
+            return bool(std.re.match(self.pcre, val) is not None) != self.invert
         except Exception as exc:
             raise ValueError("Error matching YANG regex: {self.w3cregex} -> PCRE2: {self.pcre}: {str(exc)}")
 

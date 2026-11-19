@@ -1,5 +1,5 @@
 
-import diff
+import std.diff
 import file
 import testing
 import time
@@ -1117,7 +1117,7 @@ def _test_foo_from_json_full():
          ],
          "ll_str": [
              "kava","""
-    testing.assertEqual(jdiff, diff.diff(json.encode(json_full, pretty=True), json_out))
+    testing.assertEqual(jdiff, std.diff.diff(json.encode(json_full, pretty=True), json_out))
     #testing.assertEqual(json.encode(json_full, pretty=True), json_out)
     return gd2.prsrc()
 
@@ -1211,7 +1211,7 @@ def _test_json_roundtrip():
          ],
          "ll_str": [
              "kava","""
-    testing.assertEqual(jdiff, diff.diff(json.encode(jd1, pretty=True), json_out))
+    testing.assertEqual(jdiff, std.diff.diff(json.encode(jd1, pretty=True), json_out))
     #testing.assertEqual(json.encode(jd1, pretty=True), json_out)
 
 

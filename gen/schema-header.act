@@ -92,9 +92,9 @@
 # YANG module). We can convert a SchemaNode tree to DNode by first compiling it
 # and then running .to_dnode().
 
-import base64
+import std.base64
 import gdata
-import re
+import std.re
 import xpath
 from identityref import Identityref, PartialIdentityref
 from pattern import YangPattern
@@ -200,7 +200,7 @@ class Statement(object):
             # Always quote the argument if the argument contains any character
             # that require quoting to make it valid YANG (RFC 7950, section 6.1.3):
             res += " "
-            m = re.match(r"[\s'\";{}]|//|/\\*|\\*/", arg)
+            m = std.re.match(r"[\s'\";{}]|//|/\\*|\\*/", arg)
             quoted_arg = True if self.kw in _quoted_arg_keywords or m is not None else False
             if quoted_arg:
                 res += '"' + arg.replace('\\', '\\\\').replace('"', '\\"') + '"'
@@ -1998,7 +1998,7 @@ class DRoot(DNodeInner):
         re-parse them when the usages of the generated adata types change.
         """
         res = []
-        res.append("import base64")
+        res.append("import std.base64")
         res.append("import yang.xpath as yxpath")
         res.append("from yang.identityref import Identityref, PartialIdentityref")
         res.append("from yang.pattern import YangPattern")
@@ -2039,8 +2039,8 @@ class DRoot(DNodeInner):
             subs_classes, _breaker_idx = self._prsubsclasses(id_consts, breaker_idx=_breaker_idx)
 
         res = []
-        res.append("import base64")
-        res.append("import json")
+        res.append("import std.base64")
+        res.append("import std.json")
         res.append("import std.xml as xml")
         res.append("import yang.adata as yadata")
         res.append("import yang.gdata as ygdata")
@@ -4586,7 +4586,7 @@ def try_parse_default(t: DType, s: str) -> ?value:
             val = False
     elif isinstance(t, DTypeBinary):
         try:
-            val = base64.decode(s.encode())
+            val = std.base64.decode(s.encode())
         except ValueError:
             pass
     elif isinstance(t, DTypeBits):

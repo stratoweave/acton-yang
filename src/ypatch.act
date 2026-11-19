@@ -36,7 +36,7 @@ operations it reconstructs vs rejects.
 """
 
 import std.xml as xml
-import uri
+import std.uri
 
 import gdata
 import restconf
@@ -175,7 +175,7 @@ def diff_to_edits(d: ?gdata.Node) -> list[Edit]:
         # Percent-encode a single key / leaf-list value for a RESTCONF api-path
         # segment. safe="" encodes the reserved chars (',' '/' ':' '=' ...); the
         # commas joining a composite key's values stay literal (added afterwards).
-        return uri.quote(s, safe="")
+        return std.uri.quote(s, safe="")
 
     def key_pred(elem: gdata.Node, keys: list[gdata.Id]) -> str:
         # RESTCONF api-path key selector: =v1,v2 (values only, in key order).
@@ -379,7 +379,7 @@ def edit_to_gdata(root: yschema.DRoot, e: Edit) -> gdata.Node:
         n = len(pe)
         llnode = pe[n - 1].node
         if isinstance(llnode, yschema.DLeafList):
-            parsed = try_parse_xml_value(uri.unquote(raw_value), llnode, llnode.type, pe, [], root)
+            parsed = try_parse_xml_value(std.uri.unquote(raw_value), llnode, llnode.type, pe, [], root)
             if parsed is not None:
                 if rop == OP_REMOVE:
                     entry: gdata.LeafListEntry = gdata.LeafListEntryRemove(parsed)

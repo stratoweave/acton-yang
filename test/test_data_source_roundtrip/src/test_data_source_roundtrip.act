@@ -1,4 +1,4 @@
-import diff
+import std.diff
 import file
 import testing
 import std.xml as xml
@@ -46,4 +46,4 @@ actor _test_adata_loose_diff(t: testing.EnvT):
     adata_loose = file.ReadFile(
         rfcap,
         "src/xml_full_adata_loose.act").read().decode()
-    t.success(diff.diff(adata_strict, adata_loose))
+    t.success(std.diff.diff(adata_strict, adata_loose))

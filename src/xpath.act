@@ -1,4 +1,4 @@
-import re
+import std.re
 import testing
 
 class LocationPath(object):
@@ -304,7 +304,7 @@ class Parser(object):
         return self.input[s.0:s.1]
 
     def try_get_substr_re(self, pattern) -> ?str:
-        m = re.match(pattern, self.input, self.i)
+        m = std.re.match(pattern, self.input, self.i)
         if m is not None:
             s = self.input[self.i:m.end_pos]
             self.i = m.end_pos

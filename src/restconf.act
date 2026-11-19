@@ -14,7 +14,7 @@ mandatory ones.
 """
 
 import testing
-import uri
+import std.uri
 import std.xml as xml
 
 import lib as yang
@@ -71,7 +71,7 @@ def resolve_path(root: yschema.DRoot, path: list[str]) -> list[PathElement]:
             # Next segment is comma-separated key values
             i += 1
             if i < len(path):
-                key_strs = [uri.unquote(k) for k in path[i].split(",")]
+                key_strs = [std.uri.unquote(k) for k in path[i].split(",")]
                 # RESTCONF element paths must fully identify a keyed list entry.
                 if len(key_strs) != len(child.key):
                     raise ValueError("Invalid list key values at {format_schema_path(result + [PathElement(child)])}: expected {len(child.key)} value(s), got {len(key_strs)}")

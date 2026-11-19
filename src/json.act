@@ -1,4 +1,4 @@
-import base64
+import std.base64
 
 from identityref import Identityref, PartialIdentityref
 from type import Decimal
@@ -131,7 +131,7 @@ def try_parse_json_value(leaf_value: ?value, schema_node: yschema.DNodeLeaf, sch
         elif isinstance(schema_type, yschema.DTypeBinary):
             if isinstance(leaf_value, str):
                 try:
-                    val = base64.decode(leaf_value.encode())
+                    val = std.base64.decode(leaf_value.encode())
                 except ValueError:
                     pass
             else:
