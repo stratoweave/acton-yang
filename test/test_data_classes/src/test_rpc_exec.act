@@ -56,22 +56,22 @@ class MockTreeProviderEmpty(ygdata.TreeProvider):
 
 actor _test_rpc_foo_success(t: testing.AsyncT):
     """Test successful RPC execution with valid input/output"""
-    def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
-        if err is not None:
-            t.failure(err)
-            return
-
-        if r is not None:
-            # Verify the output data
-            testing.assertEqual(r.outoo, "Hello from RPC!", "Expected correct output message")
-            t.success()
-        else:
-            t.failure(ValueError("Got no result when one was expected"))
-
-    tp = MockTreeProviderSuccess()
-    root = yangrpc.rpc_root(tp)
-
     proc def __startup__():
+        tp = MockTreeProviderSuccess()
+        root = yangrpc.rpc_root(tp)
+
+        def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
+            if err is not None:
+                t.failure(err)
+                return
+
+            if r is not None:
+                # Verify the output data
+                testing.assertEqual(r.outoo, "Hello from RPC!", "Expected correct output message")
+                t.success()
+            else:
+                t.failure(ValueError("Got no result when one was expected"))
+
         # Create input data
         woo = yangrpc.yangrpc__foo__input__woo(1337)
         foo_input = yangrpc.yangrpc__foo__input("test_input", woo)
@@ -83,19 +83,19 @@ actor _test_rpc_foo_success(t: testing.AsyncT):
 
 actor _test_rpc_foo_error(t: testing.AsyncT):
     """Test RPC error handling"""
-    def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
-        if err is not None:
-            # We expect an error in this test
-            testing.assertTrue(isinstance(err, ValueError), "Expected ValueError")
-            testing.assertEqual(str(err), "ValueError: RPC execution failed", "Expected correct error message")
-            t.success()
-        else:
-            t.failure(ValueError("Expected an error but got success"))
-
-    tp = MockTreeProviderError()
-    root = yangrpc.rpc_root(tp)
-
     proc def __startup__():
+        tp = MockTreeProviderError()
+        root = yangrpc.rpc_root(tp)
+
+        def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
+            if err is not None:
+                # We expect an error in this test
+                testing.assertTrue(isinstance(err, ValueError), "Expected ValueError")
+                testing.assertEqual(str(err), "ValueError: RPC execution failed", "Expected correct error message")
+                t.success()
+            else:
+                t.failure(ValueError("Expected an error but got success"))
+
         # Create input data
         woo = yangrpc.yangrpc__foo__input__woo(42)
         foo_input = yangrpc.yangrpc__foo__input("error_test", woo)
@@ -107,22 +107,22 @@ actor _test_rpc_foo_error(t: testing.AsyncT):
 
 actor _test_rpc_foo_empty_output(t: testing.AsyncT):
     """Test RPC with empty output fields"""
-    def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
-        if err is not None:
-            t.failure(err)
-            return
-
-        if r is not None:
-            # The outoo field should be None for empty output
-            testing.assertEqual(r.outoo, None, "Expected None for empty output field")
-            t.success()
-        else:
-            t.failure(ValueError("Got no result when one was expected"))
-
-    tp = MockTreeProviderEmpty()
-    root = yangrpc.rpc_root(tp)
-
     proc def __startup__():
+        tp = MockTreeProviderEmpty()
+        root = yangrpc.rpc_root(tp)
+
+        def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
+            if err is not None:
+                t.failure(err)
+                return
+
+            if r is not None:
+                # The outoo field should be None for empty output
+                testing.assertEqual(r.outoo, None, "Expected None for empty output field")
+                t.success()
+            else:
+                t.failure(ValueError("Got no result when one was expected"))
+
         # Create input data
         woo = yangrpc.yangrpc__foo__input__woo(999)
         foo_input = yangrpc.yangrpc__foo__input("empty_test", woo)
@@ -134,23 +134,23 @@ actor _test_rpc_foo_empty_output(t: testing.AsyncT):
 
 actor _test_rpc_foo_complex_input(t: testing.AsyncT):
     """Test RPC with complex nested input data"""
-    def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
-        if err is not None:
-            t.failure(err)
-            return
-
-        if r is not None:
-            # Just verify we got a response - the main test here is that
-            # the complex input was properly serialized
-            testing.assertNotNone(r, "Got a response")
-            t.success()
-        else:
-            t.failure(ValueError("Got no result when one was expected"))
-
-    tp = MockTreeProviderSuccess()
-    root = yangrpc.rpc_root(tp)
-
     proc def __startup__():
+        tp = MockTreeProviderSuccess()
+        root = yangrpc.rpc_root(tp)
+
+        def on_reply(r: ?yangrpc.yangrpc__foo__output, err: ?Exception):
+            if err is not None:
+                t.failure(err)
+                return
+
+            if r is not None:
+                # Just verify we got a response - the main test here is that
+                # the complex input was properly serialized
+                testing.assertNotNone(r, "Got a response")
+                t.success()
+            else:
+                t.failure(ValueError("Got no result when one was expected"))
+
         # Create complex input data with all fields populated
         woo = yangrpc.yangrpc__foo__input__woo(9876543210)
         #    foo_input = yangrpc.yangrpc__foo__input("Complex input with special chars: <>&\"'", woo)
@@ -207,18 +207,18 @@ def _test_rpc_output_deserialization():
 
 actor _test_rpc_silent_no_input_output(t: testing.AsyncT):
     """Test RPC with no input and no output (silent RPC)"""
-    def on_reply(err: ?Exception):
-        if err is not None:
-            t.failure(err)
-            return
-
-        # For silent RPC, we expect no error (successful completion)
-        t.success()
-
-    tp = MockTreeProviderSuccess()
-    root = yangrpc.rpc_root(tp)
-
     proc def __startup__():
+        tp = MockTreeProviderSuccess()
+        root = yangrpc.rpc_root(tp)
+
+        def on_reply(err: ?Exception):
+            if err is not None:
+                t.failure(err)
+                return
+
+            # For silent RPC, we expect no error (successful completion)
+            t.success()
+
         # Execute the silent RPC - no input parameter needed
         root.silent(on_reply)
 
@@ -227,19 +227,19 @@ actor _test_rpc_silent_no_input_output(t: testing.AsyncT):
 
 actor _test_rpc_silent_error_handling(t: testing.AsyncT):
     """Test silent RPC error handling"""
-    def on_reply(err: ?Exception):
-        if err is not None:
-            # We expect an error in this test
-            testing.assertTrue(isinstance(err, ValueError), "Expected ValueError for silent RPC error")
-            testing.assertEqual(str(err), "ValueError: RPC execution failed", "Expected correct error message")
-            t.success()
-        else:
-            t.failure(ValueError("Expected an error but got success"))
-
-    tp = MockTreeProviderError()
-    root = yangrpc.rpc_root(tp)
-
     proc def __startup__():
+        tp = MockTreeProviderError()
+        root = yangrpc.rpc_root(tp)
+
+        def on_reply(err: ?Exception):
+            if err is not None:
+                # We expect an error in this test
+                testing.assertTrue(isinstance(err, ValueError), "Expected ValueError for silent RPC error")
+                testing.assertEqual(str(err), "ValueError: RPC execution failed", "Expected correct error message")
+                t.success()
+            else:
+                t.failure(ValueError("Expected an error but got success"))
+
         # Execute the silent RPC (should fail with error provider)
         root.silent(on_reply)
 
