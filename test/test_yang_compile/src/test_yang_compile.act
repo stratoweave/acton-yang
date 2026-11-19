@@ -82,6 +82,10 @@ def test_compile_yang_directory(t: testing.EnvT, dir_path: str, exclude_patterns
 
 
 # Test actors for each model directory
+actor _test_arrcus_arcos_8_2_1A_P4(t: testing.EnvT):
+    """Test compilation of Arrcus ArcOS YANG modules"""
+    test_compile_yang_directory(t, "test-yang/arrcus-arcos-8_2_1A_P4")
+
 actor _test_cisco_nx_10_4_4(t: testing.EnvT):
     """Test compilation of Cisco NXOS YANG modules"""
     test_compile_yang_directory(t, "test-yang/cisco-nx-10_4_4", strict_quoting=False)
