@@ -71,11 +71,10 @@ actor _test_rpc_foo_success(t: testing.AsyncT):
     tp = MockTreeProviderSuccess()
     root = yangrpc.rpc_root(tp)
 
-    # Create input data
-    woo = yangrpc.yangrpc__foo__input__woo(1337)
-    foo_input = yangrpc.yangrpc__foo__input("test_input", woo)
-
     proc def __startup__():
+        # Create input data
+        woo = yangrpc.yangrpc__foo__input__woo(1337)
+        foo_input = yangrpc.yangrpc__foo__input("test_input", woo)
         # Execute the RPC
         root.foo(on_reply, foo_input)
 
@@ -96,11 +95,10 @@ actor _test_rpc_foo_error(t: testing.AsyncT):
     tp = MockTreeProviderError()
     root = yangrpc.rpc_root(tp)
 
-    # Create input data
-    woo = yangrpc.yangrpc__foo__input__woo(42)
-    foo_input = yangrpc.yangrpc__foo__input("error_test", woo)
-
     proc def __startup__():
+        # Create input data
+        woo = yangrpc.yangrpc__foo__input__woo(42)
+        foo_input = yangrpc.yangrpc__foo__input("error_test", woo)
         # Execute the RPC (should fail)
         root.foo(on_reply, foo_input)
 
@@ -124,11 +122,10 @@ actor _test_rpc_foo_empty_output(t: testing.AsyncT):
     tp = MockTreeProviderEmpty()
     root = yangrpc.rpc_root(tp)
 
-    # Create input data
-    woo = yangrpc.yangrpc__foo__input__woo(999)
-    foo_input = yangrpc.yangrpc__foo__input("empty_test", woo)
-
     proc def __startup__():
+        # Create input data
+        woo = yangrpc.yangrpc__foo__input__woo(999)
+        foo_input = yangrpc.yangrpc__foo__input("empty_test", woo)
         # Execute the RPC
         root.foo(on_reply, foo_input)
 
@@ -153,12 +150,11 @@ actor _test_rpc_foo_complex_input(t: testing.AsyncT):
     tp = MockTreeProviderSuccess()
     root = yangrpc.rpc_root(tp)
 
-    # Create complex input data with all fields populated
-    woo = yangrpc.yangrpc__foo__input__woo(9876543210)
-#    foo_input = yangrpc.yangrpc__foo__input("Complex input with special chars: <>&\"'", woo)
-    foo_input = yangrpc.yangrpc__foo__input("Full input", woo)
-
     proc def __startup__():
+        # Create complex input data with all fields populated
+        woo = yangrpc.yangrpc__foo__input__woo(9876543210)
+        #    foo_input = yangrpc.yangrpc__foo__input("Complex input with special chars: <>&\"'", woo)
+        foo_input = yangrpc.yangrpc__foo__input("Full input", woo)
         # Execute the RPC
         root.foo(on_reply, foo_input)
 

@@ -81,8 +81,8 @@ proc def cmd_transform(env, file_cap, args):
             try:
                 wfc = file.WriteFileCap(file_cap)
                 wf = file.WriteFile(wfc, outfile)
-                wf.write(yang_out.encode())
-                wf.close()
+                await async wf.write(yang_out.encode())
+                await async wf.close()
                 print("Wrote output to {outfile}", err=True)
             except OSError as e:
                 print("Error writing file {outfile}: {e}", err=True)
@@ -218,8 +218,8 @@ proc def cmd_compile(env, file_cap, args):
                 try:
                     wfc = file.WriteFileCap(file_cap)
                     dwf = file.WriteFile(wfc, schema_filename)
-                    dwf.write(root.prschema(schema_yang=schema_yang).encode())
-                    dwf.close()
+                    await async dwf.write(root.prschema(schema_yang=schema_yang).encode())
+                    await async dwf.close()
                     print("Wrote schema module to {schema_filename}", err=True)
                 except OSError as e:
                     print("Error writing file {schema_filename}: {e}", err=True)
@@ -242,8 +242,8 @@ proc def cmd_compile(env, file_cap, args):
                 try:
                     wfc = file.WriteFileCap(file_cap)
                     wf = file.WriteFile(wfc, outfile)
-                    wf.write(stage_output.encode())
-                    wf.close()
+                    await async wf.write(stage_output.encode())
+                    await async wf.close()
                     print("Wrote output to {outfile}", err=True)
                 except OSError as e:
                     print("Error writing file {outfile}: {e}", err=True)

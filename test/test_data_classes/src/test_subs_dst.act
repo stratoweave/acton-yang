@@ -187,11 +187,11 @@ actor _test_subs_dst_grouping(t: testing.AsyncT):
         testing.assertEqual(sorted([len(actual_tp.declared[owner_id]) for owner_id in actual_tp.declared]), [1, 2])
         actual_tp.deliver_all(_sample_tree())
 
-    tp = MockSubscriptionTreeProvider(on_declared)
     sub = ft_oper.subs
     iface = sub.interfaces.interface.entry("eth0")
 
     proc def __startup__():
+        tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
 
         state_dst = ft_oper.dst(on_state)
@@ -244,10 +244,10 @@ actor _test_subs_dst_rooted_at_list(t: testing.AsyncT):
                 testing.assertEqual([n.name for n in names], ["interfaces", "interface"])
         actual_tp.deliver_all(_sample_tree())
 
-    tp = MockSubscriptionTreeProvider(on_declared)
     ifaces = ft_oper.subs.interfaces.interface
 
     proc def __startup__():
+        tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({
             ifaces.dst(on_iface).deliver({ifaces.oper_status.subscribe(period=1.0)}),
@@ -266,10 +266,10 @@ actor _test_subs_dst_rooted_at_container(t: testing.AsyncT):
     def on_declared():
         tp!.deliver_all(_sample_tree())
 
-    tp = MockSubscriptionTreeProvider(on_declared)
     clock = ft_oper.subs.system_state.clock
 
     proc def __startup__():
+        tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
 
@@ -308,10 +308,10 @@ actor _test_subs_dst_container_gone_is_none(t: testing.AsyncT):
     def on_declared():
         tp!.deliver_all(_sample_tree())
 
-    tp = MockSubscriptionTreeProvider(on_declared)
     clock = ft_oper.subs.system_state.clock
 
     proc def __startup__():
+        tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
 
@@ -370,10 +370,10 @@ actor _test_subs_dst_rooted_below_a_list(t: testing.AsyncT):
     def on_declared():
         tp!.deliver_all(_sample_tree())
 
-    tp = MockSubscriptionTreeProvider(on_declared)
     addresses = ft_oper.subs.interfaces.interface.address
 
     proc def __startup__():
+        tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({addresses.dst(on_address).deliver({addresses.subscribe(period=1.0)})}, synced=on_synced)
 
@@ -438,9 +438,8 @@ actor _test_synced_covers_the_whole_declaration(t: testing.AsyncT):
             ifaces.dst(on_iface).deliver({ifaces.oper_status.subscribe(period=1.0)}),
         }, synced=on_all)
 
-    tp = MockSubscriptionTreeProvider(on_declared)
-
     proc def __startup__():
+        tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         declare(on_synced)
 
