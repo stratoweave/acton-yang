@@ -209,7 +209,6 @@ actor _test_subs_dst_grouping(t: testing.AsyncT):
 
         subs.declare(want)
 
-    __startup__()
 
 actor _test_subs_dst_rooted_at_list(t: testing.AsyncT):
     """A destination rooted at a list gets one typed entry per delivery,
@@ -253,7 +252,6 @@ actor _test_subs_dst_rooted_at_list(t: testing.AsyncT):
             ifaces.dst(on_iface).deliver({ifaces.oper_status.subscribe(period=1.0)}),
         }, synced=on_synced)
 
-    __startup__()
 
 actor _test_subs_dst_rooted_at_container(t: testing.AsyncT):
     """A destination rooted at a container gets that container, typed."""
@@ -273,7 +271,6 @@ actor _test_subs_dst_rooted_at_container(t: testing.AsyncT):
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
 
-    __startup__()
 
 def _test_rooted_specs_are_distinct():
     """The root is part of a spec's identity, so two destinations with the
@@ -315,7 +312,6 @@ actor _test_subs_dst_container_gone_is_none(t: testing.AsyncT):
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
 
-    __startup__()
 
 def _test_rooted_filters_must_lead_to_the_root():
     """A filter handed to a rooted destination starts at its root, or ends
@@ -377,7 +373,6 @@ actor _test_subs_dst_rooted_below_a_list(t: testing.AsyncT):
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({addresses.dst(on_address).deliver({addresses.subscribe(period=1.0)})}, synced=on_synced)
 
-    __startup__()
 
 def _test_spines_and_gone():
     """An instance's spine holds the path from the top down to it alone, and
@@ -442,5 +437,3 @@ actor _test_synced_covers_the_whole_declaration(t: testing.AsyncT):
         tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         declare(on_synced)
-
-    __startup__()

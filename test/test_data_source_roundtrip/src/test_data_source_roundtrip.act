@@ -48,7 +48,3 @@ actor _test_adata_loose_diff(t: testing.EnvT):
             rfcap,
             "src/xml_full_adata_loose.act").read().decode()
         t.success(std.diff.diff(adata_strict, adata_loose))
-
-    __startup__()
-
-

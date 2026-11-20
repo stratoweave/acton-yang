@@ -1655,5 +1655,3 @@ actor main(env):
         yang = "\n".join(schema_header.splitlines()[4:]) + "\n".join(gen(parse_stmts(rfc.rfc7950 + rfc7950bis))) + schema_footer
         print(yang, end="")
         env.exit(0)
-
-    __startup__()

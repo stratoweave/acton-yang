@@ -222,7 +222,6 @@ actor _test_gdata_source_roundtrip_xml_full(t: testing.EnvT):
         await async wf.close()
         t.success()
 
-    __startup__()
 
 def _test_adata_foo_pc2():
     ad = yang_foo_root()
@@ -262,7 +261,6 @@ def adata():
         await async wf.close()
         t.success()
 
-    __startup__()
 
 actor _test_adata_source_roundtrip_xml_full_loose(t: testing.EnvT):
     wfcap = file.WriteFileCap(file.FileCap(t.env.cap))
@@ -284,7 +282,6 @@ def adata():
         await async wf.close()
         t.success()
 
-    __startup__()
 
 def _test_foo_from_xml1():
     """"""

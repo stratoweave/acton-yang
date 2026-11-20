@@ -762,5 +762,3 @@ actor main(env: Env):
         yang_to_oper_act(wfcap, yangs=[ys_subs], filename="../test_data_classes/src/yang_filter_test_oper.act")
         yang_to_act(wfcap, yangs=[ys_yangrpc], filename="../test_data_classes/src/yangrpc.act")
         env.exit(0)
-
-    __startup__()

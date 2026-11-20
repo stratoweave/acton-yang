@@ -310,7 +310,6 @@ actor main(env):
 
             env.exit(0)
 
-    __startup__()
 
 
 test_yang = r"""module test_ayangc {

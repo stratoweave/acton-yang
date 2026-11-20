@@ -78,7 +78,6 @@ actor _test_rpc_foo_success(t: testing.AsyncT):
         # Execute the RPC
         root.foo(on_reply, foo_input)
 
-    __startup__()
 
 
 actor _test_rpc_foo_error(t: testing.AsyncT):
@@ -102,7 +101,6 @@ actor _test_rpc_foo_error(t: testing.AsyncT):
         # Execute the RPC (should fail)
         root.foo(on_reply, foo_input)
 
-    __startup__()
 
 
 actor _test_rpc_foo_empty_output(t: testing.AsyncT):
@@ -129,7 +127,6 @@ actor _test_rpc_foo_empty_output(t: testing.AsyncT):
         # Execute the RPC
         root.foo(on_reply, foo_input)
 
-    __startup__()
 
 
 actor _test_rpc_foo_complex_input(t: testing.AsyncT):
@@ -158,7 +155,6 @@ actor _test_rpc_foo_complex_input(t: testing.AsyncT):
         # Execute the RPC
         root.foo(on_reply, foo_input)
 
-    __startup__()
 
 
 def _test_rpc_input_serialization():
@@ -222,7 +218,6 @@ actor _test_rpc_silent_no_input_output(t: testing.AsyncT):
         # Execute the silent RPC - no input parameter needed
         root.silent(on_reply)
 
-    __startup__()
 
 
 actor _test_rpc_silent_error_handling(t: testing.AsyncT):
@@ -242,5 +237,3 @@ actor _test_rpc_silent_error_handling(t: testing.AsyncT):
 
         # Execute the silent RPC (should fail with error provider)
         root.silent(on_reply)
-
-    __startup__()
