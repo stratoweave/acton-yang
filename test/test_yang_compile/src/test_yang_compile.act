@@ -83,93 +83,106 @@ def test_compile_yang_directory(t: testing.EnvT, dir_path: str, exclude_patterns
 
 # Test actors for each model directory
 actor _test_arrcus_arcos_8_2_1A_P4(t: testing.EnvT):
+    """Test compilation of Arrcus ArcOS YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Arrcus ArcOS YANG modules"""
         test_compile_yang_directory(t, "test-yang/arrcus-arcos-8_2_1A_P4")
 
 
 
 actor _test_cisco_nx_10_4_4(t: testing.EnvT):
+    """Test compilation of Cisco NXOS YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Cisco NXOS YANG modules"""
         test_compile_yang_directory(t, "test-yang/cisco-nx-10_4_4", strict_quoting=False)
 
 
 
 actor _test_cisco_xrd_24_1_1(t: testing.EnvT):
+    """Test compilation of Cisco IOS XRd YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Cisco IOS XRd YANG modules"""
         test_compile_yang_directory(t, "test-yang/cisco-xrd-24_1_1")
 
 
 
 actor _test_cisco_xrd_25_3_1(t: testing.EnvT):
+    """Test compilation of Cisco IOS XRd YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Cisco IOS XRd YANG modules"""
         test_compile_yang_directory(t, "test-yang/cisco-xrd-25_3_1")
 
 
 
 actor _test_cisco_xe_17_15_03a(t: testing.EnvT):
+    """Test compilation of Cisco IOS XE YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Cisco IOS XE YANG modules"""
         test_compile_yang_directory(t, "test-yang/cisco-xe-17_15_03a", ["cisco-xe-openconfig*"], strict_quoting=False)
 
 
 
 actor _test_cisco_xe_17_18_02(t: testing.EnvT):
+    """Test compilation of Cisco IOS XE YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Cisco IOS XE YANG modules"""
         test_compile_yang_directory(t, "test-yang/cisco-xe-17_18_02", ["cisco-xe-openconfig*"], strict_quoting=False)
 
 
 
 actor _test_juniper_crpd_24_4R1_9(t: testing.EnvT):
+    """Test compilation of Juniper CRPD YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Juniper CRPD YANG modules"""
         # Exclude junos-rpc modules due to missing grouping 'command-forwarding'
         test_compile_yang_directory(t, "test-yang/juniper-crpd-24_4R1_9", ["junos-rpc-*"])
 
 
 
 actor _test_nokia_sr_linux_25_3_2(t: testing.EnvT):
+    """Test compilation of Nokia SR Linux YANG modules"""
+
     proc def __startup__():
-        """Test compilation of Nokia SR Linux YANG modules"""
         test_compile_yang_directory(t, "test-yang/nokia-sr-linux-25_3_2")
 
 
 
 actor _test_notconf(t: testing.EnvT):
+    """Test compilation of vanilla netopeer2 from notconf directory"""
+
     proc def __startup__():
-        """Test compilation of vanilla netopeer2 from notconf directory"""
         test_compile_yang_directory(t, "test-yang/notconf")
 
 
 
 actor _test_notconf_cisco_xr_2411(t: testing.EnvT):
+    """Test compilation of Cisco XR YANG modules from notconf"""
+
     proc def __startup__():
-        """Test compilation of Cisco XR YANG modules from notconf"""
         test_compile_yang_directory(t, "test-yang/notconf-cisco-xr-2411")
 
 
 
 actor _test_notconf_juniper_crpd_24_4R1_9_local(t: testing.EnvT):
+    """Test compilation of Juniper CRPD YANG modules from notconf (local)"""
+
     proc def __startup__():
-        """Test compilation of Juniper CRPD YANG modules from notconf (local)"""
         test_compile_yang_directory(t, "test-yang/notconf-juniper-crpd-24_4R1_9-local")
 
 
 
 actor _test_openconfig_optical_transport(t: testing.EnvT):
+    """Test compilation of OpenConfig optical transport models"""
+
     proc def __startup__():
-        """Test compilation of OpenConfig optical transport models"""
         test_compile_yang_directory(t, "test-yang/openconfig-optical-transport")
 
 
 
 actor _test_sorespo(t: testing.EnvT):
+    """Test compilation of combined SORESPO layers"""
+
     proc def __startup__():
-        """Test compilation of combined SORESPO layers"""
         test_compile_yang_directory(t, "test-yang/sorespo")
 
 

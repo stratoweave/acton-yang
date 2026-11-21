@@ -254,17 +254,18 @@ proc def cmd_compile(env, file_cap, args):
 
 
 actor main(env):
+    """ayangc: Acton YANG Compiler
+
+    This is an experimental tool that exposes some functions from the acton-yang
+    library in a command-line interface. The interface is likely to change in
+    future as the needs evolve.
+
+    Commands:
+    - transform: Parse YANG files and apply transformations
+    - compile: Compile multiple YANG modules together into a schema tree
+    """
+
     proc def __startup__():
-        """ayangc: Acton YANG Compiler
-
-        This is an experimental tool that exposes some functions from the acton-yang
-        library in a command-line interface. The interface is likely to change in
-        future as the needs evolve.
-
-        Commands:
-        - transform: Parse YANG files and apply transformations
-        - compile: Compile multiple YANG modules together into a schema tree
-        """
         file_cap = file.FileCap(env.cap)
 
         # Create command handlers that capture env and file_cap
