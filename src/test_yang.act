@@ -228,6 +228,44 @@ def _test_parse_pryang_submodule():
     yang_out = y.pryang()
     testing.assertEqual(original, yang_out, f"YANG round trip failed\n{original}\n===\n{yang_out}")
 
+def _test_parse_statements_order():
+    sources = [test_yang, test_submodule, test_yang_simple]
+    statements = yang.parse_statements(sources)
+    testing.assertEqual(len(statements), len(sources))
+    for source, statement in zip(sources, statements):
+        testing.assertEqual(statement.pryang(), yparser.parse(source).pryang())
+
+def _test_parse_empty_sources():
+    testing.assertEqual(len(yang.parse_statements([])), 0)
+    testing.assertEqual(len(yang.parse_sources([])), 0)
+
+def _test_parse_statements_strict_quoting():
+    source = r'''module quoted {
+      yang-version 1;
+      namespace "urn:quoted";
+      prefix q;
+      leaf value { type string { pattern "foo\.bar"; } }
+    }'''
+    testing.assertEqual(len(yang.parse_statements([source], strict_quoting=False)), 1)
+    try:
+        yang.parse_statements([source], strict_quoting=True)
+    except ValueError:
+        pass
+    else:
+        testing.error("Expected strict quoting to reject an invalid escape")
+
+def _test_parse_sources_merge_error_order():
+    sources = [
+        r'module first { namespace "urn:first"; prefix f; include missing; }',
+        r'module second { namespace "urn:second"; prefix s; include missing; }',
+    ]
+    try:
+        yang.parse_sources(sources)
+    except ValueError as exc:
+        testing.assertEqual(str(exc), "ValueError: first - submodule missing not found.")
+    else:
+        testing.error("Expected an error for the missing submodule")
+
 def _test_snode_to_statement():
     original = test_yang
     n = yang.schema_from_src(original)
