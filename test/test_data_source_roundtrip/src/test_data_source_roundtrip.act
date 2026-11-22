@@ -39,11 +39,12 @@ actor _test_adata_loose_diff(t: testing.EnvT):
     """Golden test for tracking diff between .prsrc() output for "strict" and "loose" adata.
     """
 
-    rfcap = file.ReadFileCap(file.FileCap(t.env.cap))
-    adata_strict = file.ReadFile(
-        rfcap,
-        "src/xml_full_adata.act").read().decode()
-    adata_loose = file.ReadFile(
-        rfcap,
-        "src/xml_full_adata_loose.act").read().decode()
-    t.success(std.diff.diff(adata_strict, adata_loose))
+    proc def __startup__():
+        rfcap = file.ReadFileCap(file.FileCap(t.env.cap))
+        adata_strict = file.ReadFile(
+            rfcap,
+            "src/xml_full_adata.act").read().decode()
+        adata_loose = file.ReadFile(
+            rfcap,
+            "src/xml_full_adata_loose.act").read().decode()
+        t.success(std.diff.diff(adata_strict, adata_loose))

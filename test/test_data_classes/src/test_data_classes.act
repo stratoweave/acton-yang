@@ -214,11 +214,14 @@ def _test_foo_from_xml_full():
 actor _test_gdata_source_roundtrip_xml_full(t: testing.EnvT):
     wfcap = file.WriteFileCap(file.FileCap(t.env.cap))
     xml_in = xml.decode(xml_text_full)
-    gd = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
     wf = file.WriteFile(wfcap, "../test_data_source_roundtrip/src/xml_full_gdata.act")
-    await async wf.write("from yang.gdata import *\nfrom yang.identityref import Identityref\nfrom yang.type import Decimal\n\nxml_full = {gd.prsrc()}".encode())
-    await async wf.close()
-    t.success()
+
+    proc def __startup__():
+        gd = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
+        await async wf.write("from yang.gdata import *\nfrom yang.identityref import Identityref\nfrom yang.type import Decimal\n\nxml_full = {gd.prsrc()}".encode())
+        await async wf.close()
+        t.success()
+
 
 def _test_adata_foo_pc2():
     ad = yang_foo_root()
@@ -241,10 +244,12 @@ def _indent_lines(text, indent=4):
 actor _test_adata_source_roundtrip_xml_full(t: testing.EnvT):
     wfcap = file.WriteFileCap(file.FileCap(t.env.cap))
     xml_in = xml.decode(xml_text_full)
-    gd = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
-    ad = ydata.pradata(yang_foo.SRC_DNODE, gd)
     wf = file.WriteFile(wfcap, "../test_data_source_roundtrip/src/xml_full_adata.act")
-    await async wf.write("""from ayang_test_data_classes.yang_foo import *
+
+    proc def __startup__():
+        gd = yxml.from_xml(yang_foo.SRC_DNODE, xml_in)
+        ad = ydata.pradata(yang_foo.SRC_DNODE, gd)
+        await async wf.write("""from ayang_test_data_classes.yang_foo import *
 from yang.identityref import Identityref
 from yang.type import Decimal
 
@@ -253,16 +258,19 @@ def adata():
 {_indent_lines(ad)}
     return ad
 """.encode())
-    await async wf.close()
-    t.success()
+        await async wf.close()
+        t.success()
+
 
 actor _test_adata_source_roundtrip_xml_full_loose(t: testing.EnvT):
     wfcap = file.WriteFileCap(file.FileCap(t.env.cap))
     xml_in = xml.decode(xml_text_full)
-    gd = yxml.from_xml(yang_foo.SRC_DNODE, xml_in, loose=True)
-    ad = ydata.pradata(yang_foo.SRC_DNODE, gd, loose=True)
     wf = file.WriteFile(wfcap, "../test_data_source_roundtrip/src/xml_full_adata_loose.act")
-    await async wf.write("""from ayang_test_data_classes.yang_foo_loose import *
+
+    proc def __startup__():
+        gd = yxml.from_xml(yang_foo.SRC_DNODE, xml_in, loose=True)
+        ad = ydata.pradata(yang_foo.SRC_DNODE, gd, loose=True)
+        await async wf.write("""from ayang_test_data_classes.yang_foo_loose import *
 from yang.identityref import Identityref
 from yang.type import Decimal
 
@@ -271,8 +279,9 @@ def adata():
 {_indent_lines(ad)}
     return ad
 """.encode())
-    await async wf.close()
-    t.success()
+        await async wf.close()
+        t.success()
+
 
 def _test_foo_from_xml1():
     """"""

@@ -81,8 +81,8 @@ proc def cmd_transform(env, file_cap, args):
             try:
                 wfc = file.WriteFileCap(file_cap)
                 wf = file.WriteFile(wfc, outfile)
-                wf.write(yang_out.encode())
-                wf.close()
+                await async wf.write(yang_out.encode())
+                await async wf.close()
                 print("Wrote output to {outfile}", err=True)
             except OSError as e:
                 print("Error writing file {outfile}: {e}", err=True)
@@ -218,8 +218,8 @@ proc def cmd_compile(env, file_cap, args):
                 try:
                     wfc = file.WriteFileCap(file_cap)
                     dwf = file.WriteFile(wfc, schema_filename)
-                    dwf.write(root.prschema(schema_yang=schema_yang).encode())
-                    dwf.close()
+                    await async dwf.write(root.prschema(schema_yang=schema_yang).encode())
+                    await async dwf.close()
                     print("Wrote schema module to {schema_filename}", err=True)
                 except OSError as e:
                     print("Error writing file {schema_filename}: {e}", err=True)
@@ -242,8 +242,8 @@ proc def cmd_compile(env, file_cap, args):
                 try:
                     wfc = file.WriteFileCap(file_cap)
                     wf = file.WriteFile(wfc, outfile)
-                    wf.write(stage_output.encode())
-                    wf.close()
+                    await async wf.write(stage_output.encode())
+                    await async wf.close()
                     print("Wrote output to {outfile}", err=True)
                 except OSError as e:
                     print("Error writing file {outfile}: {e}", err=True)
@@ -264,50 +264,53 @@ actor main(env):
     - transform: Parse YANG files and apply transformations
     - compile: Compile multiple YANG modules together into a schema tree
     """
-    file_cap = file.FileCap(env.cap)
 
-    # Create command handlers that capture env and file_cap
-    proc def _cmd_transform(args):
-        cmd_transform(env, file_cap, args)
+    proc def __startup__():
+        file_cap = file.FileCap(env.cap)
 
-    proc def _cmd_compile(args):
-        cmd_compile(env, file_cap, args)
+        # Create command handlers that capture env and file_cap
+        proc def _cmd_transform(args):
+            cmd_transform(env, file_cap, args)
 
-    p = std.argparse.Parser()
+        proc def _cmd_compile(args):
+            cmd_compile(env, file_cap, args)
 
-    # Transform subcommand
-    transform_cmd = p.add_cmd("transform", "apply transforms to a YANG module", _cmd_transform)
-    transform_cmd.add_arg("infile", "input YANG file", required=True)
-    transform_cmd.add_arg("transform", "transform(s) to apply (e.g., unions, explicit-cases)", required=True, nargs="+")
-    transform_cmd.add_option("output", "str", default="-", help="write output to file (default '-' for stdout)", short="o")
+        p = std.argparse.Parser()
 
-    # Compile subcommand
-    compile_cmd = p.add_cmd("compile", "compile YANG modules together", _cmd_compile)
-    compile_cmd.add_option("infile", "strlist", "+", [], "input YANG file(s) or directory(s)")
-    compile_cmd.add_bool("loose", "generate loose validation mode classes", short="l")
-    compile_cmd.add_option("mode", "str", default="full", help="adata generation mode: 'full' (default) or 'device' (drop from_gdata/to_gdata/copy for a structure-only on-device class shape, loose validation)", short="m")
-    compile_cmd.add_option("exclude", "strlist", "*", [], "glob pattern(s) to exclude files", short="e")
-    compile_cmd.add_option("stage", "str", default="", help="compile stage (adata, dnode-src, schema-tree, dnode-tree, statement, default full compile only)", short="s")
-    compile_cmd.add_option("output", "str", default="", help="write stage output to file (use '-' for stdout)", short="o")
-    compile_cmd.add_bool("no-strict-quoting", "disable strict quoting enforcement (enabled by default)")
+        # Transform subcommand
+        transform_cmd = p.add_cmd("transform", "apply transforms to a YANG module", _cmd_transform)
+        transform_cmd.add_arg("infile", "input YANG file", required=True)
+        transform_cmd.add_arg("transform", "transform(s) to apply (e.g., unions, explicit-cases)", required=True, nargs="+")
+        transform_cmd.add_option("output", "str", default="-", help="write output to file (default '-' for stdout)", short="o")
 
-    try:
-        args = p.parse(env.argv)
-    except std.argparse.PrintUsage as exc:
-        print(exc.error_message)
-        env.exit(0)
-    except std.argparse.ArgumentError as exc:
-        print(exc.error_message, err=True)
-        env.exit(1)
-    else:
-        cmd = args.cmd
-        if cmd is not None:
-            cmd(args)
-        else:
-            print("Error: No command specified. Use --help for usage.", err=True)
+        # Compile subcommand
+        compile_cmd = p.add_cmd("compile", "compile YANG modules together", _cmd_compile)
+        compile_cmd.add_option("infile", "strlist", "+", [], "input YANG file(s) or directory(s)")
+        compile_cmd.add_bool("loose", "generate loose validation mode classes", short="l")
+        compile_cmd.add_option("mode", "str", default="full", help="adata generation mode: 'full' (default) or 'device' (drop from_gdata/to_gdata/copy for a structure-only on-device class shape, loose validation)", short="m")
+        compile_cmd.add_option("exclude", "strlist", "*", [], "glob pattern(s) to exclude files", short="e")
+        compile_cmd.add_option("stage", "str", default="", help="compile stage (adata, dnode-src, schema-tree, dnode-tree, statement, default full compile only)", short="s")
+        compile_cmd.add_option("output", "str", default="", help="write stage output to file (use '-' for stdout)", short="o")
+        compile_cmd.add_bool("no-strict-quoting", "disable strict quoting enforcement (enabled by default)")
+
+        try:
+            args = p.parse(env.argv)
+        except std.argparse.PrintUsage as exc:
+            print(exc.error_message)
+            env.exit(0)
+        except std.argparse.ArgumentError as exc:
+            print(exc.error_message, err=True)
             env.exit(1)
+        else:
+            cmd = args.cmd
+            if cmd is not None:
+                cmd(args)
+            else:
+                print("Error: No command specified. Use --help for usage.", err=True)
+                env.exit(1)
 
-        env.exit(0)
+            env.exit(0)
+
 
 
 test_yang = r"""module test_ayangc {
