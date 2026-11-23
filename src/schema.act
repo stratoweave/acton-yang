@@ -94,7 +94,7 @@ import std.re
 import xpath
 from identityref import Identityref, PartialIdentityref
 from pattern import YangPattern
-from type import Decimal, Ranges, RangesBuilder
+from type import Decimal, Ranges, RangesBuilder, str_value, repr_value
 from type import SIGNED_INT_TYPES, UNSIGNED_INT_TYPES, LENGTH_TYPES
 
 RECURSION_LIMIT = 512
@@ -387,6 +387,9 @@ class DNode(object):
     def _get_class_name(self):
         return type(self).split(".")[-1]
 
+    def _prsrc_overrides(self) -> ?dict[str, str]:
+        return None
+
     def prsrc(self, indent=0, adata_name: ?str=None):
         """Print Acton source code for this compiled schema node and its subnodes
 
@@ -398,7 +401,7 @@ class DNode(object):
         attrs = self._get_attrs()
         if adata_name is not None:
             attrs.append(("adata_name", adata_name))
-        attrs_text = _prsrc_attrs(indent, attrs)
+        attrs_text = _prsrc_attrs(indent, attrs, self._prsrc_overrides())
         if len(attrs_text) > 0:
             args.append(attrs_text)
         have_children = True if isinstance(self, DNodeInner) and len(self.children) > 0 else False
@@ -1250,10 +1253,6 @@ class DIdentity(DNode):
             ("base", self.base),
         ]
 
-    def __repr__(self):
-        base_reprs = [repr(b) for b in self.base]
-        return "DIdentity(module={repr(self.module)}, namespace={repr(self.namespace)}, prefix={repr(self.prefix)}, name={repr(self.name)}, base=[{', '.join(base_reprs)}])"
-
     def key(self):
         return "{self.module}:{self.name}"
 
@@ -1324,6 +1323,16 @@ class DIdentity(DNode):
 
     def format_base_var_name(self):
         return safe_name("_base_{self.module}_{self.name}", safe_kw=False)
+
+
+extension DIdentity(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
+    def __repr__(self):
+        base_reprs = [repr(b) for b in self.base]
+        return "DIdentity(module={repr(self.module)}, namespace={repr(self.namespace)}, prefix={repr(self.prefix)}, name={repr(self.name)}, base=[{', '.join(base_reprs)}])"
+
 
 class DInput(DNodeInner):
     must: list[DMust]
@@ -1579,6 +1588,11 @@ class DMust(object):
         self.error_message = error_message
         self.reference = reference
 
+
+extension DMust(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
     def __repr__(self):
         return "DMust(condition={repr(self.condition)}, description={repr(self.description)}, error_app_tag={repr(self.error_app_tag)}, error_message={repr(self.error_message)}, reference={repr(self.reference)})"
 
@@ -1595,6 +1609,11 @@ class DExt(object):
     def prsrc(self, indent=0):
         return "{_ind(indent)}{repr(self)}"
 
+
+extension DExt(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
     def __repr__(self):
         return "DExt(module={repr(self.module)}, namespace={repr(self.namespace)}, prefix={repr(self.prefix)}, name={repr(self.name)}, arg={repr(self.arg)}, exts={repr(self.exts)})"
 
@@ -1823,6 +1842,11 @@ class DRoot(DNodeInner):
                     raise ValueError("Module {meta.name} is in more than one root with different revisions: {existing.revision} and {meta.revision}")
                 module_metadata[ns] = meta
         return DRoot(children, identities, rpcs, module_metadata)
+
+    def _prsrc_overrides(self) -> ?dict[str, str]:
+        # _get_attrs erases the dict's tuple-valued entries. Render this field
+        # while its full ModuleMetadata type and Show evidence are available.
+        return {"module_metadata": repr(self.module_metadata)}
 
     def _get_attrs(self):
         return [
@@ -2521,7 +2545,7 @@ class DType(object):
         return "DType({self.format_common_params()})"
 
     def format_common_params(self) -> str:
-        return "name={repr(self.name)}, description={repr(self.description)}, reference={repr(self.reference)}, units={repr(self.units)}, exts={repr(self.exts)}, builtin_type={repr(self.builtin_type)}, default={repr(self.default)}"
+        return "name={repr(self.name)}, description={repr(self.description)}, reference={repr(self.reference)}, units={repr(self.units)}, exts={repr(self.exts)}, builtin_type={repr(self.builtin_type)}, default={repr_value(self.default)}"
 
     def format_short_hint(self) -> str:
         return  self.builtin_type if self.builtin_type == self.name else "{self.builtin_type} {self.name}"
@@ -2771,7 +2795,7 @@ class DTypeInstanceIdentifier(DType):
             return ["require-instance: false"]
         return []
 
-class DTypeInteger[T(Ord)](DType):
+class DTypeInteger[T(Ord,Show)](DType):
     ranges: ?Ranges[T]
 
     # New method name because we can't override DType.validate_value where "val: value" is non-generic
@@ -3332,6 +3356,12 @@ class SchemaNode(object):
     pfx: ?str
     exts: list[Ext]
     _yname: str
+
+    # Statement subclasses override this, preserving their text through a
+    # SchemaNode-typed reference without universal rendering class slots.
+    def format(self) -> str:
+        base: value = self
+        return str(base)
 
     def _get_argname(self) -> ?str:
         raise NotImplementedError('SchemaNode _get_argname')
@@ -3903,7 +3933,7 @@ class SchemaNode(object):
                 elif isinstance(attr_value, bool):
                     stmt.substatements.append(Statement(attr_name, "true" if attr_value else "false"))
                 else:
-                    stmt.substatements.append(Statement(attr_name, str(attr_value)))
+                    stmt.substatements.append(Statement(attr_name, str_value(attr_value)))
 
         if isinstance(self, SchemaNodeInner):
             for c in self.children:
@@ -4046,6 +4076,14 @@ class SchemaNode(object):
             txt += "\n".join(gg) + "\n"
         txt += "\n".join(res)
         return txt
+
+
+extension SchemaNode(Show):
+    def __str__(self) -> str:
+        return self.format()
+    def __repr__(self) -> str:
+        base: value = self
+        return repr(base)
 
 
 class SchemaNodeInner(SchemaNode):
@@ -4365,12 +4403,17 @@ def _attr_name(name: str):
 
     return res
 
-def _prsrc_attrs(indent, attrs):
+def _prsrc_attrs(indent, attrs, overrides: ?dict[str, str]=None):
     """Print source code for a list of SchemaNode attributes"""
     res = []
     for attr in attrs:
         raw_name, value = attr
         name = _attr_name(raw_name)
+        if overrides is not None:
+            source = overrides.get(raw_name)
+            if source is not None:
+                res.append("{name}={source}")
+                continue
         if value is not None:
             if isinstance(value, list):
                 if len(value) == 0:
@@ -4385,8 +4428,12 @@ def _prsrc_attrs(indent, attrs):
                             list_val.append(e.prsrc(indent+2))
                         elif isinstance(e, DExt):
                             list_val.append(e.prsrc(indent+2))
-                        else:
+                        elif isinstance(e, DMust):
                             list_val.append(repr(e))
+                        elif isinstance(e, DIdentity):
+                            list_val.append(repr(e))
+                        else:
+                            list_val.append(repr_value(e))
                     list_val_str = "[]"
                     if len(list_val) == 1 and list_val[0][0] != " " and len(list_val[0]) < 20:
                         list_val_str = "[{list_val[0]}]"
@@ -4400,7 +4447,7 @@ def _prsrc_attrs(indent, attrs):
             elif isinstance(value, DType):
                 res.append("{name}={value.prtyinst()}")
             else:
-                res.append("{name}={repr(value)}")
+                res.append("{name}={repr_value(value)}")
     return ", ".join(res)
 
 
@@ -4656,7 +4703,7 @@ def prsrc_default(t: DType, s: str, identities: list[DIdentity], module: str) ->
             bits: list[str] = val
             return repr(iset(bits))
         elif val is not None:
-            return repr(val)
+            return repr_value(val)
 
 def safe_name(name: str, safe_kw=True) -> str:
     new = name.replace("-", "_").replace(".", "_")
@@ -5212,7 +5259,7 @@ class Action(SchemaNodeInner):
 
         self.if_feature = [remap_path_prefix(f, old_pfx, new_pfx) for f in self.if_feature]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Action {self.name}"
 
     def _get_class_name(self) -> str:
@@ -5373,7 +5420,7 @@ class Anydata(SchemaNodeOuter):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Anydata {self.name}"
 
     def _get_class_name(self) -> str:
@@ -5534,7 +5581,7 @@ class Anyxml(SchemaNodeOuter):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Anyxml {self.name}"
 
     def _get_class_name(self) -> str:
@@ -5665,7 +5712,7 @@ class Augment(SchemaNodeInner):
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
         self.target_node = remap_path_prefix(self.target_node, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Augment {self.target_node}"
 
     def _get_class_name(self) -> str:
@@ -5743,7 +5790,7 @@ class BelongsTo(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "BelongsTo {self.module}"
 
     def _get_class_name(self) -> str:
@@ -5850,7 +5897,7 @@ class Bit(SchemaNodeOuter):
 
         self.if_feature = [remap_path_prefix(f, old_pfx, new_pfx) for f in self.if_feature]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Bit {self.name}"
 
     def _get_class_name(self) -> str:
@@ -5980,7 +6027,7 @@ class Case(SchemaNodeInner):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Case {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6132,7 +6179,7 @@ class Choice(SchemaNodeInner):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Choice {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6321,7 +6368,7 @@ class Container(SchemaNodeInner):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Container {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6428,7 +6475,7 @@ class Enum(SchemaNodeOuter):
 
         self.if_feature = [remap_path_prefix(f, old_pfx, new_pfx) for f in self.if_feature]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Enum {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6527,7 +6574,7 @@ class Extension(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Extension {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6630,7 +6677,7 @@ class Feature(SchemaNodeOuter):
 
         self.if_feature = [remap_path_prefix(f, old_pfx, new_pfx) for f in self.if_feature]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Feature {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6745,7 +6792,7 @@ class Grouping(SchemaNodeInner):
             child.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Grouping {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6863,7 +6910,7 @@ class Identity(SchemaNodeOuter):
         self.base = [remap_path_prefix(b, old_pfx, new_pfx) for b in self.base]
         self.if_feature = [remap_path_prefix(f, old_pfx, new_pfx) for f in self.if_feature]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Identity {self.name}"
 
     def _get_class_name(self) -> str:
@@ -6962,7 +7009,7 @@ class Import(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Import {self.module}"
 
     def _get_class_name(self) -> str:
@@ -7057,7 +7104,7 @@ class Include(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Include {self.module}"
 
     def _get_class_name(self) -> str:
@@ -7182,7 +7229,7 @@ class Input(SchemaNodeInner):
         for must in self.must:
             must.condition = remap_path_prefix(must.condition, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Input"
 
     def _get_class_name(self) -> str:
@@ -7410,7 +7457,7 @@ class Leaf(SchemaNodeOuter):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Leaf {self.name}"
 
     def _get_class_name(self) -> str:
@@ -7646,7 +7693,7 @@ class LeafList(SchemaNodeOuter):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "LeafList {self.name}"
 
     def _get_class_name(self) -> str:
@@ -7745,7 +7792,7 @@ class Length(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Length {self.value}"
 
     def _get_class_name(self) -> str:
@@ -7970,7 +8017,7 @@ class List(SchemaNodeInner):
         if self_when is not None:
             self.when = remap_path_prefix(self_when, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "List {self.name}"
 
     def _get_class_name(self) -> str:
@@ -8265,7 +8312,7 @@ class Module(SchemaNodeInner):
 
         self.deviation = [remap_path_prefix(d, old_pfx, new_pfx) for d in self.deviation]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Module {self.name}"
 
     def _get_class_name(self) -> str:
@@ -8382,7 +8429,7 @@ class Must(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Must {self.condition}"
 
     def _get_class_name(self) -> str:
@@ -8543,7 +8590,7 @@ class Notification(SchemaNodeInner):
         for must in self.must:
             must.condition = remap_path_prefix(must.condition, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Notification {self.name}"
 
     def _get_class_name(self) -> str:
@@ -8671,7 +8718,7 @@ class Output(SchemaNodeInner):
         for must in self.must:
             must.condition = remap_path_prefix(must.condition, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Output"
 
     def _get_class_name(self) -> str:
@@ -8774,7 +8821,7 @@ class Pattern(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Pattern {self.value}"
 
     def _get_class_name(self) -> str:
@@ -8873,7 +8920,7 @@ class Range(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Range {self.value}"
 
     def _get_class_name(self) -> str:
@@ -9035,7 +9082,7 @@ class Refine(SchemaNodeOuter):
             must.condition = remap_path_prefix(must.condition, old_pfx, new_pfx)
         self.target_node = remap_path_prefix(self.target_node, old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Refine {self.target_node}"
 
     def _get_class_name(self) -> str:
@@ -9126,7 +9173,7 @@ class Revision(SchemaNodeOuter):
             ext.remap_prefix_references(old_pfx, new_pfx)
 
 
-    def __str__(self):
+    def format(self) -> str:
         return "Revision {self.date}"
 
     def _get_class_name(self) -> str:
@@ -9294,7 +9341,7 @@ class Rpc(SchemaNodeInner):
 
         self.if_feature = [remap_path_prefix(f, old_pfx, new_pfx) for f in self.if_feature]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Rpc {self.name}"
 
     def _get_class_name(self) -> str:
@@ -9536,7 +9583,7 @@ class Submodule(SchemaNodeInner):
 
         self.deviation = [remap_path_prefix(d, old_pfx, new_pfx) for d in self.deviation]
 
-    def __str__(self):
+    def format(self) -> str:
         return "Submodule {self.name}"
 
     def _get_class_name(self) -> str:
@@ -9799,7 +9846,7 @@ class Type(SchemaNodeOuter):
         for nested_type in self.type:
             nested_type.remap_prefix_references(old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Type {self.name}"
 
     def _get_class_name(self) -> str:
@@ -9939,7 +9986,7 @@ class Typedef(SchemaNodeOuter):
                 self.default = remap_path_prefix(self_default, old_pfx, new_pfx)
         self.type.remap_prefix_references(old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Typedef {self.name}"
 
     def _get_class_name(self) -> str:
@@ -10104,7 +10151,7 @@ class Uses(SchemaNodeOuter):
             aug.target_node = remap_path_prefix(aug.target_node, old_pfx, new_pfx)
             aug.remap_prefix_references(old_pfx, new_pfx)
 
-    def __str__(self):
+    def format(self) -> str:
         return "Uses {self.name}"
 
     def _get_class_name(self) -> str:

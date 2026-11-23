@@ -10,7 +10,7 @@ import lib as yang
 import gdata as ygdata
 import schema as yschema
 from identityref import Identityref, PartialIdentityref
-from type import Decimal, Ranges
+from type import Decimal, Ranges, str_value, repr_value
 from type import SIGNED_INT_TYPES, UNSIGNED_INT_TYPES
 
 
@@ -42,11 +42,16 @@ class YangValidationError(ValueError):
         self.expected_type = expected_type
         self.actual_value = actual_value
 
+
+extension YangValidationError(Show):
     def __str__(self) -> str:
         path_str = format_schema_path(self.schema_path)
         type_str = self.expected_type.format_hint()
-        return "Invalid value at {path_str}: '{self.actual_value}' - expected {type_str}"
-
+        text = str_value(self.actual_value)
+        return "Invalid value at {path_str}: '{text}' - expected {type_str}"
+    def __repr__(self) -> str:
+        base: BaseException = self
+        return repr(base)
 
 
 def format_schema_path(path: list[PathElement]) -> str:
@@ -69,7 +74,7 @@ def format_schema_path(path: list[PathElement]) -> str:
                 path_str = path_str + name
                 keys_dict = elem.keys
                 if keys_dict is not None and len(keys_dict) > 0:
-                    predicates = ["{k}='{(v if isinstance(v, str) else str(v)).replace("'", "\\'")}'" for k, v in keys_dict.items()]
+                    predicates = ["{k}='{str_value(v).replace("'", "\\'")}'" for k, v in keys_dict.items()]
                     path_str = path_str + "[" + ",".join(predicates) + "]"
         elif isinstance(elem.node, yschema.DRoot):
             path_str = "/"
@@ -86,7 +91,7 @@ def unwrap_key[T](name: str, val: ?T, spath) -> T:
     raise ValueError("Missing key value at {format_schema_path(spath)}: {name}")
 
 
-def coerce_integer_value[T(Ord)](raw_value: value, schema_type: yschema.DTypeInteger[T], path: list[PathElement]) -> ?value:
+def coerce_integer_value[T(Ord,Show)](raw_value: value, schema_type: yschema.DTypeInteger[T], path: list[PathElement]) -> ?value:
     if isinstance(raw_value, atom):
         builtin_type = schema_type.builtin_type
         if builtin_type in SIGNED_INT_TYPES:
@@ -633,7 +638,7 @@ def _pradata_recursive(s: yschema.DNodeInner, node: ygdata.Node, self_name: str,
                 list_element_var = path_local_var(list_path_key, "{usname(child)}_element")
                 for element in entries:
                     res.append("")
-                    key_reprs = ", ".join([repr(element.get_leaf(k).val) for k in child.key_gnames])
+                    key_reprs = ", ".join([repr_value(element.get_leaf(k).val) for k in child.key_gnames])
                     res.append("# List {format_schema_path(path_with_child())}{header_note(child, s)} element: {key_reprs}")
 
                     # Build the list of arguments for create() method

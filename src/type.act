@@ -64,25 +64,6 @@ class Decimal(atom):
         self.significand = significand
         self.exponent = exponent
 
-    def __str__(self):
-        # Build from the digits rather than from integral_part()/fractional_part(),
-        # so that a negative value does not carry its sign into both halves.
-        t = str(self.significand)
-        neg = t.startswith("-")
-        digits = t[1:] if neg else t
-        e = self.exponent
-        if e >= 0:
-            res = digits + "0" * e
-        else:
-            n = -e
-            digits = digits.zfill(n + 1)
-            cut = len(digits) - n
-            res = digits[:cut] + "." + digits[cut:]
-        return "-" + res if neg else res
-
-    def __repr__(self):
-        return "Decimal({_int_repr(self.significand)}, {_int_repr(self.exponent)})"
-
     @staticmethod
     def try_parse(s: str) -> ?Decimal:
         parts = try_parse_float_parts(s)
@@ -180,6 +161,27 @@ class Decimal(atom):
             e += 1
         return (s, e)
 
+
+extension Decimal(Show):
+    def __str__(self):
+        # Build from the digits rather than from integral_part()/fractional_part(),
+        # so that a negative value does not carry its sign into both halves.
+        t = str(self.significand)
+        neg = t.startswith("-")
+        digits = t[1:] if neg else t
+        e = self.exponent
+        if e >= 0:
+            res = digits + "0" * e
+        else:
+            n = -e
+            digits = digits.zfill(n + 1)
+            cut = len(digits) - n
+            res = digits[:cut] + "." + digits[cut:]
+        return "-" + res if neg else res
+    def __repr__(self):
+        return "Decimal({_int_repr(self.significand)}, {_int_repr(self.exponent)})"
+
+
 extension Decimal(Eq):
     def __eq__(self, other: Decimal) -> bool:
         exponent_diff = self.exponent - other.exponent
@@ -217,6 +219,68 @@ extension Decimal(Hashable):
         s, e = self.canonical()
         s.hash(h)
         e.hash(h)
+
+
+# Leaf APIs erase the concrete type to atom/value. Select the known YANG
+# scalar policies explicitly, as with the atom Eq and Hashable implementations.
+extension atom(Show):
+    def __str__(self) -> str:
+        if isinstance(self, int):
+            return str(self)
+        if isinstance(self, u64):
+            return str(self)
+        if isinstance(self, bool):
+            return str(self)
+        if isinstance(self, str):
+            return str(self)
+        if isinstance(self, bytes):
+            return str(self)
+        if isinstance(self, float):
+            return str(self)
+        if isinstance(self, Decimal):
+            return str(self)
+        if isinstance(self, Identityref):
+            return str(self)
+        base: value = self
+        return str(base)
+
+    def __repr__(self) -> str:
+        if isinstance(self, int):
+            return repr(self)
+        if isinstance(self, u64):
+            return repr(self)
+        if isinstance(self, bool):
+            return repr(self)
+        if isinstance(self, str):
+            return repr(self)
+        if isinstance(self, bytes):
+            return repr(self)
+        if isinstance(self, float):
+            return repr(self)
+        if isinstance(self, Decimal):
+            return repr(self)
+        if isinstance(self, Identityref):
+            return repr(self)
+        base: value = self
+        return repr(base)
+
+
+def str_value(item: ?value) -> str:
+    """Render supported YANG scalars/lists after their concrete type is erased."""
+    if isinstance(item, atom):
+        return str(item)
+    if isinstance(item, list):
+        return repr_value(item)
+    return str(item)
+
+
+def repr_value(item: ?value) -> str:
+    """The corresponding source representation; unknown classes use value's default."""
+    if isinstance(item, atom):
+        return repr(item)
+    if isinstance(item, list):
+        return "[" + ", ".join([repr_value(part) for part in item]) + "]"
+    return repr(item)
 
 
 extension atom(Eq):
@@ -283,40 +347,6 @@ class Ranges[T(Ord)](object):
     def __init__(self, ranges: list[(T, T)]):
         self.ranges = ranges
 
-    def __str__(self):
-        ranges = []
-        for r in self.ranges:
-            # https://github.com/actonlang/acton/issues/2533
-            # r_str = str(r.0) if r.0 == r.1 else "{str(r.0)}..{str(r.1)}" # Crashes
-            # <workaround>
-            r0: T = r.0
-            r1: T = r.1
-            if isinstance(r0, int) and isinstance(r1, int):
-                r_str = str(r0) if r0 == r1 else "{str(r0)}..{str(r1)}"
-            elif isinstance(r0, u64) and isinstance(r1, u64):
-                r_str = str(r0) if r0 == r1 else "{str(r0)}..{str(r1)}"
-            elif isinstance(r0, Decimal) and isinstance(r1, Decimal):
-                r_str = str(r0) if r0 == r1 else "{str(r0)}..{str(r1)}"
-            else:
-                raise NotImplementedError("{type(r0)} {type(r1)}")
-            # </workaround>
-            # Pending https://github.com/actonlang/acton/issues/1125
-            # ranges.append(r_str)
-            ranges += [r_str]
-        return " | ".join(ranges)
-
-
-    def __repr__(self):
-        # return "Ranges({repr(self.ranges)})"
-        # Workaround https://github.com/actonlang/acton/issues/2545
-        ranges = []
-        for r in self.ranges:
-            r_repr = "({repr(r.0)}, {repr(r.1)})"
-            # Pending https://github.com/actonlang/acton/issues/1125
-            # ranges.append(r_repr)
-            ranges += [r_repr]
-        return "Ranges([{", ".join(ranges)}])"
-
     def match(self, val) -> bool:
         # return self._search_index(val, div) is not None
         # Workaround https://github.com/actonlang/acton/issues/1448 & https://github.com/actonlang/acton/issues/2483
@@ -345,6 +375,41 @@ class Ranges[T(Ord)](object):
             if span_i >= range_len:
                 break
         return None
+
+
+extension Ranges[T(Ord,Show)](Show):
+    def __str__(self):
+        ranges = []
+        for r in self.ranges:
+            # https://github.com/actonlang/acton/issues/2533
+            # r_str = str(r.0) if r.0 == r.1 else "{str(r.0)}..{str(r.1)}" # Crashes
+            # <workaround>
+            r0: T = r.0
+            r1: T = r.1
+            if isinstance(r0, int) and isinstance(r1, int):
+                r_str = str(r0) if r0 == r1 else "{str(r0)}..{str(r1)}"
+            elif isinstance(r0, u64) and isinstance(r1, u64):
+                r_str = str(r0) if r0 == r1 else "{str(r0)}..{str(r1)}"
+            elif isinstance(r0, Decimal) and isinstance(r1, Decimal):
+                r_str = str(r0) if r0 == r1 else "{str(r0)}..{str(r1)}"
+            else:
+                raise NotImplementedError("{type(r0)} {type(r1)}")
+            # </workaround>
+            # Pending https://github.com/actonlang/acton/issues/1125
+            # ranges.append(r_str)
+            ranges += [r_str]
+        return " | ".join(ranges)
+    def __repr__(self):
+        # return "Ranges({repr(self.ranges)})"
+        # Workaround https://github.com/actonlang/acton/issues/2545
+        ranges = []
+        for r in self.ranges:
+            r_repr = "({repr(r.0)}, {repr(r.1)})"
+            # Pending https://github.com/actonlang/acton/issues/1125
+            # ranges.append(r_repr)
+            ranges += [r_repr]
+        return "Ranges([{", ".join(ranges)}])"
+
 
 class RangesBuilder[T(Ord)](Ranges[T]):
     def __init__(self, ranges: list[(T, T)] = []):

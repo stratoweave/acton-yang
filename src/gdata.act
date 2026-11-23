@@ -10,7 +10,7 @@ import std.json as json
 import std.xml as xml
 
 from identityref import Identityref, PartialIdentityref
-from type import Decimal
+from type import Decimal, str_value, repr_value
 
 # kinds of things?
 # - container
@@ -187,21 +187,24 @@ class LeafListEntry(value):
     # Abstract base type for leaf-list entries.
     val: value
 
-    def __repr__(self):
-        return "{self.hash_tag()}({repr_gdata(self.val)})"
-
-    def op_attrs(self):
+    def op_attrs(self) -> (nsdefs: list[(?str, str)], attrs: list[(str, str)]):
         return (nsdefs=[], attrs=[])
 
     def hash_tag(self) -> str:
         return "LeafListEntry"
 
+
+extension LeafListEntry(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
+    def __repr__(self):
+        return "{self.hash_tag()}({repr_gdata(self.val)})"
+
+
 class LeafListEntryMerge(LeafListEntry):
     def __init__(self, val: value):
         self.val = val
-
-    def __repr__(self):
-        return "{self.hash_tag()}({repr_gdata(self.val)})"
 
     def hash_tag(self) -> str:
         return "LeafListEntryMerge"
@@ -209,9 +212,6 @@ class LeafListEntryMerge(LeafListEntry):
 class LeafListEntryRemove(LeafListEntry):
     def __init__(self, val: value):
         self.val = val
-
-    def __repr__(self):
-        return "{self.hash_tag()}({repr_gdata(self.val)})"
 
     def op_attrs(self):
         return remove_op
@@ -223,9 +223,6 @@ class LeafListEntryCreate(LeafListEntry):
     def __init__(self, val: value):
         self.val = val
 
-    def __repr__(self):
-        return "{self.hash_tag()}({repr_gdata(self.val)})"
-
     def op_attrs(self):
         return create_op
 
@@ -236,9 +233,6 @@ class LeafListEntryDelete(LeafListEntry):
     def __init__(self, val: value):
         self.val = val
 
-    def __repr__(self):
-        return "{self.hash_tag()}({repr_gdata(self.val)})"
-
     def op_attrs(self):
         return delete_op
 
@@ -248,9 +242,6 @@ class LeafListEntryDelete(LeafListEntry):
 class LeafListEntryReplace(LeafListEntry):
     def __init__(self, val: value):
         self.val = val
-
-    def __repr__(self):
-        return "LeafListEntryReplace({repr_gdata(self.val)})"
 
     def op_attrs(self):
         return replace_op
@@ -316,10 +307,9 @@ def yang_str(v) -> str:
     bits = as_bits(v)
     if bits is not None:
         return " ".join(bits)
-    s = str(v)
     if isinstance(v, bool):
-        s = s.lower()
-    return s
+        return str(v).lower()
+    return str_value(v)
 
 
 def leaf_xml(name: str, ns: ?str, val: value) -> xml.Node:
@@ -360,19 +350,23 @@ def repr_gdata(v) -> str:
         return "u64({v})"
     elif isinstance(v, list):
         return "[" + ", ".join([repr_gdata(e) for e in v]) + "]"
-    return repr(v)
+    elif isinstance(v, Present):
+        return repr(v)
+    elif isinstance(v, LeafListEntry):
+        return repr(v)
+    elif isinstance(v, Node):
+        return repr(v)
+    elif isinstance(v, FNode):
+        return repr(v)
+    elif isinstance(v, ValueMatch):
+        return repr(v)
+    return repr_value(v)
 
 
 class Id:
     def __init__(self, q: str, name: str):
         self.q = q
         self.name = name
-
-    def __str__(self):
-        return "{self.name}#{self.q}"
-
-    def __repr__(self):
-        return "Id({repr(self.q)}, {repr(self.name)})"
 
     def to_json(self) -> dict[str, ?value]:
         return {"q": self.q, "name": self.name}
@@ -385,6 +379,13 @@ class Id:
             if isinstance(q, str) and isinstance(name, str):
                 return Id(q, name)
         raise ValueError("Invalid gdata id encoding: {data}")
+
+
+extension Id(Show):
+    def __str__(self):
+        return "{self.name}#{self.q}"
+    def __repr__(self):
+        return "Id({repr(self.q)}, {repr(self.name)})"
 
 
 extension Id (Eq):
@@ -564,7 +565,7 @@ def base_node_json(node: Node, node_type: str) -> dict[str, ?value]:
 
 def key_str_part(val: value) -> str:
     """The escaped key_str component for one key leaf val"""
-    key = val if isinstance(val, str) else str(val)
+    key = str_value(val)
     return key.replace("\\", "\\\\").replace(",", "\\,")
 
 
@@ -573,9 +574,6 @@ class Node(value):
     module: ?str
     children: dict[Id, Node]
     txid: ?str
-
-    def __repr__(self) -> str:
-        return self.prsrc(deterministic=False)
 
     @staticmethod
     def from_json_str(json_str: str) -> Node:
@@ -1373,6 +1371,15 @@ class Node(value):
                 return cvals
         return []
 
+
+extension Node(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
+    def __repr__(self) -> str:
+        return self.prsrc(deterministic=False)
+
+
 extension Node(Eq):
     def __eq__(self, other: Node) -> bool:
         if _same_node(self, other):
@@ -1778,6 +1785,11 @@ class Present:
     def __init__(self):
         pass
 
+
+extension Present(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
     def __repr__(self):
         return "Present()"
 
@@ -1959,7 +1971,17 @@ class ReplaceLeaf(Replace):
 
 
 class ValueMatch(value):
-    pass
+    def representation(self) -> str:
+        base: value = self
+        return repr(base)
+
+
+extension ValueMatch(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
+    def __repr__(self) -> str:
+        return self.representation()
 
 
 class VWildcard(ValueMatch):
@@ -1968,7 +1990,7 @@ class VWildcard(ValueMatch):
     def __init__(self, pattern: str):
         self.pattern = pattern
 
-    def __repr__(self):
+    def representation(self):
         return "VWildcard({repr(self.pattern)})"
 
 
@@ -1982,19 +2004,17 @@ class FNode(value):
         self.value_match = value_match
         self.children = children
 
-    def __repr__(self):
-        return self.prsrc(deterministic=False)
-
     pure def prsrc(self, deterministic=False, indent=0) -> str:
         child_list = self.children
         parts: list[str] = []
         if self.name is not None:
             parts = parts + [repr(self.name)]
-        if self.value_match is not None:
-            if isinstance(self.value_match, ValueMatch):
-                parts = parts + [repr(self.value_match)]
+        value_match = self.value_match
+        if value_match is not None:
+            if isinstance(value_match, ValueMatch):
+                parts = parts + [repr(value_match)]
             else:
-                parts = parts + [repr_gdata(self.value_match)]
+                parts = parts + [repr_gdata(value_match)]
         if len(child_list) > 0:
             child_strs = [c.prsrc(deterministic, indent+1) for c in child_list]
             parts = parts + ["[" + ", ".join(child_strs) + "]"]
@@ -2025,6 +2045,14 @@ class FNode(value):
 
     def to_filter_xmlstr(self, pretty=False, deterministic=False) -> str:
         return xml.encode_nodes(self.to_filter_xml(deterministic), pretty)
+
+
+extension FNode(Show):
+    def __str__(self) -> str:
+        base: value = self
+        return str(base)
+    def __repr__(self):
+        return self.prsrc(deterministic=False)
 
 
 def expect[T](a: ?T, ctx: str) -> T:
@@ -2318,7 +2346,7 @@ def _format_gdata_path(path: list[_PathElement]) -> str:
             path_str = path_str + "/" + elem_name.name
         elem_keys = elem.keys
         if elem_keys is not None and len(elem_keys) > 0:
-            predicates = ["{k}={repr(v)}" for k, v in elem_keys.items()]
+            predicates = ["{k}={repr_value(v)}" for k, v in elem_keys.items()]
             path_str = path_str + "[" + ",".join(predicates) + "]"
     return path_str
 
@@ -2410,7 +2438,7 @@ def _merge_rec(a: Node, b: Node, path: list[_PathElement]) -> Node:
         bval = b.val
         if vals_equal(aval, bval):
             return a
-        raise ValueError("Cannot merge leaves with different values at {_format_gdata_path(path)}: {str(aval)} != {str(bval)}")
+        raise ValueError("Cannot merge leaves with different values at {_format_gdata_path(path)}: {str_value(aval)} != {str_value(bval)}")
 
     elif isinstance(a, LeafList) and isinstance(b, LeafList):
         if a.user_order != b.user_order:
@@ -3500,6 +3528,8 @@ class SubscriptionSpec(value):
         self.on_change = on_change
         self.root = root
 
+
+extension SubscriptionSpec(Show):
     def __str__(self) -> str:
         filt = self.filt
         filt_str = filt.prsrc(deterministic=True) if filt is not None else "None"
@@ -3697,6 +3727,8 @@ class Delivery(object):
         self.dst = dst
         self.want = want
 
+
+extension Delivery(Show):
     def __str__(self) -> str:
         return "Delivery({self.want})"
 

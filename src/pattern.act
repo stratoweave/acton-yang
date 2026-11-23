@@ -723,12 +723,6 @@ class YangPattern(object):
     def from_yang_regex(yang_regex: str, invert: bool):
         return YangPattern(yang_regex, w3cregex_to_re(yang_regex), invert)
 
-    def __str__(self) -> str:
-        return "inverted \"{self.w3cregex}\"" if self.invert else self.w3cregex
-
-    def __repr__(self) -> str:
-        return "YangPattern(yang_regex={repr(self.w3cregex)}, pcre={repr(self.pcre)}, invert={repr(self.invert)})"
-
     def match(self, val: str) -> bool:
         try:
             return bool(std.re.match(self.pcre, val) is not None) != self.invert
@@ -739,6 +733,14 @@ class YangPattern(object):
         return self.w3cregex
 
 # -------------------------------------------------------------------------------
+
+
+extension YangPattern(Show):
+    def __str__(self) -> str:
+        return "inverted \"{self.w3cregex}\"" if self.invert else self.w3cregex
+    def __repr__(self) -> str:
+        return "YangPattern(yang_regex={repr(self.w3cregex)}, pcre={repr(self.pcre)}, invert={repr(self.invert)})"
+
 
 def _test_w3cregex_to_re_match():
     testing.assertEqual(w3cregex_to_re(r"a"), r"^a$")

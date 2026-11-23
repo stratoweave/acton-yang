@@ -22,12 +22,6 @@ class Identityref(atom):
         self.mod = mod
         self.pfx = pfx
 
-    def __str__(self):
-        return "Identityref({repr(self.val)}, ns={repr(self.ns)}, mod={repr(self.mod)}, pfx={repr(self.pfx)})"
-
-    def __repr__(self):
-        return str(self)
-
     @staticmethod
     def from_json(val) -> ?PartialIdentityref:
         """Create PartialIdentityref from JSON-encoded value
@@ -55,6 +49,13 @@ class Identityref(atom):
             return PartialIdentityref(parts[0])
         elif len(parts) == 2:
             return PartialIdentityref(parts[1], pfx=parts[0])
+
+
+extension Identityref(Show):
+    def __str__(self):
+        return "Identityref({repr(self.val)}, ns={repr(self.ns)}, mod={repr(self.mod)}, pfx={repr(self.pfx)})"
+    def __repr__(self):
+        return str(self)
 
 
 extension Identityref (Eq):

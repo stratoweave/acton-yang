@@ -45,12 +45,18 @@ class Stmt(object):
         self.argument_name = argument_name
         self.substmts = {}
 
+
+extension Stmt(Show):
     def __str__(self):
         argname = "None"
         argument_name = self.argument_name
         if argument_name is not None:
             argname = argument_name
         return "<Stmt name: {self.name}  section: {self.section}  argument_name: {argname}  substmts: {str(self.substmts)}>"
+    def __repr__(self) -> str:
+        base: value = self
+        return repr(base)
+
 
 class SubStmt(object):
     name: str
@@ -63,6 +69,8 @@ class SubStmt(object):
         self.section = section
         self.cardinality = cardinality
 
+
+extension SubStmt(Show):
     def __str__(self):
         argname = "None"
         return "<SubStmt name: {self.name}  section: {self.section}  argument_name: {argname}  cardinality: {self.cardinality}>"
@@ -1482,7 +1490,7 @@ def gen(stmts: dict[str, Stmt]) -> list[str]:
 
             res.append("")
 
-        res.append("    def __str__(self):")
+        res.append("    def format(self) -> str:")
         strret = ""
         if arg_name is not None:
             strret = '"{_class_name(stmt_name)} {{self.{_attr_name(arg_name)}}}"'

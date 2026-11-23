@@ -4,6 +4,15 @@ import testing
 class LocationPath(object):
     steps: list[Step]
 
+    # Keep rendering polymorphic when a parsed child is viewed as its parent.
+    def format(self) -> str:
+        base: value = self
+        return str(base)
+
+    def representation(self) -> str:
+        base: value = self
+        return repr(base)
+
     def __init__(self, steps):
         self.steps = steps
 
@@ -19,14 +28,21 @@ class LocationPath(object):
             return r
         return None
 
+extension LocationPath(Show):
+    def __str__(self) -> str:
+        return self.format()
+    def __repr__(self) -> str:
+        return self.representation()
+
+
 class AbsoluteLocationPath(LocationPath):
     def __init__(self, steps):
         LocationPath.__init__(self, steps)
 
-    def __repr__(self):
+    def representation(self):
         return "{type(self)}({repr(self.steps)})"
 
-    def __str__(self):
+    def format(self):
         return "".join(["/{str(step)}" for step in self.steps])
 
     @staticmethod
@@ -89,6 +105,15 @@ class RelativeLocationPath(LocationPath):
         return None
 
 class Step(object):
+    # Keep rendering polymorphic when a parsed child is viewed as its parent.
+    def format(self) -> str:
+        base: value = self
+        return str(base)
+
+    def representation(self) -> str:
+        base: value = self
+        return repr(base)
+
     @staticmethod
     def try_parse(p: Parser):
         a = AbbreviatedStep.try_parse(p)
@@ -98,6 +123,13 @@ class Step(object):
         if n is not None:
             return n
         return None
+
+extension Step(Show):
+    def __str__(self) -> str:
+        return self.format()
+    def __repr__(self) -> str:
+        return self.representation()
+
 
 extension Step(Hashable):
     def __eq__(self, other: Step) -> bool:
@@ -124,10 +156,10 @@ class NodeTestStep(Step):
         self.name = name
         self.predicates = predicates
 
-    def __repr__(self):
+    def representation(self):
         return "{type(self)}({repr(self.prefix)}, {repr(self.name)}, {repr(self.predicates)})"
 
-    def __str__(self):
+    def format(self):
         _prefix = self.prefix
         _predicates = "".join([str(p) for p in self.predicates])
         return "{_prefix}:{self.name}{_predicates}" if _prefix is not None else "{self.name}{_predicates}"
@@ -198,10 +230,10 @@ class AbbreviatedStep(Step):
             return AbbreviatedStep(".")
         return None
 
-    def __repr__(self):
+    def representation(self):
         return "{type(self)}({repr(self.step)})"
 
-    def __str__(self):
+    def format(self):
         return self.step
 
 extension AbbreviatedStep(Hashable):
@@ -216,12 +248,6 @@ class Predicate:
 
     def __init__(self, predicate):
         self.predicate = predicate
-
-    def __repr__(self):
-        return "{type(self)}({repr(self.predicate)})"
-
-    def __str__(self):
-        return "[{self.predicate}]"
 
     @staticmethod
     def try_parse(p: Parser):
@@ -242,6 +268,14 @@ class Predicate:
                 else:
                     p.raise_error("Missing predicate closing bracket")
         return None
+
+
+extension Predicate(Show):
+    def __str__(self):
+        return "[{self.predicate}]"
+    def __repr__(self):
+        return "{type(self)}({repr(self.predicate)})"
+
 
 extension Predicate(Hashable):
     def __eq__(self, other: Predicate) -> bool:

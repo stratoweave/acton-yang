@@ -84,7 +84,7 @@ class MKeyedList[K(Hashable), T(MNode)](MList[T]):
             return self._elements[i]
 
 
-extension MKeyedList[K(Hashable), T(MNode)](Indexed[K, T]):
+extension MKeyedList[K(Hashable,Show), T(MNode)](Indexed[K, T]):
     def __getitem__(self, key: K) -> T:
         e = self.get(key)
         if e is not None:
@@ -134,7 +134,9 @@ extension MNode (YangData):
             tv = try_validate_mnode_value(maybe_attr, schema_type, new_path)
             if tv is not None:
                 if tv.t == "empty":
-                    return (op=None if tv.val else OP_REMOVE, val=ygdata.Present() if tv.val else None)
+                    empty = tv.val
+                    if isinstance(empty, bool):
+                        return (op=None if empty else OP_REMOVE, val=ygdata.Present() if empty else None)
                 return (op=None, val=tv.val)
             raise YangValidationError(path, schema_type, maybe_attr)
 
