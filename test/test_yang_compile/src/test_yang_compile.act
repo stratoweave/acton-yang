@@ -1,6 +1,5 @@
 import file
 import fs
-import logging
 import testing
 import time
 
@@ -184,14 +183,3 @@ actor _test_sorespo(t: testing.EnvT):
 
     proc def __startup__():
         test_compile_yang_directory(t, "test-yang/sorespo")
-
-
-
-actor main(env):
-    proc def __startup__():
-        def report(success, error, output):
-            print(success, error, output)
-        t = testing.EnvT(report, env, logging.Handler(), set())
-        # Exclude junos-rpc modules due to missing grouping 'command-forwarding'
-        test_compile_yang_directory(t, "test-yang/juniper-crpd-24_4R1_9", ["junos-rpc-*"])
-        env.exit(0)
