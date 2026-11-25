@@ -191,21 +191,14 @@ def from_adata(root: yschema.DRoot, data: MNode, loose: bool=False, root_path: l
     return from_data(root, data, type_narrower, loose, root_path, prev)
 
 
-class ToGdataPrevWrapper(object):
-    """Convert adata to gdata and pass it to an update callback
+actor ToGdataPrevWrapper(wrapped: action(?ygdata.Node) -> None):
+    """Convert adata to gdata and pass it to an update callback.
 
-    Keeps the gdata tree it sent previously and passes it as prev to to_gdata in
-    the next update
+    Keep the previously sent tree for reuse in the next conversion.
     """
-    @property
-    wrapped: action(?ygdata.Node) -> None
-    prev: ?ygdata.Container
+    var prev: ?ygdata.Container = None
 
-    def __init__(self, wrapped: action(?ygdata.Node) -> None):
-        self.wrapped = wrapped
-        self.prev = None
-
-    proc def update(self, data: ?MNode) -> None:
-        new_data = data?.to_gdata(self.prev)
-        self.wrapped(new_data)
-        self.prev = new_data if isinstance(new_data, ygdata.Container) else None
+    def update(data: ?MNode) -> None:
+        new_data = data?.to_gdata(prev)
+        wrapped(new_data)
+        prev = new_data if isinstance(new_data, ygdata.Container) else None

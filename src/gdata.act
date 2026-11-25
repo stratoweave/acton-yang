@@ -364,7 +364,7 @@ def repr_gdata(v) -> str:
 
 
 class Id:
-    def __init__(self, q: str, name: str):
+    pure def __init__(self, q: str, name: str):
         self.q = q
         self.name = name
 
@@ -1637,7 +1637,7 @@ class KeylessList(ListNode):
 
 
 class Container(Node):
-    def __init__(self, children: dict[Id, Node]={}, presence: bool=False, ns: ?str=None, module: ?str=None, txid: ?str=None):
+    pure def __init__(self, children: dict[Id, Node]={}, presence: bool=False, ns: ?str=None, module: ?str=None, txid: ?str=None):
         self.children = children
         self.presence = presence
         self.ns = ns
@@ -1669,7 +1669,7 @@ class Container(Node):
 class Leaf(Node):
     val: value
 
-    def __init__(self, val: value, ns: ?str=None, module: ?str=None, txid: ?str=None):
+    pure def __init__(self, val: value, ns: ?str=None, module: ?str=None, txid: ?str=None):
         self.val = val
         self.ns = ns
         self.module = module
@@ -1789,7 +1789,7 @@ class Absent(Node):
     Absent is declarative / idempotent, meaning that if the target to be removed
     / made absent is not present, no error is raised.
     """
-    def __init__(self, children: dict[Id, Node]={}, ns: ?str=None, module: ?str=None, txid: ?str=None):
+    pure def __init__(self, children: dict[Id, Node]={}, ns: ?str=None, module: ?str=None, txid: ?str=None):
         self.ns = ns
         self.module = module
         self.children = children
@@ -1977,7 +1977,7 @@ class FNode(value):
     value_match: ?value
     children: list[FNode]
 
-    def __init__(self, name: ?Id=None, value_match: ?value=None, children: list[FNode]=[]):
+    pure def __init__(self, name: ?Id=None, value_match: ?value=None, children: list[FNode]=[]):
         self.name = name
         self.value_match = value_match
         self.children = children

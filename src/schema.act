@@ -1674,7 +1674,7 @@ class DRoot(DNodeInner):
     rpcs: list[DRpc]
     module_metadata: dict[str, ModuleMetadata]
 
-    def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, ModuleMetadata]={}, adata_name: ?str=None):
+    pure def __init__(self, children=[], identities=[], rpcs=[], module_metadata: dict[str, ModuleMetadata]={}, adata_name: ?str=None):
         self.module = ""
         self.namespace = ""
         self.prefix = ""
