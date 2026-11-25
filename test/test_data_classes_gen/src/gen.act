@@ -752,7 +752,7 @@ ys_yangrpc = r"""module yangrpc {
 actor main(env: Env):
     wfcap = file.WriteFileCap(file.FileCap(env.cap))
 
-    proc def __startup__():
+    def __startup__():
         yang_to_act(wfcap, yangs=[ys_one], filename="../test_data_classes/src/yang_one.act")
         yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo.act")
         yang_to_act(wfcap, yangs=[ys_foo, ys_qux, ys_bar], filename="../test_data_classes/src/yang_foo_loose.act", loose=True)

@@ -1642,7 +1642,7 @@ actor main(env):
     file_cap = file.FileCap(env.cap)
     fs = file.FS(file_cap)
 
-    proc def __startup__():
+    def __startup__():
         projpath = fs.exepath()[0:-len("out/bin/rfcgen")]
 
         schema_header = file.ReadFile(

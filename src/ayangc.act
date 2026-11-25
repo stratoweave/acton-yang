@@ -265,7 +265,7 @@ actor main(env):
     - compile: Compile multiple YANG modules together into a schema tree
     """
 
-    proc def __startup__():
+    def __startup__():
         file_cap = file.FileCap(env.cap)
 
         # Create command handlers that capture env and file_cap
