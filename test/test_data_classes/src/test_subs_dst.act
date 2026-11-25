@@ -190,7 +190,7 @@ actor _test_subs_dst_grouping(t: testing.AsyncT):
     sub = ft_oper.subs
     iface = sub.interfaces.interface.entry("eth0")
 
-    proc def __startup__():
+    def __startup__():
         tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
 
@@ -245,7 +245,7 @@ actor _test_subs_dst_rooted_at_list(t: testing.AsyncT):
 
     ifaces = ft_oper.subs.interfaces.interface
 
-    proc def __startup__():
+    def __startup__():
         tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({
@@ -266,7 +266,7 @@ actor _test_subs_dst_rooted_at_container(t: testing.AsyncT):
 
     clock = ft_oper.subs.system_state.clock
 
-    proc def __startup__():
+    def __startup__():
         tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
@@ -307,7 +307,7 @@ actor _test_subs_dst_container_gone_is_none(t: testing.AsyncT):
 
     clock = ft_oper.subs.system_state.clock
 
-    proc def __startup__():
+    def __startup__():
         tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({clock.dst(on_clock).deliver({clock.subscribe(period=1.0)})})
@@ -368,7 +368,7 @@ actor _test_subs_dst_rooted_below_a_list(t: testing.AsyncT):
 
     addresses = ft_oper.subs.interfaces.interface.address
 
-    proc def __startup__():
+    def __startup__():
         tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         subs.declare({addresses.dst(on_address).deliver({addresses.subscribe(period=1.0)})}, synced=on_synced)
@@ -433,7 +433,7 @@ actor _test_synced_covers_the_whole_declaration(t: testing.AsyncT):
             ifaces.dst(on_iface).deliver({ifaces.oper_status.subscribe(period=1.0)}),
         }, synced=on_all)
 
-    proc def __startup__():
+    def __startup__():
         tp = MockSubscriptionTreeProvider(on_declared)
         subs = gdata.SubscriptionManager(tp!, "test-owner")
         declare(on_synced)

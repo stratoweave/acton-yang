@@ -56,7 +56,7 @@ class MockTreeProviderEmpty(ygdata.TreeProvider):
 
 actor _test_rpc_foo_success(t: testing.AsyncT):
     """Test successful RPC execution with valid input/output"""
-    proc def __startup__():
+    def __startup__():
         tp = MockTreeProviderSuccess()
         root = yangrpc.rpc_root(tp)
 
@@ -82,7 +82,7 @@ actor _test_rpc_foo_success(t: testing.AsyncT):
 
 actor _test_rpc_foo_error(t: testing.AsyncT):
     """Test RPC error handling"""
-    proc def __startup__():
+    def __startup__():
         tp = MockTreeProviderError()
         root = yangrpc.rpc_root(tp)
 
@@ -105,7 +105,7 @@ actor _test_rpc_foo_error(t: testing.AsyncT):
 
 actor _test_rpc_foo_empty_output(t: testing.AsyncT):
     """Test RPC with empty output fields"""
-    proc def __startup__():
+    def __startup__():
         tp = MockTreeProviderEmpty()
         root = yangrpc.rpc_root(tp)
 
@@ -131,7 +131,7 @@ actor _test_rpc_foo_empty_output(t: testing.AsyncT):
 
 actor _test_rpc_foo_complex_input(t: testing.AsyncT):
     """Test RPC with complex nested input data"""
-    proc def __startup__():
+    def __startup__():
         tp = MockTreeProviderSuccess()
         root = yangrpc.rpc_root(tp)
 
@@ -203,7 +203,7 @@ def _test_rpc_output_deserialization():
 
 actor _test_rpc_silent_no_input_output(t: testing.AsyncT):
     """Test RPC with no input and no output (silent RPC)"""
-    proc def __startup__():
+    def __startup__():
         tp = MockTreeProviderSuccess()
         root = yangrpc.rpc_root(tp)
 
@@ -222,7 +222,7 @@ actor _test_rpc_silent_no_input_output(t: testing.AsyncT):
 
 actor _test_rpc_silent_error_handling(t: testing.AsyncT):
     """Test silent RPC error handling"""
-    proc def __startup__():
+    def __startup__():
         tp = MockTreeProviderError()
         root = yangrpc.rpc_root(tp)
 
