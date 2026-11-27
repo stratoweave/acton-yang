@@ -904,16 +904,20 @@ snode_methods = {
                     ns=self.ns,
                     pfx=self.pfx)
 
+        found_typedef = self.get_typedef(self.name, context)
+        resolved_typedef = found_typedef.resolve_typedef(context, new_mod, new_ns, new_pfx, recursion_level + 1, top_name)
+        # A typedef in a container, grouping, ... can only be referred to
+        # without prefix, from within that node
+        found_typedef_parent = found_typedef.parent
+        local_typedef = not (isinstance(found_typedef_parent, Module) or isinstance(found_typedef_parent, Submodule))
+
         new_name = self.name
         orig_prefix = self.get_prefix()
-        if new_pfx is not None and new_pfx != orig_prefix:
+        if new_pfx is not None and new_pfx != orig_prefix and not local_typedef:
             # Add explicit prefix when part of grouping expanded into other module
             prefix, name = split_prefix_name(self.name)
             if prefix is None:
                 new_name = "{orig_prefix}:{name}"
-
-        found_typedef = self.get_typedef(new_name, context)
-        resolved_typedef = found_typedef.resolve_typedef(context, new_mod, new_ns, new_pfx, recursion_level + 1, top_name)
 
         return ResolvedType(
                 new_name,
@@ -931,7 +935,8 @@ snode_methods = {
                 mod=self.mod,
                 ns=self.ns,
                 pfx=self.pfx,
-                resolved_base_typedef=resolved_typedef)
+                resolved_base_typedef=resolved_typedef,
+                local_typedef=local_typedef)
 
 """,
         "resolve_compiled_schema_path_dependencies": r"""    mut def resolve_compiled_schema_path_dependencies(self):

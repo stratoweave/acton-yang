@@ -979,6 +979,57 @@ def _test_list_key_extra_whitespace():
         else:
             testing.error("{name} is not a DLeaf")
 
+
+def _test_local_typedef_in_grouping_from_other_module():
+    """A type that refers to a typedef defined in a container keeps its name
+    without prefix when the grouping is used in another module. A prefixed
+    name can only refer to a typedef at the top level of a module."""
+    a = r"""module a {
+  yang-version "1.1";
+  namespace "http://example.com/a";
+  prefix "a";
+  typedef top {
+    type string;
+  }
+  grouping g {
+    container c {
+      typedef local {
+        type string;
+      }
+      leaf l {
+        type local;
+      }
+      leaf u {
+        type union {
+          type local;
+          type uint8;
+        }
+      }
+      leaf t {
+        type top;
+      }
+    }
+  }
+}"""
+    b = r"""module b {
+  yang-version "1.1";
+  namespace "http://example.com/b";
+  prefix "b";
+  import a {
+    prefix "a";
+  }
+  uses a:g;
+}"""
+    for m in yang.compile_modules(yang.parse_sources([a, b])):
+        if m.name == "b":
+            out = m.to_statement().pryang()
+            testing.assertTrue("a:local" not in out, out)
+            testing.assertTrue("type a:top;" in out, out)
+            # b as printed compiles again
+            yang.compile([a, out])
+            return
+    testing.error("module b not found")
+
 _merge_types_yang = r"""module types {
   yang-version "1.1";
   namespace "http://example.com/types";
