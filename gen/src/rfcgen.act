@@ -577,7 +577,8 @@ snode_methods = {
         "keys": """    def keys(self) -> list[str]:
         selfkey = self.key
         if selfkey is not None:
-            return selfkey.split(" ")
+            # The key argument is separated by any whitespace, see RFC 7950 section 7.8.2
+            return selfkey.split()
         return []
 
 """,
