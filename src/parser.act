@@ -388,6 +388,13 @@ def _test_parser_simple_statement():
     testing.assertEqual("test", stmt.arg, "Should parse argument")
     testing.assertEqual(0, len(stmt.substatements), "Should have no substatements")
 
+def _test_parser_empty_arg_roundtrip():
+    """An empty string argument stays quoted when printed back to YANG"""
+    stmt = parse(r'container c { presence ""; }')
+    out = stmt.pryang()
+    testing.assertEqual('container c {{\n  presence "";\n}}\n', out)
+    testing.assertEqual("", parse(out).substatements[0].arg)
+
 def _test_parser_crlf_preserves_line_endings():
     """Test parsing file with CRLF line endings"""
     lf = r'''module foo {
