@@ -201,7 +201,7 @@ class Statement(object):
             # that require quoting to make it valid YANG (RFC 7950, section 6.1.3):
             res += " "
             m = std.re.match(r"[\s'\";{}]|//|/\\*|\\*/", arg)
-            quoted_arg = True if self.kw in _quoted_arg_keywords or m is not None else False
+            quoted_arg = True if self.kw in _quoted_arg_keywords or m is not None or arg == "" else False
             if quoted_arg:
                 res += '"' + arg.replace('\\', '\\\\').replace('"', '\\"') + '"'
             else:
