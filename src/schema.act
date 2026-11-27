@@ -9738,16 +9738,20 @@ class Type(SchemaNodeOuter):
                     ns=self.ns,
                     pfx=self.pfx)
 
+        found_typedef = self.get_typedef(self.name, context)
+        resolved_typedef = found_typedef.resolve_typedef(context, new_mod, new_ns, new_pfx, recursion_level + 1, top_name)
+        # A typedef in a container, grouping, ... can only be referred to
+        # without prefix, from within that node
+        found_typedef_parent = found_typedef.parent
+        local_typedef = not (isinstance(found_typedef_parent, Module) or isinstance(found_typedef_parent, Submodule))
+
         new_name = self.name
         orig_prefix = self.get_prefix()
-        if new_pfx is not None and new_pfx != orig_prefix:
+        if new_pfx is not None and new_pfx != orig_prefix and not local_typedef:
             # Add explicit prefix when part of grouping expanded into other module
             prefix, name = split_prefix_name(self.name)
             if prefix is None:
                 new_name = "{orig_prefix}:{name}"
-
-        found_typedef = self.get_typedef(new_name, context)
-        resolved_typedef = found_typedef.resolve_typedef(context, new_mod, new_ns, new_pfx, recursion_level + 1, top_name)
 
         return ResolvedType(
                 new_name,
@@ -9765,7 +9769,8 @@ class Type(SchemaNodeOuter):
                 mod=self.mod,
                 ns=self.ns,
                 pfx=self.pfx,
-                resolved_base_typedef=resolved_typedef)
+                resolved_base_typedef=resolved_typedef,
+                local_typedef=local_typedef)
 
     mut def resolve_compiled_schema_path_dependencies(self):
         raise NotImplementedError("Type.resolve_compiled_schema_path_dependencies: expect call to ResolvedType.resolve_compiled_schema_path_dependencies instead")
@@ -11336,17 +11341,21 @@ def stmt_to_snode(stmt: Statement, parent: ?SchemaNode=None) -> SchemaNode:
 class ResolvedType(Type):
     resolved_base_typedef: ?Typedef
     resolved_path: ?xpath.AbsoluteLocationPath
+    # The type refers to a typedef defined in a node, not at the top level
+    # of a module, so the name never gets a prefix
+    local_typedef: bool
 
-    def __init__(self, name: str, base: list[str]=[], bit: list[Bit]=[], enum: list[Enum]=[], fraction_digits: ?int=None, length: ?Length=None, path: ?str=None, pattern: list[Pattern]=[], range_: ?Range=None, require_instance: ?bool=None, type: list[Type]=[], exts=[], parent=None, mod=None, ns=None, pfx=None, resolved_base_typedef=None, resolved_path: ?xpath.AbsoluteLocationPath=None):
+    def __init__(self, name: str, base: list[str]=[], bit: list[Bit]=[], enum: list[Enum]=[], fraction_digits: ?int=None, length: ?Length=None, path: ?str=None, pattern: list[Pattern]=[], range_: ?Range=None, require_instance: ?bool=None, type: list[Type]=[], exts=[], parent=None, mod=None, ns=None, pfx=None, resolved_base_typedef=None, resolved_path: ?xpath.AbsoluteLocationPath=None, local_typedef: bool=False):
         Type.__init__(self, name, base, bit, enum, fraction_digits, length, path, pattern, range_, require_instance, type, exts, parent, mod, ns, pfx)
         self.resolved_base_typedef = resolved_base_typedef
         self.resolved_path = resolved_path
+        self.local_typedef = local_typedef
         path = self.path
 
     def resolve_type(self, context: Context, new_mod: ?str=None, new_ns: ?str=None, new_pfx: ?str=None, recursion_level=0, _top_name: ?str=None):
         new_name = self.name
 
-        if self.name not in _builtin_types:
+        if self.name not in _builtin_types and not self.local_typedef:
             orig_prefix = self.get_prefix()
             if new_pfx is not None and new_pfx != orig_prefix:
                 # Add explicit prefix when part of grouping expanded into other module
@@ -11370,7 +11379,8 @@ class ResolvedType(Type):
                    ns=new_ns if new_ns is not None else self.ns,
                    pfx=new_pfx if new_pfx is not None else self.pfx,
                    resolved_base_typedef=self.resolved_base_typedef,
-                   resolved_path=self.resolved_path)
+                   resolved_path=self.resolved_path,
+                   local_typedef=self.local_typedef)
         return new
 
     def resolve_compiled_schema_path_dependencies(self):
