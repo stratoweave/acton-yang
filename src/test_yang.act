@@ -950,6 +950,35 @@ def _test_compile_augment():
     testing.assertEqual(root.get("c1").get("l2").config, True)
     return root.prdaclass()
 
+def _test_list_key_extra_whitespace():
+    """List keys can be separated by more than one space"""
+    ys = r"""module foo {
+  yang-version "1.1";
+  namespace "http://example.com/foo";
+  prefix "foo";
+  list l {
+    key "a  b";
+    leaf a {
+      type string;
+    }
+    leaf b {
+      type string;
+    }
+  }
+}"""
+    root = yang.compile([ys])
+    l = root.get("l")
+    if isinstance(l, yschema.DList):
+        testing.assertEqual(l.key, ["a", "b"])
+    else:
+        testing.error("l is not a DList")
+    for name in ["a", "b"]:
+        leaf = l.get(name)
+        if isinstance(leaf, yschema.DLeaf):
+            testing.assertTrue(leaf.is_key, "leaf {name} should be a key")
+        else:
+            testing.error("{name} is not a DLeaf")
+
 _merge_types_yang = r"""module types {
   yang-version "1.1";
   namespace "http://example.com/types";
